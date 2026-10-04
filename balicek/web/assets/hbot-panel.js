@@ -338,6 +338,19 @@
 
   // --- otevření, zavření, klávesnice ------------------------------------------------------------
   var zacatek = false, otvirac = null;
+  // Na mobilu panel zakryje skoro celou obrazovku → chová se jako modální okno: zbytek stránky je
+  // „inert“ (čtečka ani Tab se do něj nedostanou). Na počítači zůstává panel nemodální vedle obsahu.
+  var mobil = window.matchMedia ? matchMedia('(max-width: 760px)') : null;
+  function nastavModal(otevreno) {
+    var modal = !!(otevreno && mobil && mobil.matches);
+    box.setAttribute('aria-modal', modal ? 'true' : 'false');
+    Array.prototype.forEach.call(d.body.children, function (el) {
+      if (el === box || el.tagName === 'SCRIPT') return;
+      if (modal && !el.inert) { el.inert = true; el.setAttribute('data-hbot-inert', ''); }
+      else if (!modal && el.hasAttribute('data-hbot-inert')) { el.inert = false; el.removeAttribute('data-hbot-inert'); }
+    });
+  }
+  if (mobil && mobil.addEventListener) mobil.addEventListener('change', function () { if (!box.hidden) nastavModal(true); });
   function uvitani() {
     zacatek = true;
     znalosti.then(function () {
@@ -362,7 +375,7 @@
   function otevri(zdroj) {
     otvirac = zdroj || d.activeElement;
     styly.then(function () {
-      box.hidden = false; Z.otevreno(true);
+      box.hidden = false; Z.otevreno(true); nastavModal(true);
       if (!zacatek) uvitani();
       ukazOdkazMajitele();
       if (token()) zapniMajitele(location.hash === '#majitel');
@@ -378,7 +391,7 @@
     });
   }
   function zavri() {
-    box.hidden = true; Z.otevreno(false);
+    box.hidden = true; Z.otevreno(false); nastavModal(false);
     if (otvirac && otvirac.focus && d.contains(otvirac) && otvirac.offsetParent !== null) otvirac.focus({ preventScroll: true });
     else if (Z.tlacitka[0]) Z.tlacitka[0].focus({ preventScroll: true });
   }

@@ -13,11 +13,8 @@ export function vytvorStav({ env = process.env, uloziste, ted = () => Date.now()
   const dejUloziste = async () => (ul ||= await vychoziUloziste());
 
   return async function handler(req) {
-    const a = overPozadavek(req, env, ted());
-    if (!a.ok) {
-      await new Promise((r) => setTimeout(r, 800));
-      return json({ chyba: a.duvod }, a.status);
-    }
+    const a = await overPozadavek(req, env, ted(), dejUloziste);
+    if (!a.ok) return json({ chyba: a.duvod }, a.status);
     if (req.method === "POST") {
       let telo;
       try {

@@ -123,6 +123,12 @@ test("mobil 390 px: lišta Zavolat · Zeptat se · Cena, panel jako spodní list
   assert.ok(zavrit.y >= 0 && zavrit.height >= 40, "zavírací tlačítko je vidět a má ≥ 40 px");
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   assert.ok(await p.evaluate(() => document.getElementById("hbot").getBoundingClientRect().width <= innerWidth), "panel není širší než obrazovka");
+  // Na mobilu je panel modální: zbytek stránky je inert, po zavření se vše vrátí.
+  assert.equal(await p.getAttribute("#hbot", "aria-modal"), "true");
+  assert.equal(await p.evaluate(() => document.getElementById("hspg-lista").inert), true);
+  await p.click("#hbot .hb-close");
+  assert.equal(await p.evaluate(() => document.querySelectorAll("[data-hbot-inert]").length + document.querySelectorAll("body > [inert]").length), 0);
+  assert.equal(await p.evaluate(() => document.activeElement?.closest("#hspg-lista") !== null), true, "fokus zpět na liště");
 });
 
 test("mobilní lišta: popisky na jeden řádek a bez přetečení na šířkách 320–412 px", async () => {
@@ -210,6 +216,11 @@ test("velké AI centrum /ai-centrum/: přihlášení tokenem a odpovědi všech 
   await p.waitForSelector("#info >> text=Hotovo.");
   const n = await p.$$eval(".sloupec .vystup", (e) => e.filter((x) => x.textContent.startsWith("[")).length);
   assert.equal(n, 3);
+  // Historie (zadání mohou obsahovat údaje zákazníků) jen v sessionStorage a po odhlášení zmizí.
+  assert.equal(await p.evaluate(() => localStorage.getItem("hspgHistorie")), null);
+  assert.ok(await p.evaluate(() => JSON.parse(sessionStorage.getItem("hspgHistorie") || "[]").length) >= 1);
+  await p.click("#odhlasit");
+  assert.equal(await p.evaluate(() => sessionStorage.getItem("hspgHistorie")), null);
   assert.deepEqual(chyby, []);
 });
 

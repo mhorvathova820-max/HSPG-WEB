@@ -3,16 +3,16 @@
 
 ## Proč
 Majitel chce na webu plovoucí tlačítko, ve kterém AI spolupracují – pro zákazníka jinak a pro majitele jinak –
-a web přitom musí být špičkový i **bez AI**. Kód je hotový a otestovaný (57 jednotkových testů, 13 testů
+a web přitom musí být špičkový i **bez AI**. Kód je hotový a otestovaný (61 jednotkových testů, 13 testů
 v Chromiu nad kopií živého webu). Nahrazuje dosavadní H-BOT (`/assets/hbot.js` je vložený na 243 stránkách
 s `defer`, takže **HTML stránek se měnit nemusí**).
 
 ## Co kód dělá
 | Pro koho | Chování |
 |---|---|
-| Zákazník | Rychlé otázky → okamžitá odpověď z ověřených FAQ (bez AI, zdarma). Vlastní otázka → jasná shoda s FAQ odpoví hned; jinak **spolupracující AI**: jedna napíše odpověď jen ze schválených znalostí, druhá (jiný poskytovatel) ji ověří nebo opraví. Zákazník živě vidí „Claude píše odpověď… / Gemini ověřuje fakta…“ a u odpovědi štítek „✓ Odpověď ověřila druhá AI · Claude + Gemini“. Telefony a e-maily z textu se do AI neposílají. Zavolání zpět přes Netlify formulář `hspg-zavolejte`. |
+| Zákazník | Rychlé otázky → okamžitá odpověď z ověřených FAQ (bez AI, zdarma). Vlastní otázka → jasná shoda s FAQ odpoví hned; jinak **spolupracující AI**: jedna napíše odpověď jen ze schválených znalostí, druhá (jiný poskytovatel) ji ověří nebo opraví. Zákazník živě vidí „Claude píše odpověď… / Gemini ověřuje fakta…“ a u odpovědi štítek „✓ Odpověď ověřila druhá AI · Claude + Gemini“ (jen když ji druhá AI schválila; opravený text má štítek „Odpověď AI“). Odpověď s cenou, procenty, lhůtou nebo zárukou, které nejsou ve schválených znalostech, se zákazníkovi nepošle – nabídne se zavolání zpět. Telefony a e-maily z textu se do AI neposílají. Zavolání zpět přes Netlify formulář `hspg-zavolejte`. |
 | Bez AI | Žádný klíč / `AI_ZAPNUTO=0` / vyčerpaný rozpočet / limit / chyba / 12 s bez odpovědi → odpoví FAQ nebo nabídne zavolání; po 2 chybách se AI na zbytek návštěvy nevolá. Návštěvník chybu nevidí. |
-| Majitel | Otevře **hspg.cz/#majitel** (návštěvníci odkaz na přihlášení nevidí; zařízení, kde se majitel jednou přihlásil, ho pak ukazuje). V panelu „Přihlášení majitele“ (heslo `HSPG_PANEL_HESLO` → podepsaný token na 12 h, 5 chybných pokusů = zámek 15 min). Karta **„Vše ve tvých rukách“**: všechny AI najednou (porovnání vedle sebe) nebo spolupráce (návrh → kontrola pravdivosti → finál), hotové úlohy včetně **„Zkontroluj tuto stránku“**, stav AI, útrata v Kč i v kreditech Netlify, odkaz na velké AI centrum `/ai-centrum/`. |
+| Majitel | Otevře **hspg.cz/#majitel** (návštěvníci odkaz na přihlášení nevidí; zařízení, kde se majitel jednou přihlásil, ho pak ukazuje). V panelu „Přihlášení majitele“ (heslo `HSPG_PANEL_HESLO` → podepsaný token na 12 h; 5 pokusů / 15 min, pak zámek; podpisové tajemství serveru vznikne samo v Netlify Blobs `hspg-ai`, klíč `tajemstvi/token` – nemazat; odhlášení všech zařízení = změna hesla). Karta **„Vše ve tvých rukách“**: všechny AI najednou (porovnání vedle sebe) nebo spolupráce (návrh → kontrola pravdivosti → finál), hotové úlohy včetně **„Zkontroluj tuto stránku“**, stav AI, útrata v Kč i v kreditech Netlify, odkaz na velké AI centrum `/ai-centrum/`. |
 | Mobil (≤ 760 px) | Spodní lišta má 3 položky: Zavolat · **Zeptat se** · Cena do 24 h. Panel se otevře jako spodní list přes celou šířku nad lištou souhlasu. |
 | Výkon | Při načtení stránky jen malý zavaděč (tlačítko + lišta). Panel, styly a znalosti se stáhnou až při najetí / fokusu / dotyku. |
 
@@ -61,7 +61,7 @@ s `defer`, takže **HTML stránek se měnit nemusí**).
 - [ ] `git grep -n "HSPG_PANEL_HESLO=" ` a hledání hesel/klíčů v diffu: nic.
 
 ## Bez AI / s AI
-Bez AI (žádný klíč, Gateway nedostupná, `AI_ZAPNUTO=0`, rozpočet vyčerpán, limit, chyba, timeout 12 s): FAQ, zavolání zpět, poptávka – plná funkčnost. S AI: spolupráce dvou AI pro zákazníka, všech AI pro majitele. Rozpočet: `AI_MESICNI_LIMIT_KC` (odhad podle tokenů, ukládá se v Netlify Blobs `hspg-ai`); po překročení se veřejná AI sama vypne do konce měsíce.
+Bez AI (žádný klíč, Gateway nedostupná, `AI_ZAPNUTO=0`, rozpočet vyčerpán, limit, chyba, timeout 12 s): FAQ, zavolání zpět, poptávka – plná funkčnost. S AI: spolupráce dvou AI pro zákazníka, všech AI pro majitele. Rozpočet: `AI_MESICNI_LIMIT_KC` (odhad podle tokenů, ukládá se v Netlify Blobs `hspg-ai`); zákazníci smí nejvýš `AI_VEREJNY_LIMIT_KC` (výchozí polovina); po překročení se veřejná AI sama vypne do konce měsíce. Bez dostupného úložiště se AI nevolá ani pro majitele (503) – kredity nesmí dojít. Potvrzení zákazníkovi e-mailem (`POTVRZENI_ZAKAZNIKOVI`) se v tomto úkolu neposílá: odejde až se schváleným textem a limity z úkolu 02.
 
 ## Nepřekročitelná pravidla
 Viz `balicek/KONTEXT.md` §4. Zvlášť: žádné klíče v kódu, MX neměnit, nic neodesílat do produkčních formulářů bez `TEST`, produkce jen po schválení.

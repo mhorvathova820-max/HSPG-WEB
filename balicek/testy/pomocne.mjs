@@ -6,6 +6,8 @@ export const HESLO = "testovaci-heslo-1234567";
 export function env(extra = {}) {
   return {
     HSPG_PANEL_HESLO: HESLO,
+    // Testy podepisují tokeny tajemstvím z prostředí; cestu přes Netlify Blobs ověřuje samostatný test.
+    HSPG_TOKEN_TAJEMSTVI: "testovaci-tajemstvi-serveru-0123456789",
     ANTHROPIC_API_KEY: "test",
     GEMINI_API_KEY: "test",
     OPENAI_API_KEY: "test",

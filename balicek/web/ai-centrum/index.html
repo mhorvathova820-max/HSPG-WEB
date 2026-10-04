@@ -148,6 +148,13 @@ const relace = {
   smaz() { try { sessionStorage.removeItem(TOKEN_KLIC); sessionStorage.removeItem(PLATNOST_KLIC); } catch {} },
 };
 
+// Historie jen v sessionStorage (zmizí se zavřením karty a při odhlášení); stará kopie z localStorage se smaže.
+const historie = {
+  get() { try { return JSON.parse(sessionStorage.getItem("hspgHistorie") || "[]"); } catch { return []; } },
+  set(h) { try { sessionStorage.setItem("hspgHistorie", JSON.stringify(h)); } catch {} },
+  smaz() { try { sessionStorage.removeItem("hspgHistorie"); localStorage.removeItem("hspgHistorie"); } catch {} },
+};
+try { localStorage.removeItem("hspgHistorie"); } catch {}
 let token = relace.token();
 let ai = [];                 // [{id, nazev, zapnuto, model, klic}]
 let stavServer = null;
@@ -156,6 +163,8 @@ let preruseni = null;
 
 function odhlas(zprava) {
   relace.smaz(); token = null;
+  // Historie obsahuje zadání (často údaje zákazníků) – po odhlášení v prohlížeči nezůstane.
+  historie.smaz(); $("historie").innerHTML = "";
   $("aplikace").classList.add("skryte"); $("prihlaseni").classList.remove("skryte");
   $("prihlaseniChyba").textContent = zprava || "";
 }
@@ -311,9 +320,9 @@ $("odeslat").addEventListener("click", () => {
 });
 
 function ulozHistorii(zaznam) {
-  const h = uloz.get("hspgHistorie", []);
+  const h = historie.get();
   h.unshift({ ...zaznam, cas: new Date().toISOString() });
-  uloz.set("hspgHistorie", h.slice(0, 30));
+  historie.set(h.slice(0, 30));
 }
 
 async function obnovSpotrebu() {
@@ -326,7 +335,7 @@ function vykresliHistorii() {
   const radky = ai.map((a) => { const x = u?.ai?.[a.id]; return x ? `<tr><td>${a.nazev}</td><td>${x.dotazu}</td><td>${x.vstup.toLocaleString("cs")}</td><td>${x.vystup.toLocaleString("cs")}</td><td>${x.kc.toFixed(1)}</td></tr>` : ""; }).join("");
   const souhrn = u ? `<tr><th colspan="4">Celkem / limit</th><th>${Math.round(u.celkemKc)} / ${stavServer.limitKc} Kč</th></tr>` : "";
   $("spotreba").innerHTML = `<tr><th>Tento měsíc</th><th>Dotazů</th><th>Tokeny vstup</th><th>Tokeny výstup</th><th>≈ Kč</th></tr>${radky || '<tr><td colspan="5" class="prazdne">Zatím nic.</td></tr>'}${souhrn}`;
-  const h = uloz.get("hspgHistorie", []);
+  const h = historie.get();
   $("historie").innerHTML = "";
   h.forEach((z) => {
     const li = document.createElement("li");

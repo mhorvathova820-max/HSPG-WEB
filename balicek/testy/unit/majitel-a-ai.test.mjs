@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { vytvorPrihlaseni } from "../../web/netlify/functions/majitel.mjs";
 import { vytvorAI } from "../../web/netlify/functions/ai.mjs";
 import { vytvorStav } from "../../web/netlify/functions/ai-stav.mjs";
+import { createHmac } from "node:crypto";
 import { vydejToken, overToken, overPozadavek } from "../../web/netlify/lib/ai/autorizace.mjs";
 import { HESLO, env, falesnyAdapter, pametoveUloziste, pozadavek } from "../pomocne.mjs";
 
@@ -16,8 +17,8 @@ test("token: platný, podvržený, prošlý, po změně hesla neplatný", () => 
   assert.equal(overToken(token, env({ HSPG_PANEL_HESLO: "jine-heslo-0123456789" }), 1_000_001), false);
 });
 
-test("krátké nebo chybějící heslo = interní část zamčená (503)", () => {
-  const r = overPozadavek(pozadavek("/api/ai-stav", { headers: { authorization: "Bearer x" } }), { HSPG_PANEL_HESLO: "kratke" });
+test("krátké nebo chybějící heslo = interní část zamčená (503)", async () => {
+  const r = await overPozadavek(pozadavek("/api/ai-stav", { headers: { authorization: "Bearer x" } }), { HSPG_PANEL_HESLO: "kratke" });
   assert.equal(r.status, 503);
 });
 
@@ -172,4 +173,33 @@ test("přihlášení: souběžné pokusy limit 5 neobejdou; bez úložiště 503
   const rozbite = { get: async () => { throw new Error("x"); }, getWithMetadata: async () => { throw new Error("x"); }, setJSON: async () => { throw new Error("x"); } };
   const h2 = vytvorPrihlaseni({ env: env(), uloziste: rozbite, zdrzeniMs: 0 });
   assert.equal((await h2(pozadavek("/api/majitel", { method: "POST", body: { heslo: HESLO } }), { ip: "1.1.1.1" })).status, 503);
+});
+
+test("token bez HSPG_TOKEN_TAJEMSTVI: tajemství serveru vznikne v Blobs, z tokenu nejde hádat heslo", async () => {
+  const e = env({ HSPG_TOKEN_TAJEMSTVI: "" });
+  const ul = pametoveUloziste();
+  const prihlas = vytvorPrihlaseni({ env: e, uloziste: ul });
+  const { token } = await (await prihlas(pozadavek("/api/majitel", { method: "POST", body: { heslo: HESLO } }), { ip: "5.5.5.5" })).json();
+  assert.ok(token);
+  assert.equal(typeof (await ul.get("tajemstvi/token"))?.hodnota, "string");
+  const stav = (u, t) => vytvorStav({ env: e, uloziste: u })(pozadavek("/api/ai-stav", { headers: { authorization: `Bearer ${t}` } }));
+  assert.equal((await stav(ul, token)).status, 200, "stejné úložiště = stejné tajemství");
+  assert.equal((await stav(pametoveUloziste(), token)).status, 401, "jiné tajemství serveru = neplatný token");
+  // Starý podpis odvozený jen z hesla už neprojde (nešlo by z něj hádat heslo offline).
+  const p = String(Date.now() + 3600_000);
+  const stary = `${p}.${createHmac("sha256", createHmac("sha256", `hspg-token:${HESLO}`).digest()).update(p).digest("base64url")}`;
+  assert.equal((await stav(ul, stary)).status, 401);
+  // Výpadek úložiště: 503, nikdy průchod; bez hlavičky 401 hned (bez čtení úložiště).
+  const rozbite = { get: async () => { throw new Error("x"); }, getWithMetadata: async () => { throw new Error("x"); }, setJSON: async () => { throw new Error("x"); } };
+  assert.equal((await stav(rozbite, token)).status, 503);
+  assert.equal((await vytvorStav({ env: e, uloziste: rozbite })(pozadavek("/api/ai-stav"))).status, 401);
+});
+
+test("ai: výpadek úložiště = 503 a AI se nevolá (rozpočet nejde ověřit)", async () => {
+  const ad = { claude: falesnyAdapter() };
+  const rozbite = { get: async () => { throw new Error("x"); }, getWithMetadata: async () => { throw new Error("x"); }, setJSON: async () => { throw new Error("x"); } };
+  const h = vytvorAI({ env: env(), adaptery: ad, uloziste: rozbite });
+  const r = await h(pozadavek("/api/ai", { method: "POST", headers: { authorization: `Bearer ${vydejToken(env()).token}` }, body: { ai: "claude", zpravy: [{ role: "user", text: "x" }] } }));
+  assert.equal(r.status, 503);
+  assert.equal(ad.claude.volani.length, 0);
 });

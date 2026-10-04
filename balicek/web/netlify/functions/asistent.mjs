@@ -58,6 +58,21 @@ export function prectiVerdikt(text) {
   return null;
 }
 
+// Pojistka proti vymyšleným (nebo návštěvníkem podstrčeným) číslům: každé číslo u ceny, procent,
+// lhůty nebo záruky musí být ve schválených znalostech se stejnou jednotkou („30 let“ neprojde jen proto,
+// že ve znalostech je „30 dní“). Jinak se odpověď předá týmu.
+const CITLIVE = /(\d+(?:[.,]\d+)?)\s*(?:,-\s*)?(Kč|CZK|korun|%|procent|let\b|rok|měsíc|hod|h\b|dn[ůíy]|den\b|týd)/giu;
+const TRIDA = [[/^(kč|czk|korun)/, "kc"], [/^(%|procent)/, "pct"], [/^(let|rok)/, "roky"], [/^měsíc/, "mesice"], [/^h/, "hodiny"], [/^(dn|den)/, "dny"], [/^týd/, "tydny"]];
+const normujCisla = (t) => String(t || "").replace(/(\d)[\s\u00a0\u202f.](?=\d{3}(?!\d))/g, "$1");
+const citlivaCisla = (t) => [...normujCisla(t).matchAll(CITLIVE)].map((m) => {
+  const j = m[2].toLowerCase();
+  return `${m[1].replace(",", ".")} ${(TRIDA.find(([re]) => re.test(j)) || [, j])[1]}`;
+});
+export function cislaMimoZnalosti(odpoved, znalosti) {
+  const zname = new Set(citlivaCisla(znalosti));
+  return citlivaCisla(odpoved).filter((c) => !zname.has(c));
+}
+
 // Telefon a e-mail z textu návštěvníka do AI neodchází (patří do formuláře, ne k poskytovateli AI).
 export function maskujKontakty(t) {
   return t
@@ -195,14 +210,18 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
           if (v) {
             ai.push(POSKYTOVATELE[kontrolor].nazev);
             if (v.ok) overeno = true;
-            else if (v.odpoved) {
-              odpoved = v.odpoved;
-              overeno = true;
-            } else return [{ rezim: "predat", ai }, 200];
+            // Přepis od kontrolora už nikdo neověřil → vrátí se se štítkem „Odpověď AI“ (overeno=false).
+            else if (v.odpoved) odpoved = v.odpoved;
+            else return [{ rezim: "predat", ai }, 200];
           }
         } catch (e) {
           console.warn(`asistent: ${kontrolor} kontrola selhala`, e?.status || "", e?.message);
         }
+      }
+      const navic = cislaMimoZnalosti(odpoved, textZnalosti());
+      if (navic.length) {
+        console.warn(`asistent: ${navic.length}× číslo mimo znalosti → předávám týmu`);
+        return [{ rezim: "predat", ai }, 200];
       }
       return [{ rezim: "ai", odpoved, overeno, ai }, 200];
     }

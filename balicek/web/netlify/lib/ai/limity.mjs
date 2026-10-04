@@ -1,5 +1,6 @@
-// Limity a útrata AI. Ukládá se do Netlify Blobs (úložiště „hspg-ai“); IP adresy se neukládají,
-// jen jejich otisk se solí dne, takže je nejde zpětně dohledat ani propojit mezi dny.
+// Limity a útrata AI. Ukládá se do Netlify Blobs (úložiště „hspg-ai“). IP adresa se neukládá, jen její otisk
+// SHA-256(den|IP). Bez tajné soli jde o pseudonymizaci (kdo má přístup k Blobs, mohl by IP dopočítat) –
+// tajnou denní sůl a mazání starých otisků doplní úkol 09 (krok 8), teprve pak platí věta o anonymizaci.
 // Všechny zápisy jsou podmíněné (etag): souběžné požadavky se nepřepíšou a limit ani rozpočet nepřetečou.
 import { createHash } from "node:crypto";
 

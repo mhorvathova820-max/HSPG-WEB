@@ -19,11 +19,8 @@ export function vytvorAI({ env = process.env, adaptery, uloziste, ted = () => Da
 
   return async function handler(req) {
     if (req.method !== "POST") return json({ chyba: "Použijte POST." }, 405);
-    const a = overPozadavek(req, env, ted());
-    if (!a.ok) {
-      await new Promise((r) => setTimeout(r, 800));
-      return json({ chyba: a.duvod }, a.status);
-    }
+    const a = await overPozadavek(req, env, ted(), dejUloziste);
+    if (!a.ok) return json({ chyba: a.duvod }, a.status);
 
     let telo;
     try {
@@ -45,13 +42,14 @@ export function vytvorAI({ env = process.env, adaptery, uloziste, ted = () => Da
     const system = pokyn ? `${PRAVIDLA_PRAVDIVOSTI}\n\nRole v této úloze:\n${String(pokyn)}` : PRAVIDLA_PRAVDIVOSTI;
     // Měsíční rozpočet AI platí i pro majitele – kredity Netlify jsou společné s chodem webu.
     // Rezervuje se nejvyšší možná cena volání; po odpovědi se vyrovná na skutečnou.
-    let rezerva = 0;
-    let store = null;
+    // Bez úložiště nejde rozpočet ověřit → AI se nevolá (kredity nesmí dojít ani přes panel majitele).
+    let rezerva;
+    let store;
     try {
       store = await dejUloziste();
       rezerva = await rezervuj(store, ai, odhadTokenu(system + JSON.stringify(zpravy)), MAX_TOKENU, env, ted(), POSKYTOVATELE[ai].model(env));
     } catch {
-      store = null; // úložiště nedostupné: přihlášený majitel smí pokračovat (nízký objem)
+      return json({ chyba: "Rozpočet AI teď nejde ověřit (úložiště je nedostupné). Zkuste to za chvíli." }, 503);
     }
     if (rezerva === false) return json({ chyba: `Měsíční rozpočet AI (${mesicniLimitKc(env)} Kč, proměnná AI_MESICNI_LIMIT_KC) by se překročil.` }, 402);
     const adapter = (adaptery || vytvorAdaptery(env))[ai];
@@ -65,7 +63,7 @@ export function vytvorAI({ env = process.env, adaptery, uloziste, ted = () => Da
               const kc = odhadKc(ai, kus.stat.vstup || 0, kus.stat.vystup || 0, env, POSKYTOVATELE[ai].model(env));
               ctrl.enqueue(enc.encode("\n\u0000STAT" + JSON.stringify({ ...kus.stat, kc: Math.round(kc * 100) / 100 })));
               try {
-                if (store) await zapisUtratu(store, ai, kus.stat, env, ted(), rezerva, POSKYTOVATELE[ai].model(env));
+                await zapisUtratu(store, ai, kus.stat, env, ted(), rezerva, POSKYTOVATELE[ai].model(env));
               } catch {
                 // Útrata se nezapíše, odpověď ale doběhne.
               }

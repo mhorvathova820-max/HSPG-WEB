@@ -6,7 +6,7 @@
 //   E-mail přes SMTP (Seznam):             SMTP_UZIVATEL, SMTP_HESLO; volitelně SMTP_HOST, SMTP_PORT.
 //     Komu: podle content/firma.json (smerovani_formularu → emaily), vždy s kopií na emaily.zaloha.
 //     NOTIFIKACE_EMAIL (volitelně) přepíše adresáta – např. pro test na jednu schránku.
-//   Potvrzení zákazníkovi (e-mailem):      POTVRZENI_ZAKAZNIKOVI=1 (vyžaduje SMTP)
+//   Potvrzení zákazníkovi (e-mailem):      POTVRZENI_ZAKAZNIKOVI=1 + schválený text v firma.json (úkol 02), vyžaduje SMTP
 //   Push (ntfy/Telegram) nese jen typ a číslo poptávky. Jméno a telefon v pushi až s OZNAMENI_S_UDAJI=1
 //   – ntfy.sh i Telegram jsou další příjemci osobních údajů a musí být uvedeni v zásadách.
 import firma from "../../content/firma.json" with { type: "json" };
@@ -83,6 +83,15 @@ export function adresat(formular, env = process.env, f = firma) {
   return { to, cc };
 }
 
+// Potvrzení zákazníkovi odejde jen se schváleným textem a jen u vybraných formulářů (úkol 02, krok A5).
+// Do té doby (firma.json bez potvrzeni_zakaznikovi.schvaleno) se neposílá, ani když je POTVRZENI_ZAKAZNIKOVI=1 –
+// jinak by šlo přes formulář posílat e-maily z firemní schránky na cizí adresy. Limity na adresu a den doplní úkol 02.
+export function potvrzeniPovoleno(formular, env, firmaData) {
+  const pz = firmaData?.potvrzeni_zakaznikovi;
+  return env.POTVRZENI_ZAKAZNIKOVI === "1" && pz?.schvaleno === true && Array.isArray(pz.formulare) &&
+    pz.formulare.includes(formular) && !JSON.stringify(pz).includes("[DOPLNIT");
+}
+
 export function vytvorOznameni({ env = process.env, f = fetch, transport, firmaData = firma } = {}) {
   return async function handler(req) {
     let payload;
@@ -111,7 +120,7 @@ export function vytvorOznameni({ env = process.env, f = fetch, transport, firmaD
         });
       }]);
     }
-    if (smtp && env.POTVRZENI_ZAKAZNIKOVI === "1" && s.email) {
+    if (smtp && s.email && potvrzeniPovoleno(s.formular, env, firmaData)) {
       ulohy.push(["potvrzeni", async () => {
         const t = transport || (await smtpTransport(env));
         await t.sendMail({

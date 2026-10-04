@@ -50,6 +50,7 @@ test("oznámení: ntfy + Telegram + e-mail + potvrzení; chyba jednoho kanálu n
   const h = vytvorOznameni({
     env: { NTFY_TEMA: "tajne-tema", TELEGRAM_BOT_TOKEN: "t", TELEGRAM_CHAT_ID: "1", SMTP_UZIVATEL: "info@hspg.cz", SMTP_HESLO: "x", NOTIFIKACE_EMAIL: "majitel@hspg.cz", POTVRZENI_ZAKAZNIKOVI: "1" },
     f, transport,
+    firmaData: { ...firma, potvrzeni_zakaznikovi: { schvaleno: true, formulare: ["hspg-poptavka"] } },
   });
   const r = await h(pozadavek("/", { method: "POST", body: { payload: { form_name: "hspg-poptavka", id: "x1", data: { Email: "zakaznik@example.cz", Zpráva: "Střecha" } } } }));
   assert.equal(r.status, 200);
@@ -88,4 +89,15 @@ test("shrnutí: předmět nebere interní pole (form-name ani ip)", () => {
   const s = shrnuti({ form_name: "hspg-akce", id: "x1", data: { "form-name": "hspg-akce", ip: "1.2.3.4", Telefon: "777123456" } });
   assert.ok(!JSON.stringify(s).includes("1.2.3.4"));
   assert.ok(!/hspg-akce,/.test(JSON.stringify(s)));
+});
+
+test("potvrzení zákazníkovi neodejde bez schváleného textu ve firma.json ani u neuvedeného formuláře", async () => {
+  const e = { SMTP_UZIVATEL: "info@hspg.cz", SMTP_HESLO: "x", NOTIFIKACE_EMAIL: "majitel@hspg.cz", POTVRZENI_ZAKAZNIKOVI: "1" };
+  const telo = { payload: { form_name: "hspg-poptavka", id: "x2", data: { Email: "cizi@example.cz" } } };
+  for (const pz of [undefined, { schvaleno: false, formulare: ["hspg-poptavka"] }, { schvaleno: true, formulare: ["hspg-akce"] }, { schvaleno: true, formulare: ["hspg-poptavka"], text: "[DOPLNIT: text]" }]) {
+    const maily = [];
+    const h = vytvorOznameni({ env: e, transport: { sendMail: async (m) => { maily.push(m); } }, firmaData: { ...firma, potvrzeni_zakaznikovi: pz } });
+    await h(pozadavek("/", { method: "POST", body: telo }));
+    assert.deepEqual(maily.map((m) => m.to), ["majitel@hspg.cz"], JSON.stringify(pz));
+  }
 });
