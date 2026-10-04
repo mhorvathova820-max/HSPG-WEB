@@ -1,8 +1,8 @@
-# Úkol 20: Ověření webu v Seznam Webmasteru a Bing Webmaster Tools (soubory + meta tagy)
-> Priorita P1 · Závisí na: 00 (pojistka `scripts/nasadit.mjs`) · Čeká na majitele: schválení produkčního nasazení (ověření jede s nejbližším schváleným nasazením), kliknutí na „Ověřit“ v Seznam Webmasteru a v Bing Webmaster Tools · Rozsah: všechny ověřovací soubory z `balicek/web/overeni/` v kořeni webu (kopie bajt po bajtu), dva meta tagy v `<head>` úvodní stránky, test, který je hlídá, ověření na náhledu a po nasazení na produkci. Jedna fáze, malý úkol – dělej ho hned po úkolu 00 (nebo po právě rozpracovaném úkolu).
+# Úkol 20: Ověření webu v Seznam Webmasteru (soubory + meta tag) a záloha pro Bing
+> Priorita P1 · Závisí na: 00 (pojistka `scripts/nasadit.mjs`) · Čeká na majitele: schválení produkčního nasazení (ověření jede s nejbližším schváleným nasazením), kliknutí na „Ověřit“ v Seznam Webmasteru (Bing je už ověřený přes DNS) · Rozsah: všechny ověřovací soubory z `balicek/web/overeni/` v kořeni webu (kopie bajt po bajtu), dva meta tagy v `<head>` úvodní stránky, test, který je hlídá, ověření na náhledu a po nasazení na produkci. Jedna fáze, malý úkol – dělej ho hned po úkolu 00 (nebo po právě rozpracovaném úkolu).
 
 ## Proč (s důkazy)
-Seznam web hspg.cz vůbec nezná (site:hspg.cz nic, KONTEXT §2). Majitel 4. 10. vygeneroval ověření vícekrát (Seznam pokaždé vydal jiný kód) a poslal i meta tagy. Nevíme, který kód Seznam při kliknutí na „Ověřit“ použije, proto se nasadí **všechny** – navzájem si nevadí. Ověřovací kódy nejsou tajné (jsou veřejně na webu), do repozitáře patří.
+Seznam web hspg.cz vůbec nezná (site:hspg.cz nic, KONTEXT §2). **Bing je už ověřený přes DNS** (CNAME ve Wedosu, 4. 10., KONTEXT §2) – jeho soubor a meta tag se nasadí jen jako záloha pro případ, že by záznam DNS zmizel. DNS se v tomto úkolu nemění. Majitel 4. 10. vygeneroval ověření vícekrát (Seznam pokaždé vydal jiný kód) a poslal i meta tagy. Nevíme, který kód Seznam při kliknutí na „Ověřit“ použije, proto se nasadí **všechny** – navzájem si nevadí. Ověřovací kódy nejsou tajné (jsou veřejně na webu), do repozitáře patří.
 
 | Vyhledávač | Adresa / místo na webu | Zdroj v balíčku | Velikost | SHA-256 |
 |---|---|---|---|---|
@@ -38,7 +38,7 @@ NE: DNS a MX (beze změny), sitemap (soubory do ní nepatří), úprava obsahu s
    - žádné vynucené pravidlo v `_redirects` / `netlify.toml` nemá zdroj, který by soubory zachytil, bez výjimky z kroku 5.
 8. Náhled zdarma: `node scripts/nasadit.mjs` → na adrese náhledu `curl -sS -D - <náhled>/<soubor>` pro všechny tři soubory (200, správný `content-type`, `curl -sS <adresa> | sha256sum` shodný) a `curl -sS <náhled>/ | grep -E 'seznam-wmt|msvalidate'` → oba tagy.
 9. Sloučení do `main` a produkce **jen se schválením majitele** a v dávce s nejbližším produkčním nasazením (typicky úkol 01): `node scripts/nasadit.mjs --produkce --schvaleno "…"`. Pokud majitel výslovně chce ověřit hned, samostatné nasazení je v pořádku (15 kreditů, limit 1× denně platí).
-10. Po nasazení na produkci totéž na `https://hspg.cz/…`. Teprve potom majitel (nebo Claude v Chrome s ním, úloha C7) klikne v Seznam Webmasteru i v Bing Webmaster Tools na **Ověřit** (metodou, kterou zvolil naposledy) a odešle sitemap `https://hspg.cz/sitemap.xml`. Další kód si u Seznamu negeneruje – každý nový by se musel znovu nasadit.
+10. Po nasazení na produkci totéž na `https://hspg.cz/…`. Teprve potom majitel (nebo Claude v Chrome s ním, úloha C7) klikne v Seznam Webmasteru na **Ověřit** (metodou, kterou zvolil naposledy) a odešle sitemap `https://hspg.cz/sitemap.xml` (Bing je ověřený přes DNS a sitemap už má). Další kód si u Seznamu negeneruje – každý nový by se musel znovu nasadit.
 
 ## Akceptační kritéria
 - [ ] `sha256sum` tří souborů v publikované složce odpovídá tabulce (vlož výstup).
@@ -58,4 +58,4 @@ Kroky 7, 8 a 10. Na produkci jen čtení (`curl` GET), žádné odesílání for
 KONTEXT §4: produkce jen přes `scripts/nasadit.mjs` se schválením majitele, MX a DNS beze změny, žádná hesla ani klíče v kódu (ověřovací kódy Seznamu a Bingu nejsou tajné).
 
 ## Hlášení po dokončení
-Podle KONTEXT §5. Navíc: kde soubory a meta tagy leží, zda bylo nutné upravit přesměrování, výstupy `curl` z náhledu (a z produkce, pokud už se nasazovalo) a připomínka majiteli: „Po nasazení klikněte v Seznam Webmasteru i v Bing Webmaster Tools na Ověřit (metodou zvolenou naposledy) a odešlete sitemap. Nový kód negenerujte.“
+Podle KONTEXT §5. Navíc: kde soubory a meta tagy leží, zda bylo nutné upravit přesměrování, výstupy `curl` z náhledu (a z produkce, pokud už se nasazovalo) a připomínka majiteli: „Po nasazení klikněte v Seznam Webmasteru na Ověřit (metodou zvolenou naposledy) a odešlete sitemap. Nový kód negenerujte. Bing je ověřený přes DNS.“

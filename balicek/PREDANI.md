@@ -38,7 +38,7 @@ Pořadí úkolů agenta: **00 → 20 → 01 → 02 → 17 → 03 → 04 → 05 �
 **Když se agent ozve**
 - [ ] Netlify → proměnné prostředí: `HSPG_PANEL_HESLO` – nové heslo, aspoň 16 znaků (zadáváte sami, nikomu ho nepište). Volitelně `AI_MESICNI_LIMIT_KC`, `AI_VEREJNY_LIMIT_KC`, `AI_OBDOBI_DEN` (den začátku období kreditů – ověřte v Usage & billing, výchozí 11).
 - [ ] Schvalovat produkční nasazení (každé stojí 15 kreditů) – nejdřív si prohlédnout náhled.
-- [ ] Po nasazení úkolu 20: v Seznam Webmasteru i Bing Webmaster Tools kliknout **Ověřit** (metodou zvolenou naposledy) a odeslat sitemap `https://hspg.cz/sitemap.xml`. U Seznamu už **negenerovat další kód** – každý nový by se musel znovu nasadit.
+- [ ] Po nasazení úkolu 20: v Seznam Webmasteru kliknout **Ověřit** (metodou zvolenou naposledy) a odeslat sitemap `https://hspg.cz/sitemap.xml`. Bing je už ověřený přes DNS (4. 10.). U Seznamu už **negenerovat další kód** – každý nový by se musel znovu nasadit.
 - [ ] Úkol 02: zvolit kanál upozornění na poptávky (ntfy / Telegram) a heslo aplikace pro SMTP Seznam. `POTVRZENI_ZAKAZNIKOVI` nezapínat, dokud úkol 02 není hotový.
 
 **Rozhodnutí (Claude Pro, úkol P1)**
