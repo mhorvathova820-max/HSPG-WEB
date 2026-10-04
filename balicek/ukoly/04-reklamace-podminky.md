@@ -174,10 +174,10 @@
    | `Číslo reklamace` | hidden, vyplní JS | – |
    | `_honey` | `<p hidden><label>Nevyplňujte <input name="_honey" tabindex="-1" autocomplete="off"></label></p>` (jako `/recenze/`) | – |
    | `Jméno` | text, `autocomplete="name"`, `maxlength="80"` | ano |
-   | `Telefon` | tel, `autocomplete="tel"`, `maxlength="20"`; JS přijme 9–15 číslic s volitelným `+` (CZ, SK i EU, pevné linky) | ano |
+   | `Telefon` | tel, `autocomplete="tel"`, `maxlength="20"`; JS kontroluje a normalizuje přes `telefon()` z `assets/spolecne.js` (úkol 17: CZ, SK i ostatní E.164, pevné linky), do payloadu jde normalizovaná `hodnota` | ano |
    | `email` | email, `autocomplete="email"`, `maxlength="120"` (malé `email` kvůli Reply-To v Netlify) | ano |
    | `Adresa objektu` | text, `autocomplete="street-address"`, `maxlength="140"` | ano |
-   | `Kód pasu domu` | text, `pattern="HS-[0-9]{4}-[0-9]{4}"`, `maxlength="12"`, `autocomplete="off"`, maska jako `/recenze/` (`maskuj`). **Bez ověřování přes `/api/sentinel/validate`.** | ne |
+   | `Kód pasu domu` | text, `pattern="HS-[0-9]{4}-[0-9]{4}"`, `maxlength="12"`, `autocomplete="off"`, maska přes `kod()` z `assets/spolecne.js` (úkol 17). **Bez ověřování přes `/api/sentinel/validate`.** | ne |
    | `Kdy jsme práce prováděli` | text, `maxlength="20"`, placeholder „např. 8/2026“ | ne |
    | `Popis vady` | textarea, `minlength="20"`, `maxlength="2000"`, nápověda „Co se děje, na které části objektu a od kdy.“ | ano |
    | `Požadované řešení` | select s hodnotami z `firma.reklamace.reseni` | ano |
@@ -185,9 +185,9 @@
    | `Zpracování údajů` | checkbox, `value="beru na vědomí"`, popisek „Beru na vědomí informace o zpracování osobních údajů uvedené výše.“ | ano |
 
    - **Nad checkboxem** krátká informace o zpracování údajů (úkol 09 ji později převezme do zásad):
-     > Údaje z formuláře a fotografie použijeme jen k vyřízení vaší reklamace. Právním důvodem je plnění smlouvy a povinností podle zákona o ochraně spotřebitele (čl. 6 odst. 1 písm. b) a c) GDPR). Formulář technicky zpracovává Netlify, e-maily doručuje Seznam.cz. Reklamaci a její vyřízení uchováváme spolu se smluvní a záruční dokumentací. Podrobnosti a vaše práva najdete v [zásadách ochrany osobních údajů](/ochrana-osobnich-udaju).
+     > Údaje z formuláře a fotografie použijeme jen k vyřízení vaší reklamace. Právním důvodem je plnění smlouvy a povinností podle zákona o ochraně spotřebitele (čl. 6 odst. 1 písm. b) a c) GDPR). Formulář technicky zpracovává Netlify, e-maily doručuje Seznam.cz. Reklamaci a její vyřízení uchováváme spolu se smluvní a záruční dokumentací. Vaše práva a obecné informace o zpracování najdete v [zásadách ochrany osobních údajů](/ochrana-osobnich-udaju).
 
-     Jde o **vzetí na vědomí, ne o souhlas.** Zadání sice zmiňuje „souhlas“, ale u reklamace je právním titulem smlouva a zákonná povinnost (§ 19 ZOS). Souhlas by šel odvolat a odporoval by nálezům audit-pravni #4 a audit-formulare #10. Odchylku uveď v hlášení.
+     Jde o **vzetí na vědomí, ne o souhlas.** Slovo „souhlas“ u tohoto pole nepoužívej: u reklamace je právním titulem smlouva a zákonná povinnost (§ 19 ZOS). Souhlas by šel odvolat a odporoval by nálezům audit-pravni #4 a audit-formulare #10. Zdůvodnění uveď v hlášení.
    - U fotek nápověda: „Až 3 fotografie. Fotky z mobilu před odesláním zmenšíme. Nefoťte prosím osoby ani poznávací značky.“
    - Tlačítko „Odeslat reklamaci“. Písmo polí 16 px, výška ovládacích prvků ≥ 44 px, `label` u každého pole, nápovědy přes `aria-describedby`.
 7. **`assets/reklamace.js`** – bez závislostí, jen na této stránce, `defer`. Bez JS formulář funguje nativně.

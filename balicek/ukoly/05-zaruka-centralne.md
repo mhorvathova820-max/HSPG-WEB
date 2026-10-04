@@ -261,17 +261,17 @@ Fáze A:
   - odpověď na „Jaká je záruka?“ má právě 1 unikátní znění,
   - obsahuje `veta`, `podminka`, `rozsah` a `a[href="/zaruka"]`,
   - ve 154 stránkách střech a dlažeb je 0 zmínek o záruce (test).
-- [ ] V `assets/*.js` kromě `ceny.js`: 0 záručních shod detektoru, 0× `podminka_zaruky`. `svj-podklad.js` a `nabidka-pdf.js` čtou `HSPG_ZARUKA` (test).
+- [ ] V `assets/*.js` kromě `ceny.js` (a bez úkolu 01 kromě starého `assets/hbot.js`, který řeší krok 15 ve fázi B): 0 záručních shod detektoru, 0× `podminka_zaruky`. `svj-podklad.js` a `nabidka-pdf.js` čtou `HSPG_ZARUKA` (test).
 - [ ] `zaruka.html`:
   - 1× `<h1>`, `title`, meta description s `s_podminkou`, canonical, `og:image`,
   - obsahuje `veta`, `podminka` a `rozsah`,
   - je v sitemapě,
-  - `grep -rIl "\[DOPLNIT" "$PUB"` → nic.
+  - `grep -c "\[DOPLNIT" "$PUB/zaruka.html"` → 0 a `git diff --name-only main... | xargs -r grep -l "\[DOPLNIT"` → nic (výskyty z jiných úkolů jen do hlášení).
 - [ ] Data v `firma.json` → `zaruka` (test):
-  - texty obsahují `delka_let`,
-  - po jednopísmenných předložkách a spojkách ani mezi číslem a jednotkou není obyčejná mezera,
-  - všechny klíče cs mají protějšek v `en` (kromě `odkaz`, `delka_let`, `podminky`, `nahradni_veta`, `potvrzeno*`).
-- [ ] 0× „15 let“, „patnáct let“ a „15-year“ v repozitáři (mimo `node_modules`): příkaz v Ověření.
+  - formy s číslem (`veta`, `kratce`, `s_podminkou`, `delka`, cs i en) mají shodu detektoru s číslem `delka_let` a žádný text cs ani en nemá shodu s jiným číslem,
+  - v českých formách (`veta`, `podminka`, `rozsah`, `kratce`, `s_podminkou`, `delka`, `popisek`, `odkaz_text`) není obyčejná mezera po jednopísmenných předložkách a spojkách ani mezi číslem a jednotkou; v `en` jen mezi číslem a jednotkou (`_poznamka`, `potvrzeno_kdy`, `nahradni_veta` a `podminky` se nekontrolují),
+  - všechny klíče cs mají protějšek v `en` (kromě `_poznamka`, `en`, `odkaz`, `delka_let`, `podminky`, `nahradni_veta`, `potvrzeno*`).
+- [ ] 0× „15 let“, „patnáct let“ a „15-year“ v repozitáři (mimo `node_modules`, `tests/` a `CLAUDE.md`): příkaz v Ověření.
 - [ ] Pokud je převzatý úkol 01: `node scripts/build-hbot.mjs --kontrola` projde. Původní testy webu projdou.
 
 Fáze B:
@@ -283,20 +283,21 @@ Fáze B:
 - [ ] Každý `description`, `og:description` a `twitter:description` se zmínkou o záruce obsahuje `s_podminkou` (en: forma en) a má nejvýš 160 znaků (test).
 - [ ] Každý JSON-LD projde `JSON.parse`. Řetězce se záruční shodou obsahují `s_podminkou` nebo `veta` a `podminka`.
 - [ ] E2E: `FAQPage` odpověď na „Jak dlouho vydrží impregnace H-STONE?“ se po normalizaci mezer rovná viditelné odpovědi a s H-BOTem se shoduje ve `veta` i `podminka`.
-- [ ] E2E (Chromium, lokální server, stránky `/`, `/akce/`, `/cenik.html`, `/en.html`, `/kalkulacka-svj.html`, `/nabidka-svj.html`, `/pas-domu.html`, `/cisteni-fasad/`, `/cisteni-strech/`, `/cisteni-fasad/kolin/`, `/zaruka.html`):
+- [ ] E2E (Chromium, lokální server, stránky `/`, `/akce/`, `/cenik.html`, `/en.html`, `/kalkulacka-svj.html`, `/nabidka-svj.html`, `/pas-domu.html`, `/cisteni-fasad/`, `/cisteni-strech/`, `/cisteni-fasad/kolin/`, `/zaruka.html` a `/reklamace/`, pokud existuje):
   - text každého `[data-zaruka]` = forma pro `<html lang>`,
   - každý `[data-zaruka="kratce"]` a `[data-zaruka="delka"]` je uvnitř `a[href="/zaruka"]`, nebo jeho `closest('[data-zaruka-blok]')` obsahuje `[data-zaruka="podminka"]`, `[data-zaruka="plne"]` nebo `a[href="/zaruka"]`,
   - každá stránka se zárukou (kromě `/zaruka.html`) obsahuje `a[href="/zaruka"]`,
-  - konzole je bez chyb a žádné požadavky nejdou ven.
+  - 0 neošetřených výjimek (`pageerror`) a 0 chyb konzole kromě „Failed to load resource“ u externích adres zablokovaných testem (počet a adresy vypiš),
+  - na jinou adresu než `127.0.0.1` nejde žádný požadavek mimo ty, které stránka posílala už před úkolem (porovnej s `main`).
 - [ ] E2E podklad SVJ: na `/kalkulacka-svj.html` po kliknutí na `#tisk-kalkulace` obsahuje náhled `veta` a `podminka` a žádné jiné číslo let u záruky.
-- [ ] E2E PDF nabídka: na `/akce/dekujeme/` se testovací lead podstrčí do `sessionStorage['hspg-holub-lead']` (formát ověř ve zdroji), nic se neodesílá. Nabídka obsahuje totéž co podklad SVJ.
+- [ ] E2E PDF nabídka: na `/akce/dekujeme/` se testovací lead podstrčí do `sessionStorage['hspg-holub-lead']` přes `ctx.addInitScript` ještě před načtením stránky (skript ho čte hned při načtení a inline skript stránky ho maže; formát ověř ve zdroji). `window.print` v testu nahraď prázdnou funkcí, pak klikni na `#stahnout-nabidku`. Nic se neodesílá. List nabídky (`.nb-guarantee`) obsahuje `veta` a `podminka` a žádné jiné číslo let u záruky.
 - [ ] H-BOT:
   - s úkolem 01: odpověď v `assets/hbot-znalosti.json` obsahuje `veta` i `podminka` a odkaz `/zaruka`, a `znalostiProAI()` obsahuje `veta` i `podminka` (`node -e`, bez volání AI),
   - bez úkolu 01: výjimka `presne` projde.
-- [ ] Simulace změny (test v kopii v `os.tmpdir()`): `delka_let` 12 a texty „10“ → „12“, pak build. Výsledek:
+- [ ] Simulace změny (test v kopii v `os.tmpdir()`): `delka_let` 12 a ve formách cs i en „10“ → „12“ (ne v `potvrzeno_kdy`), pak build. Výsledek:
   - `--kontrola` = 0,
   - meta, JSON-LD, `data-zaruka`, `ceny.js` a 77 okresních stránek ukazují 12,
-  - záruční shoda s číslem 10 zůstane **jen** ve výjimkách (vypiš je jako seznam míst k ruční úpravě).
+  - záruční shoda s číslem 10 zůstane **jen** ve výjimkách (vypiš je jako seznam míst k ruční úpravě). Nesoulad data „ZÁRUKA DO 8/2036“ v ukázce pasu se v simulaci hlásí jako místo k ruční úpravě, ne jako chyba testu.
 - [ ] Na náhledu:
   - `curl -s <náhled>/zaruka` → 200 a obsahuje `veta`,
   - `curl -s <náhled>/ | grep -c "Deset let se zárukou"` → 0,
