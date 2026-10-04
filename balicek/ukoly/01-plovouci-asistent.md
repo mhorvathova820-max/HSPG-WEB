@@ -3,7 +3,7 @@
 
 ## Proč
 Majitel chce na webu plovoucí tlačítko, ve kterém AI spolupracují – pro zákazníka jinak a pro majitele jinak –
-a web přitom musí být špičkový i **bez AI**. Kód je hotový a otestovaný (86 jednotkových testů, 26 testů
+a web přitom musí být špičkový i **bez AI**. Kód je hotový a otestovaný (87 jednotkových testů, 28 testů
 v Chromiu nad kopií živého webu). Nahrazuje dosavadní H-BOT (`/assets/hbot.js` je vložený na 243 stránkách
 s `defer`, takže **HTML stránek se měnit nemusí**).
 
@@ -13,6 +13,9 @@ s `defer`, takže **HTML stránek se měnit nemusí**).
 | Zákazník | Rychlé otázky → okamžitá odpověď z ověřených FAQ (bez AI, zdarma). Vlastní otázka → jasná shoda s FAQ odpoví hned; jinak **spolupracující AI**: jedna napíše odpověď jen ze schválených znalostí, druhá (jiný poskytovatel) ji ověří nebo opraví. Zákazník živě vidí „Claude píše odpověď… / Gemini ověřuje fakta…“ a u odpovědi štítek „✓ Odpověď ověřila druhá AI · Claude + Gemini“ (jen když ji druhá AI schválila; opravený text má štítek „Odpověď AI“). Odpověď s cenou, procenty, lhůtou, zárukou nebo vzdáleností, jejíž číslo (číslicemi i číslovkou slovy) ve schválených znalostech není, se zákazníkovi nepošle – nabídne se zavolání zpět. Známé číslo v chybné souvislosti zachytí jen kontrolor. Telefony a e-maily z textu se do AI neposílají. Zavolání zpět přes Netlify formulář `hspg-zavolejte`. |
 | Bez AI | Žádný klíč / `AI_ZAPNUTO=0` / vyčerpaný rozpočet / limit / chyba / 12 s bez odpovědi → odpoví FAQ nebo nabídne zavolání; po 2 chybách se AI na zbytek návštěvy nevolá. Návštěvník chybu nevidí. |
 | Majitel | Otevře **hspg.cz/#majitel** (návštěvníci odkaz na přihlášení nevidí; zařízení, kde se majitel jednou přihlásil, ho pak ukazuje). V panelu „Přihlášení majitele“ (heslo `HSPG_PANEL_HESLO` → podepsaný token na 12 h; 5 neúspěšných pokusů / 15 min z jedné adresy (IPv6 po sítích /64) a 100 / hodinu celkem, pak zámek; zařízení, kde se majitel jednou přihlásil, dostane podepsaný příznak (90 dní, `localStorage` `hspg-majitel-zarizeni`) a celkový strop ho nezamkne; podpisové tajemství serveru vznikne samo v Netlify Blobs `hspg-ai`, klíč `tajemstvi/token` – nemazat; odhlášení všech zařízení = změna `HSPG_PANEL_HESLO` **a** nové produkční nasazení přes `scripts/nasadit.mjs` – projeví se až po nasazení (15 kreditů; bez nasazení staré tokeny vyprší nejpozději za 12 h); záznam `tajemstvi/token` ručně nemazat). Karta **„Vše ve tvých rukách“**: všechny AI najednou (porovnání vedle sebe) nebo spolupráce (návrh → kontrola pravdivosti → finál), hotové úlohy včetně **„Zkontroluj tuto stránku“**, stav AI, útrata v Kč i v kreditech Netlify, odkaz na velké AI centrum `/ai-centrum/`. |
+
+**Vzhled tlačítka (rozhodnutí majitele 4. 10., R4):** dokonale stříbrná leštěná plaketa s vyrytým textem „Budoucnost ve Vašich rukách“ (majitel: „Vše ve tvých rukách“ + safírový odznak AI), medailon s logem, při najetí a fokusu safírová záře a obíhající světlo `#7addff`. Text je vidět od 761 px; do 1499 px se po dalších 600 px rolování sbalí do medailonu a najetím nebo fokusem se rozbalí. Na mobilu stříbrné „Zeptat se“ v liště. Hotový kód je v `assets/hbot.js` – vzhled neměň.
+
 | Mobil (≤ 760 px) | Spodní lišta má 3 položky: Zavolat · **Zeptat se** · Cena do 24 h. Panel se otevře jako spodní list přes celou šířku nad lištou souhlasu. |
 | Výkon | Při načtení stránky jen malý zavaděč (tlačítko + lišta). Panel, styly a znalosti se stáhnou až při najetí / fokusu / dotyku. |
 
@@ -21,7 +24,8 @@ s `defer`, takže **HTML stránek se měnit nemusí**).
 |---|---|---|
 | `assets/hbot.js` | `assets/hbot.js` | **nahrazuje** starý H-BOT |
 | `assets/hbot-panel.js`, `hbot-majitel.js`, `ai-klient.js`, `hbot.css`, `hbot-znalosti.json` | `assets/` | nové |
-| `ai-centrum/index.html` | `ai-centrum/index.html` | nové, interní (noindex) |
+| `ai-centrum/index.html` | `ai-centrum/index.html` | nové, interní (noindex) – futuristické AI centrum: robot H-BOT s AI na oběžné dráze, vlákno „kdo → komu“, režimy všechny / spolupráce / porada, dlaždice AI aplikací |
+| `assets/ai-centrum.js`, `assets/ai-centrum.css` | `assets/` | nové, interní (skript a styl AI centra – bez inline kódu kvůli CSP) |
 | `netlify/functions/asistent.mjs`, `majitel.mjs`, `ai.mjs`, `ai-stav.mjs` | adresář funkcí webu | nové; `/api/asistent`, `/api/majitel`, `/api/ai`, `/api/ai-stav` |
 | `netlify/functions/submission-created.mjs` | adresář funkcí webu | patří k úkolu 02 – zkopíruj teď, nastavení kanálů v úkolu 02 |
 | `netlify/edge-functions/media-limit.mjs` | adresář edge funkcí webu (`netlify/edge-functions/`, ověř v `netlify.toml`) | brzda rychlého stahování `/media/*` (100 / min na IP; pomalé stahování nezastaví – přenos hlídá úkol 15) |
@@ -37,7 +41,7 @@ s `defer`, takže **HTML stránek se měnit nemusí**).
 4. Zkopíruj soubory podle tabulky. Pokud ve webu už existuje soubor stejného jména (kromě `assets/hbot.js`), **zastav se a slouč ručně** – nic nepřepisuj naslepo.
 5. Závislosti do `package.json` webu (pokud chybí): `@anthropic-ai/sdk`, `openai`, `@google/genai`, `@netlify/blobs`, `nodemailer`. `npm install`.
 6. Do build příkazu webu přidej `node scripts/build-hbot.mjs` (vedle generování ceníku). Kontrola aktuálnosti: `node scripts/build-hbot.mjs --kontrola`.
-7. `netlify.toml`: pro `/ai-centrum/*` hlavičky `X-Robots-Tag: noindex, nofollow`, `X-Frame-Options: DENY`, `Cache-Control: no-store`. **Nepřidávej** `/ai-centrum/` do `robots.txt` (cestu by to zveřejnilo; stačí noindex).
+7. `netlify.toml`: pro `/ai-centrum/*` hlavičky `X-Robots-Tag: noindex, nofollow`, `X-Frame-Options: DENY`, `Cache-Control: no-store` a vynucenou `Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'` (stránka nemá inline kód; ověř na náhledu `curl -I` a že AI centrum funguje bez chyb CSP v konzoli; úkol 15 tuto hlavičku zachová). **Nepřidávej** `/ai-centrum/` do `robots.txt` (cestu by to zveřejnilo; stačí noindex).
 8. Zkontroluj CSP (`Content-Security-Policy-Report-Only`): `connect-src 'self'` stačí (vše jde přes vlastní `/api/*`).
 8b. **Pravidla Netlify pro omezení požadavků:** `asistent.mjs` a edge funkce `media-limit.mjs` (`/media/*`, 100 požadavků / min na IP) mají v `config.rateLimit` po jednom pravidle; `/api/majitel` brzdí zámek pokusů v Blobs. Tarif Personal povoluje **2 pravidla v kódu na projekt** – `git grep -n "rateLimit"` ve webu: pokud už jiná funkce pravidlo má, nahlas to (nepřekročit 2) a navrhni, které ponechat. Funkce navíc odmítají požadavky z cizích webů (hlavička Origin) – povolené jsou hspg.cz, www.hspg.cz, `tourmaline-dasik-9de005.netlify.app` a jeho náhledy; další adresy přes `ASISTENT_POVOLENE_ORIGINY`.
 9. Starý `/api/holub-ai` **odstraň v tomto úkolu** – nahrazuje ho `/api/asistent` s limity a rozpočtem. Nejdřív `git grep -n "holub-ai"` – kromě starého `assets/hbot.js` (nahrazen) ho nesmí nic volat; pak smaž soubor funkce a případné přesměrování. Nové tlačítko používá `/api/asistent` s limity a rozpočtem; bez AI odpoví FAQ.

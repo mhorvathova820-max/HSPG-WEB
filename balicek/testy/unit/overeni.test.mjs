@@ -25,3 +25,12 @@ test("ověřovací soubory Seznamu a Bingu jsou beze změny (SHA-256 z úkolu 20
   const bing = await readFile(new URL("../../web/overeni/BingSiteAuth.xml", import.meta.url), "utf8");
   assert.ok(bing.includes("875C77503943F9156A5D5B2F76A6B8FC"), "Bing: soubor i meta tag mají stejný kód");
 });
+
+test("AI centrum a panel vkládají text AI jen přes textContent (žádné innerHTML) a nemají inline skript", async () => {
+  for (const f of ["assets/ai-centrum.js", "assets/hbot-majitel.js"]) {
+    const t = await readFile(new URL(`../../web/${f}`, import.meta.url), "utf8");
+    assert.ok(!/\.innerHTML\s*=(?!\s*'')|insertAdjacentHTML|outerHTML\s*=|document\.write/.test(t), f);
+  }
+  const html = await readFile(new URL("../../web/ai-centrum/index.html", import.meta.url), "utf8");
+  assert.ok(!/<script(?![^>]*\ssrc=)[^>]*>/.test(html) && !/\son[a-z]+=/.test(html) && !/<style/.test(html), "bez inline skriptu, stylu a on* atributů");
+});

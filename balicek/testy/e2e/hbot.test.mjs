@@ -407,3 +407,35 @@ test("FAQ bez AI: „s cenou“ a „pečovat“ najdou odpověď", async () => 
     assert.match(await p.locator("#hbot .hb-msg").nth(n + 1).textContent(), re, q);
   }
 });
+
+test("AI centrum: porada se 3 AI = 7 volání /api/ai, závěr ve vlákně; za běhu nejde přepnout režim", async () => {
+  const { p, chyby } = await stranka("ai", { cesta: "/ai-centrum/" });
+  const volani = [];
+  p.on("request", (r) => { if (r.method() === "POST" && r.url().endsWith("/api/ai")) volani.push(JSON.parse(r.postData() || "{}")); });
+  await p.fill("#heslo", HESLO);
+  await p.click("#formPrihlaseni button");
+  await p.waitForSelector("#aplikace:not(.skryte) .cip.on");
+  await p.selectOption("#rezim", "porada");
+  await p.fill("#dotaz", "Test porady");
+  await p.click("#odeslat");
+  assert.equal(await p.isDisabled("#rezim"), true, "režim je za běhu zamčený");
+  await p.waitForSelector("#info >> text=Hotovo.", { timeout: 30000 });
+  assert.equal(volani.length, 7);
+  assert.ok(volani.filter((v) => v.maxTokenu === 1500).length === 3, "připomínky mají malou rezervaci");
+  assert.ok((await p.getAttribute("#s-porada", "data-final"))?.length > 0);
+  assert.equal(await p.isDisabled("#rezim"), false);
+  await p.click("#odhlasit");
+  assert.equal(await p.inputValue("#dotaz"), "", "po odhlášení zadání zmizí");
+  assert.deepEqual(chyby, []);
+});
+
+test("stříbrné tlačítko: text vidět, po odrolování se sbalí, najetí ho rozbalí", async () => {
+  const { p } = await stranka("bez-ai", { sirka: 1280, vyska: 800 });
+  await p.waitForSelector("#hbot-btn");
+  const sirka = (podminka) => p.waitForFunction(podminka, null, { timeout: 5000 }).then(() => true, () => false);
+  assert.ok(await sirka(() => document.getElementById("hbot-btn").getBoundingClientRect().width > 200), "rozbalené s textem");
+  await p.evaluate(() => scrollTo(0, 2000));
+  assert.ok(await sirka(() => document.getElementById("hbot-btn").getBoundingClientRect().width < 120), "sbalené do medailonu");
+  await p.hover("#hbot-btn");
+  assert.ok(await sirka(() => document.getElementById("hbot-btn").getBoundingClientRect().width > 200), "najetí rozbalí");
+});

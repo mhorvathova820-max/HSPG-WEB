@@ -298,6 +298,7 @@
   }
   function odhlas() {
     ss(TOKEN_KLIC, null); ss(PLATNOST_KLIC, null);
+    ss('hspgHistorie', null); // historie AI centra (zadání se zákaznickými údaji) se odhlášením maže i tady
     tabs.hidden = true; viewM.innerHTML = ''; vyberKartu(false);
     majitelBtn.textContent = 'Přihlášení majitele';
     Z.majitel(false);

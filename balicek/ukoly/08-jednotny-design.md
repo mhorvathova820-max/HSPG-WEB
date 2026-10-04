@@ -119,7 +119,7 @@ NE:
 - **obsahové** prolinkování z homepage a ceníku na rozcestníky a Prahu a krajské huby (úkol 12 B). Tady jde jen o navigační komponentu, viz krok 4,
 - tvrzení o technologiích, H-BIO, kariéře a akci, včetně textu proužku akce na homepage (úkol 13),
 - vzhled a chování plovoucího tlačítka H-SPG CORE (úkol 01, R4). Výjimkou je bezpečná zóna (krok 16) a zvednutí 4 velikostí písma pod 12 px v jeho souborech (krok 15),
-- interní stránky `/rd-control-panel/` a `/ai-centrum/` (R7: tam zůstává antracit), jejich hlavička ani patička se nemění,
+- interní stránky `/rd-control-panel/` a `/ai-centrum/` (R7: AI centrum má vlastní futuristický vzhled v barvách loga, `assets/ai-centrum.css`), jejich hlavička ani patička se nemění; stejně tak stříbrné tlačítko H-BOT (`assets/hbot.js`, R4),
 - samostatná offline stránka `/offline/` z úkolu 17 (inline CSS, bez externích souborů) – generátor ji vynechá,
 - zavírání mobilního menu klávesou Esc a kliknutím mimo, jednotný indikátor fokusu, `scroll-padding` a `assets/pristupnost.js` (úkol 16, běží po tomto; tady jen menu na `<details>` funkční bez JS a zachovaný stávající viditelný fokus),
 - jakékoli texty v těle stránek.
@@ -138,7 +138,7 @@ NE:
    - build příkaz (`netlify.toml`, `package.json`) a jestli se vygenerované HTML commituje. Zjisti i co nahrává `scripts/nasadit.mjs`,
    - JS, který závisí na selektorech hlavičky a patičky: `git grep -nE "nav-odkazy|mobile-menu|hspg-header|site-head|sheet-head|rnav|data-souhlas-nastaveni|data-mail|data-kontakt|KONTAKTY|data-zaruka|hero-cta-na-obrazovce|hspg-lista|--hlavicka" -- '*.js' '*.html' '*.mjs' '*.css'`. Patří sem i měření výšky sticky hlavičky pro kotvy z úkolu 17 (`--hlavicka`, `ResizeObserver`, např. `assets/spolecne.js`). Každý nalezený selektor musí po změně fungovat, nebo se v témže commitu upraví i skript,
    - generátory předchozích úkolů, které píšou do patičky nebo hlavičky: `scripts/build-kontakty.mjs` a `scripts/lib/kontakty.mjs` (úkol 03, blok `KONTAKTY`), `scripts/build-zaruka.mjs` (úkol 05, prvky `data-zaruka`), a v jakém pořadí se spouštějí,
-   - seznam veřejných HTML stránek ze souborů: `git ls-files '*.html' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' ':!tests/*' ':!node_modules/*'` (případné další neveřejné soubory vyřaď a vyjmenuj v hlášení). Ve zdroji jsou i stránky, které kopie živého webu nemá: `404.html`, `zaruka.html` (úkol 05), `reklamace/` a `reklamace/dekujeme/` (úkol 04), `akce/dekujeme/`. Počet nikde natvrdo nepiš, v kopii živého webu je to 247. Tentýž seznam (stejný příkaz) používají generátor, testy a akceptační kritéria jako „N“.
+   - seznam veřejných HTML stránek ze souborů: `git ls-files '*.html' ':!ai-centrum/*' ':!assets/ai-centrum.*' ':!rd-control-panel/*' ':!offline/*' ':!tests/*' ':!node_modules/*'` (případné další neveřejné soubory vyřaď a vyjmenuj v hlášení). Ve zdroji jsou i stránky, které kopie živého webu nemá: `404.html`, `zaruka.html` (úkol 05), `reklamace/` a `reklamace/dekujeme/` (úkol 04), `akce/dekujeme/`. Počet nikde natvrdo nepiš, v kopii živého webu je to 247. Tentýž seznam (stejný příkaz) používají generátor, testy a akceptační kritéria jako „N“.
 
    Výsledek zapiš do hlášení jako tabulku: typ stránky → soubor nebo generátor → hlavička → patička.
 3. **Snímky „před“ – dřív než cokoli změníš.**
@@ -298,7 +298,7 @@ NE:
     - Všechny definice barevných proměnných s pevnou hodnotou převeď na tokeny: šablona v `build-regions.mjs`, ručně psané stránky, `brand.css`, `en-sections.css` a skript bloku `--lux-*` (např. `--lux-gold: var(--c-zlata)`).
     - Nejbezpečnější postup: v `zaklad.css` sekce „přechodové aliasy“ (`--gold: var(--c-zlata)`, `--ink: var(--c-pozadi)`, …) a v jednotlivých stránkách místní definice smazat. Inline `:root` ve stránce by jinak tokeny přebil.
     - Pozadí `html` i `body` je na všech stránkách `var(--c-pozadi)`. Dekorativní přechod buď všude stejný jako token, nebo nikde. Světlé plochy ceníku zůstávají přes `--c-papir`.
-    - Výjimky: `assets/hbot*`, `/rd-control-panel/`, `/ai-centrum/`.
+    - Výjimky: `assets/hbot*`, `assets/ai-centrum.*`, `/rd-control-panel/`, `/ai-centrum/`.
 14. **Typografie.**
     - Text: `--f-text` (Manrope) všude, Helvetica/Arial na `/cenik` a Inter nahraď.
     - Nadpisy: `--f-nadpis` (Playfair Display). Cormorant Garamond na `/`, `/ochrana-osobnich-udaju` a `/en` nahraď.
@@ -347,7 +347,7 @@ Fáze A:
 - [ ] Hlášení obsahuje inventuru (typ stránky → soubor nebo generátor → hlavička → patička) a stav úkolů 01, 03, 04, 05, 06, 07, 09, 13 a 17 (krok 1).
 - [ ] `ls .artefakty/ukol-08/pred/*.png | wc -l` = 3 × 5 × počet typů stránek z `tests/typy-stranek.json` (celá stránka, hlavička, patička) a existuje `mereni.json` včetně výchozích počtů axe. Snímky vznikly z commitu před první změnou HTML, CSS, JS nebo `content/` webu (nové soubory testů se nepočítají; uveď hash).
 - [ ] `content/firma.json` obsahuje `obchodni_oznaceni`, `sidlo` a `zapis`. `node scripts/build-hbot.mjs --kontrola` → OK.
-- [ ] `node scripts/build-layout.mjs --kontrola` → 0 rozdílů. `git grep -l "HSPG:PATICKA:START" -- '*.html' | wc -l` = N, kde N = počet řádků výstupu příkazu z kroku 2 (`git ls-files '*.html' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' ':!tests/*' ':!node_modules/*'` minus vyřazené soubory uvedené v hlášení).
+- [ ] `node scripts/build-layout.mjs --kontrola` → 0 rozdílů. `git grep -l "HSPG:PATICKA:START" -- '*.html' | wc -l` = N, kde N = počet řádků výstupu příkazu z kroku 2 (`git ls-files '*.html' ':!ai-centrum/*' ':!assets/ai-centrum.*' ':!rd-control-panel/*' ':!offline/*' ':!tests/*' ':!node_modules/*'` minus vyřazené soubory uvedené v hlášení).
 - [ ] `node scripts/build-kontakty.mjs --kontrola` → kód 0 (a `node scripts/build-zaruka.mjs --kontrola` → kód 0, je-li sloučený úkol 05).
 - [ ] `node --test tests/layout.test.mjs`: patička na N/N stránkách splňuje všechny body z kroku 9 (uveď N).
 - [ ] `git grep -n "\[DOPLNIT" -- '*.html'` → prázdné.
@@ -361,11 +361,11 @@ Fáze B:
 - [ ] Menu se na žádné šířce 320–1920 px (krok 10 px) nezalomí, hlavička je ≤ 96 px a stránka nemá vodorovný posun. Uveď počet otestovaných kombinací stránka × šířka.
 - [ ] Mobilní menu se otevře klávesou Enter i mezerníkem a funguje s vypnutým JavaScriptem (test).
 - [ ] Testy kotev úkolu 17 a testy patiček úkolů 03, 04 a 09 projdou s novou hlavičkou a patičkou (případné změny očekávaných počtů zdůvodněné v hlášení).
-- [ ] Definice barevných proměnných s pevnou hodnotou mimo tokeny: `git grep -hoE -e "--(ink|navy[-a-z0-9]*|gold[-a-z0-9]*|lux-(gold[-a-z]*|navy|ink|sapphire)|copper[-a-z]*|cream|paper|mist|panel|line|muted[-a-z]*)[[:space:]]*:[[:space:]]*(#|rgb)" -- '*.html' '*.css' 'scripts/*.mjs' ':!assets/zaklad.css' ':!assets/hbot*' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' | wc -l` → 0 (výchozí stav v kopii webu: 2 922 výskytů).
+- [ ] Definice barevných proměnných s pevnou hodnotou mimo tokeny: `git grep -hoE -e "--(ink|navy[-a-z0-9]*|gold[-a-z0-9]*|lux-(gold[-a-z]*|navy|ink|sapphire)|copper[-a-z]*|cream|paper|mist|panel|line|muted[-a-z]*)[[:space:]]*:[[:space:]]*(#|rgb)" -- '*.html' '*.css' 'scripts/*.mjs' ':!assets/zaklad.css' ':!assets/hbot*' ':!ai-centrum/*' ':!assets/ai-centrum.*' ':!rd-control-panel/*' ':!offline/*' | wc -l` → 0 (výchozí stav v kopii webu: 2 922 výskytů).
 - [ ] Na všech typech stránek je stejné pozadí stránky, hlavičky a patičky a stejná barva výzvy k akci. U textu jsou nejvýš 2 rodiny písma (test).
 - [ ] Písmo pod 12 px ve zdrojích:
-  - `git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?([0-9]|1[01])(\.[0-9]+)?px" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' | wc -l` → 0. Výchozí stav v kopii webu je 73 výskytů v 10 souborech a k tomu 4 v souborech úkolu 01. (Atributy SVG `font-size="…"` tento příkaz nezachytí, hlídá je e2e test níže.)
-  - `git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?0?\.([0-6][0-9]*|7|7[0-4][0-9]*)r?em" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' | wc -l` → 0. Výchozí stav: 6 (`brand.css` 4×, `akce/index.html` 2×).
+  - `git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?([0-9]|1[01])(\.[0-9]+)?px" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!assets/ai-centrum.*' ':!rd-control-panel/*' ':!offline/*' | wc -l` → 0. Výchozí stav v kopii webu je 73 výskytů v 10 souborech a k tomu 4 v souborech úkolu 01. (Atributy SVG `font-size="…"` tento příkaz nezachytí, hlídá je e2e test níže.)
+  - `git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?0?\.([0-6][0-9]*|7|7[0-4][0-9]*)r?em" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!assets/ai-centrum.*' ':!rd-control-panel/*' ':!offline/*' | wc -l` → 0. Výchozí stav: 6 (`brand.css` 4×, `akce/index.html` 2×).
 - [ ] e2e: 0 viditelných textů pod 12 px (včetně SVG) a `main p`/`main li` ≥ 14 px.
 - [ ] Plovoucí prvky nezakrývají H1, úvodní odstavec, hlavní výzvu ani patičku (test na všech typech stránek a uvedených rozměrech).
 - [ ] axe: 0 porušení v hlavičce a patičce. Celkový počet závažných porušení není vyšší než výchozí stav v `.artefakty/ukol-08/pred/mereni.json` (čísla před/po v hlášení).
@@ -381,10 +381,10 @@ node scripts/build-layout.mjs --kontrola                # → OK: N stránek, 0 
 node scripts/build-kontakty.mjs --kontrola              # → kód 0 (blok KONTAKTY z úkolu 03 beze změny)
 node --test tests/layout.test.mjs                       # → fail 0
 node scripts/build-hbot.mjs --kontrola                  # → OK
-git ls-files '*.html' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' ':!tests/*' ':!node_modules/*' | wc -l   # → N (minus vyřazené soubory z hlášení)
+git ls-files '*.html' ':!ai-centrum/*' ':!assets/ai-centrum.*' ':!rd-control-panel/*' ':!offline/*' ':!tests/*' ':!node_modules/*' | wc -l   # → N (minus vyřazené soubory z hlášení)
 git grep -l "HSPG:PATICKA:START" -- '*.html' | wc -l    # → N (všechny veřejné stránky)
-git grep -L "09291881" -- '*.html' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*'                  # → prázdné
-git grep -L "Ochrana osobních údajů\|Privacy policy" -- '*.html' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*'  # → prázdné
+git grep -L "09291881" -- '*.html' ':!ai-centrum/*' ':!assets/ai-centrum.*' ':!rd-control-panel/*' ':!offline/*'                  # → prázdné
+git grep -L "Ochrana osobních údajů\|Privacy policy" -- '*.html' ':!ai-centrum/*' ':!assets/ai-centrum.*' ':!rd-control-panel/*' ':!offline/*'  # → prázdné
 git grep -n "\[DOPLNIT" -- '*.html'                     # → prázdné
 node scripts/build-layout.mjs --ukazka > .artefakty/ukol-08/komponenty.html && npx -y html-validate .artefakty/ukol-08/komponenty.html   # → 0 chyb
 CHROMIUM=<cesta k Chromiu> node --test --test-concurrency=1 tests/e2e/layout.e2e.test.mjs   # → fail 0
@@ -392,9 +392,9 @@ npm test                                                # → 0 selhání (dosav
 node scripts/nasadit.mjs                                # → URL náhledu (zdarma)
 
 # Fáze B (navíc)
-git grep -hoE -e "--(ink|navy[-a-z0-9]*|gold[-a-z0-9]*|lux-(gold[-a-z]*|navy|ink|sapphire)|copper[-a-z]*|cream|paper|mist|panel|line|muted[-a-z]*)[[:space:]]*:[[:space:]]*(#|rgb)" -- '*.html' '*.css' 'scripts/*.mjs' ':!assets/zaklad.css' ':!assets/hbot*' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' | wc -l   # → 0 (předtím 2 922)
-git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?([0-9]|1[01])(\.[0-9]+)?px" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' | wc -l   # → 0 (předtím 73 + 4 z úkolu 01)
-git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?0?\.([0-6][0-9]*|7|7[0-4][0-9]*)r?em" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' | wc -l   # → 0 (předtím 6)
+git grep -hoE -e "--(ink|navy[-a-z0-9]*|gold[-a-z0-9]*|lux-(gold[-a-z]*|navy|ink|sapphire)|copper[-a-z]*|cream|paper|mist|panel|line|muted[-a-z]*)[[:space:]]*:[[:space:]]*(#|rgb)" -- '*.html' '*.css' 'scripts/*.mjs' ':!assets/zaklad.css' ':!assets/hbot*' ':!ai-centrum/*' ':!assets/ai-centrum.*' ':!rd-control-panel/*' ':!offline/*' | wc -l   # → 0 (předtím 2 922)
+git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?([0-9]|1[01])(\.[0-9]+)?px" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!assets/ai-centrum.*' ':!rd-control-panel/*' ':!offline/*' | wc -l   # → 0 (předtím 73 + 4 z úkolu 01)
+git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?0?\.([0-6][0-9]*|7|7[0-4][0-9]*)r?em" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!assets/ai-centrum.*' ':!rd-control-panel/*' ':!offline/*' | wc -l   # → 0 (předtím 6)
 node tests/vizualni.mjs --stav po && node tests/vizualni.mjs --porovnej   # → .artefakty/ukol-08/porovnani.html
 node tests/vizualni.mjs --zaklad && node tests/vizualni.mjs --kontrola    # → 0 odchylek nad 0,5 %
 npx -y lighthouse <náhled>/cenik --only-categories=performance,accessibility --form-factor=mobile --quiet --chrome-flags="--headless" --output=json --output-path=.artefakty/ukol-08/lh-cenik-po.json

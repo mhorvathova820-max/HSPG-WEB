@@ -36,12 +36,13 @@ webu a o rozhodnutích majitele. Co tu není potvrzené, se na web nepíše.
 | R1 | Záruka H-STONE 10 let zůstává | potvrzeno |
 | R2 | Odznak Netlify vypnout | hotovo |
 | R3 | Plovoucí tlačítko, kde AI spolupracují – jinak pro majitele, jinak pro zákazníka | hotový kód v `balicek/web` |
-| R4 | Název tlačítka „H-SPG CORE · Budoucnost ve Vašich rukách“, vzhled grafit `#0D0F12`, zlatý lem `#C9A227`, tyrkysová záře `#00F0FF` | v kódu |
+| R4 | Tlačítko „H-SPG CORE · Budoucnost ve Vašich rukách“ – **4. 10. změněno majitelem: dokonale stříbrné s vyrytým textem** (safírová záře, světlo `#7addff`, medailon s logem; dříve grafit/zlato) | v kódu (`assets/hbot.js`) |
 | R5 | 5 firemních schránek + záložní kopie na Seznam | v kódu (`content/firma.json`) |
 | R6 | Web musí být špičkový a plně funkční i **bez AI**; funkčnost nesmí záviset na placené verzi Claude | architektura balíčku |
-| R7 | Paleta webu: tmavě modrá + zlatá (antracit/cyan jen u AI tlačítka a v interním panelu) | platí |
+| R7 | Paleta webu: tmavě modrá + zlatá. AI centrum `/ai-centrum/` – **4. 10. změněno majitelem:** hypermoderní, futuristické v barvách loga (černá, zlatá, safírová, stříbro), robot H-BOT, AI spolu komunikují (vlákno, porada) | v kódu (`assets/ai-centrum.*`) |
 | R9 | Auto-recharge kreditů Netlify zapnuté | hotovo 4. 10. |
 | R8 | Rozpočet AI – varianta B: zákazníkům odpovídají levnější rychlé modely (Claude Sonnet 5.5, Gemini 2.5 Flash, GPT-5 mini), majitel má v panelu nejlepší (Claude Opus 5.5, Gemini 2.5 Pro, GPT-5); doporučeno zapnout auto-recharge kreditů | rozhodnuto 4. 10. (v kódu) |
+| R10 | Majitel chce v AI centru „všechny AI agenty“ a souhlasí s dalšími: Claude, ChatGPT, Gemini, Grok, Mistral, DeepSeek, Llama, Perplexity (přes Netlify AI Gateway, jen modely s nulovým uchováváním dat) + dlaždice aplikací Claude Pro/Code/Design, ChatGPT, Gemini, Grok, Perplexity, Copilot, Mistral (otevírají se v nové kartě); režim Porada zařazen (4. 10.) | v kódu |
 
 **Způsob práce:** majitel si přeje pracovat přes VS Code; rozšíření Claude v Chrome v Netlify nic nenastavuje (úkoly C1, C2 a C10 dělá majitel sám nebo agent ve VS Code přes `netlify` CLI).
 

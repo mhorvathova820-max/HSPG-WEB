@@ -18,23 +18,35 @@
   var css = d.createElement('style');
   css.id = 'hbot-zaklad';
   css.textContent =
-    '#hbot-btn{position:fixed;left:18px;bottom:18px;z-index:62;display:flex;align-items:center;gap:10px;min-height:52px;padding:0 18px 0 8px;border-radius:999px;border:1px solid #c9a227;background:#0d0f12;color:#f4e4b8;font:800 14px Manrope,Inter,system-ui,sans-serif;letter-spacing:.3px;cursor:pointer;box-shadow:0 14px 40px -14px rgba(0,0,0,.8);isolation:isolate;transition:box-shadow .3s ease}' +
-    '#hbot-btn::before{content:"";position:absolute;inset:-3px;z-index:-1;border-radius:inherit;padding:2px;background:conic-gradient(from var(--hb-uhel,0deg),transparent 0 78%,#00f0ff 88%,transparent 96%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .3s ease;pointer-events:none}' +
-    '#hbot-btn:hover,#hbot-btn:focus-visible{box-shadow:0 0 20px rgba(0,240,255,.55),0 14px 40px -14px rgba(0,0,0,.8)}' +
+    // Stříbrné tlačítko s gravírovaným textem (zadání majitele 4. 10.): leštěná plaketa, text zapuštěný do kovu.
+    '#hbot-btn{--hb-stribro:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 46%),linear-gradient(100deg,#d9dee2 0%,#f6f8f9 18%,#c2c8ce 38%,#e9ecef 55%,#b4bbc2 74%,#dfe3e7 100%);--hb-hrana:inset 0 0 0 1px rgba(255,255,255,.75),inset 0 0 0 3px rgba(125,133,142,.35),inset 0 0 0 4px rgba(255,255,255,.5),inset 0 -2px 3px rgba(0,0,0,.18);--hb-stin:0 12px 30px -10px rgba(0,0,0,.8),0 2px 5px rgba(0,0,0,.4);' +
+    'position:fixed;left:18px;bottom:18px;z-index:62;display:flex;align-items:center;min-height:56px;padding:0 7px;border-radius:999px;border:1px solid #6f7780;background:var(--hb-stribro);color:#2b3138;font:800 12px Manrope,Inter,system-ui,sans-serif;letter-spacing:.13em;text-transform:uppercase;text-shadow:0 1px 0 rgba(255,255,255,.9),0 -1px 0 rgba(0,0,0,.34);cursor:pointer;box-shadow:var(--hb-hrana),var(--hb-stin);isolation:isolate;transition:box-shadow .3s ease,transform .2s ease,opacity .3s ease}' +
+    // Světlo obíhající po obvodu (barva kapek z loga) – jen při najetí nebo fokusu.
+    '#hbot-btn::before{content:"";position:absolute;inset:-4px;z-index:-1;border-radius:inherit;padding:2px;background:conic-gradient(from var(--hb-uhel,0deg),transparent 0 74%,#7addff 88%,transparent 97%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .3s ease;pointer-events:none}' +
+    '#hbot-btn:hover,#hbot-btn:focus-visible{box-shadow:var(--hb-hrana),0 0 0 1px rgba(122,221,255,.5),0 0 24px rgba(66,120,168,.85),var(--hb-stin)}' +
     '#hbot-btn:hover::before,#hbot-btn:focus-visible::before{opacity:1}' +
+    '#hbot-btn:active{transform:translateY(1px);box-shadow:inset 0 2px 6px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.5),0 4px 12px -6px rgba(0,0,0,.8)}' +
     '@property --hb-uhel{syntax:"<angle>";inherits:false;initial-value:0deg}' +
     '@media (prefers-reduced-motion:no-preference){#hbot-btn:hover::before,#hbot-btn:focus-visible::before{animation:hb-nit 2.4s linear infinite}@keyframes hb-nit{to{--hb-uhel:360deg}}}' +
-    '#hbot-btn img{width:38px;height:38px;border-radius:50%;object-fit:cover;object-position:center top;border:1px solid rgba(201,169,98,.6)}' +
-    '#hbot-btn .hb-odznak{font:800 10px Manrope,Inter,system-ui,sans-serif;font-style:normal;padding:2px 6px;border-radius:999px;background:#22d3ee;color:#0b1114}' +
-    '#hbot-btn:focus-visible{outline:2px solid #fff3c4;outline-offset:2px}' +
-    '@media (max-width:1499px){#hbot-btn .hb-btn-text{display:none}#hbot-btn{padding:0 7px}}' +
+    // Medailon s logem zasazený do stříbra.
+    '#hbot-btn img{flex:none;width:42px;height:42px;border-radius:50%;object-fit:cover;object-position:center top;box-shadow:0 0 0 1px #4d555d,0 0 0 2px rgba(255,255,255,.8)}' +
+    // Gravírovaný text: sbalí se do medailonu (viz třída hb-sbaleno níže), rozbalí při najetí a fokusu.
+    '#hbot-btn .hb-btn-text{display:block;overflow:hidden;white-space:nowrap;max-width:300px;margin:0 17px 0 11px;transition:max-width .35s ease,margin .35s ease,opacity .25s ease}' +
+    // Odznak AI majitele: safírový kámen (modrá z křídla v logu).
+    '#hbot-btn .hb-odznak{flex:none;margin-right:12px;font:800 10px Manrope,Inter,system-ui,sans-serif;font-style:normal;letter-spacing:.06em;padding:3px 7px;border-radius:999px;color:#eaf6ff;text-shadow:0 -1px 0 rgba(0,0,0,.45);background:linear-gradient(180deg,#4f8fca,#1b406d 60%,#10284d);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 0 0 1px #0c1f3c,0 1px 0 rgba(255,255,255,.8)}' +
+    '#hbot-btn .hb-btn-text+.hb-odznak{margin-left:-6px}' +
+    '#hbot-btn:focus-visible{outline:2px solid #04060b;outline-offset:2px;box-shadow:var(--hb-hrana),0 0 0 6px #7addff,var(--hb-stin)}' +
+    // Do 1499 px se text po odrolování sbalí, aby tlačítko nepřekrývalo obsah; od 1500 px je vidět stále.
+    '@media (max-width:1499px){#hbot-btn.hb-sbaleno:not(:hover):not(:focus-visible) .hb-btn-text{max-width:0;margin:0;opacity:0}#hbot-btn.hb-sbaleno:not(:hover):not(:focus-visible) .hb-odznak{margin:0 5px 0 8px}}' +
+    '@media (prefers-reduced-motion:reduce){#hbot-btn,#hbot-btn .hb-btn-text{transition:none}}' +
+    '@media (forced-colors:active){#hbot-btn{border:1px solid ButtonText;background:ButtonFace;color:ButtonText;text-shadow:none}}' +
     '#hspg-lista{display:none}' +
     '@media (max-width:760px){#hbot-btn,#cta-stack{display:none !important}' +
     '#hspg-lista{position:fixed;left:0;right:0;bottom:0;z-index:61;display:flex;gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:rgba(10,15,26,.95);border-top:1px solid rgba(201,169,98,.45);backdrop-filter:blur(12px);box-shadow:0 -14px 34px -18px rgba(0,0,0,.9);transition:transform .3s ease,visibility 0s}' +
     '#hspg-lista a,#hspg-lista button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:48px;padding:0 8px;border-radius:12px;font:800 14px Manrope,Inter,system-ui,sans-serif;letter-spacing:.2px;text-decoration:none;cursor:pointer;white-space:nowrap;flex:1 1 auto;min-width:0}' +
     '#hspg-lista svg{width:18px;height:18px;flex:none}' +
     '#hspg-lista .hl-tel{color:#f4e4b8;border:1px solid rgba(201,169,98,.55);background:transparent}' +
-    '#hspg-lista .hl-bot{color:#f4e4b8;border:1px solid rgba(201,169,98,.55);background:rgba(201,169,98,.12)}' +
+    '#hspg-lista .hl-bot{color:#2b3138;border:1px solid #6f7780;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 46%),linear-gradient(100deg,#d9dee2 0%,#f6f8f9 18%,#c2c8ce 38%,#e9ecef 55%,#b4bbc2 74%,#dfe3e7 100%);text-shadow:0 1px 0 rgba(255,255,255,.9),0 -1px 0 rgba(0,0,0,.3);box-shadow:inset 0 0 0 1px rgba(255,255,255,.75),inset 0 -2px 3px rgba(0,0,0,.18)}' +
     '#hspg-lista .hl-cena{color:#16181c;background:linear-gradient(160deg,#f4e4b8,#c9a962 55%,#9a7a3d);border:0}' +
     '#hspg-lista a:focus-visible,#hspg-lista button:focus-visible{outline:2px solid #fff3c4;outline-offset:2px}' +
     'body{padding-bottom:calc(66px + env(safe-area-inset-bottom))}' +
@@ -69,6 +81,20 @@
 
   d.body.appendChild(btn);
   d.body.appendChild(lista);
+
+  // Gravírovaný text je vidět od chvíle, kdy se tlačítko objeví; po dalších 600 px rolování se sbalí do medailonu
+  // (jen do šířky 1499 px, viz CSS). Na úvodní stránce je tlačítko skryté, dokud je vidět výzva v úvodu
+  // (body.hero-cta-na-obrazovce) – počítá se proto až od jeho zobrazení.
+  var videnOd = null, sbalCeka = false;
+  function sbal() {
+    sbalCeka = false;
+    var y = window.pageYOffset || d.documentElement.scrollTop || 0;
+    if (d.body.classList.contains('hero-cta-na-obrazovce')) { videnOd = null; return; }
+    if (videnOd === null || y < videnOd) videnOd = y;
+    btn.classList.toggle('hb-sbaleno', y - videnOd > 600);
+  }
+  window.addEventListener('scroll', function () { if (!sbalCeka) { sbalCeka = true; (window.requestAnimationFrame || setTimeout)(sbal); } }, { passive: true });
+  sbal();
 
   var nacitani = null;
   function nactiPanel() {
