@@ -43,7 +43,7 @@
     '@media (max-width:370px){#hspg-lista svg{display:none}}' +
     '@media (prefers-reduced-motion:reduce){#hspg-lista{transition:none}}' +
     // Nouzové minimum pro panel, kdyby se hbot.css nenačetl (hbot.css ho pak přepíše).
-    '#hbot{position:fixed;left:18px;bottom:82px;z-index:95;display:flex;flex-direction:column;width:min(420px,calc(100vw - 32px));max-height:80dvh;overflow:hidden;background:#0d0f12;color:#e9edf3;border:1px solid #c9a227;border-radius:16px;font:15px/1.5 Inter,system-ui,sans-serif}#hbot[hidden],#hbot [hidden]{display:none}#hbot .hb-view{flex:1;min-height:0;display:flex;flex-direction:column}#hbot .hb-log{flex:1;min-height:0;overflow-y:auto;padding:12px}#hbot .hb-skryte{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}#hbot input{font-size:16px}' +
+    '#hbot{position:fixed;left:18px;bottom:82px;z-index:95;display:flex;flex-direction:column;width:min(420px,calc(100vw - 32px));max-height:80dvh;overflow:hidden;background:#0d0f12;color:#e9edf3;border:1px solid #c9a227;border-radius:16px;font:15px/1.5 Inter,system-ui,sans-serif}#hbot[hidden],#hbot [hidden]{display:none}#hbot .hb-view{flex:1;min-height:0;display:flex;flex-direction:column}#hbot .hb-view[hidden]{display:none}#hbot .hb-log{flex:1;min-height:0;overflow-y:auto;padding:12px}#hbot .hb-skryte{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}#hbot input{font-size:16px}' +
     '@media print{#hbot,#hbot-btn,#hbot-zaloha,#hspg-lista{display:none !important}}';
   d.head.appendChild(css);
 
@@ -89,7 +89,13 @@
   function predem() { nactiPanel().catch(function () {}); }
   // Když se panel nenačte (výpadek sítě), návštěvník dostane malé okno s telefonem a poptávkou –
   // žádné přesměrování, rozepsaný formulář na stránce nezmizí.
-  function viditelne(x) { return !!(x && x.getClientRects && x.getClientRects().length); }
+  function viditelne(x) { return !!(x && x.getClientRects && x.getClientRects().length && getComputedStyle(x).visibility !== 'hidden'); }
+  // Kam vrátit fokus po zavření okna: zdroj, jinak začátek obsahu stránky (tlačítka mohou být schovaná).
+  function vratFokus(b) {
+    var cil = b._zdroj || d.querySelector('main');
+    if (cil && cil === d.querySelector('main') && !cil.hasAttribute('tabindex')) cil.tabIndex = -1;
+    if (cil) cil.focus({ preventScroll: true });
+  }
   function zalozni(zdroj) {
     var b = d.getElementById('hbot-zaloha');
     if (!b) {
@@ -107,9 +113,9 @@
         if (!t) return;
         b.hidden = true;
         if (t.hasAttribute('data-znovu')) otevri({ currentTarget: b._zdroj });
-        else if (b._zdroj) b._zdroj.focus();
+        else vratFokus(b);
       });
-      b.addEventListener('keydown', function (e) { if (e.key === 'Escape') { b.hidden = true; if (b._zdroj) b._zdroj.focus(); } });
+      b.addEventListener('keydown', function (e) { if (e.key === 'Escape') { b.hidden = true; vratFokus(b); } });
       d.body.appendChild(b);
     }
     // Zdroj si okno pamatuje při každém otevření (ne jen při prvním) – fokus se vrací na viditelné tlačítko.

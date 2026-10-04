@@ -11,7 +11,7 @@ Jedna stránka: co je hotové, kdo co dělá a v jakém pořadí, co zbývá na 
 | Ochrana kreditů Netlify | rozpočet AI za období kreditů (11.–10.) s rezervací před voláním, podíl zákazníků (výchozí polovina), nouzový vypínač v panelu, při výpadku úložiště AI vypnutá, pojistka nasazení `scripts/nasadit.mjs` (náhled zdarma, produkce jen se schválením, max. 1× denně) |
 | Bezpečnost | přihlášení majitele tokenem (heslo jen v Netlify), zámek pokusů, tajemství podpisu na serveru, žádné klíče v kódu |
 | Ověření vyhledávačů | soubory a meta tagy Seznamu a Bingu v `web/overeni/` (úkol 20; všechny vygenerované kódy najednou) |
-| Testy | 86 jednotkových + 17 v prohlížeči (Chromium nad kopií živého webu), všechny prochází |
+| Testy | 86 jednotkových + 26 v prohlížeči (Chromium nad kopií živého webu), všechny prochází |
 | Zadání pro agenta ve VS Code | úkoly 00–20 v `ukoly/` |
 | Zadání pro Claude v Chrome | `ZADANI-CHROME.md` (C1–C10) |
 | Zadání pro Claude Pro | `ZADANI-CLAUDE-PRO.md` (P1–P7) |

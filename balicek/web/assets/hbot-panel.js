@@ -85,6 +85,8 @@
   d.body.appendChild(box);
 
   var log = box.querySelector('.hb-log');
+  // Klik do textu odpovědi fokusuje deník (ne celý panel) – šipky a PageDown pak posouvají konverzaci, ne stránku.
+  log.tabIndex = -1;
   var vstup = box.querySelector('#hb-q');
   var honey = box.querySelector('input[name=_honey]');
   var tabs = box.querySelector('.hb-tabs');
@@ -403,11 +405,13 @@
     });
   }
   // Viditelný prvek (getClientRects – offsetParent je u position:fixed vždy null).
-  function viditelny(el) { return !!(el && el !== d.body && el.focus && d.contains(el) && !box.contains(el) && el.getClientRects().length); }
+  function viditelny(el) { return !!(el && el !== d.body && el.focus && d.contains(el) && !box.contains(el) && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden'); }
   function zavri() {
     box.hidden = true; Z.otevreno(false); nastavModal(false);
     // Fokus zpět na otvírač, jinak na první viditelné tlačítko (na mobilu lišta, na počítači #hbot-btn).
     var cil = [otvirac].concat(Z.tlacitka).filter(viditelny)[0];
+    // Na úvodu úvodní stránky jsou tlačítka schovaná (hlavní výzva je vidět) – fokus pak na začátek obsahu.
+    if (!cil && (cil = d.querySelector('main')) && !cil.hasAttribute('tabindex')) cil.tabIndex = -1;
     if (cil) cil.focus({ preventScroll: true });
   }
   box.querySelector('.hb-close').addEventListener('click', zavri);

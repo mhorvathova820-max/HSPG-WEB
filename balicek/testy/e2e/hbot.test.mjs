@@ -20,12 +20,13 @@ after(async () => {
   await Promise.all(servery.map((s) => s.zavri()));
 });
 
-async function stranka(rezim, { sirka = 1280, vyska = 800, cesta = "/cenik.html", zaseknout } = {}) {
+async function stranka(rezim, { sirka = 1280, vyska = 800, cesta = "/cenik.html", zaseknout, pred } = {}) {
   const s = await spustServer({ rezim, zaseknout });
   servery.push(s);
   const ctx = await prohlizec.newContext({ viewport: { width: sirka, height: vyska } });
   // Externí služby (GTM, Clarity, videa) test nepotřebuje.
   await ctx.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.abort());
+  if (pred) await pred(ctx); // vlastní úpravy sítě (zdržení, 404) před načtením stránky
   const p = await ctx.newPage();
   const chyby = [];
   p.on("pageerror", (e) => chyby.push(e.message));
@@ -304,4 +305,105 @@ test("FAQ bez AI: tvary slov (ceny, cenu, péče) najdou odpověď, „panelák�
     assert.match(await zeptej(q), re, q);
   }
   assert.doesNotMatch(await zeptej("Bydlíme v paneláku, je to pro nás?"), /fotovolt/i);
+});
+
+// --- Odolnost panelu (testy z nezávislé kontroly oprav) ---
+const zeptejSe = async (p, otazky) => { for (const q of otazky) { await p.fill("#hb-q", q); await p.press("#hb-q", "Enter"); await p.waitForTimeout(80); } };
+const SEST = ["Kolik to stojí?", "Potřebujete lešení?", "Musím být doma?", "Kde působíte?", "Jak dlouho vydrží impregnace H-STONE?", "Děláte i pro SVJ a bytové domy?"];
+
+test("hbot-panel.js visí → do 7 s záložní okno; „Zkusit znovu“ → po doběhnutí obou skriptů jeden panel", async () => {
+  let n = 0;
+  const { p } = await stranka("bez-ai", { pred: (ctx) => ctx.route("**/assets/hbot-panel.js", async (r) => { if (n++ === 0) await new Promise((ok) => setTimeout(ok, 8000)); await r.continue().catch(() => {}); }) });
+  const t0 = Date.now();
+  await p.click("#hbot-btn");
+  await p.waitForSelector("#hbot-zaloha:not([hidden])", { timeout: 7000 });
+  assert.ok(Date.now() - t0 < 7000);
+  await p.click("#hbot-zaloha [data-znovu]");
+  await p.waitForSelector("#hbot:not([hidden]) .hb-chip");
+  await p.waitForTimeout(3000);
+  assert.equal(await p.locator("section#hbot").count(), 1, "jeden panel");
+});
+
+test("mobil: prvek přidaný do body po otevření je inert, po ✕ nic inert nezůstane", async () => {
+  const { p } = await stranka("bez-ai", { sirka: 390, vyska: 844 });
+  await p.click("#hspg-lista .hl-bot");
+  await p.waitForSelector("#hbot:not([hidden]) .hb-chip");
+  const inert = await p.evaluate(async () => { const x = document.createElement("div"); x.innerHTML = "<button>x</button>"; document.body.appendChild(x); await new Promise((ok) => setTimeout(ok, 50)); return x.inert; });
+  assert.equal(inert, true);
+  await p.click("#hbot .hb-close");
+  assert.equal(await p.evaluate(() => document.querySelectorAll("body [inert]").length), 0);
+});
+
+test("AI: dvě otázky před načtením znalostí → jedno POST /api/asistent, druhá zůstane v poli", async () => {
+  const { p } = await stranka("ai", { pred: (ctx) => ctx.route("**/assets/hbot-znalosti.json", async (r) => { await new Promise((ok) => setTimeout(ok, 2500)); await r.continue().catch(() => {}); }) });
+  const posty = [];
+  p.on("request", (r) => { if (r.method() === "POST" && r.url().endsWith("/api/asistent")) posty.push(r.url()); });
+  await p.click("#hbot-btn");
+  await p.waitForSelector("#hbot:not([hidden])");
+  await zeptejSe(p, ["Máte volný termín v listopadu?", "A v prosinci?"]);
+  await p.waitForSelector("#hbot .hb-stitek", { timeout: 15000 });
+  await p.waitForTimeout(500);
+  assert.equal(posty.length, 1);
+  assert.equal(await p.inputValue("#hb-q"), "A v prosinci?");
+});
+
+test("mobil /cenik.html#hbot → ✕ → fokus na „Zeptat se“", async () => {
+  const { p } = await stranka("bez-ai", { sirka: 390, vyska: 844, cesta: "/cenik.html#hbot" });
+  await p.waitForSelector("#hbot:not([hidden]) .hb-chip");
+  await p.click("#hbot .hb-close");
+  assert.equal(await p.evaluate(() => document.activeElement.classList.contains("hl-bot")), true);
+});
+
+test("mobil, 404 panelu, /cenik.html#hbot → Zavřít → fokus na „Zeptat se“", async () => {
+  const { p } = await stranka("bez-ai", { sirka: 390, vyska: 844, cesta: "/cenik.html#hbot", pred: (ctx) => ctx.route("**/assets/hbot-panel.js", (r) => r.fulfill({ status: 404, body: "404" })) });
+  await p.waitForSelector("#hbot-zaloha:not([hidden])");
+  await p.click("#hbot-zaloha [data-zavrit]");
+  assert.equal(await p.evaluate(() => document.activeElement.classList.contains("hl-bot")), true);
+});
+
+test("bez hbot.css: deník se posouvá, pole otázky je vidět a skrytá karta majitele má display:none", async () => {
+  const { p } = await stranka("bez-ai", { pred: (ctx) => ctx.route("**/assets/hbot.css", (r) => r.abort()) });
+  await p.click("#hbot-btn");
+  await p.waitForSelector("#hbot .hb-chip");
+  await zeptejSe(p, SEST);
+  await p.waitForTimeout(3200);
+  const r = await p.evaluate(() => { const l = document.querySelector("#hbot .hb-log"), q = document.getElementById("hb-q").getBoundingClientRect(); const el = document.elementFromPoint(q.x + 5, q.y + q.height / 2); return { posun: l.scrollHeight > l.clientHeight, pole: el && el.id === "hb-q" }; });
+  assert.deepEqual(r, { posun: true, pole: true });
+  assert.equal(await p.evaluate(() => getComputedStyle(document.getElementById("hb-view-m")).display), "none");
+});
+
+test("počítač: klik do textu odpovědi + PageDown posune deník, ne stránku", async () => {
+  const { p } = await stranka("bez-ai");
+  await p.click("#hbot-btn");
+  await p.waitForSelector("#hbot .hb-chip");
+  await zeptejSe(p, SEST);
+  await p.evaluate(() => { document.querySelector("#hbot .hb-log").scrollTop = 0; scrollTo(0, 0); });
+  const b = await p.locator("#hbot .hb-msg").first().boundingBox();
+  await p.mouse.click(b.x + 10, b.y + 10);
+  await p.keyboard.press("PageDown");
+  await p.waitForTimeout(600);
+  const r = await p.evaluate(() => ({ log: document.querySelector("#hbot .hb-log").scrollTop > 0, stranka: scrollY }));
+  assert.deepEqual(r, { log: true, stranka: 0 });
+  await p.keyboard.press("Escape");
+  assert.equal(await p.isHidden("#hbot"), true);
+});
+
+test("úvodní stránka /#hbot (tlačítko skryté u hlavní výzvy) → ✕ → fokus není na <body>", async () => {
+  const { p } = await stranka("bez-ai", { cesta: "/#hbot" });
+  await p.waitForSelector("#hbot:not([hidden]) .hb-chip");
+  await p.focus("#hbot .hb-close");
+  await p.keyboard.press("Enter");
+  assert.equal(await p.evaluate(() => document.activeElement !== document.body && !document.activeElement.closest("#hbot")), true);
+});
+
+test("FAQ bez AI: „s cenou“ a „pečovat“ najdou odpověď", async () => {
+  const { p } = await stranka("bez-ai");
+  await p.click("#hbot-btn");
+  await p.waitForSelector("#hbot .hb-chip");
+  for (const [q, re] of [["Jak je to s cenou?", /střecha od \d+ Kč/i], ["Můžete o střechu pečovat pravidelně?", /SENTINEL/]]) {
+    const n = await p.locator("#hbot .hb-msg").count();
+    await p.fill("#hb-q", q); await p.press("#hb-q", "Enter");
+    await p.waitForFunction((n) => document.querySelectorAll("#hbot .hb-msg").length >= n + 2, n);
+    assert.match(await p.locator("#hbot .hb-msg").nth(n + 1).textContent(), re, q);
+  }
 });
