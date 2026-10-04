@@ -144,8 +144,8 @@ Na mobilu je mezi začátkem `#holub-sekce` a tlačítkem „🕊 VYPUSŤTE HOLU
    - H-BOT (`hbot-panel.js`, úkol 01) **neměň**. Do testu zařaď jeho pravidlo jako referenci a rozdíly zapiš do hlášení (např. „123 456 789“ H-BOT přijme, modul odmítne).
 7. **Plocha v průvodci** (ř. 2198): `type="text"`, `inputmode="decimal"`, `autocomplete="off"`, kontrola modulem `plocha()` s hláškou u pole přes `chybaPole`. Do payloadu jde `text` („12,5“) nebo „neuvedeno“.
 8. **Maska kódu** na `pas-domu.html` a `/recenze/`: v obsluze `input` použij `kod(input.value, input.selectionStart)` a `setSelectionRange`. Zachovej dosavadní chování:
-   - „hs 2026 12“ → „HS-2026-12“,
-   - „20260001“ → „HS-2026-0001“,
+   - „hs 2099 12“ → „HS-2099-12“,
+   - „20990001“ → „HS-2099-0001“ (jen fiktivní kódy `HS-2099-…`, viz Proč),
    - předvyplnění z `?kod=` na `/recenze/`,
    - ukázkový pas `#ukazkovy-pas`.
 9. **`/akce/dekujeme/`:**
@@ -155,7 +155,7 @@ Na mobilu je mezi začátkem `#holub-sekce` a tlačítkem „🕊 VYPUSŤTE HOLU
    - `z-index` ani pořadí fokusu neměň (úkol 16).
 10. **Facebook:**
     - Všech 6 výskytů nahraď kanonickou adresou `https://www.facebook.com/HolubSurfaceProtection` bez parametrů, včetně JSON-LD `sameAs` na `/` a `/en.html`.
-    - Pokud se HTML generuje, dej adresu na jedno místo (např. klíč `facebook` v `content/firma.json`).
+    - Pokud se HTML generuje, ber adresu z jednoho místa: klíč `facebook` v `content/firma.json` už existuje (převzatý z `balicek/web/content/firma.json`, úkol 01) a má správnou hodnotu. Nový klíč nezakládej.
     - Facebook nepřihlášeným klientům odpovídá přesměrováním na přihlášení, takže kontrola je statická (v HTML není `/share/` ani `?`) a jednou ručně v prohlížeči.
 11. **Šablonové proměnné:**
     - Ve zdroji ověř, jestli build používá nějaký šablonovací mechanismus (`${…}`, `{{…}}`, `%…%`) a jestli všechny proměnné nahradí. Výsledek uveď v hlášení.
@@ -186,7 +186,7 @@ Na mobilu je mezi začátkem `#holub-sekce` a tlačítkem „🕊 VYPUSŤTE HOLU
 16. **Skloňování přes `sklonuj()`:**
     - homepage ř. 2348–2349 (text i `aria-valuetext`): 0 let, 1 rok, 2–4 roky, 5–10 let,
     - `pas-domu.html` `zbyva()`: rok/roky/let a den/dny/dní. Zkratky „r.“ a „měs.“ ve složeném tvaru můžeš ponechat,
-    - `let_` v kalkulačce SVJ nahraď modulem (výstup musí zůstat stejný).
+    - `let_` v kalkulačce SVJ (posuvník 1–10) nahraď modulem. Výstup musí zůstat stejný, jen obyčejnou mezeru nahradí U+00A0.
 17. **Tisk podkladu SVJ:** v `svj-podklad.css` ř. 66–71 podmiň tisková pravidla třídou `html.sp-open` (otevřený overlay) místo `html.sp-print`. Třída `sp-print` může zůstat jako nadbytečná. Overlay se při tisku nikdy neskrývá a nápověda ř. 120 tak bude pravdivá.
 18. **Tisk plovoucích prvků:**
     - Do CSS, které vkládá `assets/souhlas.js` (jediný skript na všech 247 stránkách; `brand.css` na 8 stránkách chybí), přidej:

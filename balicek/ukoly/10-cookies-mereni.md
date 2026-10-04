@@ -209,7 +209,7 @@ Ověřeno 4. 10. 2026. Živý `assets/souhlas.js` je shodný s kopií webu (`dif
    - **Mrtvý kód:** odstraň práci s `#cookie-banner` v `souhlas.js` a v homepage CSS `#cookie-banner` a JS `hspg-cookies-ok` / `prijmoutCookies`.
 7. **LCP lišty** (`audit-vykon.json` #11). Zvol variantu a zdůvodni ji v hlášení:
    - **Varianta A** (přednostně, pokud úkol 08 zavedl sdílenou šablonu pro všechny stránky):
-     - Statické HTML první vrstvy je v šabloně na místě v DOM, kam lištu umístil úkol 16, ve výchozím stavu skryté přes CSS. CSS lišty je ve sdíleném stylu (včetně pravidla pro tisk z úkolu 17).
+     - Statické HTML první vrstvy je v šabloně na místě v DOM, kam lištu umístil úkol 16, ve výchozím stavu skryté přes CSS. CSS lišty je ve sdíleném stylu. Pravidlo `@media print` z úkolu 17 (skrývá i další plovoucí prvky) zůstane celé a na všech stránkách; přesunout ze `souhlas.js` ho smíš jen do stylu, který načítají všechny stránky (test tisku úkolu 17 to ověří).
      - Inline skript v `<head>` (≤ 300 B, `try/catch`, při chybě zobrazit) přidá `<html>` třídu `sl-ukaz`, když není platná volba. Zobrazí se pak už s prvním vykreslením. Výjimky zůstávají: na homepage až po úvodní animaci, na `/akce/dekujeme/` až po scéně (úkol 17) – tam třídu přidá až `souhlas.js`.
      - `souhlas.js` jen připojí ovládání.
      - Bez JS lišta zůstane skrytá (bez JS se žádný nástroj nespustí).

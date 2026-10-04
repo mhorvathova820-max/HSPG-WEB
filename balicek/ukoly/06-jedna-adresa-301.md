@@ -46,7 +46,7 @@ CDN Netlify je ukládá jako dvě položky: ve stejnou chvíli měla `/cenik.htm
 | `sw.js` | kořen webu, ř. 12 a 54 (předukládání a offline záloha) | `/404.html` – **výjimka**, `404.html` se nepřesměrovává (krok 8), odkaz zůstává |
 | `netlify/lib/ai/pravidla.mjs` | z balíčku úkolu 01, ř. 19 (pokyn pro AI) | „odkazy jako hspg.cz/cenik.html“ |
 
-Google si kanonickou adresu v takové situaci může zvolit sám a v Search Console se objeví „Duplicitní, Google zvolil jinou kanonickou stránku“. Seznam bere canonical jen jako doporučení.
+Google si kanonickou adresu v takové situaci může zvolit sám. Skutečný stav podle Search Console 4. 10. (`KONTEXT.md` §2): v indexu je jen úvodní stránka, `/cenik.html` je „Objeveno – momentálně neindexováno“ a `/cenik` Google nezná. Rozporné signály jsou jednou z uvedených příčin, druhou (okresní stránky bez odkazů) řeší úkol 12. Seznam web zatím nezná (ověření v Seznam Webmasteru řeší úkol 11).
 
 **3. Duplicitní cesty `index.html` a hostitel netlify.app** (audit-seo #14, nasazeni #11, závažnost nízká).
 - 200 vracejí: `/index.html` (244 544 B, totéž co `/`), `/akce/index.html`, `/recenze/index.html`, `/pravidla-akce/index.html`, `/cisteni-strech/index.html`, `/cisteni-strech/kolin/index.html`, `/cisteni-dlazby/praha/index.html`, `/akce/dekujeme/index.html` a `/reel/index.html`.
@@ -468,7 +468,7 @@ Po **fázi A** i **fázi B** formát z `KONTEXT.md` §5 a k tomu:
     - po nasazení `over-adresy.mjs https://hspg.cz` a kontrola 301 z netlify.app,
     - checkout s celou historií (`fetch-depth: 0`) kvůli `git log` v generátoru.
   - **15:** monitoring může volat `over-adresy.mjs`.
-  - **Balíček:** `balicek/web` má stále odkazy s `.html` v `content/hbot-faq.json` (ř. 8, 30, 34), `assets/hbot-panel.js` (ř. 210) a `netlify/lib/ai/pravidla.mjs` (ř. 19). Navrhni opravu, aby se při dalším převzetí nevrátily. Testy balíčku `balicek/testy/e2e/hbot.test.mjs` (ř. 23, 156, 219) otevírají `/cenik.html` a `/en.html`. Server balíčku přesměrování nezná, takže fungují dál, ale navrhni sjednocení na `/cenik` a `/en`.
+  - **Balíček:** `balicek/web` má stále odkazy s `.html` v `content/hbot-faq.json` (ř. 8, 30, 34), `assets/hbot-panel.js` (ř. 210) a `netlify/lib/ai/pravidla.mjs` (ř. 19). Navrhni opravu, aby se při dalším převzetí nevrátily. Testy balíčku `balicek/testy/e2e/hbot.test.mjs` (ř. 23, 156, 227) otevírají `/cenik.html` a `/en.html`. Server balíčku přesměrování nezná, takže fungují dál, ale navrhni sjednocení na `/cenik` a `/en`.
 - **checklist pro majitele** (po schváleném produkčním nasazení; může provést Claude v Chrome v rámci C7):
   - [ ] Search Console: znovu odeslat `https://hspg.cz/sitemap.xml` a v kontrole URL u `/cenik` ověřit, kterou kanonickou adresu zvolil Google.
   - [ ] Po 2–4 týdnech: Search Console → Stránky, zda ubylo „Duplicitní, Google zvolil jinou kanonickou stránku“.
