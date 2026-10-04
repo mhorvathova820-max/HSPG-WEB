@@ -1,16 +1,20 @@
 # Úkol 18: Obsah a cesta k poptávce
-> Priorita P1 · Závisí na: 02, 13 (podle `PORADI.md` běží po 08, 10, 11, 16 a 17; co z nich ještě není sloučené, uveď v hlášení a použij náhradní postup u příslušného kroku) · Čeká na majitele: znění slibu reakční doby, pokračování akce „Vypusťte holuba“ (O9 v úkolu 13), které fotky a videa jsou vlastní, komunikace v angličtině, sídlo × provozovna a základna Hradec Králové, firemní zákazníci, odsouhlasení textů (otázky O18-1 až O18-10 níže) · Rozsah: **fáze A** = struktura bez nových faktů – neutrální poptávka mimo soutěž, jeden formulář z jedné definice, předávání údajů z kalkulaček, menu, anglický formulář (**A1**), přestavba homepage a první obrazovky na mobilu (**A2**); po A1 i po A2 hlášení a stop · **fáze B** = texty po rozhodnutích majitele (slib „do 24 hodin“, akce, označení vizuálů, žargon, identita, `/en`, FAQ)
+> Priorita P1 · Závisí na: 02, 13 (podle `PORADI.md` běží po 17, 03, 04, 05, 13, 09, 06, 07, 08, 16, 10 a 11; co z nich ještě není sloučené, uveď v hlášení a použij náhradní postup u příslušného kroku) · Čeká na majitele: znění slibu reakční doby, pokračování akce „Vypusťte holuba“ (O9 v úkolu 13), které fotky a videa jsou vlastní, komunikace v angličtině, sídlo × provozovna a základna Hradec Králové, firemní zákazníci, odsouhlasení textů (otázky O18-1 až O18-10 níže) · Rozsah: **fáze A** = struktura bez nových faktů – neutrální poptávka mimo soutěž, jeden formulář z jedné definice, předávání údajů z kalkulaček, menu, anglický formulář (**A1**), přestavba homepage a první obrazovky na mobilu (**A2**); **A1, A2 a B jsou samostatná sezení** – po každé fázi commit, push větve, hlášení a stop · **fáze B** = texty po rozhodnutích majitele (slib „do 24 hodin“, akce, označení vizuálů, žargon, identita, `/en`, FAQ)
+>
+> **Když se fáze do sezení nevejde:** skonči po posledním dokončeném kroku commitem a pushem větve a pošli hlášení „částečně“ s číslem kroku, kterým se pokračuje. Nic nesluč do `main`. Další sezení pokračuje ve stejné větvi (`git pull`; pokud se `main` mezitím změnila, `git merge main`, žádný rebase ani force-push).
 
 ## Proč (s důkazy)
 Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), `audit-formulare.json` (#7, #11, #12), `audit-pravni_pravdivost.json` #19 a `audit-funkcnost_js.json` #22. Počty jsem ověřil nad kopií živého webu (247 HTML). Měření na mobilu jsem 4. 10. 2026 zopakoval na https://hspg.cz: Playwright, 390 × 844, jen GET, lišta souhlasu předem zavřená (`hspg-souhlas = nezbytne`), po proskrolování vynucená `content-visibility`. Čísla řádků platí pro živý web, ve zdroji se mohou lišit.
 
 ### 1. Poptávka vede do soutěže (obsah #4, #5, formuláře #11, #12)
 - Na `/akce/` vede **968 odkazů `href="/akce/"` ze 246 stránek**, tedy ze všech kromě `/akce/` samotné:
-  - 927 odkazů je na 232 stránkách generovaných `scripts/build-regions.mjs`, po 4 na stránku (menu, úvodní tlačítko, „poptávkový formulář“, závěrečná výzva),
+  - 927 odkazů je na 232 stránkách generovaných `scripts/build-regions.mjs` (`data-gen="build-regions"`): 231 okresních stránek po 4 (menu, úvodní tlačítko, „poptávkový formulář“, závěrečná výzva) a rozcestník `/cisteni-dlazby/` se 3,
   - 41 odkazů je na 14 ručně psaných stránkách: `/` 13, `/en` 5, `/cisteni-fasad/` 4, `/cisteni-strech/` 3, `/pravidla-akce/` 3, po 2 na `/cenik`, `/kalkulacka-svj`, `/pas-domu` a `/reference`, po 1 na `/nabidka-svj`, `/kariera`, `/spoluprace`, `/recenze/` a `/ochrana-osobnich-udaju`.
 - Na `/akce/` míří také:
   - `LANDING_URL = '/akce/'` na `/` (ř. 1922, plovoucí menu `#cta-stack`),
-  - H-BOT z úkolu 01: spodní lišta „🕊 Cena do 24 h“ (`assets/hbot.js`), čip „Chci cenu do 24 h“ (`hbot-panel.js`) a znalosti AI „formulář hspg.cz/akce/“ (`netlify/lib/ai/znalosti.mjs`, `pravidla.mjs`).
+  - tlačítko „🕊 VYPUSTIT HOLUBA“ v překryvu spotu na `/` (`openSpot`, šablona v JS, ř. 2023),
+  - H-BOT z úkolu 01: spodní lišta „🕊 Cena do 24 h“ a záložní přechod při nenačteném panelu `location.href = '/akce/'` (`assets/hbot.js`, v balíčku ř. 65 a 89), čip „Chci cenu do 24 h“ (`hbot-panel.js`) a znalosti AI „formulář hspg.cz/akce/“ (`netlify/lib/ai/znalosti.mjs`, `pravidla.mjs`).
+  - Měření: `assets/souhlas.js` (ř. 56) počítá kliky na `a[href="/akce/"]` jako událost Clarity `odkaz_akce`.
 - `/akce/` je stránka soutěže s H1 „Vypusťte holuba. Každá desátá poptávka z této stránky vyhrává.“
   - Jediný povinný checkbox (ř. 156–157) zní: „Souhlasím se zpracováním osobních údajů pro přípravu cenové nabídky a se zásadami ochrany údajů a pravidly akce.“
   - Pravidla uvádějí: „Do akce je zařazena každá poptávka odeslaná přes formulář na hspg.cz/akce“ a „Účastí v akci účastník potvrzuje, že se s pravidly seznámil a souhlasí s nimi.“
@@ -53,7 +57,7 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
 ### 4. Kalkulačky a `/akce/` (obsah #21, formuláře #12)
 - Odkazy z kalkulaček a nástrojů nepředají spočítané údaje:
   - kalkulačka na `/` (ř. 1635 `a.kalk__cta href="/akce/" target="_blank"`) nepředá obvod, výšku ani plochu,
-  - riziko řas (ř. 2320) předá jen `?adresa=` a `/akce/` (ř. 177) předvyplní jen adresu,
+  - riziko řas (ř. 2320) předá jen `?adresa=` a `/akce/` (ř. 177) předvyplní jen adresu. Úkol 10 (krok 9) adresu z URL odstraňuje: `#rz-cta` a odkaz v pasu domu ji ukládají do `sessionStorage['hspg-predvyplnit']` a vedou na čisté `/akce/`, cílová stránka ji přečte, předvyplní a klíč smaže,
   - `/kalkulacka-svj` (ř. 220, 288), `/nabidka-svj` (ř. 158) a `/pas-domu` (ř. 173, 210, 288 `'/akce/?adresa='+obec`) vedou na `/akce/` bez kontextu.
 - `/akce/` na 390 × 844: H1 y = 149, „Reklamní spot — 30 s“ y = 671, formulář y = 1 643, `scrollHeight` 3 232. Spodní lišta s „Cena do 24 h“ je vidět hned.
 
@@ -121,7 +125,7 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
    - **3 povinná pole:** Co ošetřit, Adresa, Telefon. Souhlas jen tehdy, pokud ho ponechá úkol 09,
    - jeden krok,
    - skutečný `<form>`: Enter odešle a vše funguje i bez JS.
-4. Kalkulačky, riziko řas, diagnostika a pas domu předvyplní formulář přes parametry URL: povrch, plocha, služba, typ objektu a adresa. Formulář se otevře ve stejném panelu.
+4. Kalkulačky, riziko řas, diagnostika a pas domu předvyplní formulář: povrch, plocha, služba a typ objektu přes parametry URL, adresu jen přes `sessionStorage['hspg-predvyplnit']` z úkolu 10 (adresa v URL nikdy). Formulář se otevře ve stejném panelu.
 5. Homepage na 390 × 844 (s vynucenou `content-visibility`):
    - `scrollHeight` ≤ **12 000 px**,
    - formulář začíná do 2. obrazovky,
@@ -140,7 +144,7 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
 **ANO:**
 - nová stránka `/poptavka/` a děkovné stránky `/poptavka/dekujeme/` a `/poptavka/thank-you/` (EN),
 - `content/poptavka.json`, `scripts/build-poptavka.mjs` a `assets/poptavka-formular.js`: jedna definice formuláře pro `/`, `/poptavka/` a `/en`,
-- přesměrování trvalých výzev, a to i v šabloně okresních stránek (**jen** cíl odkazu) a v H-BOT (jen cíl odkazu a text odkazu ve znalostech),
+- přesměrování trvalých výzev, a to i v šabloně okresních stránek (**jen** cíl odkazu), v H-BOT (jen cíl odkazu a text odkazu ve znalostech) a v `assets/souhlas.js` (jen selektor kliků na výzvu, krok 9),
 - předávání parametrů z kalkulaček, rizika řas, diagnostiky, SVJ a pasu domu,
 - `/akce/`: pořadí formuláře a spotu a odkaz na běžnou poptávku,
 - chování scény „Holub vyletěl“ pro poptávky mimo akci (`holub-let.js`: jen blok akce a odkaz na fotky),
@@ -176,7 +180,7 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
 ### Fáze A1 – cesta k poptávce (struktura, bez nových faktů)
 1. **Větev `ukol-18-obsah-cesta-k-poptavce` z aktuální `main`.** Pravidla jsou v `CLAUDE.md` z úkolu 00, paralelní práce jen přes `git worktree`. Spusť `git -C ../hspg-balicek pull`.
    - Zjisti, které úkoly jsou sloučené v `main`: z `git log --oneline main` a podle existence `assets/poptavka-zdroj.js` (02), `assets/spolecne.js` (17), `content/navigace.json` a `scripts/build-layout.mjs` (08), registru tvrzení (13).
-   - **Pokud chybí 02 nebo 13, zastav se a nahlas.** Chybějící 08, 09, 10, 11, 16 nebo 17 zapiš do hlášení a postupuj podle náhradního postupu u příslušného kroku.
+   - **Pokud chybí 02 nebo 13, zastav se a nahlas.** Chybějící 03, 05, 06, 07, 08, 09, 10, 11, 16 nebo 17 zapiš do hlášení a postupuj podle náhradního postupu u příslušného kroku. Kde krok náhradní postup nemá (03: e-mail v chybové hlášce, 05: zástupné `{{zaruka}}`), převezmi stávající stav webu beze změny textu.
 2. **Najdi v repozitáři soubory, které generují:**
    - **homepage** (`index.html`, případně jeho generátor):
      - průvodce `#holub-sekce` a `#hspg-form-panel` (`renderFormInner`, `submitLead`, `prehrajHolubaLet`, `phoneOk`),
@@ -188,7 +192,7 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
    - **skripty:** `assets/holub-let.js`, `fotky-upload.js`, `nabidka-pdf.js`, `poptavka-zdroj.js` (02), `spolecne.js` (17), `hbot.js`, `hbot-panel.js`, `netlify/lib/ai/znalosti.mjs` a `pravidla.mjs` (01),
    - **konfigurace:** `netlify.toml` (`publish`, přesměrování, CSP včetně `form-action`), `_redirects`, existující testy a Playwright.
 
-   Pak spusť `git grep -n -E 'href="/akce/|LANDING_URL|/akce/\?|target="_blank"' -- '*.html' '*.js' '*.mjs'` a počty podle souborů ulož do hlášení. Pokud se HTML generuje, uprav generátor, ne výstup.
+   Pak spusť `git grep -n -E "href=\"/akce/|'/akce/|LANDING_URL|/akce/\?|hspg\.cz/akce|target=\"_blank\"" -- '*.html' '*.js' '*.mjs'` (zachytí i `location.href = '/akce/'` a text „hspg.cz/akce/“ ve znalostech) a počty podle souborů ulož do hlášení. Pokud se HTML generuje, uprav generátor, ne výstup.
 3. **Výchozí stav.** Výsledky ulož do `.artefakty/ukol-18/pred/`, mimo publikovaný adresář.
    - Napiš měřicí pomocník `tests/e2e/pomocne-obsah.mjs`, který použijí i testy:
      - **Kontext:** 390 × 844, `isMobile`. Před načtením nastav `localStorage['hspg-souhlas'] = 'nezbytne'`. Všechny požadavky mimo lokální server a všechny ne-GET zablokuj (`page.route`).
@@ -199,7 +203,7 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
        Výsledek je délka sjednocení jejich svislých intervalů při načtení a po `scrollTo(0, 1000)`.
    - Změř `/` a `/akce/`. Na `/` dnes vyjde 27 585 px a lišty 126 / 193 px, na `/akce/` formulář 1 643 px.
    - Pořiď snímky `/`, `/akce/`, `/en` a `/cenik` na 390 × 844 a 1280 × 800.
-   - Změř Lighthouse mobil `/` a `/akce/` (medián ze 3 běhů).
+   - Změř Lighthouse mobil `/` a `/akce/` stejným nástrojem a počtem běhů jako úkol 07 (Lighthouse CI z `npm run vykon`, medián z 5 běhů; bez úkolu 07 `npx lighthouse`, medián z 5 běhů). Verzi nástroje zapiš, „před“ a „po“ srovnávej jen stejnou verzí.
    - Spusť testy úkolů 02, 16 a 17 a testy balíčku (`npm test`, `npm run test:e2e` v `../hspg-balicek` proti webu). Výsledky jsou pro srovnání.
 4. **Definice formuláře – `content/poptavka.json`** (jediné místo pro pole, popisky a parametry). Kostra:
    ```json
@@ -215,7 +219,7 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
    | `name` (pole Netlify) | Popisek cs / en | Typ | Povinné | Parametr URL (whitelist) |
    |---|---|---|---|---|
    | `Typ povrchu` | Co ošetřit / What needs treatment | `fieldset` s přepínači | **ano** | `povrch`: `strecha`, `fasada`, `dlazba`, `fotovoltaika`, `vice` (možnosti Střecha, Fasáda, Dlažba, Fotovoltaika, „Více povrchů / nevím“; sjednocuje „Komplet“ a „Kombinace / nevím“) |
-   | `Adresa nemovitosti` | Adresa domu / Property address | text, max 140, `autocomplete="street-address"` | **ano** | `adresa` (jako dnes na `/akce/`) |
+   | `Adresa nemovitosti` | Adresa domu / Property address | text, max 140, `autocomplete="street-address"` | **ano** | **ne z URL** – jen `sessionStorage['hspg-predvyplnit']` podle úkolu 10. Starý parametr `adresa` (záložky) přečti, předvyplň a hned ho odstraň `history.replaceState` jako `/akce/` po úkolu 10 |
    | `Telefon` | Telefon / Phone | `tel`, max 20, `autocomplete="tel"`, `inputmode="tel"` | **ano** | nikdy z URL |
    | `Jméno` | Jméno a příjmení (nepovinné) / Name (optional) | text, max 80, `autocomplete="name"` | ne | – |
    | `email` | E-mail (nepovinné, pokud chcete nabídku i písemně) | `email`, max 120 | ne | – (název `email` z úkolu 02 kvůli Reply-To) |
@@ -245,8 +249,9 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
 6. **Skript `assets/poptavka-formular.js`** (`defer`, do 8 KB, bez závislostí). Načítá se na stránkách s `form[data-hspg-poptavka]`.
    - **Předvyplnění z URL:**
      - jen parametry z tabulky a jen hodnoty z whitelistu,
-     - `plocha` přes `HSPG_SPOLECNE.plocha`, `adresa` oříznutá na 140 znaků,
-     - `obvod`, `vyska`, `podlazi` a `riziko` jen jako celá čísla v rozsahu nebo povolené hodnoty → text do `Kontext z kalkulačky`. Ukázky: „Kalkulačka SVJ: obvod 80 m, 6 podlaží“, „Kalkulačka fasády: obvod 26 m, výška 6 m“, „Riziko řas: střední“,
+     - `plocha` přes `HSPG_SPOLECNE.plocha`,
+     - adresa jen ze `sessionStorage['hspg-predvyplnit']` (úkol 10: přečti, předvyplň, klíč smaž) nebo ze starého parametru `adresa` (přečti, předvyplň, hned `history.replaceState` bez něj, ostatní parametry zachovej), vždy oříznutá na 140 znaků. **Bez úkolu 10** adresu nepředávej vůbec a nahlas to,
+     - `obvod`, `vyska`, `podlazi` a `riziko` jen jako celá čísla v rozsahu nebo povolené hodnoty → text do `Kontext z kalkulačky`. Předpona podle parametrů: `podlazi` → „Kalkulačka SVJ“, `vyska` → „Kalkulačka fasády“, `riziko` → „Riziko řas“. Ukázky: „Kalkulačka SVJ: obvod 80 m, 6 podlaží“, „Kalkulačka fasády: obvod 26 m, výška 6 m“, „Riziko řas: střední“,
      - hodnoty vkládej **jen** přes `.value` a `textContent`, nikdy přes `innerHTML`. Neznámé parametry ignoruj,
      - po předvyplnění zobraz krátký souhrn (`textContent`) a otevři `<details>`,
      - telefon, e-mail ani jméno se z URL nikdy nečtou.
@@ -264,7 +269,7 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
 7. **Nové stránky:**
    - **`poptavka/index.html`:**
      - Hlavička a patička z komponenty úkolu 08. Bez 08 použij soustředěnou hlavičku jako `/akce/` (logo a telefon).
-     - V A použij jen dosavadní texty webu. H1 „Nezávazná poptávka“, věta „Stačí adresa domu a telefon — technik nemusí na místo.“ a slib jako `<span data-slib="veta">` se stávajícím zněním (krok 21).
+     - V A použij jen dosavadní texty webu: věta „Stačí adresa domu — technik nemusí na místo.“ (box `#hero-rychla-poptavka` na `/`, ř. 1221, doslova) a slib jako `<span data-slib="veta">` se stávajícím zněním (krok 21). Jedinou výjimkou je H1 „Nezávazná poptávka“: neutrální název bez tvrzení odvozený z dosavadního „nezávazná cena“ / „nezávazně“. Konečné znění je otázka O18-9.
      - Pod tím formulář (první pole do 844 px), telefon `tel:` s pracovní dobou z `content/firma.json` a „Co bude dál“ ve 3 krocích z děkovné stránky.
      - Žádný odkaz na akci.
      - `<title>`, description a canonical sestav z dosavadních textů (úkol 11 je může upravit). Stránka nemá noindex a do sitemap ji dostaň přes generátor úkolu 06 (bez něj ručně a nahlas).
@@ -272,15 +277,17 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
      - Jediný rozdíl: věta „U akce evidujeme…“ je jen na `/akce/dekujeme/`.
      - `?fotky=1` funguje jako dnes.
    - **`poptavka/thank-you/`** (noindex, `lang="en"`) má jen texty přeložené z české děkovné stránky:
-     - potvrzení, číslo poptávky, „We will call you back during working hours (Mon–Sat 7:00–19:00)“,
-     - telefon a odkaz zpět na `/en`,
+     - potvrzení „Děkujeme za důvěru. Nabídku připravíme podle údajů z formuláře…“ a číslo poptávky,
+     - „Co bude dál“ ve 3 krocích (živá `/akce/dekujeme/` 4. 10.: „Prověříme adresu, typ povrchu a požadovaný rozsah.“ · „Ozveme se s orientačním postupem a cenou; konečný rozsah potvrdíme písemně.“ · „Termín a podmínky realizace domluvíme podle skutečného stavu objektu.“),
+     - „Spěchá to? Zavolejte +420 736 618 486 (Po–So 7:00–19:00).“ přeloženo (telefon a doba z `content/firma.json`) a odkaz zpět na `/en`,
+     - **bez slibu reakční doby a bez slibu, že zavoláte** – zda a jak se odpovídá anglicky, je otázka O18-6, lhůta O18-1 (fáze B),
      - bez formuláře fotek (je jen česky; nahlas jako návrh).
    - Ověř, že CSP `form-action` povoluje nativní POST na obě děkovné stránky.
 8. **Homepage – formulář místo průvodce.**
    - V `#holub-sekce` nahraď panel průvodce vygenerovaným formulářem (značky z kroku 5). Na ≤ 760 px je formulář v normálním toku hned pod nadpisem a scéna holuba (klec, vzlet) pod ním.
    - Odstraň `renderFormInner`, `submitLead`, počítadlo „krok N z 6“ a `phoneOk`/`emailOk`, pokud je ještě neodstranil úkol 17. `id="holub-sekce"` zachovej.
    - Animaci a `prehrajHolubaLet` napoj na háček úspěchu z kroku 6, s `gift:false`.
-   - Nadpis sekce už nenese název soutěže. V A použij dosavadní „Orientační cena z adresy“ (z boxu v úvodu), konečné znění je otázka O18-9.
+   - Nadpis sekce už nenese název soutěže. V A použij dosavadní „Orientační cena z adresy“ (popisek statistiky „24 h · orientační cena z adresy“ v úvodu, ř. 1211, s velkým počátečním písmenem), konečné znění je otázka O18-9.
    - **Banner akce nad formulářem (ř. 1406) odstraň.** Proužek akce (ř. 1138) zůstává jako slot `oznameni` (08) a jeho text řeší úkol 13. Pokud je ve zdroji stále uvnitř přilepené lišty, přesuň ho mimo ni (jen poloha).
    - **`assets/holub-let.js`:**
      - pro `gift:false` nevykresluj blok `hd-gift` vůbec, tedy žádnou pozvánku do akce,
@@ -291,30 +298,32 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
      - test kotev úkolu 17: cílem `#holub-sekce` je teď první pole formuláře místo tlačítka „🕊 VYPUSŤTE HOLUBA“,
      - každou změnu vypiš v hlášení.
 9. **Přesměrování trvalých výzev.** Cíl se bere z `content/poptavka.json` → `url`.
-   - **Stránky s vlastním formulářem** (`/`, `/en`) vedou výzvy na kotvu formuláře na stránce: na `/` `#holub-sekce` (ř. 1345, 1858, 1866, `LANDING_URL` v `#cta-stack`), na `/en` `#quote`. Ostatní vedou na `/poptavka/`.
+   - **Stránky s vlastním formulářem** (`/`, `/en`) vedou výzvy na kotvu formuláře na stránce: na `/` `#holub-sekce` (ř. 1345, 1858, 1866, `LANDING_URL` v `#cta-stack`), na `/en` kotva kontaktního panelu z úkolu 13 (dál `#quote`; pokud úkol 13 dal panelu jiné `id`, použij ho všude místo `#quote` a uveď ho v hlášení). Ostatní vedou na `/poptavka/`.
+   - **Výjimka – překryv spotu** (`openSpot`, ř. 2023, „🕊 VYPUSTIT HOLUBA“): vede na `/poptavka/`, ne na kotvu, protože odkaz na kotvu by modální překryv nezavřel. Po A2 je spot na `/jak-pracujeme/`, cíl zůstává.
    - **Ručně psané stránky:** `/cenik` (ř. 198, 350), `/nabidka-svj` (158), `/kalkulacka-svj` (220, 288), `/pas-domu` (173, 210, 288), `/reference` (130, 153), `/cisteni-strech/` (6), `/cisteni-fasad/` (16, 17, 21, 23) a hlavičky `/kariera`, `/spoluprace`, `/recenze/` a `/ochrana-osobnich-udaju` (s úkolem 08 přes `navigace.json`).
    - **CSS na `/`:** pravidlo `a[href="/akce/"]` (ř. 715) uprav na nový cíl, aby se zachoval vzhled.
    - **Šablona `build-regions.mjs`:** změň **jen** `href` čtyř výzev. Vygeneruj stránky a proveď normalizační kontrolu z části Ověření (jiná změna = 0).
    - **H-BOT** (soubory převzaté z balíčku, změny jen v cíli odkazu):
-     - `assets/hbot.js`: lišta „Cena do 24 h“ vede na stránkách s `form[data-hspg-poptavka]` na tento formulář, na `/akce/` jako dnes na `#poptavka` a jinde na `/poptavka/`. Konstantu cíle kontroluje test shody s `content/poptavka.json`,
+     - `assets/hbot.js`: lišta „Cena do 24 h“ vede na stránkách s `form[data-hspg-poptavka]` na tento formulář, na `/akce/` jako dnes na `#poptavka` a jinde na `/poptavka/`. Stejný cíl dostane záložní přechod při nenačteném panelu (`location.href = '/akce/'`, v balíčku ř. 89). Konstantu cíle kontroluje test shody s `content/poptavka.json`,
      - `hbot-panel.js`: čip vede na `/poptavka/`, parametr události `hbot_cta` je `cil:'poptavka'`,
      - `netlify/lib/ai/znalosti.mjs` a `pravidla.mjs`: text `hspg.cz/akce/` → `hspg.cz/poptavka/`,
      - potom spusť `node scripts/build-hbot.mjs` a `--kontrola`,
      - diff těchto souborů dej do hlášení, aby se promítl zpět do balíčku.
    - U každého odkazu, který měníš, odstraň `target="_blank"`, pokud ho neodstranil úkol 16.
+   - **Měření:** v `assets/souhlas.js` (ř. 56, klik na `a[href="/akce/"]` → Clarity `odkaz_akce`; po úkolu 10 podle jeho názvů událostí) rozšiř **jen selektor** o nové cíle (`a[href^="/poptavka/"]` a odkazy na kotvu formuláře na `/` a `/en`), aby událost vznikala dál. Název ani logiku události neměň a změnu nahlas úkolu 10.
    - **Zůstává na `/akce/`:** odkazy z `/pravidla-akce/` („Zpět na akci“), proužek akce na `/`, `holub-let.js` pro `gift:true` a text přepisu spotu.
 10. **Kalkulačky a nástroje → parametry** (statické `href` je záložní cíl bez JS, skript ho při změně vstupů přepíše):
     | Odkud | Cíl |
     |---|---|
     | kalkulačka `/` (`.kalk__cta`, po A2 na `/cenik`) | `/poptavka/?povrch=fasada&sluzba=ochrana&plocha=<plocha>&obvod=<o>&vyska=<h>` |
-    | riziko řas (`#rz-cta`) | `/poptavka/?povrch=fasada&sluzba=ochrana&riziko=<úroveň>&adresa=<…>` |
+    | riziko řas (`#rz-cta`) | `/poptavka/?povrch=fasada&sluzba=ochrana&riziko=<úroveň>`; adresa jen přes `sessionStorage['hspg-predvyplnit']` (úkol 10), nikdy v URL |
     | diagnostika (ř. 1585) | `/poptavka/?povrch=<zvolená část>`, jen pokud se volba jednoznačně mapuje na povrch, jinak bez parametru |
     | `/kalkulacka-svj` (`#perimeter`, `#floors`, `#area-output`) | `/poptavka/?objekt=bytovy-dum&povrch=fasada&sluzba=ochrana&plocha=<m²>&obvod=<p>&podlazi=<f>` |
     | `/nabidka-svj` | `/poptavka/?objekt=bytovy-dum` |
-    | `/pas-domu` ř. 288 | `/poptavka/?adresa=<obec>` |
+    | `/pas-domu` ř. 288 („Objednat službu“) | čisté `/poptavka/`; obec jen přes `sessionStorage['hspg-predvyplnit']` (úkol 10), nikdy v URL |
     | kalkulačka `/en` (ř. 301) | vyplní formulář na stránce a posune na `#quote`, záložní `href="#quote"` |
     - **Cenu do URL nikdy nedávej**, dala by se podvrhnout. Pokud ji chceš na cílové stránce ukázat, přepočítej ji z `HSPG_VYPOCET` a označ jako orientační.
-    - **Kód pasu domu do URL nedávej.** Kód je dnes jediným klíčem k údajům (úkol 14) a URL končí v historii, logu a analytice.
+    - **Kód pasu domu ani adresu do URL nedávej.** Kód je dnes jediným klíčem k údajům (úkol 14), adresa je osobní údaj (úkol 10) a URL končí v historii, logu a analytice. Kontrola úkolu 10 `git grep -nE "\?adresa=|\?kod=" -- '*.html' '*.js' ':!tests' ':!docs'` musí dál nic nenajít a `&adresa=` nepoužívej také.
 11. **`/akce/`.**
     - Přesuň sekci s H2 a formulářem `#poptavka` hned pod úvod a spot dej pod formulář.
     - Neměň `name`, `action`, pole, povinnost polí, „Suché dny u vás“ ani souhlas. Souhlas je úkol 09, povinnost polí podle pravidel řeší O18-2 a úkol 13.
@@ -328,16 +337,17 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
     - Spusť `build-layout` a jeho `--kontrola`. Test šířky menu z úkolu 08 (320–1920 px) musí projít.
     - **Bez úkolu 08:** stejné změny udělej přímo v menu `/` (ř. 1144–1160, desktop i `#mobile-menu`) a v hlavičkách, které „Kariéra“ nebo „Pro firmy“ obsahují. V hlášení napiš úkolu 08, ať je převezme do dat.
 13. **Anglický formulář na `/en`.**
-    - Do sekce kontaktního panelu (`id="quote"`, `lang="en"`) vygeneruj anglickou variantu se stejnými názvy polí, `Jazyk=en`, `Zdroj` podle stránky a `action="/poptavka/thank-you/"`. Bez akce a bez odkazu na pravidla.
+    - Do sekce kontaktního panelu (`.contact-panel` s `id` z úkolu 13, v tomto zadání `#quote`; `lang="en"`) vygeneruj anglickou variantu se stejnými názvy polí, `Jazyk=en`, `Zdroj` podle stránky a `action="/poptavka/thank-you/"`. Bez akce a bez odkazu na pravidla.
     - Informační věta o zpracování údajů je překladem české věty, kterou u formuláře používá úkol 09. Odkaz „Privacy policy (in Czech)“ ponech, dokud úkol 09 nedodá anglické shrnutí.
     - Všech 5 tlačítek (úkol 13 je přesměroval na kontaktní panel) veď na `#quote`. Skryté „(in Czech)“ u tlačítek a větu úkolu 13 „formulář je jen v češtině“ odstraň, protože formulář už je anglický. Telefon a pracovní doba zůstávají.
     - Větu o tom, pro koho stránka je a jak komunikujete, přidá až fáze B (O18-6). **Do produkce jde anglický formulář až s odpovědí na O18-6.**
 14. **Testy A1, náhled, mezihlášení.**
     - Testy (sekce Ověření): `tests/poptavka.test.mjs`, `tests/e2e/poptavka.e2e.test.mjs`. Spusť i testy úkolů 02, 16 a 17 a testy balíčku.
     - Náhled: `npm run nahled` (0 kreditů). Na náhledu jen GET: `/poptavka/`, `/`, `/en`, `/akce/`, `/kalkulacka-svj` a jedna okresní stránka. V Netlify → Forms (jen čtení) ověř, že `hspg-poptavka` je zaregistrovaný se všemi poli. **Nic neodesílej** (test na náhledu jen se souhlasem majitele podle úkolu 02).
-    - **Mezihlášení A1** a stop, pokud se fáze A2 do sezení nevejde. Jinak pokračuj.
+    - Commit, push větve, **mezihlášení A1 a stop.** A2 je další sezení ve stejné větvi (viz pravidlo v hlavičce).
 
 ### Fáze A2 – homepage a první obrazovka (struktura, texty beze změny)
+Samostatné sezení: `git pull` balíčku i větve a spusť testy A1, ať víš, že výchozí stav prochází. Pokud se A2 nevejde do sezení, přirozený bod přerušení je po kroku 18 (homepage, `/jak-pracujeme/`, „Kdo za tím stojí“, jejich testy); kroky 19–23 pak dokonči v dalším sezení.
 15. **Návrh přestavby.** Do hlášení dej tabulku: blok → výška před → kam (zůstává / sloučit / `/jak-pracujeme/` / `/cenik`) → odhad výšky po. Cílové pořadí na `/`:
     1. úvod (krok 16),
     2. formulář `#holub-sekce`,
@@ -463,7 +473,7 @@ Každý krok proveď jen tehdy, když je odpověď na příslušnou otázku pís
     - při kladné odpovědi možnost „Firemní objekt“ a sekce „Bytové domy a firmy“ na `/nabidka-svj` s texty od majitele,
     - pole pro SVJ (Role, Počet jednotek, IČO SVJ, Termín shromáždění) jako nepovinná, zobrazená jen při `Typ objektu = Bytový dům / SVJ`, a doplněná do registrace.
 31. **FAQ (O18-10):** položky z P2 vlož do `content/hbot-faq.json`. Pole `web` dostanou jen ty, které majitel chce i na webu. Pak build a test shody.
-32. **Texty k odsouhlasení (O18-9):** úvod, tlačítka, nadpis formuláře a „Co od nás dostanete písemně“ podle odpovědi.
+32. **Texty k odsouhlasení (O18-9):** úvod, tlačítka, nadpis formuláře, H1 `/poptavka/` a „Co od nás dostanete písemně“ podle odpovědi. Opakované zmínky „24 h“/„24 hodin“, „10 let“ a „lešení“ na `/` zkrať na nejvýš 2× jen podle schváleného seznamu (záruka dál z centrálního zdroje úkolu 05, formulace o lešení podle úkolu 13).
 33. **Ověření a hlášení fáze B:**
     - testy v přísném režimu a všechny dřívější testy,
     - náhled, snímky,
@@ -491,7 +501,8 @@ Každý krok proveď jen tehdy, když je odpověď na příslušnou otázku pís
 - **O18-7 Firemní zákazníci.** Obsluhujete firmy (haly, kanceláře, areály)? S jakou nabídkou?
 - **O18-8 SVJ.** Chcete pro bytové domy pole Role (výbor / správce / vlastník), Počet jednotek, IČO SVJ a Termín shromáždění?
 - **O18-9 Texty.** Schvalte znění:
-  - první obrazovky (H1, věta, tlačítka) a nadpisu formuláře místo „Vypusťte holuba. Přiletí k vám.“,
+  - první obrazovky (H1, věta, tlačítka) a nadpisu formuláře místo „Vypusťte holuba. Přiletí k vám.“, H1 `/poptavka/` („Nezávazná poptávka“),
+  - které opakované zmínky „24 h“, „10 let“ a „lešení“ na `/` vypustit, aby každá zůstala nejvýš 2× (agent přiloží výčet s místy z měření po A2),
   - tlačítek: zachovat motiv holuba, nebo „Chci cenu“?
   - nadtitulku „Co od nás dostanete písemně“.
 - **O18-10 FAQ.** Které nové otázky z P2 mají být i na webu, nejen v H-BOT?
@@ -505,7 +516,7 @@ Každý krok proveď jen tehdy, když je odpověď na příslušnou otázku pís
   - na okresních stránkách 0,
   - žádný interní odkaz na `/poptavka/` nemá `target="_blank"`,
   - `hbot.js` a `content/poptavka.json` mají stejný cíl.
-- [ ] Normalizační kontrola okresních stránek → „jiné změny: 0“.
+- [ ] Normalizační kontrola z části Ověření → „232 stránek z build-regions, jiné změny: 0“.
 - [ ] **E2E odeslání:** na `/poptavka/` i na `/` lze odeslat poptávku vyplněním jen „Co ošetřit“, „Adresa“ a „Telefon“ (+ souhlas, pokud ho úkol 09 ponechal). Zachycený payload obsahuje:
   - `form-name=hspg-poptavka` a telefon ve tvaru `+420…`,
   - `Zdroj` podle stránky a pole úkolu 02,
@@ -517,7 +528,9 @@ Každý krok proveď jen tehdy, když je odpověď na příslušnou otázku pís
 - [ ] E2E: Enter v poli Adresa s vyplněnými povinnými poli odešle. S prázdným Telefonem ukáže chybu u pole Telefon a fokus je na něm.
 - [ ] **E2E předvyplnění:**
   - `/poptavka/?povrch=fasada&plocha=156&sluzba=ochrana&objekt=bytovy-dum&obvod=80&podlazi=6` → pole předvyplněná a `Kontext z kalkulačky` = „Kalkulačka SVJ: obvod 80 m, 6 podlaží“,
-  - `?plocha=-5&povrch=<img src=x onerror=alert(1)>&telefon=123` → nic se nepředvyplní, v DOM nevznikne žádný nový prvek a neobjeví se dialog.
+  - `?plocha=-5&povrch=<img src=x onerror=alert(1)>&telefon=123` → nic se nepředvyplní, v DOM nevznikne žádný nový prvek a neobjeví se dialog,
+  - `sessionStorage['hspg-predvyplnit'] = {"adresa":"TEST Ulice 1"}` → Adresa předvyplněná a klíč po načtení neexistuje; `/poptavka/?adresa=TEST%20Ulice%201&povrch=strecha` → Adresa předvyplněná a `location.search === '?povrch=strecha'` (jen s úkolem 10; bez něj test přeskoč s důvodem v hlášení).
+- [ ] `git grep -nE "\?adresa=|&adresa=|\?kod=" -- '*.html' '*.js' '*.mjs' ':!tests' ':!docs'` → nic (kritérium úkolu 10 platí dál).
 - [ ] E2E: výzva kalkulačky, rizika řas, `/kalkulacka-svj` a `/pas-domu` otevře `/poptavka/` ve stejném panelu (počet stránek kontextu beze změny) s předvyplněnými hodnotami.
 - [ ] **`/akce/`** (390 × 844):
   - formulář je nad spotem a jeho první pole ≤ 1 000 px,
@@ -545,18 +558,19 @@ Každý krok proveď jen tehdy, když je odpověď na příslušnou otázku pís
   - text „od N Kč/m²“ (N z `content/ceny.json`), odkaz na formulář a `a[href^="tel:"]` leží celé v 0–844 px,
   - `elementFromPoint` v jejich středu vrací je samotné (nic je nepřekrývá).
 - [ ] Lišty (definice z kroku 3) ≤ 126 px při načtení i po posunu o 1 000 px.
-- [ ] Viditelný text `/` mimo FAQ a patičku: „24 h“ i „24 hodin“ dohromady ≤ 2×, „10 let“ ≤ 2×, „lešení“ ≤ 2×.
+- [ ] Viditelný text `/` mimo FAQ a patičku: počty „24 h“ + „24 hodin“, „10 let“ a „lešení“ před a po jsou v hlášení a žádný nevzrostl (test `obsah-homepage`). Strop ≤ 2× platí až ve fázi B: v A se texty nepřepisují, ubýt smějí jen přesunem nebo odstraněním celých bloků podle kroků 15 a 16.
 - [ ] **`/jak-pracujeme/`:**
   - obsahuje všechna `id` a nadpisy přesunutých bloků (test porovná seznam před a po, nic se neztratilo),
   - kontrola odkazů a kotev na `/`, `/jak-pracujeme/`, `/akce/` a `/cenik` → 0 mrtvých,
   - přesměrované testy úkolů 16 a 17 projdou.
 - [ ] `node scripts/build-faq-web.mjs --kontrola` → kód 0. Viditelné FAQ a JSON-LD `FAQPage` mají stejné otázky i odpovědi. Testovací položka s `web` se po buildu objeví (test v dočasném adresáři).
 - [ ] Test vizuálů: každý vizuál ve stavu `ilustracni` má na všech stránkách viditelný štítek. „DŮKAZ MÍSTO SLIBŮ“ se vyskytuje 0×.
-- [ ] `node scripts/build-sliby.mjs --inventura` vytvoří CSV a součet odpovídá `grep` (dnes 1 725 výskytů). `--kontrola` → kód 0.
+- [ ] `node scripts/build-sliby.mjs --inventura` vytvoří CSV. Součet řádků s kontextem tělo, `<head>` a JSON-LD se rovná výsledku `LC_ALL=C.UTF-8 grep -roP '24(\s|&nbsp;|&#160;|\x{a0})(hodin|h\b)' --include='*.html' <publish> | wc -l` (na kopii živého webu 4. 10. 1 725 na 238 stránkách). `--kontrola` → kód 0.
 - [ ] Lighthouse mobil `/`: výkon ani přístupnost neklesly (čísla před a po v hlášení). `/poptavka/` a `/jak-pracujeme/` mají přístupnost alespoň takovou jako `/`.
 
 **Fáze B** (u každého bodu, na který majitel odpověděl)
 - [ ] `node scripts/build-sliby.mjs --prisne` → kód 0. Slib je ve výstupu, v H-BOT a v textu potvrzení úkolu 02 jen ve schváleném znění (počty v hlášení).
+- [ ] Po odpovědi na O18-1 a O18-9: viditelný text `/` mimo FAQ a patičku má „24 h“ + „24 hodin“ dohromady ≤ 2×, „10 let“ ≤ 2× a „lešení“ ≤ 2× (test `obsah-homepage` v přísném režimu).
 - [ ] Akce podle rozhodnutí: (a) pole účasti je nepovinné a výchozí nezaškrtnuté a `Účast v akci` je v payloadu; (c) `curl -sI <náhled>/akce/` → 301 na `/poptavka/`.
 - [ ] Test značek v přísném režimu projde. `/pas-domu` a `/cenik` popisují SENTINEL stejně.
 - [ ] Blok identity obsahuje alespoň 2 ověřitelná fakta schválená majitelem. Patička rozlišuje sídlo a provozovnu podle odpovědi. Výchozí místa dopravy jsou na `/` i `/cenik` stejná.
@@ -575,13 +589,22 @@ CHROMIUM=<cesta> node --test tests/e2e/poptavka.e2e.test.mjs tests/e2e/obsah-hom
 # testy jiných úkolů musí dál projít:
 CHROMIUM=<cesta> node --test tests/e2e/formulare.test.mjs          # úkol 02
 # + testy úkolů 16 a 17 podle jejich názvů v repozitáři
-cd ../hspg-balicek && npm test && HSPG_MIRROR=$(pwd)/../webHSPGH CHROMIUM=<cesta> npm run test:e2e
+(cd ../hspg-balicek && npm test && HSPG_MIRROR=$(pwd)/../webHSPGH CHROMIUM=<cesta> npm run test:e2e)   # v podshellu, další příkazy běží dál ve webHSPGH
+node scripts/kontrola-adres.mjs                       # úkol 06 (pokud existuje) → 0 nálezů
+git grep -nE "\?adresa=|&adresa=|\?kod=" -- '*.html' '*.js' '*.mjs' ':!tests' ':!docs'   # nic (úkol 10)
+# Lighthouse mobil: nástroj a počet běhů jako úkol 07 (npm run vykon, medián z 5), verze v hlášení
 
 # odkazy na /akce/ – jen povolené soubory (cestu uprav podle publikačního adresáře)
 git grep -c 'href="/akce/"' -- '*.html' | sort -t: -k2 -nr
 
-# okresní stránky: kromě cíle výzvy žádná jiná změna (fáze A; blok hlavičky z úkolu 08 se porovnává zvlášť testem menu)
-git diff --name-only main -- 'cisteni-*/*/index.html' > .artefakty/ukol-18/okresni.txt
+# sliby „24 h“ – počet pro srovnání s CSV inventury (jen HTML; <publish> = publikační adresář)
+LC_ALL=C.UTF-8 grep -roP '24(\s|&nbsp;|&#160;|\x{a0})(hodin|h\b)' --include='*.html' <publish> | wc -l   # kopie živého webu 4. 10.: 1725
+
+# stránky z build-regions (232 = 231 okresních + rozcestník /cisteni-dlazby/): kromě cíle výzvy žádná jiná změna
+# (fáze A; blok hlavičky z úkolu 08 se porovnává zvlášť testem menu). Seznam podle data-gen, ne podle masky cesty –
+# maska 'cisteni-*/*/index.html' by rozcestník /cisteni-dlazby/index.html vynechala.
+mkdir -p .artefakty/ukol-18
+git grep -l 'data-gen="build-regions"' main -- '*.html' | sed 's/^main://' > .artefakty/ukol-18/okresni.txt
 node -e '
 const fs=require("fs"),{execSync}=require("child_process");
 const bez=(t)=>t.replace(/<!-- HSPG:HLAVICKA:START[\s\S]*?HSPG:HLAVICKA:END -->/g,"");
@@ -589,12 +612,12 @@ const f=fs.readFileSync(".artefakty/ukol-18/okresni.txt","utf8").split("\n").fil
 for(const s of f){const a=bez(execSync(`git show main:${s}`).toString());
  const b=bez(fs.readFileSync(s,"utf8").split("href=\"/poptavka/\"").join("href=\"/akce/\""));
  if(a!==b){jine++;console.log("jiná změna:",s);}}
-console.log(f.length,"změněných okresních stránek, jiné změny:",jine);'   # očekávej: 232 …, jiné změny: 0
+console.log(f.length,"stránek z build-regions, jiné změny:",jine);'   # očekávej: 232 stránek …, jiné změny: 0
 
 # náhled (0 kreditů), jen GET
 npm run nahled
 curl -s <náhled>/poptavka/ | grep -c 'name="hspg-poptavka"'                 # 1
-curl -s <náhled>/en | grep -c 'href="/akce/'                                # 0
+curl -sL <náhled>/en | grep -c 'href="/akce/'                               # 0 (-L: podoba /en podle úkolu 06)
 curl -s <náhled>/ | grep -c 'data-hspg-poptavka'                            # 1
 curl -s <náhled>/poptavka/dekujeme/ | grep -c 'U akce evidujeme'           # 0
 ```
@@ -618,7 +641,7 @@ curl -s <náhled>/poptavka/dekujeme/ | grep -c 'U akce evidujeme'           # 0
   - `/akce/` pořadí, scéna a fotky.
   
   Všechny POST zachytit přes `page.route` a ověřit, že žádný požadavek neodešel mimo lokální server.
-- `tests/e2e/obsah-homepage.e2e.test.mjs`: výška a polohy, první obrazovka, lišty ≤ 15 % a počty slibů na `/`.
+- `tests/e2e/obsah-homepage.e2e.test.mjs`: výška a polohy, první obrazovka, lišty ≤ 15 % a počty „24 h“, „10 let“ a „lešení“ na `/` (A: nevzrostly proti uloženému stavu „před“; B: ≤ 2×).
 
 Úkol 19 tyto testy převezme do CI. Napiš mu do hlášení jejich názvy a příkaz.
 
@@ -639,9 +662,9 @@ Viz `balicek/KONTEXT.md` §4. Zvlášť pro tento úkol:
   - v testech všechny POST zachyť,
   - živý web jen GET.
 - **URL a úložiště:**
-  - do URL nikdy telefon, e-mail, jméno, kód pasu domu ani cenu,
+  - do URL nikdy telefon, e-mail, jméno, adresu, kód pasu domu ani cenu (adresa jen přes `sessionStorage['hspg-predvyplnit']` z úkolu 10),
   - hodnoty z URL jen z whitelistu a jen přes `.value` a `textContent`,
-  - kvůli předvyplnění ani zdroji nic neukládej do prohlížeče (úkol 02). `hspg-holub-lead` zůstává jako dnes.
+  - kvůli předvyplnění ani zdroji nezaváděj žádný nový klíč v prohlížeči (úkol 02). Používáš jen stávající `hspg-holub-lead` (jako dnes) a `hspg-predvyplnit` z úkolu 10 (přečíst, předvyplnit, smazat).
 - **Cizí rozsah neměň:**
   - pravidla a texty akce (13),
   - souhlasy a zásady (09),
@@ -682,4 +705,5 @@ Formát z `KONTEXT.md` §5, zvlášť po A1 (mezihlášení), po A a po B. Naví
   - pro úkol 12: výzvy hubů na `/poptavka/`,
   - pro úkol 14: kód pasu domu,
   - pro úkol 09: anglické shrnutí zásad,
-  - pro balíček: formulář fotek na anglické děkovné stránce.
+  - pro balíček: formulář fotek na anglické děkovné stránce; v testech balíčku falešná odpověď AI v `balicek/testy/server.mjs` („hspg.cz/akce/“) a očekávání `a[href="/akce/"]` v `balicek/testy/e2e/hbot.test.mjs` → `/poptavka/` (testy projdou i bez změny, ale neodpovídají novým znalostem),
+  - pro úkol 10: rozšířený selektor kliků v `assets/souhlas.js` (krok 9).

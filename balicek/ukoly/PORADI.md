@@ -29,4 +29,4 @@ zbývajících oblastí auditu se může zpřesnit (před každým úkolem `git 
 | 16 | [Přístupnost a ovládání klávesnicí](16-pristupnost-klavesnice.md) | P1 | 08 | – |
 | 17 | [Funkční chyby: kotvy na homepage, kalkulačky, tisk, offline](17-funkcni-chyby.md) | P0 (kotvy) / P1 | 00 | – |
 | 18 | [Obsah a cesta k poptávce](18-obsah-cesta-k-poptavce.md) | P1 | 02, 13 | slib reakční doby, texty |
-| 19 | [CI: automatické kontroly před sloučením](19-ci-kontroly.md) | P1 | 00 | doba uchování poptávek |
+| 19 | [CI: automatické kontroly před sloučením (a provoz formulářů)](19-ci-kontroly.md) | P1 | 00, 07 (fáze B, `dist/`) | doba uchování poptávek, místo pro zálohy exportu, GitHub Pro (ochrana větve) |

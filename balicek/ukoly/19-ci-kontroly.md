@@ -1,5 +1,5 @@
 # Úkol 19: CI – automatické kontroly před sloučením (a provoz formulářů)
-> Priorita P1 · Závisí na: 00 (soukromý repozitář webu na GitHubu, `scripts/nasadit.mjs`). Kontroly přebírá z úkolů, které jsou podle `PORADI.md` sloučené dřív (01, 02, 03, 05, 07, 13, 16, 17 a další). Co v `main` chybí, nahlas · Čeká na majitele: doba uchování poptávek (úkol 09, O1), místo pro zálohy exportu formulářů, rozhodnutí o GitHub Pro (bez něj nejde u soukromého repozitáře nastavit ochranu větve `main`), nastavení ochrany větve, potvrzení, že 8 dosavadních podání jsou testy · Rozsah: **fáze A** = GitHub Actions jen s kontrolami (nikdy nasazení), kontroly výstupu, e2e, Lighthouse, gitleaks, brána před sloučením → hlášení a stop; **fáze B** = skript pro výpis, export a mazání podání Netlify Forms (výchozí `--nasucho`), týdenní záloha mimo Netlify, ověření formuláře `hspg-fotky` → hlášení.
+> Priorita P1 · Závisí na: 00 (soukromý repozitář webu na GitHubu, `scripts/nasadit.mjs`) a 07 fáze B (build do `dist/`, `publish = "dist"`, `lighthouserc*.json`). Kontroly přebírá z úkolů, které jsou podle `PORADI.md` sloučené dřív (01, 02, 03, 05, 07, 13, 16, 17 a další). Co v `main` chybí, nahlas · Čeká na majitele: doba uchování poptávek (úkol 09, O1), místo pro zálohy exportu formulářů, rozhodnutí o GitHub Pro (bez něj nejde u soukromého repozitáře nastavit ochranu větve `main`), nastavení ochrany větve, potvrzení, že 8 dosavadních podání jsou testy · Rozsah: **fáze A** (podle potřeby dvě sezení A1/A2, viz Postup) = GitHub Actions jen s kontrolami (nikdy nasazení), kontroly výstupu, e2e, Lighthouse, gitleaks, brána před sloučením → hlášení a stop; **fáze B** = skript pro výpis, export a mazání podání Netlify Forms (výchozí `--nasucho`), týdenní záloha mimo Netlify, ověření formuláře `hspg-fotky` → hlášení.
 
 ## Proč (s důkazy)
 Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez postupu mazání, zálohy formulářů), #19 (sitemap ručně), #20 (formulář `hspg-fotky`), #23 (chybí strojová kontrola tvrzení) a `audit-formulare.json` #21. Ověřeno 4. 10. 2026 na kopii živého webu (247 HTML) a dotazy GET na https://hspg.cz. Čísla řádků platí pro publikované HTML, ve zdroji se mohou lišit.
@@ -96,6 +96,7 @@ Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez po
    - Stáhni nebo aktualizuj balíček: `git -C ../hspg-balicek pull` (případně `git clone` podle úkolu 01).
 2. **Najdi v repozitáři soubory, které generují publikovaný výstup, a existující kontroly.** Výsledek zapiš do hlášení.
    - **Build:** `netlify.toml` → `[build] command` a `publish`. Podle živého `sw.js` jde pravděpodobně o `npm run build` → `dist/` přes `scripts/build-site.mjs`. Dále verze Node (`NODE_VERSION`, `.nvmrc`, `engines`), `package.json` a `package-lock.json`.
+     - Pokud `publish` chybí nebo je `.` (úkol 07 fáze B ještě nezavedl `dist/`), výstup nejde oddělit od interních souborů (kontrola 6f by trvale selhávala na `package.json`). Zastav se a nahlas, že úkol 19 čeká na sloučení úkolu 07 fáze B.
    - **Generátory a jejich `--kontrola`:** všechny `scripts/build-*.mjs`, například:
      - `build-hbot` (úkol 01), `build-kontakty` (03), `build-zaruka` (05)
      - `build-otisky` a `kontrola-media` (07), `build-layout` (08), `build-zasady` (09), `build-souhlas` (10)
@@ -106,7 +107,7 @@ Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez po
      - skripty s `form-name`: `git grep -n "form-name"`
      - mapa `smerovani_formularu` a štítky formulářů (úkol 02) v `content/firma.json`
    - **Testy:**
-     - `tests/**`
+     - `tests/**`; rozděl je na testy bez prohlížeče a testy s Playwrightem (`git grep -l "playwright" -- tests/`)
      - npm skripty `test`, `test:e2e`, `test:a11y:rychle` (16), `kontrola:tvrzeni` (13) a `vykon` (07)
      - `lighthouserc*.json`
      - Playwright a `axe-core` v `devDependencies`
@@ -119,21 +120,22 @@ Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez po
 3. **Lokální běh jako první.** Přidej `npm run ci:lokalne` (`scripts/ci/lokalne.mjs`).
    - Skript spustí stejné kroky ve stejném pořadí jako CI (kroky 4–11) a na konci vypíše tabulku „krok → výsledek → čas“.
    - Chybějící nástroj (např. gitleaks) vypíše jako výrazné varování, nikdy ho tiše nepřeskočí.
+   - Nastaví stejné proměnné jako CI (`BEZ_SNIMKU=1`, `A11Y_RYCHLE=1`). Krok 4 vyžaduje čistý pracovní strom, proto skript na začátku při neprázdném `git status --porcelain` skončí s hláškou „nejdřív commitni nebo odlož změny“.
    - Všechno, co dělá CI, musí jít spustit lokálně bez tajemství a bez sítě. Výjimkou je jen instalace balíčků.
 4. **Build a generátory:** `scripts/ci/generatory.mjs` (npm `kontrola:generatory`).
    - Spustí build (`npm run build`, pokud existuje) a potom výslovný seznam příkazů `--kontrola` z kroku 2. Seznam je pole v souboru. Chybějící skript ze seznamu je chyba, ne důvod k přeskočení. Úkoly 15, 14 a 12 seznam později rozšíří.
    - Na závěr musí `git status --porcelain` vrátit prázdný výstup, tedy commitnuté výstupy odpovídají generátorům. `dist/` a další výstupy buildu patří do `.gitignore`.
    - **Brány pro produkci nespouštěj.** `build-zasady.mjs --brana` (úkol 09) selže, dokud zásady obsahují `[DOPLNIT`. To je v pořádku, ale do CI to nepatří. Zapiš to do `docs/ci.md`.
 5. **Testy a tvrzení:**
-   - `npm test` (jednotkové testy webu ze všech úkolů)
+   - jednotkové testy webu ze všech úkolů. Job `staticke` nemá prohlížeč, ale `npm test` podle úkolu 07 spouští i Playwright testy `tests/vykon/` (včetně snímků `vzhled.test.mjs`). Přidej proto npm skript `test:bez-prohlizece`: všechny `tests/**/*.test.mjs` bez Playwrightu, kromě `tests/ci/vystup.test.mjs` (ten spouští `kontrola:vystup`) a `tests/e2e/**`. Testy s Playwrightem patří do `test:e2e:ci` (krok 9). `npm test` neměň. Každý testovací soubor běží v CI právě jednou. Seznam souborů v obou skupinách dej do hlášení.
    - `npm run kontrola:tvrzeni` (13)
    - `node scripts/build-hbot.mjs --kontrola` (01), pokud ho nespouští už krok 4
    - testy záruky (05)
 
    Pokud skript chybí, protože úkol ještě není v `main`, zapiš to do hlášení.
-6. **Kontroly výstupu:** `tests/ci/vystup.test.mjs` (`node:test`, bez závislostí). Publikační adresář čte z `netlify.toml`, přepsat ho jde proměnnou `HSPG_PUB`. Prochází **všechny** `*.html` a `*.json` v publikačním adresáři, ne sitemap. Před napsáním každé kontroly ověř `git grep`em, zda ji už nemá test jiného úkolu (02 registr formulářů, 05 záruka, 13 `[DOPLNIT`, 17 `${` mimo skripty). Pokud ano, kontrolu nepřidávej, jen zajisti, že běží v CI.
+6. **Kontroly výstupu:** `tests/ci/vystup.test.mjs` (`node:test`, bez závislostí), npm skript `kontrola:vystup` = `node --test tests/ci/vystup.test.mjs`. Publikační adresář čte z `netlify.toml`, přepsat ho jde proměnnou `HSPG_PUB`. Prochází **všechny** `*.html` a `*.json` v publikačním adresáři, ne sitemap. Před napsáním každé kontroly ověř `git grep`em, zda ji už nemá test jiného úkolu (02 registr formulářů, 05 záruka, 06 `tests/sitemap.test.mjs` a `tests/adresy.test.mjs`, 11 JSON-LD, 13 `[DOPLNIT`, 17 `tests/vystup.test.mjs` s `${` mimo skripty). Pokud ano, kontrolu nepřidávej, jen zajisti, že běží v CI.
 
-   a) **JSON-LD:** každý `<script type="application/ld+json">` jde parsovat, `@context` je `https://schema.org` a každý uzel má `@type`. Povinná pole podle typu:
+   a) **JSON-LD:** každý `<script type="application/ld+json">` jde parsovat, `@context` je `https://schema.org` a každý uzel nejvyšší úrovně (i položka `@graph`) má `@type`. Vnořený odkaz na uzel (objekt jen s `@id`, případně s `@type`, např. `provider` → `https://hspg.cz/#firma` z úkolu 11) je povolený, pokud se jeho `@id` rovná `@id` plného uzlu někde ve výstupu. Povinná pole platí pro plné uzly. Povinná pole podle typu:
 
       | Typ | Povinné |
       |---|---|
@@ -145,7 +147,7 @@ Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez po
       | JobPosting | jen pokud ho povoluje registr `content/tvrzeni.json` (13); potom `title`, `description`, `datePosted`, `validThrough`, `employmentType`, `hiringOrganization`, `jobLocation` |
       | AggregateRating, Review, `ratingValue`, `reviewCount` | **selhání**, dokud registr tvrzení (13, T21) výslovně nepovolí hodnocení se zdrojem ve skutečných recenzích; potom se čísla musí rovnat zdroji |
 
-      Dnešní stav kontrolou projde (ověřeno nad kopií), kromě JobPosting, které odstraňuje úkol 13.
+      Dnešní stav kontrolou projde (ověřeno nad kopií), kromě JobPosting, které odstraňuje úkol 13. Telefon porovnávej po odstranění mezer (`+420736618486`).
 
    b) **Šablonové značky:** `${` ani `{{` se nesmí objevit ve viditelném HTML (mimo **spustitelné** `<script>` a mimo `<style>`), v JSON-LD ani v publikovaných `*.json`. Definice odpovídá úkolu 17 (34 výskytů v JS je správných). Pokud test úkolu 17 existuje, jen ho rozšiř o JSON-LD a `*.json`.
 
@@ -181,12 +183,16 @@ Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez po
    - Vnější odkazy se v PR nekontrolují: výsledky nejsou stabilní, zatěžují cizí servery a změna v PR je neovlivní.
    - Ověř, že kontrola na aktuálním výstupu projde.
    - Negativním testem ověř, že selže rozbitý interní odkaz i neexistující kotva `#…`.
+
+   > **Bod zastavení (A1/A2).** Fáze A je na jedno sezení velká. Pokud ji nestihneš, skonči po kroku 8 (**A1**): `npm run kontrola:generatory`, `test:bez-prohlizece`, `kontrola:vystup`, `kontrola:html` a `kontrola:odkazy` lokálně prošly. Commitni, pushni větev `ukol-19-ci-kontroly` (push do `ukol-*` CI nespouští, workflow ještě neexistuje) a podej průběžné hlášení. **A2** = kroky 9–16 ve stejné větvi v dalším sezení.
+
 9. **E2E testy (Playwright, Chromium):** `npm run test:e2e:ci`.
    - **Testy asistenta z balíčku:**
-     - Zkopíruj z `../hspg-balicek/balicek/testy/` soubory `server.mjs`, `pomocne.mjs`, `e2e/hbot.test.mjs` a `unit/*.test.mjs` do `tests/asistent/`. Do hlavičky každého souboru napiš „převzato z HSPG-WEB@<commit>, upraveny jen cesty“.
+     - Zkopíruj z `../hspg-balicek/balicek/testy/` soubory `server.mjs`, `pomocne.mjs`, `e2e/hbot.test.mjs` a `unit/*.test.mjs` do `tests/asistent/`. Do hlavičky každého souboru napiš „převzato z HSPG-WEB@<commit>, upraveny jen cesty“ (u souboru s upravenou asercí doplň „a aserce podle úkolu NN“).
      - Uprav jen importy, aby vedly na funkce a knihovnu **webu** (adresář funkcí z kroku 2, `netlify/lib/ai/`, `scripts/nasadit.mjs`).
+     - Část, kterou web už převzal (např. oznámení z `znalosti-a-oznameni.test.mjs` v `tests/oznameni.test.mjs`, úkol 02), nepřebírej podruhé. Pokud převzatý test selže, protože pozdější úkol chování záměrně změnil (např. 02 oznámení, 09 filtr poskytovatelů v `poradi`), uprav aserci podle zadání toho úkolu a uveď v hlášení test, úkol a důvod. Jinak jde o chybu, nahlas ji a test neměň.
      - V `server.mjs` odeber servírování složky balíčku (`BALICEK`). Server pak servíruje jen publikační adresář webu (`HSPG_MIRROR` = výstup buildu), `/api/*` obsluhuje falešnými AI a POST na `/` ukládá jen do paměti. Testy tak ověřují kód, který se opravdu nasazuje.
-     - Jednotkové testy přidej do `npm test`, e2e do `test:e2e:ci`. V CI nenastavuj `CHROMIUM`, použije se prohlížeč Playwrightu.
+     - Jednotkové testy přidej do `npm test` i `test:bez-prohlizece`, e2e do `test:e2e:ci`. V CI nenastavuj `CHROMIUM`, použije se prohlížeč Playwrightu.
    - **Smoke testy** `tests/e2e/smoke.e2e.test.mjs` (server z předchozího bodu v režimu `bez-ai`):
      - **Stránky:** `/`, ceník, `/akce/`, `/akce/dekujeme/`, `/recenze/`, jedna okresní stránka za každou službu (fasády, střechy, dlažby), `/kalkulacka-svj`, `/pas-domu`, `/nabidka-svj`, `/en`, `/ochrana-osobnich-udaju`, `/404.html` a stránky z úkolů 04 a 05 (`/reklamace/`, `/zaruka`), pokud existují. Adresy v kanonické podobě (canonical stránky, úkol 06).
      - **Šířky:** 375×812, 768×1024, 1280×800.
@@ -195,19 +201,20 @@ Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez po
        - 0 `pageerror` a 0 `console.error`
        - právě jeden `<h1>`
        - žádný vodorovný posun (`scrollWidth ≤ clientWidth`)
-       - hlavní výzvy jdou kliknout. Po volbě v liště souhlasu (klíč a hodnotu `localStorage` ověř v `assets/souhlas.js`) vrátí `document.elementFromPoint` ve středu prvku ten prvek nebo jeho potomka. Na mobilu se to týká položek spodní lišty `#hspg-lista` z úkolu 01. Na desktopu jde o `#hbot-btn` a na `/` o `#cta-main`. Tlačítko se u úvodní výzvy schovává, proto nejdřív posuň stránku (úkol 07). Selektory ověř ve zdroji.
+       - hlavní výzvy jdou kliknout. Po volbě „Jen nezbytné“ v liště souhlasu (dnes `localStorage` `hspg-souhlas` = `nezbytne`, ověř v `assets/souhlas.js`; volba „přijmout“ by načetla GTM a jeho POST by test shodil) vrátí `document.elementFromPoint` ve středu prvku ten prvek nebo jeho potomka. Na mobilu se to týká položek spodní lišty `#hspg-lista` z úkolu 01. Na desktopu jde o `#hbot-btn` a na `/` o `#cta-main`. Tlačítko se u úvodní výzvy schovává, proto nejdřív posuň stránku (úkol 07). Selektory ověř ve zdroji.
      - **Síť:**
        - Vše mimo `127.0.0.1`/`localhost` se ruší (`context.route` → `abort`) a zapisuje do logu.
        - **Každý POST se ruší** a zapisuje do logu, protože smoke testy nic neodesílají.
-       - Log `artefakty/e2e/zablokovane-pozadavky.json` je artefakt běhu. Smoke test selže, pokud log obsahuje POST.
-   - **E2E ostatních úkolů** (02, 05, 16, 17 …): zařaď všechny `tests/e2e/*.e2e.test.mjs`. Přístupnost běží v rychlém režimu (`A11Y_RYCHLE=1`, `npm run test:a11y:rychle` z úkolu 16).
-   - **Testy snímků obrazovky** (úkol 07, `tests/vykon/vzhled.test.mjs`) v CI nespouštěj. Referenční snímky vznikly v jiném prostředí a písmo se na runneru vykresluje jinak, takže by vznikaly plané poplachy. Přeskoč je proměnnou (např. `BEZ_SNIMKU=1` v CI). Změnu v jejich souboru udělej co nejmenší a uveď ji v hlášení.
+       - Log `artefakty/e2e/zablokovane-pozadavky.json` je artefakt běhu: pole záznamů `{ "url", "metoda", "test" }` (bez těl požadavků). Smoke test selže, pokud log obsahuje POST.
+   - **E2E ostatních úkolů** (02, 05, 07, 16, 17 …): zařaď všechny `tests/e2e/*.e2e.test.mjs`, k tomu `tests/e2e/formulare.test.mjs` (úkol 02, název bez `.e2e`) a Playwright testy `tests/vykon/*.test.mjs` (úkol 07). Přístupnost běží v rychlém režimu (`A11Y_RYCHLE=1`, `npm run test:a11y:rychle` z úkolu 16).
+   - **Nikdy v CI:** `tests/e2e/ga4-zive.test.mjs` (úkol 10, volá náhled na Netlify, název záměrně bez `.e2e`).
+   - **Testy snímků obrazovky** (úkol 07, `tests/vykon/vzhled.test.mjs`, a úkol 08, `tests/vizualni.mjs --kontrola`) v CI nespouštěj. Referenční snímky vznikly v jiném prostředí a písmo se na runneru vykresluje jinak, takže by vznikaly plané poplachy. Přeskoč je proměnnou (např. `BEZ_SNIMKU=1` v CI). Změnu v jejich souboru udělej co nejmenší a uveď ji v hlášení.
    - Žádný test nesmí volat https://hspg.cz ani skutečnou AI. V CI nejsou žádné klíče.
-10. **Lighthouse CI:** spusť `npm run vykon` s konfigurací z úkolu 07. Rozpočty ani prahy neměň.
+10. **Lighthouse CI:** spusť `npm run vykon` s konfigurací z úkolu 07. Rozpočty ani prahy neměň a soubory `lighthouserc*.json` neupravuj.
     - Pokud úkol 07 není dokončený (aserce `warn`), výkon jen varuje. Po úkolu 07 platí jeho `error`, včetně výkonu na mobilu ≥ 0,9.
-    - Proti šumu sdíleného runneru použij 3 běhy a agregaci mediánem (volbu `aggregationMethod` ověř v dokumentaci LHCI).
-    - Pokud výkon v CI i tak kolísá kolem prahu (2 plané poplachy za týden), přepni v CI **jen** `categories:performance` na `warn`. Ostatní aserce (CLS, velikosti, přístupnost) nech na `error` a změnu nahlas.
-    - Reporty `.lighthouseci/` (mobil i desktop) nahraj jako artefakt.
+    - Konfigurace úkolu 07 už má 5 běhů a `"aggregationMethod": "median-run"`. Pokud job `lighthouse` trvá déle než 15 min, sniž **jen v CI** počet běhů na 3 přepisem z prostředí nebo příkazové řádky (způsob ověř v dokumentaci LHCI, např. `--collect.numberOfRuns=3`) a uveď to v hlášení.
+    - Kolísání ověř takto: když `lighthouse` v CI selže jen na `categories:performance`, spusť job na stejném commitu ještě 2× (`gh run rerun <id> --job <job-id>`). Pokud výsledek mezi běhy kolísá (aspoň jeden běh projde) a `npm run vykon` lokálně projde, přepni v CI **jen** `categories:performance` na `warn` (přepisem v CI, ne v souborech úkolu 07). Ostatní aserce (CLS, velikosti, přístupnost) nech na `error`. Změnu nahlas s odkazy na všechny 3 běhy. Pokud selhávají všechny 3 běhy, jde o skutečné zhoršení: nic nepřepínej a nahlas ho.
+    - LHCI zapisuje reporty podle úkolu 07 do `.lhci-vystup/mobil` a `.lhci-vystup/desktop`. Jako artefakt nahraj `.lhci-vystup/`. Samotný `.lighthouseci/` nestačí, protože druhý `lhci collect` (desktop) výsledky mobilu v něm smaže.
 11. **Gitleaks:** samostatný job nad celou historií (`fetch-depth: 0`).
     - Použij gitleaks z oficiálního vydání s pinovanou verzí: binárku s ověřeným kontrolním součtem, nebo oficiální kontejner. Od v8.19 se používá podpříkaz `git` (dříve `detect`), ověř přes `--help`.
     - Vždy spouštěj s `--redact`, aby se hodnoty neobjevily v logu.
@@ -254,7 +261,7 @@ Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez po
             with: { node-version-file: .nvmrc, cache: npm }
           - run: npm ci
           - run: npm run kontrola:generatory
-          - run: npm test
+          - run: npm run test:bez-prohlizece
           - run: npm run kontrola:tvrzeni
           - run: npm run kontrola:vystup
           - run: npm run kontrola:html
@@ -299,7 +306,7 @@ Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez po
           - run: npm run vykon
           - if: always()
             uses: actions/upload-artifact@<SHA> # vX.Y.Z
-            with: { name: lighthouse, path: .lighthouseci/, retention-days: 7 }
+            with: { name: lighthouse, path: .lhci-vystup/, retention-days: 7 }
     ```
     Pravidla:
     - **Pinování akcí:** každou akci pinuj na plný SHA commitu a do komentáře napiš verzi. SHA zjistíš např. `git ls-remote --tags https://github.com/actions/checkout`. Žádné `@main` ani `@v4`.
@@ -371,7 +378,7 @@ Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez po
     | `${PROMENNA}` ve viditelném textu | `staticke` (šablonové značky) |
     | ruční změna generovaného souboru (např. `assets/hbot-znalosti.json`) | `staticke` (generátory) |
 
-    Jeden běh odhalí jen první chybu v jobu, protože kroky běží za sebou. Ověřuj proto po commitech: pro každé rozbití buď samostatný běh (`git revert` předchozího), nebo stejný test lokálně přes `npm run ci:lokalne`. Do hlášení dej odkazy na červené běhy. PR zavři **bez sloučení** a vlastní větev `ukol-19-negativni-test` smaž lokálně i na GitHubu. Negativní test gitleaks proveď lokálně podle kroku 11.
+    Jeden běh odhalí jen první chybu v jobu, protože kroky běží za sebou. Ověřuj proto po commitech: pro každé rozbití buď samostatný běh (`git revert` předchozího), nebo stejný test lokálně přes `npm run ci:lokalne`. Další commit pushni až po dokončení předchozího běhu (`gh run watch`), jinak ho `concurrency` s `cancel-in-progress` zruší. Kvůli minutám stačí v CI aspoň jedno rozbití pro `staticke` a jedno pro `e2e`, ostatní lokálně. Do hlášení dej odkazy na červené běhy. PR zavři **bez sloučení** a vlastní větev `ukol-19-negativni-test` smaž lokálně i na GitHubu. Negativní test gitleaks proveď lokálně podle kroku 11.
 16. **Pozitivní běh a minuty.** Otevři PR z `ukol-19-ci-kontroly`, všechny joby musí být zelené.
     - Zapiš trvání jobů. GitHub účtuje každý job zaokrouhleně nahoru na celé minuty.
     - Spočítej průměr na PR a odhad za měsíc (počet PR a pushů do `main` za posledních 30 dní) proti 2 000 minutám.
@@ -403,9 +410,9 @@ Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez po
       - Výstup: `<cil>/RRRR-MM-DD/<formular>.json`, přílohy a `manifest.json` (počty po formulářích, ID podání, SHA-256 souborů, čas).
       - Cíl uvnitř repozitáře Git (`git rev-parse --show-toplevel`) odmítne. Volbu úložiště jinak nechává na majiteli.
       - Úplnost: počet podání v manifestu se musí rovnat počtu podle API.
-      - Po úspěchu zapíše `.provoz/formulare-export.json` (jen datum, počty a SHA-256 manifestu; `.provoz/` patří do `.gitignore`). Z tohoto souboru čte týdenní kontrola úkolu 15 („poslední export ≤ 7 dní“).
+      - Po úspěchu zapíše `.provoz/formulare-export.json` jen s klíči `datum` (ISO), `pocty` (formulář → počet) a `manifest_sha256` (`.provoz/` patří do `.gitignore`). Z tohoto souboru čte týdenní kontrola úkolu 15 („poslední export ≤ 7 dní“).
     - **`promaz`** (výchozí **`--nasucho`**):
-      - Doby uchování čte z `content/zpracovani.json` (úkol 09: `ucely[].formulare`, `uchovani.mesice`).
+      - Doby uchování čte z `content/zpracovani.json` (úkol 09: `ucely[].formulare`, `ucely[].uchovani.mesice`).
       - Pokud formulář nemá záznam nebo má `mesice: null`, vypíše `[DOPLNIT: doba uchování – rozhodnutí majitele, úkol 09 O1]`, nic nesmaže a skončí kódem 3.
       - Jinak vypíše po formulářích počty podání podle stáří (starší než lhůta / v lhůtě) a co by smazal.
       - **Skutečné mazání proběhne jen při splnění všech podmínek najednou:**
@@ -427,7 +434,7 @@ Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez po
     - výstup na konzoli neobsahuje jména, telefony ani e-maily z testovacích dat,
     - rotace ponechá správný počet složek.
 
-    Testy zařaď do `npm test`. Poběží v CI, protože API je falešné.
+    Testy zařaď do `npm test` i `test:bez-prohlizece`. Poběží v CI, protože API je falešné.
 21. **Ověření na počítači majitele.** Jen se souhlasem majitele, CLI je přihlášené z úkolu 00.
     - `npm run formulare:seznam`
     - `npm run formulare:export -- --cil "[DOPLNIT: cesta od majitele]"` → počty v manifestu se rovnají počtům v Netlify.
@@ -450,8 +457,9 @@ Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez po
 - [ ] `git grep -nE "netlify (deploy|api)|nasadit\.mjs|NETLIFY_AUTH_TOKEN|_API_KEY|secrets\." -- .github/` → žádný výsledek.
 - [ ] PR z `ukol-19-ci-kontroly`: joby `staticke`, `tajemstvi`, `e2e` a `lighthouse` jsou zelené (`gh pr checks <číslo>`, odkaz na běh). V hlášení je trvání jobů a odhad minut za měsíc.
 - [ ] Negativní test: každé rozbití z tabulky v kroku 15 shodilo očekávaný job (odkazy na běhy, případně výstup `npm run ci:lokalne`). PR je zavřený bez sloučení a `git ls-remote --heads origin ukol-19-negativni-test` vrací prázdný výstup.
-- [ ] Artefakt `zablokovane-pozadavky.json` z e2e: každý požadavek mimo localhost je zrušený a smoke testy neobsahují žádný POST.
-- [ ] Lighthouse: artefakt obsahuje reporty pro mobil i desktop, aserce odpovídají úkolu 07 (případné přepnutí výkonu na `warn` je zdůvodněné).
+- [ ] Artefakt `zablokovane-pozadavky.json` z e2e: každý požadavek mimo localhost je zrušený a smoke testy neobsahují žádný POST (`node -e 'const l=require("./artefakty/e2e/zablokovane-pozadavky.json"); const p=l.filter(z=>z.metoda==="POST"); console.log(l.length, p.length); process.exit(p.length?1:0)'` → kód 0).
+- [ ] Lighthouse: artefakt obsahuje reporty pro mobil i desktop (`D=$(mktemp -d); gh run download <id> -n lighthouse -D "$D" && ls "$D/mobil" "$D/desktop"` → obě složky neprázdné), aserce odpovídají úkolu 07 (případné přepnutí výkonu na `warn` je doložené 3 běhy podle kroku 10).
+- [ ] `npm run test:bez-prohlizece` a `npm run test:e2e:ci` prošly. V hlášení je seznam souborů v obou skupinách a žádný soubor není v obou (ani `tests/e2e/ga4-zive.test.mjs` a testy snímků v žádné).
 - [ ] `npm run ci:lokalne` lokálně prošel, tabulka kroků a časů je v hlášení.
 - [ ] `node --test tests/ci/*.test.mjs tests/asistent/unit/*.test.mjs` → vše prošlo (uveď počty).
 - [ ] `git grep -nE "hspg-balicek|balicek/web" -- tests/` → nic. Testy asistenta používají kód webu a server neservíruje nic mimo publikační adresář.
@@ -459,13 +467,13 @@ Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez po
 - [ ] `npm run kontrola:vystup` prošel: JSON-LD, šablonové značky, formuláře (všech 5, případně 6 s `hspg-reklamace`), sitemap, indexace a interní soubory.
 - [ ] `node scripts/ci/pred-sloucenim.mjs` → kód 0 na zelené větvi, kód 1 na `ukol-19-negativni-test` (před jejím smazáním).
 - [ ] `gitleaks git --redact --no-banner` → 0 nálezů, nebo jen otisky v `.gitleaksignore` se souhlasem majitele.
-- [ ] Existují `docs/ci.md`, `.github/pull_request_template.md` a sekce „CI“ v `CLAUDE.md`. Návod na ochranu větve je v hlášení.
+- [ ] Existují `docs/ci.md`, `.github/pull_request_template.md` a sekce „CI“ v `CLAUDE.md` (`test -f docs/ci.md && test -f .github/pull_request_template.md && grep -n "^#.*CI" CLAUDE.md` → kód 0). Návod na ochranu větve je v hlášení.
 
 **Fáze B**
 - [ ] `node --test tests/formulare/*.test.mjs` → vše prošlo (uveď počet).
 - [ ] `git grep -nE "(NETLIFY_AUTH_TOKEN|Authorization)\s*[:=]" -- scripts/ tests/` → nic.
 - [ ] `npm run formulare:seznam` na počítači majitele: `hspg-fotky` je ve skupině „v Netlify i na webu“. Tabulka je v hlášení.
-- [ ] Export: počty v manifestu se rovnají počtům v Netlify, cíl je mimo repozitář, `git status --porcelain` je prázdný. `.provoz/formulare-export.json` existuje a neobsahuje osobní údaje.
+- [ ] Export: počty v manifestu se rovnají počtům v Netlify, cíl je mimo repozitář, `git status --porcelain` je prázdný. `.provoz/formulare-export.json` existuje a neobsahuje osobní údaje (`node -e 'console.log(Object.keys(require("./.provoz/formulare-export.json")))'` → jen `datum`, `pocty`, `manifest_sha256`).
 - [ ] `npm run formulare:promaz; echo $?` → `[DOPLNIT …` a 3, dokud není O1 rozhodnuto. Počet podání v Netlify je před i po stejný.
 - [ ] `docs/provoz-formulare.md` existuje a `[DOPLNIT]` obsahuje jen u rozhodnutí majitele.
 
@@ -474,7 +482,7 @@ Zdroje: `audit-nasazeni_provoz.json` #5 (chybí CI), #13 (doba uchování bez po
 npm ci
 npm run ci:lokalne                                   # → tabulka kroků, vše OK
 npm run kontrola:generatory && git status --porcelain # → prázdný výstup
-npm test                                             # → vše prošlo (počty)
+npm run test:bez-prohlizece                          # → vše prošlo (počty)
 npm run kontrola:vystup && npm run kontrola:html && npm run kontrola:odkazy
 npm run test:e2e:ci                                  # → vše prošlo; artefakty/e2e/zablokovane-pozadavky.json bez POST
 npm run vykon                                        # → LHCI mobil i desktop podle úkolu 07
@@ -506,7 +514,7 @@ CI nikdy nevolá skutečnou AI. Testy asistenta běží s falešnými adaptéry 
 Platí `balicek/KONTEXT.md` §4. Navíc pro tento úkol:
 - **CI jen kontroluje.** Žádné nasazení (ani náhled), žádný token Netlify ani AI v GitHubu, žádný `pull_request_target`. Napojení Netlify na Git nezapínej (úkol 00).
 - **Nic se neodesílá.** Testy ruší všechny POST i vnější požadavky. Produkce se v CI vůbec nevolá a do produkčních formulářů nic nejde (§4.5).
-- **Kontroly se nezmírňují kvůli zelenému výsledku.** Když v CI selže test jiného úkolu, najdi příčinu (prostředí, časování) a nahlas ji. Aserci jiného úkolu neměň bez zdůvodnění v hlášení. Jedinou předem povolenou výjimkou je přeskočení testů snímků v CI (krok 9).
+- **Kontroly se nezmírňují kvůli zelenému výsledku.** Když v CI selže test jiného úkolu, najdi příčinu (prostředí, časování) a nahlas ji. Aserci jiného úkolu neměň bez zdůvodnění v hlášení. Předem povolené výjimky jsou jen dvě: přeskočení testů snímků v CI (krok 9) a přepnutí `categories:performance` na `warn` v CI po doloženém kolísání (krok 10).
 - **Osobní údaje z formulářů** nesmí do Gitu, CI, artefaktů, logu ani chatu. Obsah podání nečti. Mazat se smí jen se schválením majitele a po ověřeném exportu.
 - **Registrace formulářů v Netlify, e-mailové schránky a DNS zůstávají beze změny.**
 - **Větve:** vlastní pomocnou větev `ukol-19-negativni-test` smíš smazat, cizí větve ne.
@@ -517,6 +525,7 @@ Formát z `KONTEXT.md` §5 a k tomu:
 
 **Fáze A**
 - úkoly v `main`, nalezené generátory, testy a npm skripty a co v CI chybí, protože úkol ještě není sloučený
+- rozdělení testů: soubory v `test:bez-prohlizece` a v `test:e2e:ci`, co v CI záměrně neběží (snímky 07 a 08, `ga4-zive`) a úpravy převzatých testů balíčku
 - tabulka jobů a kroků s trváním, odhad minut za měsíc proti 2 000
 - odkaz na zelený běh a na negativní běhy s tabulkou „rozbití → job → hláška“
 - obsah základní linie html-validate s odpovědnými úkoly
