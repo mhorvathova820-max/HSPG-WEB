@@ -1,0 +1,110 @@
+// Limity a útrata AI. Ukládá se do Netlify Blobs (úložiště „hspg-ai“); IP adresy se neukládají,
+// jen jejich otisk se solí dne, takže je nejde zpětně dohledat ani propojit mezi dny.
+import { createHash } from "node:crypto";
+
+export async function vychoziUloziste() {
+  const { getStore } = await import("@netlify/blobs");
+  return getStore({ name: "hspg-ai", consistency: "strong" });
+}
+
+// Paměťové úložiště pro testy a lokální běh.
+export function pametoveUloziste() {
+  const m = new Map();
+  return {
+    async get(k) { return m.has(k) ? JSON.parse(m.get(k)) : null; },
+    async setJSON(k, v) { m.set(k, JSON.stringify(v)); },
+    _mapa: m,
+  };
+}
+
+const den = (ted) => new Date(ted).toISOString().slice(0, 10);
+export const mesic = (ted) => new Date(ted).toISOString().slice(0, 7);
+
+export function otiskKlienta(ip, ted) {
+  return createHash("sha256").update(`${den(ted)}|${ip || "neznama"}`).digest("hex").slice(0, 24);
+}
+
+async function cti(ul, k) {
+  try {
+    return (await ul.get(k, { type: "json" })) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// Okénkový čítač: vrací true, když se požadavek do limitu vejde (a započítá ho).
+async function pricti(ul, klic, limit, oknoMs, ted) {
+  const z = await cti(ul, klic);
+  const platny = z && ted - z.od < oknoMs ? z : { n: 0, od: ted };
+  if (platny.n >= limit) return false;
+  platny.n += 1;
+  await ul.setJSON(klic, platny);
+  return true;
+}
+
+const cislo = (v, vychozi) => (Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : vychozi);
+
+// Veřejný asistent: na návštěvníka 12 dotazů / 10 min a 40 / den, celkem ASISTENT_DENNI_LIMIT / den (výchozí 40).
+export async function povolVerejnyDotaz(ul, klient, env, ted) {
+  const naKlienta10 = await pricti(ul, `limit/k10/${klient}`, 12, 10 * 60_000, ted);
+  if (!naKlienta10) return { ok: false, duvod: "klient" };
+  const naKlientaDen = await pricti(ul, `limit/kden/${klient}`, 40, 86_400_000, ted);
+  if (!naKlientaDen) return { ok: false, duvod: "klient" };
+  const celkem = await pricti(ul, `limit/den/${den(ted)}`, cislo(env.ASISTENT_DENNI_LIMIT, 40), 86_400_000, ted);
+  if (!celkem) return { ok: false, duvod: "den" };
+  return { ok: true };
+}
+
+// Hádání hesla: 5 neúspěšných pokusů / 15 min na klienta.
+export async function povolPokusOPrihlaseni(ul, klient, ted) {
+  const z = await cti(ul, `limit/login/${klient}`);
+  return !(z && ted - z.od < 15 * 60_000 && z.n >= 5);
+}
+export async function zapisNeuspesnePrihlaseni(ul, klient, ted) {
+  await pricti(ul, `limit/login/${klient}`, Infinity, 15 * 60_000, ted);
+}
+
+// Odhad ceny v Kč. Ceny v USD za milion tokenů jdou přepsat proměnnými CENA_<ID>_VSTUP / CENA_<ID>_VYSTUP.
+const VYCHOZI_CENY_USD = {
+  claude: [4, 20], // claude-opus-5-5
+  gpt: [5, 20],
+  gemini: [5, 20],
+  grok: [5, 20],
+};
+export function odhadKc(id, vstup, vystup, env) {
+  const [cv, cy] = VYCHOZI_CENY_USD[id] || [5, 20];
+  const v = cislo(env[`CENA_${id.toUpperCase()}_VSTUP`], cv);
+  const y = cislo(env[`CENA_${id.toUpperCase()}_VYSTUP`], cy);
+  const kurz = cislo(env.KURZ_USD_CZK, 24);
+  return ((vstup * v + vystup * y) / 1e6) * kurz;
+}
+
+export async function zapisUtratu(ul, id, stat, env, ted) {
+  if (!stat) return;
+  const k = `utrata/${mesic(ted)}`;
+  const z = (await cti(ul, k)) || { celkemKc: 0, ai: {} };
+  const kc = odhadKc(id, stat.vstup || 0, stat.vystup || 0, env);
+  z.celkemKc += kc;
+  const a = (z.ai[id] ||= { dotazu: 0, vstup: 0, vystup: 0, kc: 0 });
+  a.dotazu += 1;
+  a.vstup += stat.vstup || 0;
+  a.vystup += stat.vystup || 0;
+  a.kc += kc;
+  await ul.setJSON(k, z);
+}
+
+export async function utrataMesice(ul, ted) {
+  return (await cti(ul, `utrata/${mesic(ted)}`)) || { celkemKc: 0, ai: {} };
+}
+
+// Výchozí limit je záměrně nízký: přes Netlify AI Gateway se AI platí kredity Netlify a po jejich
+// vyčerpání Netlify pozastaví CELÝ web. 25 Kč ≈ 1 USD ≈ 190 kreditů. S vlastními API klíči
+// (účtují se u poskytovatele, ne v Netlify) nebo se zapnutým auto-recharge jde limit zvýšit.
+export const mesicniLimitKc = (env) => cislo(env.AI_MESICNI_LIMIT_KC, 25);
+
+// 1 USD = 180 kreditů Netlify (AI Gateway).
+export const kcNaKredity = (kc, env) => Math.round((kc / cislo(env.KURZ_USD_CZK, 24)) * 180);
+
+export async function rozpocetVycerpan(ul, env, ted) {
+  return (await utrataMesice(ul, ted)).celkemKc >= mesicniLimitKc(env);
+}

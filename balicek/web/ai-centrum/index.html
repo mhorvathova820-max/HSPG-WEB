@@ -76,7 +76,7 @@ td,th{padding:4px 12px 4px 0;text-align:left}
 
 <section id="prihlaseni" class="karta">
   <h1>Vše ve tvých rukách<small>AI centrum HSPG – interní</small></h1>
-  <p>Zadejte heslo interního panelu (HSPG_PANEL_HESLO).</p>
+  <p>Zadejte heslo interního panelu (HSPG_PANEL_HESLO). Stejné přihlášení platí pro plovoucí panel na webu.</p>
   <form id="formPrihlaseni">
     <input id="heslo" type="password" autocomplete="current-password" required minlength="16" aria-label="Heslo">
     <div class="akce"><button class="hlavni" type="submit">Přihlásit</button><span id="prihlaseniChyba" class="chyba"></span></div>
@@ -125,51 +125,44 @@ td,th{padding:4px 12px 4px 0;text-align:left}
   <details class="karta">
     <summary>Historie a spotřeba</summary>
     <table id="spotreba"></table>
-    <p class="prazdne" style="font-size:13px">Tokeny se počítají v tomto prohlížeči. Přesnou útratu v Kč ukazuje účet u každého poskytovatele – tam nastavte i měsíční limit.</p>
+    <p class="prazdne" style="font-size:13px">Útrata je odhad serveru podle tokenů (všichni uživatelé, celý měsíc). Přesnou částku ukazuje účet u každého poskytovatele – tam nastavte i tvrdý měsíční limit.</p>
     <ul class="historie" id="historie"></ul>
   </details>
 </main>
 </div>
 
+<script src="/assets/ai-klient.js"></script>
 <script>
 "use strict";
-const ULOHY = {
-  volny: { nazev: "Volný dotaz", pokyn: "" },
-  poptavka: { nazev: "Odpověď na poptávku",
-    pokyn: "Napiš e-mailovou odpověď zákazníkovi na poptávku. Poděkuj, shrň, co poptává, navrhni prohlídku/termín a uveď, jaké údaje ještě potřebujeme (plocha, materiál, fotky). Ceny a termíny jen ze zadání, jinak [DOPLNIT]." },
-  facebook: { nazev: "Příspěvek na Facebook",
-    pokyn: "Napiš příspěvek na Facebook HSPG (max. 120 slov, 1–3 emoji, výzva k akci s odkazem hspg.cz). Pouze fakta ze zadání. Konkrétní zakázku zmiň jen, pokud je v zadání i se souhlasem majitele." },
-  nabidka: { nazev: "Text nabídky",
-    pokyn: "Připrav text cenové nabídky: rozsah prací, postup, přípravky, co je v ceně a co ne, platnost nabídky. Čísla jen ze zadání, jinak [DOPLNIT]." },
-  recenze: { nazev: "Odpověď na recenzi",
-    pokyn: "Napiš veřejnou odpověď na recenzi zákazníka. Krátce, lidsky, bez výmluv. U negativní recenze nabídni řešení a kontakt reklamace@hspg.cz – pokud není v zadání jiný." },
-  preklad: { nazev: "Překlad do angličtiny",
-    pokyn: "Přelož text ze zadání do přirozené angličtiny. Zachovej význam, nic nepřidávej. Odbornou terminologii (čištění, impregnace, střecha, fasáda) přelož správně." },
-};
-const BARVY = { claude: "var(--claude)", gpt: "var(--gpt)", gemini: "var(--gemini)", grok: "var(--grok)" };
+const AI = window.HSPG_AI;
+const ULOHY = Object.fromEntries(Object.entries(AI.ULOHY).filter(([k]) => k !== "stranka"));
 const $ = (id) => document.getElementById(id);
+const TOKEN_KLIC = "hspg-majitel-token", PLATNOST_KLIC = "hspg-majitel-platnost";
 
 // Úložiště prohlížeče je jen pohodlí – když nefunguje, centrum běží dál.
 const uloz = { get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
                set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
-const relace = { get() { try { return sessionStorage.getItem("hspgHeslo") || ""; } catch { return ""; } },
-                 set(v) { try { v ? sessionStorage.setItem("hspgHeslo", v) : sessionStorage.removeItem("hspgHeslo"); } catch {} } };
+const relace = {
+  token() { try { return Number(sessionStorage.getItem(PLATNOST_KLIC) || 0) > Date.now() ? sessionStorage.getItem(TOKEN_KLIC) : null; } catch { return null; } },
+  uloz(t, p) { try { sessionStorage.setItem(TOKEN_KLIC, t); sessionStorage.setItem(PLATNOST_KLIC, String(p)); } catch {} },
+  smaz() { try { sessionStorage.removeItem(TOKEN_KLIC); sessionStorage.removeItem(PLATNOST_KLIC); } catch {} },
+};
 
-let heslo = relace.get();
-let ai = [];                 // [{id, nazev, zapnuto, model}]
+let token = relace.token();
+let ai = [];                 // [{id, nazev, zapnuto, model, klic}]
+let stavServer = null;
 let konverzace = {};         // id -> [{role, text}]
 let preruseni = null;
 
-async function nactiStav(h) {
-  const r = await fetch("/api/ai-stav", { headers: { "x-panel-heslo": h } });
-  const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(d.chyba || "Přihlášení selhalo.");
-  return d.ai;
+function odhlas(zprava) {
+  relace.smaz(); token = null;
+  $("aplikace").classList.add("skryte"); $("prihlaseni").classList.remove("skryte");
+  $("prihlaseniChyba").textContent = zprava || "";
 }
 
-async function prihlas(h) {
-  ai = await nactiStav(h);
-  heslo = h; relace.set(h);
+async function nactiAplikaci() {
+  stavServer = await AI.nactiStav(token);
+  ai = stavServer.ai;
   $("prihlaseni").classList.add("skryte");
   $("aplikace").classList.remove("skryte");
   vykresli();
@@ -178,10 +171,16 @@ async function prihlas(h) {
 $("formPrihlaseni").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("prihlaseniChyba").textContent = "Ověřuji…";
-  try { await prihlas($("heslo").value); $("prihlaseniChyba").textContent = ""; $("heslo").value = ""; }
-  catch (err) { $("prihlaseniChyba").textContent = err.message; }
+  try {
+    const r = await fetch("/api/majitel", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ heslo: $("heslo").value }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.token) throw new Error(j.chyba || "Přihlášení selhalo.");
+    relace.uloz(j.token, j.platnost); token = j.token;
+    $("heslo").value = ""; $("prihlaseniChyba").textContent = "";
+    await nactiAplikaci();
+  } catch (err) { $("prihlaseniChyba").textContent = err.message; }
 });
-$("odhlasit").addEventListener("click", () => { relace.set(""); location.reload(); });
+$("odhlasit").addEventListener("click", () => odhlas());
 
 const zapnute = () => ai.filter((a) => a.zapnuto);
 
@@ -196,15 +195,11 @@ function vykresli() {
   }
   $("uloha").innerHTML = Object.entries(ULOHY).map(([k, u]) => `<option value="${k}">${u.nazev}</option>`).join("");
   const moznosti = zapnute().map((a) => `<option value="${a.id}">${a.nazev}</option>`).join("");
-  for (const [id, poradi] of [["rAutor", 0], ["rKontrola", 1], ["rFinal", 2]]) {
+  const role = AI.obsazeni(zapnute());
+  for (const [id, klic] of [["rAutor", "autor"], ["rKontrola", "kontrola"], ["rFinal", "final"]]) {
     $(id).innerHTML = moznosti;
-    const z = zapnute(); if (z.length) $(id).value = z[Math.min(poradi, z.length - 1)].id;
+    if (role[klic]) $(id).value = role[klic];
   }
-  // Doporučené obsazení: GPT píše, Claude kontroluje pravdivost, Gemini spojí.
-  const ma = (x) => zapnute().some((a) => a.id === x);
-  if (ma("gpt")) $("rAutor").value = "gpt";
-  if (ma("claude")) $("rKontrola").value = "claude";
-  if (ma("gemini")) $("rFinal").value = "gemini";
   vykresliSloupce();
   vykresliHistorii();
   if (!zapnute().length) $("info").textContent = "Žádná AI nemá klíč. Vložte ho do Netlify a obnovte stránku.";
@@ -218,14 +213,17 @@ function vykresliSloupce() {
   for (const a of seznam) {
     const s = document.createElement("article");
     s.className = "karta sloupec"; s.id = "s-" + a.id;
-    s.style.setProperty("--c", BARVY[a.id] || "var(--accent)");
-    s.innerHTML = `<h2>${a.nazev}<span>${a.model}</span></h2>
+    s.style.setProperty("--c", AI.BARVY[a.id] || "var(--accent)");
+    s.innerHTML = `<h2></h2>
       <div class="vystup prazdne" aria-live="polite">Zatím bez odpovědi.</div>
       <div class="pata"><button type="button" data-kopie>Kopírovat</button><span data-stat></span></div>
-      ${spoluprace ? "" : `<form class="doplnek"><input placeholder="Doplňující dotaz jen pro ${a.nazev}" aria-label="Doplňující dotaz"><button type="submit">→</button></form>`}`;
+      ${spoluprace ? "" : `<form class="doplnek"><input aria-label="Doplňující dotaz"><button type="submit">→</button></form>`}`;
+    s.querySelector("h2").append(a.nazev, Object.assign(document.createElement("span"), { textContent: a.model }));
+    const inp = s.querySelector(".doplnek input");
+    if (inp) inp.placeholder = `Doplňující dotaz jen pro ${a.nazev}`;
     s.querySelector("[data-kopie]").addEventListener("click", () => navigator.clipboard?.writeText(s.dataset.final || s.querySelector(".vystup").innerText));
     s.querySelector(".doplnek")?.addEventListener("submit", (e) => {
-      e.preventDefault(); const inp = e.target.querySelector("input");
+      e.preventDefault();
       if (inp.value.trim()) { spust([a.id], inp.value.trim(), true); inp.value = ""; }
     });
     $("sloupce").append(s);
@@ -234,44 +232,18 @@ function vykresliSloupce() {
 $("rezim").addEventListener("change", vykresliSloupce);
 $("vycistit").addEventListener("click", () => { konverzace = {}; vykresliSloupce(); $("info").textContent = ""; });
 
-// Jedno volání jedné AI; text se průběžně vypisuje do prvku `cil`.
-async function zavolej(id, zpravy, pokyn, cil, signal) {
-  const r = await fetch("/api/ai", {
-    method: "POST", signal,
-    headers: { "content-type": "application/json", "x-panel-heslo": heslo },
-    body: JSON.stringify({ ai: id, zpravy, pokyn }),
-  });
-  if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.chyba || `HTTP ${r.status}`); }
-  const ctecka = r.body.getReader(); const dek = new TextDecoder();
-  let vse = "";
-  for (;;) {
-    const { value, done } = await ctecka.read(); if (done) break;
-    vse += dek.decode(value, { stream: true });
-    cil.textContent = vse.split("\n\u0000STAT")[0];
-    cil.parentElement.scrollTop = cil.parentElement.scrollHeight;
-  }
-  const [text, ...staty] = vse.split("\n\u0000STAT");
-  const stat = staty.map((s) => { try { return JSON.parse(s); } catch { return null; } }).filter(Boolean)
-    .reduce((a, b) => ({ vstup: a.vstup + (b.vstup || 0), vystup: a.vystup + (b.vystup || 0) }), { vstup: 0, vystup: 0 });
-  zapisSpotrebu(id, stat);
-  return { text: text.trim(), stat };
-}
-
-function zapisSpotrebu(id, stat) {
-  const mesic = new Date().toISOString().slice(0, 7);
-  const s = uloz.get("hspgSpotreba", {});
-  s[mesic] ??= {}; s[mesic][id] ??= { vstup: 0, vystup: 0, dotazu: 0 };
-  s[mesic][id].vstup += stat.vstup; s[mesic][id].vystup += stat.vystup; s[mesic][id].dotazu += 1;
-  uloz.set("hspgSpotreba", s);
-}
-
 function zacni() {
   preruseni = new AbortController();
   $("odeslat").disabled = true; $("zastavit").disabled = false;
   return preruseni.signal;
 }
-function skonci() { $("odeslat").disabled = false; $("zastavit").disabled = true; preruseni = null; vykresliHistorii(); }
+function skonci() { $("odeslat").disabled = false; $("zastavit").disabled = true; preruseni = null; obnovSpotrebu(); }
 $("zastavit").addEventListener("click", () => preruseni?.abort());
+
+const zpravaChyby = (e) => {
+  if (e.status === 401) { odhlas("Přihlášení vypršelo. Přihlaste se znovu."); return "Přihlášení vypršelo."; }
+  return e.name === "AbortError" ? "Zastaveno." : e.message;
+};
 
 async function spust(ids, dotaz, doplnek = false) {
   const signal = zacni();
@@ -287,13 +259,13 @@ async function spust(ids, dotaz, doplnek = false) {
     if (doplnek) v.append(Object.assign(document.createElement("div"), { className: "krok", textContent: "Doplňující dotaz: " + dotaz }));
     const cil = document.createElement("div"); v.append(cil);
     try {
-      const { text, stat } = await zavolej(id, konverzace[id], pokyn, cil, signal);
+      const { text, stat } = await AI.zavolej({ ai: id, zpravy: konverzace[id], pokyn, token, signal, naText: (t) => { cil.textContent = t; v.scrollTop = v.scrollHeight; } });
       konverzace[id].push({ role: "assistant", text: text || "(prázdná odpověď)" });
       vysledky[id] = text;
-      s.querySelector("[data-stat]").textContent = `${stat.vstup} + ${stat.vystup} tokenů`;
+      s.querySelector("[data-stat]").textContent = `${stat.vstup} + ${stat.vystup} tokenů` + (stat.kc ? ` · ≈ ${stat.kc.toFixed(2)} Kč` : "");
     } catch (e) {
       konverzace[id].pop();
-      cil.className = "chyba"; cil.textContent = e.name === "AbortError" ? "Zastaveno." : e.message;
+      cil.className = "chyba"; cil.textContent = zpravaChyby(e);
     }
   }));
   ulozHistorii({ rezim: "vsechny", uloha: $("uloha").value, dotaz, vysledky });
@@ -304,32 +276,25 @@ async function spust(ids, dotaz, doplnek = false) {
 async function spolupracuj(dotaz) {
   const signal = zacni();
   const pokyn = ULOHY[$("uloha").value].pokyn;
-  const [autor, kontrola, final] = [$("rAutor").value, $("rKontrola").value, $("rFinal").value];
   const jmeno = (id) => ai.find((a) => a.id === id)?.nazev || id;
   const s = $("s-spoluprace"); const v = s.querySelector(".vystup");
   v.innerHTML = ""; v.classList.remove("prazdne");
-  const krok = async (nadpis, id, zpravy, rolePokyn) => {
-    v.append(Object.assign(document.createElement("div"), { className: "krok", textContent: `${nadpis} – ${jmeno(id)}` }));
-    const cil = document.createElement("div"); v.append(cil);
-    return (await zavolej(id, zpravy, rolePokyn, cil, signal)).text;
-  };
-  const kroky = {};
+  let kroky = {};
   try {
-    $("info").textContent = "1/3 návrh…";
-    kroky.navrh = await krok("1. Návrh", autor, [{ role: "user", text: dotaz }], pokyn);
-    $("info").textContent = "2/3 kontrola…";
-    kroky.kontrola = await krok("2. Kontrola pravdivosti", kontrola, [{ role: "user", text:
-      `ZADÁNÍ (jediný zdroj faktů):\n${dotaz}\n\nNÁVRH:\n${kroky.navrh}\n\nZkontroluj návrh proti zadání a pravidlům pravdivosti. Vypiš body: co je vymyšlené nebo nepodložené, co chybí, co přepsat. Nepiš novou verzi.` }],
-      "Jsi přísný kontrolor pravdivosti a srozumitelnosti.");
-    $("info").textContent = "3/3 finál…";
-    kroky.final = await krok("3. Finální verze", final, [{ role: "user", text:
-      `ZADÁNÍ:\n${dotaz}\n\nNÁVRH:\n${kroky.navrh}\n\nPŘIPOMÍNKY KONTROLY:\n${kroky.kontrola}\n\nNapiš finální verzi, která zapracuje všechny oprávněné připomínky. Vrať jen hotový text.` }],
-      pokyn);
+    kroky = await AI.spolupracuj({
+      autor: $("rAutor").value, kontrola: $("rKontrola").value, final: $("rFinal").value, dotaz, pokyn, token, signal,
+      naKrok: (i, nazev, id) => {
+        $("info").textContent = `${i}/3 ${nazev.toLowerCase()}…`;
+        v.append(Object.assign(document.createElement("div"), { className: "krok", textContent: `${i}. ${nazev} – ${jmeno(id)}` }));
+        const cil = document.createElement("div"); v.append(cil);
+        return (t) => { cil.textContent = t; };
+      },
+    });
     s.dataset.final = kroky.final;
     s.querySelector("[data-stat]").textContent = "Kopírovat zkopíruje jen finální verzi.";
     $("info").textContent = "Hotovo.";
   } catch (e) {
-    v.append(Object.assign(document.createElement("div"), { className: "chyba", textContent: e.name === "AbortError" ? "Zastaveno." : e.message }));
+    v.append(Object.assign(document.createElement("div"), { className: "chyba", textContent: zpravaChyby(e) }));
     $("info").textContent = "";
   }
   ulozHistorii({ rezim: "spoluprace", uloha: $("uloha").value, dotaz, vysledky: kroky });
@@ -340,7 +305,8 @@ $("odeslat").addEventListener("click", () => {
   const dotaz = $("dotaz").value.trim();
   if (!dotaz) { $("info").textContent = "Napište zadání."; return; }
   if (!zapnute().length) return;
-  delete $("sloupce").querySelector(".sloupec")?.dataset.final;
+  const prvni = $("sloupce").querySelector(".sloupec");
+  if (prvni) delete prvni.dataset.final;
   $("rezim").value === "spoluprace" ? spolupracuj(dotaz) : spust(zapnute().map((a) => a.id), dotaz);
 });
 
@@ -350,19 +316,25 @@ function ulozHistorii(zaznam) {
   uloz.set("hspgHistorie", h.slice(0, 30));
 }
 
+async function obnovSpotrebu() {
+  try { stavServer = await AI.nactiStav(token); } catch {}
+  vykresliHistorii();
+}
+
 function vykresliHistorii() {
-  const s = uloz.get("hspgSpotreba", {}); const mesic = new Date().toISOString().slice(0, 7);
-  const radky = ai.map((a) => { const x = s[mesic]?.[a.id]; return x ? `<tr><td>${a.nazev}</td><td>${x.dotazu}</td><td>${x.vstup.toLocaleString("cs")}</td><td>${x.vystup.toLocaleString("cs")}</td></tr>` : ""; }).join("");
-  $("spotreba").innerHTML = `<tr><th>Tento měsíc</th><th>Dotazů</th><th>Tokeny vstup</th><th>Tokeny výstup</th></tr>${radky || '<tr><td colspan="4" class="prazdne">Zatím nic.</td></tr>'}`;
+  const u = stavServer?.utrata;
+  const radky = ai.map((a) => { const x = u?.ai?.[a.id]; return x ? `<tr><td>${a.nazev}</td><td>${x.dotazu}</td><td>${x.vstup.toLocaleString("cs")}</td><td>${x.vystup.toLocaleString("cs")}</td><td>${x.kc.toFixed(1)}</td></tr>` : ""; }).join("");
+  const souhrn = u ? `<tr><th colspan="4">Celkem / limit</th><th>${Math.round(u.celkemKc)} / ${stavServer.limitKc} Kč</th></tr>` : "";
+  $("spotreba").innerHTML = `<tr><th>Tento měsíc</th><th>Dotazů</th><th>Tokeny vstup</th><th>Tokeny výstup</th><th>≈ Kč</th></tr>${radky || '<tr><td colspan="5" class="prazdne">Zatím nic.</td></tr>'}${souhrn}`;
   const h = uloz.get("hspgHistorie", []);
   $("historie").innerHTML = "";
-  h.forEach((z, i) => {
+  h.forEach((z) => {
     const li = document.createElement("li");
     const t = document.createElement("span");
     t.textContent = `${new Date(z.cas).toLocaleString("cs")} · ${ULOHY[z.uloha]?.nazev || ""} · ${z.dotaz}`;
     const b = document.createElement("button"); b.type = "button"; b.textContent = "Otevřít";
     b.addEventListener("click", () => {
-      $("dotaz").value = z.dotaz; $("uloha").value = z.uloha; $("rezim").value = z.rezim; vykresliSloupce();
+      $("dotaz").value = z.dotaz; if (ULOHY[z.uloha]) $("uloha").value = z.uloha; $("rezim").value = z.rezim; vykresliSloupce();
       for (const [k, text] of Object.entries(z.vysledky || {})) {
         const cil = z.rezim === "spoluprace" ? $("s-spoluprace") : $("s-" + k);
         if (!cil) continue;
@@ -376,7 +348,7 @@ function vykresliHistorii() {
   });
 }
 
-if (heslo) prihlas(heslo).catch(() => relace.set(""));
+if (token) nactiAplikaci().catch((e) => odhlas(e.status === 401 ? "Přihlášení vypršelo." : e.message));
 </script>
 </body>
 </html>

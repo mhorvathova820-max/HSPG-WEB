@@ -1,0 +1,47 @@
+{
+  "podminka_zaruky": "Záruka 10 let na impregnaci H-STONE platí při technické kontrole alespoň jednou za 24 měsíců — v tarifu START ji děláme zdarma.",
+  "tarify": [
+    {
+      "id": "start",
+      "nazev": "SENTINEL START",
+      "cena_rok": 0,
+      "cena_mesic": 0,
+      "popis": "V ceně pro každý dům v záruce",
+      "body": [
+        "Technická kontrola 1× za 24 měsíců",
+        "Digitální pas domu",
+        "Připomenutí kontroly SMS"
+      ]
+    },
+    {
+      "id": "plus",
+      "nazev": "SENTINEL PLUS",
+      "cena_rok": 2490,
+      "cena_mesic": 219,
+      "popis": "Pravidelná péče na jaře a na podzim",
+      "body": [
+        "Servisní návštěva 2× ročně (jaro + podzim)",
+        "Vyčištění okapů a svodů, odplevelení spár dlažby",
+        "Lokální obnova vrstvy H-STONE do 5 m² ročně",
+        "Zásah do 14 dnů",
+        "Sleva 15 % na další práce"
+      ]
+    },
+    {
+      "id": "premium",
+      "nazev": "SENTINEL PREMIUM",
+      "cena_rok": 4490,
+      "cena_mesic": 389,
+      "popis": "Kompletní péče o dům",
+      "body": [
+        "Servisní návštěva 2× ročně (jaro + podzim)",
+        "Vyčištění okapů a svodů, odplevelení spár dlažby",
+        "Lokální obnova vrstvy H-STONE do 15 m² ročně",
+        "Mytí dlažby do 60 m² a fotovoltaiky do 30 panelů 1× ročně",
+        "Zásah do 7 dnů",
+        "Sleva 25 % na další práce",
+        "Po 10 letech nepřetržitého tarifu nová vrstva H-STONE se slevou 40 % a nová záruka 10 let"
+      ]
+    }
+  ]
+}

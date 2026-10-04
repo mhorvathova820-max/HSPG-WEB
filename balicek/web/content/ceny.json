@@ -1,0 +1,54 @@
+{
+  "platnost_od": "2026-10-01",
+  "ochrana_hstone": {
+    "facade": 168,
+    "roof": 178,
+    "driveway": 119
+  },
+  "cisteni_only": {
+    "facade": 89,
+    "roof": 99,
+    "driveway": 69,
+    "solar": 39
+  },
+  "renovace_color": {
+    "roof": 268,
+    "facade": 298
+  },
+  "addons": {
+    "copper_guard_base_4m": 1490,
+    "copper_guard_per_meter": 290,
+    "svj_window_masking": 20,
+    "heavy_dirt_surcharge_min": 10,
+    "heavy_dirt_surcharge_max": 30
+  },
+  "discounts": {
+    "multi_surface": 0.05,
+    "svj_1000m": 0.05,
+    "svj_2500m": 0.08,
+    "sentinel_plus": 0.15,
+    "sentinel_premium": 0.25
+  },
+  "scaffold_market_rate": {
+    "rd": 120,
+    "bd": 190
+  },
+  "minimum": {
+    "zakazka": 4900,
+    "fve": 2490
+  },
+  "doprava": {
+    "zdarma_km": 30,
+    "zakladny": [
+      "Praha",
+      "Hradec Králové"
+    ],
+    "kc_za_km": 12
+  },
+  "platby": {
+    "hranice_zalohy": 100000,
+    "zaloha_nad_hranici": 0.3,
+    "splatnost_dni": 7,
+    "splatnost_svj_dni": 14
+  }
+}

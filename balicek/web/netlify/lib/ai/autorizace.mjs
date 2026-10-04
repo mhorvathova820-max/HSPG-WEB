@@ -1,0 +1,53 @@
+// Přihlášení majitele: heslo HSPG_PANEL_HESLO se ověří jednou a výměnou se vydá podepsaný token.
+// Heslo tak nezůstává v prohlížeči; token platí 12 hodin a jde zneplatnit změnou hesla.
+import { createHmac, createHash, timingSafeEqual } from "node:crypto";
+
+const PLATNOST_MS = 12 * 60 * 60 * 1000;
+const MIN_DELKA_HESLA = 16;
+
+const otisk = (s) => createHash("sha256").update(String(s)).digest();
+const stejne = (a, b) => timingSafeEqual(otisk(a), otisk(b));
+
+function tajemstvi(env) {
+  const heslo = env.HSPG_PANEL_HESLO || "";
+  if (heslo.length < MIN_DELKA_HESLA) return null;
+  // Samostatné tajemství je volitelné; bez něj se odvodí z hesla, takže změna hesla odhlásí všechny.
+  return env.HSPG_TOKEN_TAJEMSTVI || `hspg-token:${heslo}`;
+}
+
+const podpis = (data, klic) => createHmac("sha256", klic).update(data).digest("base64url");
+
+export function hesloNastaveno(env = process.env) {
+  return tajemstvi(env) !== null;
+}
+
+export function overHeslo(zadane, env = process.env) {
+  if (!hesloNastaveno(env)) return false;
+  return stejne(String(zadane || ""), env.HSPG_PANEL_HESLO);
+}
+
+export function vydejToken(env = process.env, ted = Date.now()) {
+  const klic = tajemstvi(env);
+  if (!klic) throw new Error("HSPG_PANEL_HESLO není nastavené.");
+  const platnost = ted + PLATNOST_MS;
+  return { token: `${platnost}.${podpis(String(platnost), klic)}`, platnost };
+}
+
+export function overToken(token, env = process.env, ted = Date.now()) {
+  const klic = tajemstvi(env);
+  if (!klic || typeof token !== "string") return false;
+  const [platnost, sig] = token.split(".");
+  if (!/^\d{1,15}$/.test(platnost || "") || !sig) return false;
+  if (Number(platnost) < ted) return false;
+  return stejne(sig, podpis(platnost, klic));
+}
+
+// Interní endpointy přijmou token (Authorization: Bearer …) nebo heslo v x-panel-heslo (starší AI centrum).
+export function overPozadavek(req, env = process.env, ted = Date.now()) {
+  if (!hesloNastaveno(env)) return { ok: false, status: 503, duvod: "HSPG_PANEL_HESLO není v Netlify nastavené (min. 16 znaků)." };
+  const auth = req.headers.get("authorization") || "";
+  if (auth.startsWith("Bearer ") && overToken(auth.slice(7), env, ted)) return { ok: true };
+  const heslo = req.headers.get("x-panel-heslo");
+  if (heslo && overHeslo(heslo, env)) return { ok: true };
+  return { ok: false, status: 401, duvod: "Přihlášení vypršelo nebo je neplatné." };
+}

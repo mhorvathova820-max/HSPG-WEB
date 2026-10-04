@@ -1,0 +1,42 @@
+{
+  "_poznamka": "Jediné místo pro fakta o firmě, ze kterého čte plovoucí asistent (H-BOT) i AI. Údaje z živého hspg.cz a od majitele (4. 10. 2026). Schránky @hspg.cz běží na Seznam Email Profi (MX hspg.cz → Seznam; MX NEMĚNIT). Hodnoty s potvrzeno=false nesmí asistent tvrdit.",
+  "znacka": "HOLUB – HSPG",
+  "provozovatel": "Dušan Holub",
+  "pravni_forma": "OSVČ",
+  "ico": "09291881",
+  "dph": "neplátce DPH",
+  "telefon": "+420736618486",
+  "telefon_zobrazeni": "+420 736 618 486",
+  "email": "info@hspg.cz",
+  "pracovni_doba": "Po–So 7:00–19:00",
+  "web": "https://hspg.cz",
+  "pusobnost": "celá Česká republika, na vyžádání i EU",
+  "zaruka": {
+    "potvrzeno": true,
+    "potvrzeno_kdy": "2026-10-04 (majitel přes rozšíření Claude v Chrome; HSPG_MASTER_CONTEXT v1.1)",
+    "veta": "Na impregnaci H-STONE je záruka 10 let.",
+    "podminka": "Záruka platí při technické kontrole alespoň jednou za 24 měsíců – v tarifu SENTINEL START ji děláme zdarma.",
+    "nahradni_veta": "Podmínky záruky na impregnaci H-STONE vám potvrdíme písemně v nabídce."
+  },
+  "emaily": {
+    "_poznamka": "Firemní schránky @hspg.cz (Seznam Email Profi – MX hspg.cz míří na Seznam). Dokud schránka neexistuje, pošta na ni nedorazí – proto vždy jde kopie na 'zaloha'.",
+    "poptavky": "poptavky@hspg.cz",
+    "reklamace": "reklamace@hspg.cz",
+    "spoluprace": "spoluprace@hspg.cz",
+    "podpora": "podpora@hspg.cz",
+    "info": "info@hspg.cz",
+    "zaloha": "profiserv@seznam.cz"
+  },
+  "smerovani_formularu": {
+    "_poznamka": "Název Netlify formuláře → schránka z 'emaily'. '*' = ostatní formuláře.",
+    "hspg-poptavka": "poptavky",
+    "hspg-akce": "poptavky",
+    "hspg-zavolejte": "poptavky",
+    "hspg-fotky": "poptavky",
+    "hspg-reklamace": "reklamace",
+    "hspg-spoluprace": "spoluprace",
+    "hspg-podpora": "podpora",
+    "hspg-recenze": "info",
+    "*": "info"
+  }
+}

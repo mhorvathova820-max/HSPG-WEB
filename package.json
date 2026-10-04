@@ -1,14 +1,23 @@
 {
-  "name": "hspg-ai-centrum",
+  "name": "hspg-balicek",
   "private": true,
   "type": "module",
-  "description": "AI centrum HSPG – Claude, ChatGPT, Gemini (a volitelně Grok) v jednom okně, za heslem.",
+  "description": "Balíček pro web hspg.cz: plovoucí asistent H-BOT („Vše ve tvých rukách“), AI vrstva, oznámení o poptávkách, testy a zadání pro VS Code Claude Code.",
   "scripts": {
-    "check": "node --check netlify/functions/ai.mjs && node --check netlify/functions/ai-stav.mjs && node --check netlify/lib/spolecne.mjs"
+    "test": "node --test \"balicek/testy/unit/*.test.mjs\"",
+    "test:e2e": "node --test --test-concurrency=1 \"balicek/testy/e2e/*.test.mjs\"",
+    "znalosti": "node balicek/web/scripts/build-hbot.mjs",
+    "kontrola": "node balicek/web/scripts/build-hbot.mjs --kontrola && npm test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
     "@google/genai": "^2.27.0",
+    "@netlify/blobs": "^11.1.3",
+    "nodemailer": "^10.0.14",
     "openai": "^7.27.0"
+  },
+  "devDependencies": {
+    "axe-core": "^4.13.0",
+    "playwright": "^1.63.0"
   }
 }
