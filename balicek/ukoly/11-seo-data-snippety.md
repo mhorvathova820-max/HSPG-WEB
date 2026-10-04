@@ -333,6 +333,12 @@ Podklad: `audit-seo.json`, nálezy #6, #9–#13 a #15–#19. Jinam patří #7 Jo
     - negativní testy: popis se 161 znaky, titulek bez přípony a „bez lešení“ bez „zpravidla“ → každý test najde porušení.
 22. Build, všechny kontroly a testy, náhled, ruční validace (jako v kroku 13, navíc `/cisteni-fotovoltaiky/`), Lighthouse a **hlášení fáze B**.
 
+### Doplněk: ověření v Seznam Webmasteru a Bing Webmaster Tools
+Seznam web zatím vůbec nezná (site:hspg.cz nic, KONTEXT §2). Ověření má dvě cesty – vyber podle toho, co majitel dodá:
+- **Meta tag** (doporučeno, bez změny DNS): majitel pošle ověřovací kód ze Seznam Webmasteru (`<meta name="seznam-wmt" content="…">`) a případně z Bingu (`<meta name="msvalidate.01" content="…">`). Vlož je jen do `<head>` úvodní stránky (zdroj, ne výstup), ověř `curl -s <náhled>/ | grep -E 'seznam-wmt|msvalidate'` a nasaď v dávce s ostatními změnami (žádné samostatné produkční nasazení kvůli tagu). Kódy nejsou tajné.
+- **DNS TXT** přes Claude v Chrome (C7) jen po souhlasu majitele; MX se nemění.
+Po ověření odešli v obou nástrojích sitemap `https://hspg.cz/sitemap.xml` (dělá majitel / C7) a zapiš datum do hlášení.
+
 ## Akceptační kritéria
 ### Fáze A
 - [ ] `node scripts/build-seo.mjs --kontrola` → kód 0. Simulace změny telefonu v kopii `firma.json` → kód 1, po běhu generátoru 0 (test).
