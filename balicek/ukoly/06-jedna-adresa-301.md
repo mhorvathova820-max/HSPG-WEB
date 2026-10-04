@@ -470,8 +470,8 @@ Po **fázi A** i **fázi B** formát z `KONTEXT.md` §5 a k tomu:
   - **15:** monitoring může volat `over-adresy.mjs`.
   - **Balíček:** `balicek/web` má stále odkazy s `.html` v `content/hbot-faq.json` (ř. 8, 30, 34), `assets/hbot-panel.js` (ř. 210) a `netlify/lib/ai/pravidla.mjs` (ř. 19). Navrhni opravu, aby se při dalším převzetí nevrátily. Testy balíčku `balicek/testy/e2e/hbot.test.mjs` (ř. 23, 156, 227) otevírají `/cenik.html` a `/en.html`. Server balíčku přesměrování nezná, takže fungují dál, ale navrhni sjednocení na `/cenik` a `/en`.
 - **checklist pro majitele** (po schváleném produkčním nasazení; může provést Claude v Chrome v rámci C7):
-  - [ ] Search Console: znovu odeslat `https://hspg.cz/sitemap.xml` a v kontrole URL u `/cenik` ověřit, kterou kanonickou adresu zvolil Google.
-  - [ ] Po 2–4 týdnech: Search Console → Stránky, zda ubylo „Duplicitní, Google zvolil jinou kanonickou stránku“.
+  - [ ] Search Console: znovu odeslat `https://hspg.cz/sitemap.xml`, v kontrole URL zadat `https://hspg.cz/cenik` a požádat o indexování.
+  - [ ] Po 2–4 týdnech: Search Console → Stránky, zda jsou `/cenik` a další hlavní stránky indexované (4. 10. byla v indexu jen úvodní stránka) a jakou kanonickou adresu u `/cenik` zvolil Google.
   - [ ] Krok 17: callback URL webhooku Facebooku a další služby volající netlify.app.
 - **návrhy mimo rozsah:**
   - `/404` a `/404.html` vracejí 200 (noindex). Ponechat, nebo řešit v úkolu 15.

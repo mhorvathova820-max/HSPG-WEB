@@ -189,7 +189,7 @@ Na mobilu je mezi začátkem `#holub-sekce` a tlačítkem „🕊 VYPUSŤTE HOLU
     - `let_` v kalkulačce SVJ (posuvník 1–10) nahraď modulem. Výstup musí zůstat stejný, jen obyčejnou mezeru nahradí U+00A0.
 17. **Tisk podkladu SVJ:** v `svj-podklad.css` ř. 66–71 podmiň tisková pravidla třídou `html.sp-open` (otevřený overlay) místo `html.sp-print`. Třída `sp-print` může zůstat jako nadbytečná. Overlay se při tisku nikdy neskrývá a nápověda ř. 120 tak bude pravdivá.
 18. **Tisk plovoucích prvků:**
-    - Do CSS, které vkládá `assets/souhlas.js` (jediný skript na všech 247 stránkách; `brand.css` na 8 stránkách chybí), přidej:
+    - `assets/souhlas.js` je jediný skript na všech 247 stránkách (`brand.css` na 8 stránkách chybí). Dnes ale vkládá CSS jen ve funkci `banner()`, tedy jen se zobrazenou lištou. Proto v něm přidej **samostatný** `<style id="hspg-tisk">`, který se vloží při každém načtení. Nesmí záviset na `banner()`, `anyTool()` ani na stavu souhlasu:
       `@media print{#souhlas-lista,#hbot,#hbot-btn,#hspg-lista,#cta-stack,#reel-bublina,#ritual,#cteni,#postup-cteni,canvas.hstone-rain,.hspg-dove-scene{display:none!important}}`
     - Pokud build vkládá společnou hlavičku do všech stránek, dej pravidlo raději tam (jedno místo).
     - **Nikdy neskrývej `.sp-overlay`** (tisk podkladu SVJ).
