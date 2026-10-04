@@ -57,7 +57,7 @@ Na mobilu je mezi začátkem `#holub-sekce` a tlačítkem „🕊 VYPUSŤTE HOLU
 **ANO:**
 - `content-visibility` na homepage a obsluha kotev (handler, deep link, `scroll-margin-top`),
 - nový `assets/spolecne.js` (telefon, e-mail, plocha, maska kódu, skloňování) a jeho napojení na `/`, `/akce/`, `/akce/dekujeme/` (`fotky-upload.js`), `/recenze/`, `/pas-domu.html` a `/kalkulacka-svj.html`,
-- přehrávání scény na `/akce/dekujeme/` a viditelnost cookie lišty během scény (`holub-let.js`, `souhlas.js` – jen tato vazba),
+- přehrávání scény na `/akce/dekujeme/` a viditelnost cookie lišty během scény (`holub-let.js`, `souhlas.js` – jen tato vazba a tiskový styl z kroku 18),
 - odkaz na Facebook všude včetně JSON-LD `sameAs`,
 - test výstupu na nenahrazené šablonové proměnné,
 - kalkulačka SVJ (řádky, odklad, předvyplnění při buildu) a `svj-podklad.js|css` (řádky, tisk),

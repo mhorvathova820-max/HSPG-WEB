@@ -5,7 +5,7 @@
 Ověřeno 4. 10. 2026 na živém webu (jen GET) a v kopii webu. Čísla nálezů odpovídají pořadí v souborech auditu.
 
 1. **Dvě různá přihlášení.** Interní panel `https://hspg.cz/rd-control-panel/` posílá heslo v těle `POST /api/rd-stav` (zdroj stránky ř. 88). Heslo drží v proměnné stránky, aby ho při „Zkontrolovat znovu“ poslal znovu (ř. 83, 92, 112). Ověřuje se na serveru, ale jinak než u plovoucího panelu a AI centra z úkolu 01. Ty používají `POST /api/majitel` → podepsaný token na 12 h a zámek 5 chybných pokusů / 15 min (`netlify/lib/ai/autorizace.mjs`, `netlify/functions/majitel.mjs`). Jak `rd-stav` heslo ověřuje, zjisti ve zdroji (krok A2).
-2. **Balíčková autorizace má ještě starou cestu.** `overPozadavek()` v `netlify/lib/ai/autorizace.mjs` přijímá kromě tokenu i heslo v hlavičce `x-panel-heslo` (pozůstatek staršího AI centra, commit 84d8e90). Cílem je jediná cesta k heslu: `/api/majitel` se zámkem pokusů (audit-ai_integrace.json #19).
+2. **Balíčková autorizace už má jedinou cestu.** Balíček od commitu d54d939 přijímá v `overPozadavek()` jen token; větev s heslem v hlavičce `x-panel-heslo` byla odstraněna (audit-ai_integrace.json #19). Úkolem zde je, aby stejně fungoval i **interní panel** webu: jediná cesta k heslu je `/api/majitel` se zámkem pokusů.
 3. **Panel neukazuje AI ani útratu a nevede do AI centra** (audit-ai_integrace.json #12). Jediné prvky související s AI jsou věta „… nastavení AI …“ (ř. 47) a odkaz „Konzole Claude (útrata AI)“ na `platform.claude.com` (ř. 72). AI ale běží přes Netlify AI Gateway a platí se kredity Netlify (KONTEXT §2), takže odkaz vede jinam, než kde se platí. Na produkci dnes `/ai-centrum/`, `/api/ai-stav`, `/api/majitel` i `/api/asistent` vrací 404 (úkol 01 ještě není nasazený). `ai.hspg.cz` neexistuje (DNS NXDOMAIN).
 4. **Hlavičky panelu** (`curl -I`): `x-frame-options: SAMEORIGIN`, CSP (jen Report-Only) `frame-ancestors 'self'`, `x-robots-tag: noindex, nofollow`, `cache-control: no-store`. Interní stránka nemá jít vložit do rámu vůbec. AI centrum má z úkolu 01 `DENY`. Řádek `Disallow: /rd-control-panel/` v `robots.txt` řeší úkol 11 (audit-seo.json #19), tady ne.
 5. **Pas domu se otevírá jen kódem pasu** (audit-pravni_pravdivost.json #20).
@@ -99,7 +99,7 @@ Každá fáze má vlastní hlášení a dá se po ověření sloučit do `main` 
    - Při načtení stránky s platným tokenem se data načtou rovnou. Odpověď 401 vrátí uživatele na přihlášení s hláškou „Přihlášení vypršelo.“, odpověď 429 zobrazí hlášku serveru. Tlačítko „Odhlásit“ smaže oba klíče.
    - `rd-stav` ověřuje požadavek přes `overPozadavek(req)` (hlavička `Authorization: Bearer …`). Čtení hesla z těla odstraň. Načítání stavu změň na `GET` s `cache-control: no-store`, nebo ponech `POST` bez hesla – zvol jedno a zdůvodni.
    - Pokud `rd-stav` dosud četl jinou proměnnou než `HSPG_PANEL_HESLO`, sjednoť to. Do hlášení napiš název staré proměnné (bez hodnoty), kterou má majitel po nasazení smazat.
-   - V `overPozadavek()` odstraň větev `x-panel-heslo`. Napřed ověř přes `git grep -n "x-panel-heslo"`, že ji žádný klient nepoužívá. Jedinou cestou k heslu tak zůstane `/api/majitel` se zámkem pokusů. Testy webu uprav. Do hlášení napiš, že test balíčku „starší AI centrum: heslo v x-panel-heslo stále funguje“ je zastaralý (návrh pro balíček).
+   - Ověř, že převzatý `netlify/lib/ai/autorizace.mjs` je aktuální verze z balíčku (`overPozadavek()` přijímá jen `Authorization: Bearer`). Přes `git grep -n "x-panel-heslo"` ověř, že ji ve webu nikdo neposílá (staré AI centrum ji používalo – nahrazeno úkolem 01). Jedinou cestou k heslu tak zůstane `/api/majitel` se zámkem pokusů.
 4. **Sekce AI v panelu** (data z `GET /api/ai-stav` s tokenem; vykreslení jen přes `textContent`):
    - Pro každého poskytovatele zobraz název, model a „klíč k dispozici“ / „klíč chybí“. **Panel sám z existence klíče nikdy nevyvozuje „funguje“ ani ✓.**
    - Úkol 15 běží před tímto úkolem. Pokud odpověď `/api/ai-stav` obsahuje `zdravi`, zobraz jeho semafor a text beze změny. „Funguje“ je pak v pořádku, protože vychází ze skutečného provozu. Pokud existuje `/api/provoz-stav`, sekce „Stav webu“ zobrazí jeho souhrn jen čtením. Funkce z úkolu 15 neměň.
@@ -411,7 +411,6 @@ Formát z `KONTEXT.md` §5 po **každé** fázi. Navíc:
   - stará proměnná ke smazání (jen název),
   - výsledky testů a výpis hlaviček z náhledu,
   - odkaz na náhled a co má majitel na náhledu vyzkoušet (přihlášení → AI centrum → zpět → vypínač),
-  - zastaralý test balíčku k `x-panel-heslo`.
 - **Fáze B1:**
   - kde byla evidence zakázek a jak proběhla migrace,
   - počty: záznamy celkem, bez přístupového kódu, se starou poznámkou,
@@ -449,5 +448,4 @@ Formát z `KONTEXT.md` §5 po **každé** fázi. Navíc:
   - generátor QR pro certifikát,
   - interní poznámka k zakázce, která nikdy neopustí panel,
   - blok ověřených realizací v podkladu pro SVJ,
-  - úprava testu balíčku k `x-panel-heslo`,
   - souhrn `/api/provoz-stav` v panelu, pokud ho úkol 15 nezavedl.
