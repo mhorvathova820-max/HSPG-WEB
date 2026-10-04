@@ -425,16 +425,24 @@ CHROMIUM=<cesta> node --test --test-concurrency=1 tests/e2e/reklamace.e2e.test.m
 grep -rIl "\[DOPLNIT" "$PUB" --include=*.html                                            # → nic
 grep -rIlE "15 let|pojišt|consumers/odr" "$PUB/reklamace"                                # → nic
 git diff main -U0 -- 'cisteni-*/*/index.html' | grep -E '^[+-][^+-]' | grep -vc 'reklamace'   # → 0
-cd ../hspg-balicek && npm test && HSPG_MIRROR=$(pwd)/../webHSPGH CHROMIUM=<cesta> npm run test:e2e   # → H-BOT dál prochází
+node --test tests/*.test.mjs                                                             # → jednotkové testy (i úkolů 02 a 03) fail 0
+CHROMIUM=<cesta> node --test --test-concurrency=1 tests/e2e/formulare.test.mjs tests/e2e/formulare-chyba.e2e.test.mjs   # → e2e úkolů 02 a 03 (+ případné další z fáze B úkolu 03) fail 0
+PUB_ABS=$(realpath "$PUB"); (cd ../hspg-balicek && npm test && HSPG_MIRROR="$PUB_ABS" CHROMIUM=<cesta> npm run test:e2e)   # → H-BOT dál prochází
 
 N=<adresa náhledu z npm run nahled>
 curl -sI "$N/reklamace/" | head -1                                  # → 200
+curl -s "$N/reklamace/" | grep -ciE '<meta[^>]*robots[^>]*noindex'  # → 0
 curl -sI "$N/reklamace" | grep -iE '^(HTTP|location)'               # → 301, location …/reklamace/
 curl -sI "$N/reklamace.html" | grep -iE '^(HTTP|location)'          # → 301, location …/reklamace/
+curl -sI "$N/reklamace/dekujeme/" | head -1                         # → 200
 curl -s "$N/reklamace/dekujeme/" | grep -c 'name="robots" content="noindex"'   # → 1
 curl -s "$N/sitemap.xml" | grep -c '/reklamace/</loc>'              # → 1
-curl -s -o /dev/null -w '%{http_code}\n' "$N/<cesta šablony podmínek>"        # → 404
+curl -s "$N/sitemap.xml" | grep -c 'dekujeme'                       # → 0
+curl -s -o /dev/null -w '%{http_code}\n' "$N/docs/obchodni-podminky.sablona.md"   # → 404
 curl -sIL https://coi.gov.cz/informace-o-adr/ | grep -c ' 200'      # → ≥ 1
+npx netlify api listSiteForms --data '{"site_id":"e4dff53f-791b-4c8c-946c-a23d06421774"}' | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).map(f=>f.name).join("\n")))'   # → mezi názvy je hspg-reklamace
+for i in 1 2 3; do CHROME_PATH=<cesta> npx -y lighthouse "$N/reklamace/" --only-categories=performance,accessibility,seo --output=json --output-path="/tmp/lh-reklamace-$i.json" --quiet --chrome-flags="--headless=new"; done
+node -e 'for(const i of [1,2,3]){const c=require(`/tmp/lh-reklamace-${i}.json`).categories;console.log(i,Math.round(c.performance.score*100),Math.round(c.accessibility.score*100),Math.round(c.seo.score*100))}'   # → medián: výkon ≥ 90, přístupnost 100, SEO 100 (is-crawlable viz krok 14)
 ```
 Testy, které agent přidá:
 - `tests/reklamace.test.mjs` (statický průchod, data, patičky, nezlomitelné mezery),
