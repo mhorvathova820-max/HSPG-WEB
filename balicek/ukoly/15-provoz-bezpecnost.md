@@ -193,7 +193,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
 10. **CSP z jednoho zdroje, režim Report-Only:**
     - `scripts/csp-politika.mjs` je jediné místo s direktivami a povolenými hosty a přepínačem `rezim: "report-only" | "vynutit"`.
     - `scripts/build-hlavicky.mjs`:
-      - z publikovaného výstupu spočítá SHA-256 zbylých inline skriptů
+      - z publikovaného výstupu spočítá SHA-256 zbylých inline skriptů (každý unikátní obsah jednou)
       - zapíše hlavičku do souboru s hlavičkami mezi značky `CSP:START` / `CSP:END`
       - zapíše `Reporting-Endpoints: csp="/api/csp-hlaseni"`
       - `--kontrola` skončí kódem 1, pokud hlavička neodpovídá výstupu
@@ -208,7 +208,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
       worker-src 'self'; manifest-src 'self'; report-uri /api/csp-hlaseni; report-to csp
       ```
     - `form-action 'self'` jen pokud `git grep -n formsubmit` po úkolu 03 nic nenajde. Jinak `formsubmit.co` ponech a nahlas.
-    - `blob:` v `img-src` jen pokud ho potřebují náhledy fotek (úkol 17).
+    - `blob:` v `img-src` ponech, dokud publikovaný výstup používá `URL.createObjectURL` (`grep -rln createObjectURL <publikovaný adresář>`). Dnes ho používají `/akce/` a `assets/fotky-upload.js` a `blob:` doplnil úkol 17. Bez něj vynucená CSP rozbije přílohy fotek. Pokud grep nic nenajde, `blob:` vynech a zapiš to do hlášení.
     - Hosty měření přeber z dnešní hlavičky. Další přidej jen podle úkolu 10 a hlášení, nikdy obecné `https:` ani `*`.
     - Ověř na náhledu, zda Chrome přijme relativní adresu v `Reporting-Endpoints` (DevTools → Application → Reporting API). Pokud ne, použij absolutní adresu toho nasazení. `report-uri` s relativní cestou funguje i ve Firefoxu.
     - Ostatní bezpečnostní hlavičky ani HSTS ve fázi A neměň. Hlavičky `/ai-centrum/*` z úkolu 01 zůstávají.
@@ -225,7 +225,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
 12. **Pojistka kreditů v `scripts/nasadit.mjs`** (rozšíření úkolu 00, čistá testovaná funkce):
     - `obdobi(ted, denObnovy)` vrátí aktuální období. Výchozí den obnovy je 11 (`KREDITY_OBDOBI_DEN`). Aktuální datum obnovy ověř v Usage & billing.
     - `muzeDoProdukce` navíc spočítá produkční nasazení v období z `.nasazeni-produkce.json`. Při dosažení `NASAZENI_ZA_OBDOBI_LIMIT` (výchozí 10) produkci zamítne s hláškou „PRODUKCE ZAMÍTNUTA: rozpočet období vyčerpán“, výjimkou je `--nouzove`.
-    - Před každou produkcí vypiš: „Období 11. 9.–10. 10.: N nasazení = N×15 kreditů z rozpočtu 150. Zkontroluj zbývající kredity v Usage & billing.“
+    - Před každou produkcí vypiš: „Období 11. 9.–10. 10.: N nasazení = N×15 kreditů z rozpočtu 150. Zkontroluj zbývající kredity v Usage & billing.“ (data spočítá `obdobi()`, rozpočet = limit × 15).
     - Zdůvodnění výchozí hodnoty: ostatní položky minulého období dělaly ~94 kreditů, strop AI je ~190 kreditů za měsíc (úkol 01) a monitoring ≤ 6. Dohromady s 10 nasazeními ~440 z 1 000. Číslo potvrdí majitel.
 13. **Týdenní kontrola `scripts/provoz-tyden.mjs`** (jen čtení: GET, DNS, TLS, čtení Netlify API a Blobs; **nikdy POST**). Výstup je Markdown na stdout se stavem `OK / POZOR / KRITICKÉ`. Návratový kód 0 / 1 / 2. Očekávané hodnoty jsou v `scripts/provoz-ocekavani.json`.
 
@@ -236,7 +236,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
     | `security.txt` | 200 a `Expires` víc než 30 dní dopředu (jinak POZOR) |
     | TLS | platnost certifikátu ≥ 21 dní (jinak POZOR, < 7 dní KRITICKÉ) a vydavatel |
     | DNS | MX = hosty Seznamu (**změna = KRITICKÉ**), SPF obsahuje `include:spf.seznam.cz`, DMARC odpovídá očekávanému kroku, CAA (pokud je) obsahuje `letsencrypt.org`, `www` je CNAME na Netlify |
-    | funkce | očekávané stavy GET z tabulky v části Proč (`/api/asistent` GET 200), těla bez stack trace |
+    | funkce | očekávané stavy GET z tabulky v části Proč (`/api/asistent` GET 200), těla bez stack trace. `/api/holub-ai` očekává 404. Pokud vrací 405, výsledek je POZOR s textem „úkol 01 ještě není na produkci“ |
     | kredity | nasazení v období z `.nasazeni-produkce.json`. `--zbyva N` (číslo z Usage & billing) přepočte na % s krokem podle prahu. Zjisti (`npx netlify api --list`, dokumentace), zda Netlify API čerpání kreditů vrací – pokud ano, čti ho automaticky. AI v kreditech čti z Blobs `hspg-ai` (`utrata/RRRR-MM`) |
     | AI | souhrn 7 dní a semafor (Blobs `hspg-provoz`) |
     | formuláře | ověřená odeslání za 7 dní po formulářích z Netlify API proti `formulare.*.prijato` a `*_ok`. Data podání zpracuj jen v paměti, vypiš **jen počty** |
@@ -314,8 +314,10 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
       - 404 → text s `CLAUDE_MODEL`
       - `ai-stav` nevolá žádný adaptér
       - odpovědi `asistent` jsou shodné s dosavadními testy
+      - `modelPromenna` u každého poskytovatele odpovídá proměnné, kterou čte jeho funkce `model`
+      - karta majitele (`hbot-majitel.js`, jsdom nebo Playwright s podvrženou odpovědí `/api/ai-stav` a `/api/provoz-stav`) ukáže u každé AI text semaforu a řádek „24 h: …“
 
-      Rozšiř `falesnyAdapter` z balíčku o volbu `status` (výchozí 500).
+      Atrapu adaptéru vezmi z `../hspg-balicek/balicek/testy/pomocne.mjs` (`falesnyAdapter`) jako kopii do `tests/provoz/pomocne.mjs` a rozšiř ji o volbu `status` (výchozí 500). Balíček neměň, změnu uveď v hlášení.
     - `tests/provoz/sberace.test.mjs`: oba formáty CSP hlášení, odstranění query, rozšíření prohlížeče zvlášť, 405, 413, denní strop, anonymizace cesty 404
     - `tests/provoz/formulare-pocty.test.mjs`: počty podle formuláře a kanálu. Testy úkolu 02 projdou beze změny.
     - `tests/provoz/chyby-bez-stacku.test.mjs`: každá importovatelná funkce s neplatným vstupem (špatná metoda, neplatný JSON, chybějící pole, výjimka v závislosti) vrátí tělo bez `/\bat .+:\d+:\d+|node_modules|\/var\/task|\.m?js:\d+/`
@@ -335,20 +337,20 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
       - `report-uri` existuje
       - `build-hlavicky.mjs --kontrola` po změně inline skriptu selže
     - `tests/e2e/csp.test.mjs` (Playwright): lokální server přidá ke každé stránce kandidátní hlavičku ze `csp-politika.mjs` a `addInitScript` sbírá události `securitypolicyviolation`.
-      - Stránky: `/`, ceník, `/akce/`, `/recenze/`, `/kalkulacka-svj`, `/pas-domu`, jedna okresní stránka, `/en`, 404.
+      - Stránky (12): `/`, ceník, `/akce/`, `/akce/dekujeme/`, `/recenze/`, `/recenze/karta/`, `/kalkulacka-svj`, `/pas-domu`, jedna okresní stránka, `/en`, `/rd-control-panel/` (jen načtení, bez přihlášení), 404.
       - Projdi je bez souhlasu i se souhlasem. GTM a Clarity podvrhni prázdnou odpovědí přes `page.route`.
       - Na `/akce/` vyber testovací obrázek bez odeslání (náhled `blob:`).
-      - Očekávání: 0 porušení, nebo jen porušení zdokumentovaná v hlášení.
+      - Očekávání: 0 porušení, nebo jen porušení zdokumentovaná v hlášení (ve fázi A1 např. handler na `/recenze/karta/` po kliknutí na tisk, ten řeší fáze B).
 16. **CI (úkol 19):** pokud workflow existuje, přidej `node scripts/build-hlavicky.mjs --kontrola`, nové testy a týdenní plánovaný běh `node scripts/provoz-tyden.mjs --verejne`. Plánovaný běh jen kontroluje, **nikdy nenasazuje** a nepotřebuje tajemství. Neúspěch pošle GitHub e-mailem. Pokud CI není, zapiš to do hlášení.
-17. **Náhled** (`node scripts/nasadit.mjs`, 0 kreditů, nejvýš 2× za fázi):
-    - ověř hlavičky, `security.txt`, `/zdravi.txt`, `/api/zdravi`, 405 sběračů na GET
-    - v Chromiu na náhledu ověř, že vyvolané testovací porušení CSP (vložený skript v DevTools) dorazí do sběrače a v Blobs je s předponou `nahled/`
-    - otevři neexistující URL a ověř záznam 404
-    - jedna otázka H-BOT a v panelu majitele semafor a počty (přihlásí se majitel, heslo nezadáváš ty)
-    - ověř i se zaregistrovaným `sw.js`, že stránka dostává novou hlavičku
-18. **Hlášení fáze A** (formát níže) s prvním výstupem `provoz-tyden.mjs --verejne` a checklistem pro majitele. **Zastav se.**
+17. **Náhled** (`node scripts/nasadit.mjs`, 0 kreditů, nejvýš 2× za sezení):
+    - (A1) ověř hlavičky, `security.txt`, `/zdravi.txt`, `/api/zdravi`, 405 sběračů na GET
+    - (A1) v Chromiu na náhledu ověř, že vyvolané testovací porušení CSP (vložený skript v DevTools) dorazí do sběrače a v Blobs je s předponou `nahled/` (`npx netlify blobs:get hspg-provoz nahled/csp/<RRRR-MM-DD>`, přesný tvar příkazu ověř v `--help`)
+    - (A1) otevři neexistující URL a ověř záznam 404 stejně (`nahled/404/<RRRR-MM-DD>`)
+    - (A1) ověř i se zaregistrovaným `sw.js`, že stránka dostává novou hlavičku
+    - (A2) jedna otázka H-BOT a v panelu majitele semafor a počty (přihlásí se majitel, heslo nezadáváš ty)
+18. **Hlášení fáze A1**, resp. **A2** (formát níže). Hlášení A2 obsahuje první výstup `provoz-tyden.mjs --verejne` a checklist pro majitele. Po každém hlášení se **zastav**.
 
-### Mezi fázemi – checklist pro majitele (vlož do hlášení fáze A)
+### Mezi fázemi – checklist pro majitele (vlož do hlášení fáze A2)
 - [ ] Rozhodnout o auto-recharge (Netlify → Usage & billing; úkol 00, Claude v Chrome C1) a ověřit, že e-maily o čerpání 50 / 75 / 100 % chodí do čtené schránky.
 - [ ] Potvrdit rozpočet produkčních nasazení na období (výchozí 10 = 150 kreditů).
 - [ ] Založit uptime monitor podle tabulky (krok 14) s upozorněním do mobilu. Vyzkoušet ho dočasně chybným klíčovým slovem a agentovi poslat jen potvrzení nebo snímek bez přihlašovacích údajů.
@@ -357,23 +359,22 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
 - [ ] CAA: souhlas ano/ne a adresa pro `iodef`.
 - [ ] Snímek seznamu DNS záznamů z Wedosu pro rozhodnutí o HSTS preload a seznam plánovaných subdomén.
 - [ ] Kontakt v `security.txt` (výchozí `info@hspg.cz`).
-- [ ] Schválit produkční nasazení fáze A v dávce s dalšími úkoly.
+- [ ] Schválit produkční nasazení fáze A1 (žádá o něj už hlášení A1, od něj běží 14 dní sběru CSP) a fáze A2, vždy v dávce s dalšími úkoly.
 
-### Fáze B – vynucení a úklid (nejdřív 14 dní po produkčním nasazení fáze A)
-19. Větev `ukol-15-provoz-faze-b` z aktuální `main` (fáze A musí být sloučená a na produkci ≥ 14 dní), `git -C ../hspg-balicek pull`.
+### Fáze B – vynucení a úklid (nejdřív 14 dní po produkčním nasazení fáze A1, fáze A2 sloučená)
+19. Větev `ukol-15-provoz-faze-b` z aktuální `main` (fáze A1 je na produkci ≥ 14 dní, fáze A2 je sloučená), `git -C ../hspg-balicek pull`.
 20. **CSP:**
     - Vyhodnoť sběrač za ≥ 14 dní (a `tests/e2e/csp.test.mjs` proti aktuálnímu `main`). Každé porušení zařaď: očekávané (rozšíření prohlížečů, cizí kód) / chyba politiky (doplnit konkrétní host) / chyba kódu (opravit).
-    - Zbylé inline skripty přednostně přesuň do souborů beze změny obsahu a pořadí. `defer` přidej jen tam, kde na skriptu nic nezávisí; pozor na `window.HSPG_CENY` (úkol 07). Hash ponech jen tam, kde přesun nejde, a hlídej ho přes `--kontrola` v CI.
+    - Zbylé inline skripty přednostně přesuň do souborů beze změny obsahu a pořadí. `defer` přidej jen tam, kde na skriptu nic nezávisí; pozor na `window.HSPG_CENY` (úkol 07). Hash ponech jen tam, kde přesun nejde (např. skripty v `<head>` z úkolů 10 a 16), a hlídej ho přes `--kontrola` v CI.
+    - Každý zbylý handler `on*=` (dnes `onclick="window.print()"` na `/recenze/karta/`) nahraď posluchačem `addEventListener` v souboru. `'unsafe-hashes'` nepoužívej. Ověření: `csp-inventura.mjs` hlásí 0 handlerů.
     - Když 7 dní po sobě nepřijde žádné neočekávané porušení, přepni `rezim` na `vynutit`. Hlavička `Content-Security-Policy` má stejnou politiku a reporty zůstávají.
-    - Na náhledu ověř Playwrightem 0 porušení a funkčnost: průvodce na homepage, kalkulačka SVJ, pas domu, `/akce/` s náhledem fotky (bez odeslání), `/recenze/`, H-BOT, lišta souhlasu včetně načtení GTM a Clarity po souhlasu.
-21. **Odstranění `holub-ai`.** Všechny podmínky:
-    - úkol 01 je na produkci ≥ 7 dní
-    - `curl -s https://hspg.cz/assets/hbot.js | grep -c holub-ai` = 0
-    - za 7 dní žádné volání z webu (jen případné roboty). Důkaz: Netlify → Logs → Functions `holub-ai`, nebo počítadlo `holub-ai` z kroku 7
-    - `git grep -n holub-ai` najde jen funkci
-    - souhlas majitele
+    - Na náhledu ověř Playwrightem 0 porušení a funkčnost: průvodce na homepage, kalkulačka SVJ, pas domu, `/akce/` s náhledem fotky (bez odeslání), `/akce/dekujeme/`, `/recenze/`, tisk na `/recenze/karta/`, H-BOT, lišta souhlasu včetně načtení GTM a Clarity po souhlasu.
+21. **Ověření, že `holub-ai` je pryč** (funkci odstranil úkol 01, tady se nic nemaže):
+    - `git grep -n holub-ai` → nic
+    - `curl -s https://hspg.cz/assets/hbot.js | grep -c holub-ai` → 0
+    - `curl -s -o /dev/null -w '%{http_code}' https://hspg.cz/api/holub-ai` (GET) → 404 a H-BOT na produkci odpovídá
 
-    Pak smaž soubor funkce a její konfiguraci nebo přesměrování. Proměnné, které používala jen ona, vypiš majiteli (jména; smaže je on). Na náhledu: `/api/holub-ai` → 404, H-BOT odpovídá. V `provoz-ocekavani.json` změň očekávaný stav na 404.
+    Pokud něco z toho neplatí, nic nemaž a nahlas to (úkol 01 není hotový nebo není na produkci). Proměnné prostředí, které četla jen `holub-ai` (najdi v historii: `git log -p -S holub-ai`), vypiš majiteli jménem jako kandidáty na smazání. Smaže je on.
 22. **DMARC:** zkontroluj záznam (`node -e` s `dns.promises.resolveTxt("_dmarc.hspg.cz")`). Majitel uloží reporty (přílohy) do složky **mimo repozitář** a ty z nich udělej souhrn: zdroj, počet, SPF/DKIM/DMARC výsledek. Nic necommituj. Pokud jsou všechny legitimní zdroje `pass`, připrav majiteli krok 2 a později 3. Očekávaný krok uprav v `provoz-ocekavani.json`.
 23. **HSTS preload** jen na výslovné rozhodnutí majitele, až když:
     - podle snímku zóny má každá subdoména s webovým záznamem funkční HTTPS (`curl -sI https://<sub>.hspg.cz`)
@@ -384,33 +385,33 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
 
 ## Akceptační kritéria
 ### Fáze A
-- [ ] `node --test tests/provoz/*.test.mjs` – vše prošlo (počty v hlášení), testy balíčku úkolu 01 (`npm test`, `npm run test:e2e`) a testy úkolů 00 a 02 projdou beze změny.
-- [ ] `CHROMIUM=<cesta> node --test tests/e2e/csp.test.mjs` – 0 nezdokumentovaných porušení na 9 typech stránek, žádný požadavek mimo lokální server.
-- [ ] `node scripts/build-hlavicky.mjs --kontrola` → kód 0. Počet hashů v CSP = počet inline skriptů s kódem z `csp-inventura.mjs`.
-- [ ] Náhled: `curl -sI <náhled>/` obsahuje `content-security-policy-report-only` s `report-uri /api/csp-hlaseni`, `script-src` bez `'unsafe-inline'`, a `reporting-endpoints`. `strict-transport-security` je právě 1×. Ostatní hlavičky z tabulky v části Proč beze změny.
-- [ ] Náhled: testovací porušení CSP a návštěva neexistující URL se objeví v souhrnu (předpona `nahled/`).
-- [ ] Náhled: `/.well-known/security.txt` → 200, `text/plain`, `Contact` a `Expires` (budoucí, ≤ 365 dní). `/zdravi.txt` → `HSPG-OK`. `/api/zdravi` → `{"ok":true}`. GET na oba sběrače → 405.
-- [ ] Panel majitele na náhledu ukazuje semafor u každé AI a řádek 24 h. `/api/ai-stav` obsahuje `zdravi` a `provoz` a test potvrdil 0 volání AI.
-- [ ] `node scripts/nasadit.mjs --produkce` bez schválení → „PRODUKCE ZAMÍTNUTA“. Test rozpočtu období prošel.
-- [ ] `node scripts/provoz-tyden.mjs --verejne` doběhne, výstup je v hlášení a neobsahuje data podání.
-- [ ] Inventura v hlášení: jména proměnných (bez hodnot), zjištění o `pocasi` (Open-Meteo, žádný klíč), výsledek kontroly výpisu chyb, odkazy na `holub-ai`, čísla CSP inventury.
-- [ ] `npx -y gitleaks detect --source . --no-banner` bez nálezů. `git diff main | grep -nE "^\+.*(NTFY_TEMA|TELEGRAM_BOT_TOKEN|HSPG_PANEL_HESLO|_API_KEY)\s*=\s*\S"` nenajde nic (v testech jen zjevné atrapy jako `"test"`).
-- [ ] Nové neveřejné soubory nejsou na náhledu: `curl -s -o /dev/null -w '%{http_code}' <náhled>/docs/provoz.md` → 404, stejně tak `/scripts/provoz-ocekavani.json` a `/tests/provoz/provoz-lib.test.mjs`.
-- [ ] `/api/provoz-stav` bez přihlášení → 401 (nebo 503 bez nastaveného hesla). S tokenem majitele vrátí jen počty, test ověřil, že odpověď neobsahuje testovací osobní údaje.
+- [ ] (A1 i A2) `node --test tests/provoz/*.test.mjs` – vše prošlo (počty v hlášení), testy balíčku úkolu 01 (`npm test`, `npm run test:e2e`) a testy úkolů 00 a 02 projdou beze změny.
+- [ ] (A1) `CHROMIUM=<cesta> node --test tests/e2e/csp.test.mjs` – 0 nezdokumentovaných porušení na 12 stránkách z kroku 15, žádný požadavek mimo lokální server.
+- [ ] (A1) `node scripts/build-hlavicky.mjs --kontrola` → kód 0. Počet hashů v CSP = počet **unikátních** inline skriptů s kódem ze souhrnu `csp-inventura.mjs`.
+- [ ] (A1) Náhled: `curl -sI <náhled>/` obsahuje `content-security-policy-report-only` s `report-uri /api/csp-hlaseni`, `script-src` bez `'unsafe-inline'`, a `reporting-endpoints`. `strict-transport-security` je právě 1×. Ostatní hlavičky z tabulky v části Proč beze změny.
+- [ ] (A1) Náhled: testovací porušení CSP a návštěva neexistující URL jsou v Blobs s předponou `nahled/` (`npx netlify blobs:get hspg-provoz nahled/csp/<den>` a `nahled/404/<den>` vrátí počet ≥ 1).
+- [ ] (A1) Náhled: `/.well-known/security.txt` → 200, `text/plain`, `Contact` a `Expires` (budoucí, ≤ 365 dní). `/zdravi.txt` → `HSPG-OK`. `/api/zdravi` → `{"ok":true}`. GET na oba sběrače → 405.
+- [ ] (A1) `node scripts/nasadit.mjs --produkce` bez schválení → „PRODUKCE ZAMÍTNUTA“, kód 3. Test rozpočtu období (`nasadit-obdobi`) prošel.
+- [ ] (A1) Inventura v hlášení: jména proměnných (bez hodnot), zjištění o `pocasi` (Open-Meteo, žádný klíč), výsledek kontroly výpisu chyb, stav `holub-ai` (`git grep` a kód GET z produkce), čísla CSP inventury.
+- [ ] (A2) `/api/ai-stav` obsahuje `zdravi` a `provoz` a test `ai-metriky` potvrdil 0 volání AI. Test karty majitele ukázal semafor a řádek „24 h“. Na náhledu to potvrdil majitel snímkem.
+- [ ] (A2) `node scripts/provoz-tyden.mjs --verejne; echo $?` doběhne s kódem 0 nebo 1 (každé POZOR vysvětlené), výstup je v hlášení a neobsahuje data podání.
+- [ ] (A2) `/api/provoz-stav` bez přihlášení → 401 (nebo 503 bez nastaveného hesla). S tokenem majitele vrátí jen počty, test ověřil, že odpověď neobsahuje testovací osobní údaje.
+- [ ] (A1 i A2) `npx -y gitleaks detect --source . --no-banner` bez nálezů. `git diff main -- . ':(exclude)tests' | grep -nE "^\+.*(NTFY_TEMA|TELEGRAM_BOT_TOKEN|TELEGRAM_CHAT_ID|SMTP_HESLO|HSPG_PANEL_HESLO|_API_KEY)[[:space:]]*=[[:space:]]*[^=[:space:]]"` nenajde nic. V `tests/` jsou jen zjevné atrapy (např. `"test"`).
+- [ ] (A1 i A2) Nové neveřejné soubory nejsou na náhledu: `curl -s -o /dev/null -w '%{http_code}' <náhled>/docs/provoz.md` → 404, stejně tak `/scripts/provoz-ocekavani.json`, `/scripts/csp-politika.mjs` a `/tests/provoz/provoz-lib.test.mjs`.
 
 ### Fáze B
 - [ ] Souhrn CSP hlášení za ≥ 14 dní je v hlášení: počty podle direktiv, co bylo opraveno, 7 dní bez neočekávaného porušení.
-- [ ] Náhled i (po schválení) produkce: `curl -sI https://hspg.cz/ | grep -i "^content-security-policy:"` → vynucená politika s `report-uri`. Playwright 0 porušení. Ruční kontrola funkcí ze kroku 20 prošla.
-- [ ] `curl -s -o /dev/null -w '%{http_code}' https://hspg.cz/api/holub-ai` → 404 (po produkci) a H-BOT odpovídá.
-- [ ] `_dmarc.hspg.cz` obsahuje `rua`. Krok DMARC odpovídá plánu a `provoz-ocekavani.json`.
-- [ ] HSTS: buď `preload` s rozhodnutím majitele a potvrzením z hstspreload.org (pending / preloaded), nebo zápis „neprováděn – důvod“ v `docs/provoz.md`.
-- [ ] Uptime monitor běží a zkušební upozornění dorazilo do mobilu (potvrzení majitele).
+- [ ] Náhled i (po schválení) produkce: `curl -sI https://hspg.cz/ | grep -i "^content-security-policy:"` → vynucená politika s `report-uri`. `CHROMIUM=<cesta> node --test tests/e2e/csp.test.mjs` s režimem `vynutit` → 0 porušení. `node scripts/csp-inventura.mjs` → 0 handlerů `on*=`. Kontrola funkcí ze kroku 20 prošla.
+- [ ] `git grep -n holub-ai` → nic a `curl -s -o /dev/null -w '%{http_code}' https://hspg.cz/api/holub-ai` → 404 (funkci odstranil úkol 01). H-BOT odpovídá.
+- [ ] `_dmarc.hspg.cz` obsahuje `rua` (příkaz v části Ověření). Krok DMARC odpovídá plánu a `provoz-ocekavani.json`.
+- [ ] HSTS: buď `curl -sI https://hspg.cz/ | grep -i strict-transport-security` obsahuje `preload` (s rozhodnutím majitele a stavem pending / preloaded na hstspreload.org), nebo `grep -n "preload neprováděn" docs/provoz.md` najde zápis s důvodem.
+- [ ] Uptime monitor běží a zkušební upozornění dorazilo do mobilu (potvrzení nebo snímek majitele v hlášení).
 
 ## Ověření
 ```bash
 node --test tests/provoz/*.test.mjs                         # pass N, fail 0
 CHROMIUM=<cesta> node --test tests/e2e/csp.test.mjs         # pass, 0 porušení, žádný externí požadavek
-node scripts/csp-inventura.mjs                              # tabulka; inline skripty s kódem = počet hashů
+node scripts/csp-inventura.mjs                              # tabulka; unikátní inline skripty s kódem = počet hashů
 node scripts/build-hlavicky.mjs --kontrola; echo $?         # 0
 node scripts/nasadit.mjs --produkce; echo $?                # „PRODUKCE ZAMÍTNUTA…“, 3
 node scripts/provoz-tyden.mjs --verejne; echo $?            # Markdown, 0 nebo 1 (POZOR vysvětlit)
@@ -419,6 +420,7 @@ curl -s <náhled>/.well-known/security.txt                   # Contact, Expires,
 curl -s <náhled>/zdravi.txt                                 # HSPG-OK
 curl -s <náhled>/api/zdravi                                 # {"ok":true}
 curl -s -o /dev/null -w '%{http_code}\n' <náhled>/api/csp-hlaseni   # 405
+curl -s -o /dev/null -w '%{http_code}\n' https://hspg.cz/api/holub-ai  # 404 po nasazení úkolu 01 (jen GET)
 node -e 'require("dns").promises.resolveTxt("_dmarc.hspg.cz").then(r=>console.log(r.flat().join("")))'
 node -e 'require("dns").promises.resolveMx("hspg.cz").then(console.log)'   # hosty emailprofi.seznam.cz – beze změny
 cd ../hspg-balicek && npm test && HSPG_MIRROR=$(pwd)/../webHSPGH CHROMIUM=<cesta> npm run test:e2e   # H-BOT beze změny
@@ -441,24 +443,26 @@ Viz `balicek/KONTEXT.md` §4. Zvlášť pro tento úkol:
 - **Data:** do Blobs, logů, hlášení ani výstupu skriptů jen počty a kódy. Žádný text dotazu, osobní údaj, IP ani celé URL s query. Data podání z API jen v paměti.
 - **Veřejný balíček:** do balíčku a veřejných míst nepiš podrobnosti slabin. Nálezy bezpečnostní kontroly patří do soukromého repozitáře webu a hlášení majiteli. Žádná tvrzení o „certifikovaném zabezpečení“ ani „nepřetržitém dohledu“ na webu.
 - **CSP:** ve fázi A jen Report-Only. Vynutit až po splnění kritérií ve fázi B. Nikdy `'unsafe-eval'`, obecné `https:` ani `*`. Stávající hlavičky (XFO, `nosniff`, Referrer-Policy, Permissions-Policy, COOP) neoslabovat.
-- **`holub-ai`** mazat až po splnění všech podmínek kroku 21 a se souhlasem majitele. **HSTS preload** jen s výslovným rozhodnutím majitele.
+- **`holub-ai`** odstraňuje úkol 01. Tady ji jen ověřuješ (kroky 3 a 21). Pokud je ve zdroji ještě, sám ji nemaž a nahlas to. **HSTS preload** jen s výslovným rozhodnutím majitele.
+- **Kredity a veřejný repozitář:** aktuální zůstatek kreditů a stav auto-recharge neopisuj do balíčku ani na jiná veřejná místa. Patří jen do `KONTEXT.md` §2, do hlášení majiteli a do soukromého repozitáře webu.
 - **Kredity:** monitoring podle intervalů v tabulce. Žádné automatické nasazení (ani z plánovaného CI). Náhled zdarma přes `scripts/nasadit.mjs`, produkce jen po schválení v dávce.
 
 ## Hlášení po dokončení
-Formát z `KONTEXT.md` §5, zvlášť po fázi A a po fázi B, a navíc:
-- **Fáze A:**
-  - inventura z kroku 3 (proměnné jen jménem, `pocasi`, výpis chyb, `holub-ai`, CSP)
+Formát z `KONTEXT.md` §5, zvlášť po fázi A1, A2 a B, a navíc:
+- **Fáze A1 a A2** (každé hlášení jen za své kroky):
+  - inventura z kroku 3 (proměnné jen jménem, `pocasi`, výpis chyb, stav `holub-ai`, CSP)
   - seznam nových a změněných souborů
-  - diff souborů převzatých z balíčku (`asistent.mjs`, `ai.mjs`, `ai-stav.mjs`, `submission-created.mjs`, `hbot-majitel.js`, `nasadit.mjs`), aby se promítly zpět do balíčku
+  - diff souborů převzatých z balíčku (`asistent.mjs`, `ai.mjs`, `ai-stav.mjs`, `poskytovatele.mjs`, `submission-created.mjs`, `hbot-majitel.js`, `nasadit.mjs`) a rozšíření atrapy `falesnyAdapter`, aby se promítly zpět do balíčku
   - výsledky testů (počty)
   - odkaz na náhled a výpis hlaviček
   - výsledek ověření `.well-known` na náhledu a relativní adresy v `Reporting-Endpoints`
   - zda Netlify API vrací čerpání kreditů, zda je na tarifu rate limiting funkcí a zda Gateway podporuje dotaz na model
-  - první výstup `provoz-tyden.mjs --verejne`
-  - checklist pro majitele
+  - (A1) žádost o schválení produkčního nasazení fáze A1 v dávce (od něj běží 14 dní sběru CSP)
+  - (A2) první výstup `provoz-tyden.mjs --verejne`
+  - (A2) checklist pro majitele
 - **Fáze B:**
   - souhrn CSP hlášení a výsledná politika
-  - důkazy k odstranění `holub-ai`
+  - výsledek ověření, že `holub-ai` je pryč (krok 21)
   - stav DMARC a souhrn reportů
   - rozhodnutí o HSTS preload
   - týdenní kontrola (plný režim)
@@ -469,3 +473,4 @@ Formát z `KONTEXT.md` §5, zvlášť po fázi A a po fázi B, a navíc:
   - hosty měření z hlášení CSP (úkol 10)
   - pokud zásady (úkol 09) neuvádějí sběr anonymních počtů 404 a CSP, návrh doplnění
   - MTA-STS a TLS-RPT (audit #10, později)
+  - společné bezpečnostní hlavičky pro odpovědi funkcí: HSTS s `includeSubDomains` a `Allow` u 405 (bezpečnostní audit #18, nízká priorita)

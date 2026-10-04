@@ -1,5 +1,5 @@
 # Úkol 08: Jednotná hlavička, patička a vzhled
-> Priorita P1 · Závisí na: 03 (patička přebírá jeho kontakty); doporučeno mít sloučené i 01 (nové plovoucí tlačítko, kvůli měření překryvů). 04 ani 06 podmínkou nejsou: odkaz na reklamace a podoba URL se doplní z dat · Čeká na majitele: schválení vzhledu podle snímků před/po a náhledu (před produkcí); název evidujícího živnostenského úřadu, pokud ho agent neověří ve veřejném RŽP · Rozsah: **fáze A** = inventura, snímky „před“, data, design tokeny a jednotná patička na všech stránkách; **fáze B** = jednotná hlavička a menu, paleta, typografie, minimální velikost písma, plovoucí prvky, snímky „po“. Po fázi A podej hlášení a počkej na „pokračuj“.
+> Priorita P1 · Závisí na: 03 (patička přebírá jeho kontakty); doporučeno mít sloučené i 01 (nové plovoucí tlačítko, kvůli měření překryvů). 04 ani 06 podmínkou nejsou: odkaz na reklamace a podoba URL se doplní z dat · Čeká na majitele: schválení vzhledu podle snímků před/po a náhledu (před produkcí); název evidujícího živnostenského úřadu, pokud ho agent neověří ve veřejném RŽP · Rozsah: **fáze A** = inventura, snímky „před“, data, design tokeny a jednotná patička na všech stránkách; **fáze B** = jednotná hlavička a menu, paleta, typografie, minimální velikost písma, plovoucí prvky, snímky „po“ (pokud se nevejde do jednoho sezení, dělí se na B1 a B2, viz začátek fáze B). Po fázi A podej hlášení a počkej na „pokračuj“.
 
 ## Proč (s důkazy)
 Ověřeno 4. 10. 2026 v kopii živého webu (247 HTML) a Playwrightem v Chromiu nad touto kopií. Namátkově ověřeno i na https://hspg.cz, kde je stav shodný. Zdroje: audit z Chrome (`KONTEXT.md` §2), `audit-pravni_pravdivost.json` #13 a #14, `audit-formulare.json` #4, `audit-seo.json` #10.
@@ -55,7 +55,7 @@ Dále jsou pod 12 px:
   - `#cta-stack` překrývá odstavec v úvodní části `/` (1280 × 720).
 - Překryv `#reel-bublina` se při načtení nepotvrdil, protože je v tu chvíli skrytá. Agent ho změří i po posunu stránky.
 
-**Patička a povinné údaje** (247 stránek). § 435 odst. 1 OZ vyžaduje na webu jméno, sídlo a údaj o zápisu v jiné evidenci (u OSVČ živnostenský rejstřík). Podle čl. 12 a 13 GDPR mají být zásady snadno dostupné.
+**Patička a povinné údaje** (247 stránek, stav 4. 10. – úkoly 03, 04, 05, 09 a 13 běží v pořadí před tímto a do patiček mezitím přidají blok `KONTAKTY`, odkaz „Reklamace“, odkaz na zásady a upraví `/en`; skutečný stav zjistí inventura v kroku 2). § 435 odst. 1 OZ vyžaduje na webu jméno, sídlo a údaj o zápisu v jiné evidenci (u OSVČ živnostenský rejstřík). Podle čl. 12 a 13 GDPR mají být zásady snadno dostupné.
 
 | Údaj v patičce | Chybí na |
 |---|---|
@@ -94,7 +94,7 @@ Dále jsou pod 12 px:
 7. **Vizuální regrese:**
    - snímky před a po na šířkách 360, 768, 1004, 1280 a 1920 px pro všechny typy stránek,
    - potom základ (hlavička, patička, první obrazovka) uložený v repozitáři a test, který hlídá, aby se vzhled znovu nerozjel.
-8. **Nic se nezhorší:** přístupnost (axe, Lighthouse 100), CLS ani výkon.
+8. **Nic se nezhorší:** přístupnost (axe; skóre Lighthouse neklesne a kde bylo 100, zůstane 100 – 100 je ověřené jen u homepage), CLS ani výkon. Všechny dosavadní testy webu (úkoly 02–07, 09, 13, 17) projdou dál.
 
 ## Rozsah
 ANO:
@@ -120,12 +120,15 @@ NE:
 - tvrzení o technologiích, H-BIO, kariéře a akci, včetně textu proužku akce na homepage (úkol 13),
 - vzhled a chování plovoucího tlačítka H-SPG CORE (úkol 01, R4). Výjimkou je bezpečná zóna (krok 16) a zvednutí 4 velikostí písma pod 12 px v jeho souborech (krok 15),
 - interní stránky `/rd-control-panel/` a `/ai-centrum/` (R7: tam zůstává antracit), jejich hlavička ani patička se nemění,
+- samostatná offline stránka `/offline/` z úkolu 17 (inline CSS, bez externích souborů) – generátor ji vynechá,
+- zavírání mobilního menu klávesou Esc a kliknutím mimo, jednotný indikátor fokusu, `scroll-padding` a `assets/pristupnost.js` (úkol 16, běží po tomto; tady jen menu na `<details>` funkční bez JS a zachovaný stávající viditelný fokus),
 - jakékoli texty v těle stránek.
 
 ## Postup
 
 ### Fáze A – inventura, snímky „před“, data, tokeny a patička
-1. Větev `ukol-08-jednotny-design` z aktuální `main`.
+1. Větev `ukol-08-jednotny-design` z aktuální `main`. Předtím `git -C ../hspg-balicek pull`.
+   - Testy patří do adresáře a konvence, které na webu zavedly předchozí úkoly (`tests/`, e2e v `tests/e2e/`). Cesty `tests/…` níže tomu odpovídají; pokud web používá jinou konvenci, drž se jí a uveď to v hlášení.
    - Ověř, že je sloučený úkol 03: v patičkách je kontaktní blok s 5 adresami @hspg.cz. Kontrola: na 3 namátkových stránkách má `<footer>` 5 prvků `a[data-mail]` s různými hodnotami a obráceně čtené končí na `@hspg.cz`. Pokud ne, **zastav se a nahlas to**.
    - Zjisti a zapiš do hlášení, zda je sloučený úkol 01 (`assets/hbot.js` obsahuje „H-SPG CORE“), 04 (existuje stránka reklamací) a 06 (jednotná podoba URL).
 2. **Najdi v repozitáři soubory, které generují hlavičky, patičky a styly stránek:**
@@ -133,14 +136,16 @@ NE:
    - skript, který vkládá blok `:root{--lux-…}` do všech stránek (`git grep -n "lux-ink" -- scripts`), a ostatní generátory se značkami (`SENTINEL`, `REFERENCE`, `RECENZE`, `build-ceny.mjs`, `build-references.mjs`, `build-hbot.mjs`),
    - ručně psané stránky (`index.html`, `cenik.html`, `pas-domu.html`, `kariera.html`, `kalkulacka-svj.html`, `nabidka-svj.html`, `spoluprace.html`, `reference.html`, `ochrana-osobnich-udaju.html`, `en.html`, `akce/`, `pravidla-akce/`, `recenze/`, `cisteni-strech/`, `cisteni-fasad/`, případně `404.html`) a sdílené CSS `assets/brand.css`, `assets/en-sections.css`,
    - build příkaz (`netlify.toml`, `package.json`) a jestli se vygenerované HTML commituje. Zjisti i co nahrává `scripts/nasadit.mjs`,
-   - JS, který závisí na selektorech hlavičky a patičky: `git grep -nE "nav-odkazy|mobile-menu|hspg-header|site-head|sheet-head|rnav|data-souhlas-nastaveni|data-mail|hero-cta-na-obrazovce|hspg-lista" -- '*.js' '*.html' '*.mjs'`. Každý nalezený selektor musí po změně fungovat, nebo se v témže commitu upraví i skript,
-   - seznam veřejných HTML stránek ze souborů (`git ls-files '*.html'` bez interních). Počet nikde natvrdo nepiš, dnes je to 247.
+   - JS, který závisí na selektorech hlavičky a patičky: `git grep -nE "nav-odkazy|mobile-menu|hspg-header|site-head|sheet-head|rnav|data-souhlas-nastaveni|data-mail|data-kontakt|KONTAKTY|data-zaruka|hero-cta-na-obrazovce|hspg-lista|--hlavicka" -- '*.js' '*.html' '*.mjs' '*.css'`. Patří sem i měření výšky sticky hlavičky pro kotvy z úkolu 17 (`--hlavicka`, `ResizeObserver`, např. `assets/spolecne.js`). Každý nalezený selektor musí po změně fungovat, nebo se v témže commitu upraví i skript,
+   - generátory předchozích úkolů, které píšou do patičky nebo hlavičky: `scripts/build-kontakty.mjs` a `scripts/lib/kontakty.mjs` (úkol 03, blok `KONTAKTY`), `scripts/build-zaruka.mjs` (úkol 05, prvky `data-zaruka`), a v jakém pořadí se spouštějí,
+   - seznam veřejných HTML stránek ze souborů: `git ls-files '*.html' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' ':!tests/*' ':!node_modules/*'` (případné další neveřejné soubory vyřaď a vyjmenuj v hlášení). Ve zdroji jsou i stránky, které kopie živého webu nemá: `404.html`, `zaruka.html` (úkol 05), `reklamace/` a `reklamace/dekujeme/` (úkol 04), `akce/dekujeme/`. Počet nikde natvrdo nepiš, v kopii živého webu je to 247. Tentýž seznam (stejný příkaz) používají generátor, testy a akceptační kritéria jako „N“.
 
    Výsledek zapiš do hlášení jako tabulku: typ stránky → soubor nebo generátor → hlavička → patička.
 3. **Snímky „před“ – dřív než cokoli změníš.**
-   - Vytvoř `testy/vizualni.mjs` (Playwright, Chromium). Pokud web už má adresář a konvenci testů, drž se jich.
-   - Lokální statický server `testy/server-staticky.mjs` mapuje `/x` → `x.html`, `/adresar/` → `adresar/index.html` a `/api/*` vrací 404. Alternativně lze použít `netlify dev`.
-   - Typy stránek: `/`, `/cenik`, `/pas-domu`, `/kariera`, `/kalkulacka-svj`, `/nabidka-svj`, `/spoluprace`, `/reference`, `/ochrana-osobnich-udaju`, `/akce/`, `/pravidla-akce/`, `/recenze/`, `/cisteni-strech/`, `/cisteni-fasad/`, `/cisteni-dlazby/`, `/cisteni-fasad/kolin/`, `/cisteni-strech/praha/`, `/en`. Přidej stránku reklamací a `404.html`, pokud existují.
+   - Vytvoř `tests/vizualni.mjs` (Playwright, Chromium). Pokud úkol 07 zavedl snímkování (`tests/vykon/vzhled.test.mjs`), převezmi jeho pomocné funkce pro stabilní snímek a nepiš je podruhé.
+   - Statický server: použij ten, který už ve `tests/` zavedly předchozí úkoly (vzor `balicek/testy/server.mjs`: `/x` → `x.html`, `/adresar/` → `adresar/index.html`). Jen pokud žádný není, vytvoř `tests/server-staticky.mjs` se stejným mapováním a `/api/*` → 404. Alternativně lze použít `netlify dev`.
+   - Typy stránek: `/`, `/cenik`, `/pas-domu`, `/kariera`, `/kalkulacka-svj`, `/nabidka-svj`, `/spoluprace`, `/reference`, `/ochrana-osobnich-udaju`, `/akce/`, `/pravidla-akce/`, `/recenze/`, `/cisteni-strech/`, `/cisteni-fasad/`, `/cisteni-dlazby/`, `/cisteni-fasad/kolin/`, `/cisteni-strech/praha/`, `/en`. Přidej `/zaruka`, `/reklamace/`, `/akce/dekujeme/` a `404.html`, pokud existují. Konečný seznam zapiš do `tests/typy-stranek.json`; z něj čtou všechny testy a jeho délka je „počet typů stránek“.
+   - **Selektor hlavičky:** homepage dnes nemá prvek `<header>`. Na `/` snímej a měř sticky obal, který obsahuje `#hspg-header-row` (`#hspg-header-row` a jeho rodič s `position:sticky`, včetně proužku akce), jinde první `body header`. Mapování selektorů ulož do téhož JSON, aby snímky „před“ i „po“ měřily totéž.
    - Šířky 360, 768, 1004, 1280 a 1920 px, výška 900 px.
    - Stabilní snímky:
      - souhlas předvyplň (`localStorage` `hspg-souhlas` = `nezbytne`, lišta se pak nezobrazí),
@@ -149,7 +154,7 @@ NE:
      - čekej na `document.fonts.ready`,
      - videa nech na posteru.
    - Ukládej celou stránku a samostatně `header` a `footer` do `.artefakty/ukol-08/pred/<typ>@<šířka>.png`. `.artefakty/` přidej do `.gitignore`.
-   - Stejný měřicí modul (`testy/mereni-layout.mjs`) uloží `.artefakty/ukol-08/pred/mereni.json`: výška hlavičky, počet řádků menu a zalomených položek, pozadí `html`/`body`, rodiny písma, počet viditelných textů pod 12 px (u SVG skutečná vykreslená velikost, tj. `font-size` × měřítko z `getScreenCTM()`) a překryvy plovoucích prvků. Stejný modul pak použijí testy ve fázi B.
+   - Stejný měřicí modul (`tests/mereni-layout.mjs`) uloží `.artefakty/ukol-08/pred/mereni.json`: výška hlavičky, počet řádků menu a zalomených položek, pozadí `html`/`body`, rodiny písma, počet viditelných textů pod 12 px (u SVG skutečná vykreslená velikost, tj. `font-size` × měřítko z `getScreenCTM()`), překryvy plovoucích prvků a **počet porušení axe-core s dopadem `serious`/`critical` na celé stránce** (360 a 1280 px; výchozí stav pro kritérium „nezhoršit“ ve fázi B). Stejný modul pak použijí testy ve fázi B.
 4. **Data – `content/firma.json`** (jediný zdroj faktů o firmě z úkolu 01, nezakládej druhý). Doplň:
    ```json
    "obchodni_oznaceni": "HOLUB Surface Protection Group",
@@ -190,11 +195,11 @@ NE:
          { "nadpis": "Dokumenty", "odkazy": ["Ochrana osobních údajů → /ochrana-osobnich-udaju", "Nastavení cookies (data-souhlas-nastaveni)", "Reklamace → stránka z úkolu 04, jen pokud existuje", "Pravidla akce → /pravidla-akce/", "Obchodní podmínky → zobrazit: false (do schválení 04B)"] }
        ]
      },
-     "en": { "menu": ["Services #services", "Before / after #results", "Prices #prices", "Process #process"], "jazyk": { "text": "CZ", "href": "/" }, "cta": { "text": "Request a quote", "href": "/akce/" }, "paticka": "stejná struktura; „Privacy policy (in Czech)“, „Cookie settings“, „Česká verze“" },
+     "en": { "menu": ["Services #services", "Before / after #results", "Prices #prices", "Process #process"], "jazyk": { "text": "CZ", "href": "/" }, "cta": { "text": "Request a quote", "href": "<cíl tlačítek „Request a quote“ v en.html po úkolu 13 – kotva kontaktního panelu>" }, "paticka": "stejná struktura; popisky a cíle odkazů na zásady a cookies převzaté z en.html po úkolech 09 a 13, „Česká verze“" },
      "varianty": { "/akce/": "soustredena" }
    }
    ```
-   Zápis výše je zkrácený, skutečný soubor má u každého odkazu `text` a `href`. Interní odkazy piš v podobě, kterou web používá (dnes `/x` bez `.html`; po úkolu 06 jeho podoba). Kotvy, které existují jen na homepage (`#sluzby`, `#predpo`), v globálním menu nejsou. Anglické položky zůstávají jako dnes; směr „Request a quote“ do českého formuláře řeší úkol 13.
+   Zápis výše je zkrácený, skutečný soubor má u každého odkazu `text` a `href`. Interní odkazy piš v podobě, kterou web používá (dnes `/x` bez `.html`; po úkolu 06 jeho podoba). Kotvy, které existují jen na homepage (`#sluzby`, `#predpo`), v globálním menu nejsou. Anglické položky zůstávají jako dnes. **`/en` se nevrací do stavu před úkoly 09 a 13:** úkol 13 směruje „Request a quote“ na kotvu kontaktního panelu (ne na český formulář `/akce/`) a úkol 09 vede „Privacy policy“ na `/ochrana-osobnich-udaju#english` a odstraňuje „(in Czech)“. Cíl CTA i popisky a `href` odkazů na zásady a cookies proto převezmi z aktuálního `en.html`; pokud 09 nebo 13 sloučené nejsou, ponech dnešní stav `en.html` a uveď to v hlášení.
 5. **Tokeny a základní styly – `assets/zaklad.css`** (název přizpůsob konvenci webu). Hodnoty jsou převzaté z webu (kontrast WCAG spočítaný proti `#0C121E`):
 
    | Token | Hodnota | Odkud na webu | Kontrast |
@@ -219,38 +224,40 @@ NE:
    - Do `<head>` všech stránek ho vkládá skript z kroku 6 jako `<link rel="stylesheet">` s otiskem verze (`?v=` prvních 8 znaků SHA-256 obsahu). Pokud úkol 07 už zavedl jiný mechanismus otisků, použij jeho.
 6. **Komponenta a generátor.**
    - **`scripts/lib/layout.mjs`** obsahuje čisté funkce `hlavicka({ jazyk, cesta, varianta })`, `paticka({ jazyk })` a `odkazCss()`. Čtou `content/firma.json` a `content/navigace.json`. Escapují HTML a vkládají nezlomitelné mezery podle `KONTEXT.md` §4.9: po v, k, s, z, a, i, o, u, dále v „186 00“, „Praha 8“, „IČO 09291881“ a v telefonu.
-     - **Kontroluje, že každý interní `href` vede na existující soubor.** Když ne, skončí chybou, aby nevznikl mrtvý odkaz.
+     - **Kontroluje, že každý interní `href` vede na existující soubor** (kotva `#…` na `id` cílové stránky). Když ne, skončí chybou, aby nevznikl mrtvý odkaz.
      - Položky s `zobrazit: false` a hodnoty obsahující `[DOPLNIT` nikdy nevypíše.
-   - **`scripts/build-layout.mjs`** projde všechny veřejné HTML (ne `/rd-control-panel/`, `/ai-centrum/`) a nahradí obsah mezi značkami:
+     - **Blok kontaktů nekopíruje jako HTML:** `paticka()` volá `blokKontaktu(jazyk)` ze `scripts/lib/kontakty.mjs` (úkol 03) a značky `<!-- KONTAKTY:START -->…<!-- KONTAKTY:END -->` zůstávají uvnitř patičky, aby `build-kontakty.mjs` i jeho `--kontrola` fungovaly dál beze změny.
+   - **`scripts/build-layout.mjs`** projde všechny veřejné HTML (seznam z kroku 2, tedy ne `/rd-control-panel/`, `/ai-centrum/`, `/offline/`) a nahradí obsah mezi značkami:
      `<!-- HSPG:PATICKA:START (generuje scripts/build-layout.mjs — neupravovat ručně) -->` … `<!-- HSPG:PATICKA:END -->`
      a stejně `HSPG:HLAVICKA` (fáze B) a `HSPG:ZAKLAD-CSS` v `<head>`.
-     - Při prvním běhu jednorázově nahradí stávající `<footer>…</footer>` značkami. Na každé stránce musí najít právě jednu shodu, jinak se zastaví a vypíše soubor.
+     - Při prvním běhu jednorázově nahradí stávající `<footer>…</footer>` značkami. Na každé stránce musí najít právě jednu shodu, jinak se zastaví a vypíše soubor. Stránka bez `<footer>` (např. děkovací) dostane patičku na konec `<body>` před skripty; stránka s více shodami je chyba k ruční opravě zdroje. Každý takový případ uveď v hlášení.
      - Jazyk určí z `<html lang>`.
-     - Režim `--kontrola` skončí kódem 1 a vypíše seznam, pokud se kterákoli stránka liší od komponenty.
+     - Režim `--kontrola` skončí kódem 1 a vypíše seznam, pokud se kterákoli stránka liší od komponenty. Porovnává stav po celém řetězci generátorů (obsah bloku `KONTAKTY` a prvků `data-zaruka` doplňují `build-kontakty` a `build-zaruka`).
      - Režim `--ukazka` vypíše samostatné HTML s hlavičkou a patičkou pro validátor.
    - **`scripts/build-regions.mjs`** importuje tytéž funkce. Vlastní kopie hlavičky a patičky ze šablony odstraň, aby byly generované stránky shodné hned po vygenerování.
-   - Do `package.json` přidej skripty `layout` a `layout:kontrola` a zařaď `build-layout` do pořadí generátorů za `build-regions`.
+   - Do `package.json` přidej skripty `layout` a `layout:kontrola` a zařaď `build-layout` do pořadí generátorů za `build-regions` a **před** `build-kontakty` a `build-zaruka`. Po změně spusť celý řetězec a `node scripts/build-kontakty.mjs --kontrola` (a `build-zaruka.mjs --kontrola`, je-li úkol 05 sloučený) → kód 0.
    - Vygenerované HTML se commituje stejně jako dnes výstup `build-regions`.
 7. **Patička** (cs). V `<footer class="hspg-paticka">`:
-   - tři sloupce z `navigace.json` (Služby / Na webu / Dokumenty) a sloupec Kontakt: telefon `tel:`, pracovní doba, **blok 5 e-mailů z úkolu 03 převzatý beze změny** (`data-mail`, `data-subject`, popisky rolí) a Facebook,
+   - tři sloupce z `navigace.json` (Služby / Na webu / Dokumenty) a sloupec Kontakt: telefon `tel:`, pracovní doba, **blok 5 e-mailů z úkolu 03 beze změny** – výstup `blokKontaktu(jazyk)` včetně značek `KONTAKTY` (`data-mail`, `data-subject`, popisky rolí) – a Facebook,
    - pod tím řádek identifikace:
      > Dušan Holub, podnikající pod označením HOLUB Surface Protection Group · IČO 09291881 · sídlo Pernerova 10/32, 186 00 Praha 8 – Karlín · zapsán v živnostenském rejstříku (úřad z `firma.json`, je-li ověřen) · neplátce DPH
 
      Znění vychází z doporučení auditu #13. Pokud ho upraví právník (úkol 04 B), mění se na jednom místě,
    - **„Nastavení cookies“** ponech jako dnes: `<a data-souhlas-nastaveni href="…#cookies">`, aby ho dál zachytil `souhlas.js`,
-   - věta o záruce v patičce být nemusí. Pokud ji majitel chce, jen z `firma.json` → `zaruka.veta` a `zaruka.podminka` (hlídá úkol 05), nikdy natvrdo. Popis služeb převezmi z dnešní patičky homepage bez tvrzení,
-   - `/en`: stejná komponenta anglicky, včetně jména Dušan Holub a „registered office Pernerova 10/32, 186 00 Prague 8 – Karlín, Czech Republic“, „Company ID (IČO) 09291881“, „not registered for VAT“ a „Privacy policy (in Czech)“,
-   - na `/akce/` je stejná patička, takže zmizí chyba s textem mimo `<p>`.
+   - **věta o záruce v jednotné patičce není** (ani odkaz na podmínky záruky). Důvod: patička je na všech stránkách a test úkolu 05 vyžaduje 0 zmínek o záruce na 154 stránkách střech a dlažeb. Prvky `data-zaruka`, které úkol 05 vložil do dnešní patičky homepage, tím z patičky zmizí; záruka zůstává v těle homepage. Uveď to v hlášení; přání majitele mít záruku v patičce je návrh mimo rozsah (musí se sladit s testy 05). Popis služeb převezmi z patičky homepage ve stavu po úkolu 13, bez tvrzení,
+   - `/en`: stejná komponenta anglicky, včetně jména Dušan Holub a „registered office Pernerova 10/32, 186 00 Prague 8 – Karlín, Czech Republic“, „Company ID (IČO) 09291881“, „not registered for VAT“; odkazy na zásady a cookies s popisky a cíli z aktuálního `en.html` (viz krok 4),
+   - na `/akce/` je stejná patička, takže zmizí chyba s textem mimo `<p>`,
+   - **bezpečná zóna pro plovoucí prvky** (už ve fázi A, protože ji kontroluje test kroku 9): patička má na ≥ 761 px `padding-bottom: calc(var(--plovouci-zona) + env(safe-area-inset-bottom))`. Na ≤ 760 px ověř, že stačí rezerva pro spodní lištu z úkolu 01 (`body{padding-bottom:…}`), jinak ji v patičce doplň stejným způsobem.
 8. Spusť `build-layout` pro patičky. Ze inline stylů stránek, `brand.css` a `en-sections.css` odstraň pravidla pro staré patičky (`.foot`, `footer …`), ale jen ta, která už nic necílí (ověř `git grep` a snímkem). Nic jiného v CSS stránek ve fázi A neměň.
 9. **Testy fáze A:**
-   - `testy/layout.test.mjs` (node:test, bez prohlížeče, nad všemi veřejnými HTML):
-     - právě 1 blok `HSPG:PATICKA` a jeho obsah se rovná `paticka({jazyk})`,
+   - `tests/layout.test.mjs` (node:test, bez prohlížeče, nad všemi veřejnými HTML ze seznamu kroku 2):
+     - právě 1 blok `HSPG:PATICKA` a jeho obsah se rovná výstupu řetězce generátorů pro `paticka({jazyk})` (stejné porovnání jako `--kontrola`),
      - patička obsahuje „Dušan Holub“, „09291881“, „Pernerova 10/32“, „živnostenském rejstříku“ / „Trade Licensing Register“ a „neplátce DPH“ / „not registered for VAT“,
      - odkaz s textem „Ochrana osobních údajů“ / „Privacy policy“, `[data-souhlas-nastaveni]`, odkaz „Pravidla akce“, odkaz „Reklamace“ (pokud stránka existuje),
      - 5 `a[data-mail]` s různými hodnotami,
      - ve výstupu žádné `[DOPLNIT`,
      - v textu patičky žádná obyčejná mezera po jednopísmenné předložce.
-   - `testy/layout.e2e.test.mjs` (Playwright), část patička:
+   - `tests/e2e/layout.e2e.test.mjs` (Playwright), část patička:
      - na 320 px žádný vodorovný posun,
      - po posunu na konec stránky žádný odkaz ani text patičky neleží pod `#hbot-btn`, `#reel-bublina`, `#cta-stack` (≥ 761 px) ani pod spodní lištou `#hspg-lista` (≤ 760 px). Kontrola přes `elementFromPoint` ve středu každého odkazu.
    - Validace: `node scripts/build-layout.mjs --ukazka > .artefakty/ukol-08/komponenty.html && npx -y html-validate .artefakty/ukol-08/komponenty.html`.
