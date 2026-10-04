@@ -30,4 +30,4 @@ zbývajících oblastí auditu se může zpřesnit (před každým úkolem `git 
 | 17 | [Funkční chyby: kotvy na homepage, kalkulačky, tisk, offline](17-funkcni-chyby.md) | P0 (kotvy) / P1 | 00 | – |
 | 18 | [Obsah a cesta k poptávce](18-obsah-cesta-k-poptavce.md) | P1 | 02, 13 | slib reakční doby, texty |
 | 19 | [CI: automatické kontroly před sloučením (a provoz formulářů)](19-ci-kontroly.md) | P1 | 00, 07 (fáze B, `dist/`) | doba uchování poptávek, místo pro zálohy exportu, GitHub Pro (ochrana větve) |
-| 20 | [Ověření webu v Seznam a Bing Webmasteru (soubory)](20-overeni-seznam.md) | P1 | 00 | schválení produkčního nasazení, kliknutí na „Ověřit“ v Seznam Webmasteru a Bing Webmaster Tools |
+| 20 | [Ověření webu v Seznam a Bing Webmasteru (soubory + meta tagy)](20-overeni-seznam.md) | P1 | 00 | schválení produkčního nasazení, kliknutí na „Ověřit“ v Seznam Webmasteru a Bing Webmaster Tools |

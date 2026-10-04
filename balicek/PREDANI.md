@@ -10,7 +10,7 @@ Jedna stránka: co je hotové, kdo co dělá a v jakém pořadí, co zbývá na 
 | Spolupráce AI | zákazník: jedna AI píše jen ze schválených znalostí, druhá kontroluje; čísla mimo znalosti → předání týmu. Majitel: všechny AI najednou nebo spolupráce, AI centrum `/ai-centrum/` |
 | Ochrana kreditů Netlify | rozpočet AI za období kreditů (11.–10.) s rezervací před voláním, podíl zákazníků (výchozí polovina), nouzový vypínač v panelu, při výpadku úložiště AI vypnutá, pojistka nasazení `scripts/nasadit.mjs` (náhled zdarma, produkce jen se schválením, max. 1× denně) |
 | Bezpečnost | přihlášení majitele tokenem (heslo jen v Netlify), zámek pokusů, tajemství podpisu na serveru, žádné klíče v kódu |
-| Ověření vyhledávačů | soubory Seznam a Bing v `web/overeni/` (úkol 20) |
+| Ověření vyhledávačů | soubory a meta tagy Seznamu a Bingu v `web/overeni/` (úkol 20; všechny vygenerované kódy najednou) |
 | Testy | 78 jednotkových + 17 v prohlížeči (Chromium nad kopií živého webu), všechny prochází |
 | Zadání pro agenta ve VS Code | úkoly 00–20 v `ukoly/` |
 | Zadání pro Claude v Chrome | `ZADANI-CHROME.md` (C1–C10) |
@@ -38,7 +38,7 @@ Pořadí úkolů agenta: **00 → 20 → 01 → 02 → 17 → 03 → 04 → 05 �
 **Když se agent ozve**
 - [ ] Netlify → proměnné prostředí: `HSPG_PANEL_HESLO` – nové heslo, aspoň 16 znaků (zadáváte sami, nikomu ho nepište). Volitelně `AI_MESICNI_LIMIT_KC`, `AI_VEREJNY_LIMIT_KC`, `AI_OBDOBI_DEN` (den začátku období kreditů – ověřte v Usage & billing, výchozí 11).
 - [ ] Schvalovat produkční nasazení (každé stojí 15 kreditů) – nejdřív si prohlédnout náhled.
-- [ ] Po nasazení úkolu 20: v Seznam Webmasteru i Bing Webmaster Tools kliknout **Ověřit** a odeslat sitemap `https://hspg.cz/sitemap.xml`.
+- [ ] Po nasazení úkolu 20: v Seznam Webmasteru i Bing Webmaster Tools kliknout **Ověřit** (metodou zvolenou naposledy) a odeslat sitemap `https://hspg.cz/sitemap.xml`. U Seznamu už **negenerovat další kód** – každý nový by se musel znovu nasadit.
 - [ ] Úkol 02: zvolit kanál upozornění na poptávky (ntfy / Telegram) a heslo aplikace pro SMTP Seznam. `POTVRZENI_ZAKAZNIKOVI` nezapínat, dokud úkol 02 není hotový.
 
 **Rozhodnutí (Claude Pro, úkol P1)**

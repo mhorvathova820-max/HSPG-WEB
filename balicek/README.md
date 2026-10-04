@@ -10,7 +10,7 @@
 | [PREDANI.md](PREDANI.md) | **začni zde** – co je hotové, kdo co dělá, úkoly majitele |
 | [ukoly/PORADI.md](ukoly/PORADI.md) | pořadí úkolů 00–20 |
 | `web/` | hotový kód – cesty odpovídají cílovým cestám ve webHSPGH |
-| `web/overeni/` | ověřovací soubory Seznamu a Bingu – patří do **kořene** publikované složky webu (úkol 20), kopírovat bajt po bajtu |
+| `web/overeni/` | ověřovací soubory Seznamu a Bingu – patří do **kořene** publikované složky webu, kopírovat bajt po bajtu; `meta-tagy.html` = dva meta tagy do `<head>` úvodní stránky (úkol 20) |
 | `testy/` | jednotkové testy (`npm test`) a testy v prohlížeči nad kopií webu (`npm run test:e2e`) |
 
 ## Plovoucí asistent „H-SPG CORE · Budoucnost ve Vašich rukách“

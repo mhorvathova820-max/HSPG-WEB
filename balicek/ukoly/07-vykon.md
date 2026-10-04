@@ -196,7 +196,7 @@ Dále platí:
 ### Fáze B – otisky souborů, cache a hlavní vlákno
 11. **Otisky souborů a cache.** Variantu vyber podle kroku 2 a zdůvodni ji:
     - **Varianta 1 (doporučená, když se nasazuje z lokálu):**
-      - Build do výstupní složky `dist/`, která je v `.gitignore`. Pokud už existuje (`scripts/build-site.mjs`, krok 2), rozšiř ho a druhý build nezakládej. Build zkopíruje web (včetně statických souborů v kořeni: `robots.txt`, `sitemap.xml`, ověřovací `seznam-wmt-*.txt` a `BingSiteAuth.xml` z úkolu 20 – bajt po bajtu), spustí stávající build skripty a nakonec `scripts/build-otisky.mjs`. Test z úkolu 20 musí po přechodu na `dist/` dál procházet.
+      - Build do výstupní složky `dist/`, která je v `.gitignore`. Pokud už existuje (`scripts/build-site.mjs`, krok 2), rozšiř ho a druhý build nezakládej. Build zkopíruje web (včetně statických souborů v kořeni: `robots.txt`, `sitemap.xml`, ověřovací `seznam-wmt-*.txt` a `BingSiteAuth.xml` z úkolu 20 – bajt po bajtu; meta tagy `seznam-wmt` a `msvalidate.01` v `<head>` úvodní stránky zůstanou), spustí stávající build skripty a nakonec `scripts/build-otisky.mjs`. Test z úkolu 20 musí po přechodu na `dist/` dál procházet.
       - Skript vytvoří kopie se zkráceným SHA-256 v názvu ve vlastní složce, např. `/o/holub-let.3f9a1c2b7e.css`.
       - Skript přepíše odkazy ve všech HTML (`src`, `href`, `srcset`, `poster`, `<link rel=preload>`, inline `@font-face url()`) a v CSS (`url()`) a zapíše manifest `otisky.json`.
       - `netlify.toml` musí mít `publish = "dist"` (pokud už nemá).
