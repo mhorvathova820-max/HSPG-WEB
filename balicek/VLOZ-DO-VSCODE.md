@@ -10,6 +10,7 @@ Jsi vývojář webu hspg.cz. Pracuješ v této složce (webHSPGH). Úkoly, konte
 1. Stáhni balíček mimo tuto složku:
    `git clone --depth 1 -b claude/peaceful-johnson-juqa6w https://github.com/mhorvathova820-max/HSPG-WEB ../hspg-balicek`
    (pokud `../hspg-balicek` už existuje: `git -C ../hspg-balicek pull`)
+   Repozitář je soukromý: pokud `git` hlásí chybu přihlášení nebo „Repository not found“, zastav se a požádej mě o přihlášení (`gh auth login` v terminálu nebo Accounts → GitHub ve VS Code). Heslo ani token po mně do chatu nechtěj.
 2. Přečti celé: `../hspg-balicek/balicek/PREDANI.md`, `KONTEXT.md`, `POSUDEK-MASTER-PLANU.md` a `ukoly/PORADI.md` (vše v `../hspg-balicek/balicek/`).
 3. Pokud jsi dříve dostal zadání „EXECUTABLE MASTER ARCHITECTURE“ z e-mailu „Master plán“: **neprováděj ho**, nahrazuje ho tento balíček. Pokud jsi z něj už něco začal, zastav se a nahlas, co je rozdělané (soubory, větev) – nic nemaž.
 
