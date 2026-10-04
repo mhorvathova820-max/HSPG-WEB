@@ -1,0 +1,14 @@
+{
+  "name": "hspg-ai-centrum",
+  "private": true,
+  "type": "module",
+  "description": "AI centrum HSPG – Claude, ChatGPT, Gemini (a volitelně Grok) v jednom okně, za heslem.",
+  "scripts": {
+    "check": "node --check netlify/functions/ai.mjs && node --check netlify/functions/ai-stav.mjs && node --check netlify/lib/spolecne.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
+    "@google/genai": "^2.27.0",
+    "openai": "^7.27.0"
+  }
+}
