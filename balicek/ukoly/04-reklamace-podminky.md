@@ -109,7 +109,7 @@
    }
    ```
    - `osobne_v_sidle` zůstává `null`, dokud majitel nepotvrdí text věty (otázka do hlášení).
-   - Pokud chybí `sidlo`, přidej ho přesně ve tvaru z úkolu 08: `{ "ulice": "Pernerova 10/32", "psc": "186 00", "obec": "Praha 8 – Karlín" }`. Údaj je na webu a odpovídá ARES (audit-pravni #13).
+   - Pokud chybí `sidlo`, přidej ho se stejnými názvy klíčů jako v úkolu 08: `{ "ulice": "Pernerova 10/32", "psc": "186 00", "obec": "Praha 8 – Karlín" }`. Klíče `obec_en` a `stat_en` doplní později úkol 08. Údaj je na webu a odpovídá ARES (KONTEXT §2, audit-pravni #13).
    - Pokud chybí `nazvy_formularu["hspg-reklamace"]` (úkol 02), doplň `"Reklamace"`.
    - Přidej i `potvrzeni_reklamace` s `"schvaleno": false` a textem z kroku 20. V A1 slouží jako šablona pro ruční potvrzení.
 5. **Stránka `reklamace/index.html`.** Kanonická adresa je `https://hspg.cz/reklamace/`. Pokud je sloučený úkol 06, platí jeho konvence. Bez něj zvol podobu s lomítkem, stejně jako `/akce/`, `/recenze/` a `/pravidla-akce/`.
@@ -312,7 +312,7 @@
     Pokud se formulář v seznamu neobjeví, nahlas to. Neřeš to produkčním nasazením.
 15. **Hlášení fáze A1** (formát níže) a **zastav se**.
     - Přilož **návod pro majitele**, který platí od zveřejnění stránky:
-      - **Ruční potvrzení:** do zprovoznění A2 posílej potvrzení o uplatnění sám z `reklamace@hspg.cz` podle šablony `potvrzeni_reklamace` (krok 20, bez posledního řádku o automatickém odeslání). Datem uplatnění je čas podání v Netlify Forms nebo doručení e-mailu či dopisu.
+      - **Ruční potvrzení:** do zprovoznění A2 posílej potvrzení o uplatnění sám z `reklamace@hspg.cz` podle šablony `potvrzeni_reklamace` (krok 20, bez řádku `[DOPLNIT: …]` a bez posledního řádku o automatickém odeslání). Datem uplatnění je čas podání v Netlify Forms nebo doručení e-mailu či dopisu.
       - **Lhůta:** zapiš si do kalendáře datum uplatnění + 30 dnů.
       - **Potvrzení o vyřízení** (§ 19 odst. 5): „Reklamace č. … uplatněná dne … byla vyřízena dne … takto: … (oprava provedena dne …, trvala …) / zamítnuta z důvodu: …“.
       - **Filtr ve schránce Seznam**, zařazený **před** filtry z úkolu 02: „Komu obsahuje reklamace@hspg.cz“ nebo „předmět obsahuje `[HSPG] Reklamace`“ → složka **Reklamace**, označit jako důležité.
@@ -490,7 +490,8 @@ Formát z `KONTEXT.md` §5 po každé fázi a navíc:
   - Lighthouse,
   - kde je šablona podmínek a důkaz 404,
   - co bylo v rozpracované `/reklamace.html` a co z ní zůstalo,
-  - odchylka „vzetí na vědomí“ místo souhlasu a její zdůvodnění,
+  - zdůvodnění „vzetí na vědomí“ místo souhlasu,
+  - použitá validace (`assets/spolecne.js` z úkolu 17, nebo záloha z kroku 7) a upravené pevné počty v testech úkolů 02 a 03,
   - návod pro majitele (krok 15),
   - otázky pro majitele,
   - diff souborů převzatých z balíčku (`firma.json`, `hbot-faq.json`), aby se promítly zpět do balíčku.
@@ -502,9 +503,8 @@ Formát z `KONTEXT.md` §5 po každé fázi a navíc:
   - diff `submission-created.mjs` pro balíček.
 - **Fáze B:** citace schválení, odkaz na náhled, text pro šablonu e-mailové nabídky.
 - **Návrhy mimo rozsah:**
-  - sjednotit zmenšování fotek (`/akce/`, `fotky-upload.js`) na sdílený skript bez adres `blob:` (CSP, úkoly 07 a 15),
-  - sdílená validace formulářů (audit-formulare #16),
+  - sjednotit zmenšování fotek (`/akce/`, `fotky-upload.js`, `reklamace.js`) do jednoho sdíleného skriptu (úkol 07),
   - integrace pro soubory s osobními údaji podle doporučení Netlify (úkoly 09 a 15),
-  - anglická informace o reklamaci (úkol 13),
+  - anglická informace o reklamaci (úkol 18),
   - evidence reklamací v interním panelu (úkol 14),
   - sekce „Reklamace“ v zásadách (úkol 09).

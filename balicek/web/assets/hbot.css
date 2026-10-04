@@ -49,6 +49,7 @@
 #hbot .hbm-stav{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
 #hbot .hbm-cip{padding:3px 9px;border-radius:999px;border:1px solid var(--hb-linka);color:var(--hb-tlumeny)}
 #hbot .hbm-cip.on{color:#86efac;border-color:rgba(134,239,172,.5)}
+#hbot .hbm-prepinac{padding:3px 10px;border-radius:999px;border:1px solid rgba(252,165,165,.5);background:transparent;color:#fca5a5;font-size:12px;cursor:pointer;min-height:28px}
 #hbot .hbm-radek{display:grid;gap:8px;grid-template-columns:1fr 1fr}
 #hbot .hbm-radek label,#hbot .hbm label{display:block;font-size:12px;color:var(--hb-tlumeny);margin-bottom:3px}
 #hbot .hbm-akce{display:flex;flex-wrap:wrap;gap:8px;align-items:center}

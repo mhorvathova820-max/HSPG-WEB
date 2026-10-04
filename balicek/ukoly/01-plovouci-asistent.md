@@ -3,7 +3,7 @@
 
 ## Proč
 Majitel chce na webu plovoucí tlačítko, ve kterém AI spolupracují – pro zákazníka jinak a pro majitele jinak –
-a web přitom musí být špičkový i **bez AI**. Kód je hotový a otestovaný (49 jednotkových testů, 13 testů
+a web přitom musí být špičkový i **bez AI**. Kód je hotový a otestovaný (51 jednotkových testů, 13 testů
 v Chromiu nad kopií živého webu). Nahrazuje dosavadní H-BOT (`/assets/hbot.js` je vložený na 243 stránkách
 s `defer`, takže **HTML stránek se měnit nemusí**).
 
@@ -24,6 +24,7 @@ s `defer`, takže **HTML stránek se měnit nemusí**).
 | `ai-centrum/index.html` | `ai-centrum/index.html` | nové, interní (noindex) |
 | `netlify/functions/asistent.mjs`, `majitel.mjs`, `ai.mjs`, `ai-stav.mjs` | adresář funkcí webu | nové; `/api/asistent`, `/api/majitel`, `/api/ai`, `/api/ai-stav` |
 | `netlify/functions/submission-created.mjs` | adresář funkcí webu | patří k úkolu 02 – zkopíruj teď, nastavení kanálů v úkolu 02 |
+| `netlify/edge-functions/media-limit.mjs` | adresář edge funkcí webu (`netlify/edge-functions/`, ověř v `netlify.toml`) | limit hromadného stahování `/media/*` (ochrana kreditů) |
 | `netlify/lib/ai/*.mjs` | `netlify/lib/ai/` | sdílená knihovna (relativní importy `../lib/ai/…` a `../../../content/…`) |
 | `content/firma.json`, `content/hbot-faq.json` | `content/` | nové; `firma.json` = jediný zdroj faktů o firmě pro asistenta |
 | `content/ceny.json`, `content/sentinel.json` | — | **nepřepisovat** – ve webHSPGH už jsou (zdroj `assets/ceny.js`). Jen porovnej (`diff`); kopie v balíčku je z živého webu 4. 10. |
@@ -38,7 +39,7 @@ s `defer`, takže **HTML stránek se měnit nemusí**).
 6. Do build příkazu webu přidej `node scripts/build-hbot.mjs` (vedle generování ceníku). Kontrola aktuálnosti: `node scripts/build-hbot.mjs --kontrola`.
 7. `netlify.toml`: pro `/ai-centrum/*` hlavičky `X-Robots-Tag: noindex, nofollow`, `X-Frame-Options: DENY`, `Cache-Control: no-store`. **Nepřidávej** `/ai-centrum/` do `robots.txt` (cestu by to zveřejnilo; stačí noindex).
 8. Zkontroluj CSP (`Content-Security-Policy-Report-Only`): `connect-src 'self'` stačí (vše jde přes vlastní `/api/*`).
-8b. **Pravidla Netlify pro omezení požadavků:** `asistent.mjs` a `majitel.mjs` mají v `config.rateLimit` po jednom pravidle. Tarif Personal povoluje **2 pravidla v kódu na projekt** – `git grep -n "rateLimit"` ve webu: pokud už jiná funkce pravidlo má, nahlas to (nepřekročit 2) a navrhni, které ponechat. Funkce navíc odmítají požadavky z cizích webů (hlavička Origin) – povolené jsou hspg.cz, www.hspg.cz, `tourmaline-dasik-9de005.netlify.app` a jeho náhledy; další adresy přes `ASISTENT_POVOLENE_ORIGINY`.
+8b. **Pravidla Netlify pro omezení požadavků:** `asistent.mjs` a edge funkce `media-limit.mjs` (`/media/*`, 100 požadavků / min na IP) mají v `config.rateLimit` po jednom pravidle; `/api/majitel` brzdí zámek pokusů v Blobs. Tarif Personal povoluje **2 pravidla v kódu na projekt** – `git grep -n "rateLimit"` ve webu: pokud už jiná funkce pravidlo má, nahlas to (nepřekročit 2) a navrhni, které ponechat. Funkce navíc odmítají požadavky z cizích webů (hlavička Origin) – povolené jsou hspg.cz, www.hspg.cz, `tourmaline-dasik-9de005.netlify.app` a jeho náhledy; další adresy přes `ASISTENT_POVOLENE_ORIGINY`.
 9. Starý `/api/holub-ai` **odstraň v tomto úkolu** (bezpečnostní audit: veřejný placený endpoint bez ověřitelné ochrany útraty – kdokoli ho může volat a čerpat kredity Netlify, jejichž vyčerpání pozastaví web). Nejdřív `git grep -n "holub-ai"` – kromě starého `assets/hbot.js` (nahrazen) ho nesmí nic volat; pak smaž soubor funkce a případné přesměrování. Nové tlačítko používá `/api/asistent` s limity a rozpočtem; bez AI odpoví FAQ.
 10. Proměnné v Netlify (nastaví majitel, ty je jen vypiš do hlášení): `HSPG_PANEL_HESLO` (povinné pro majitele). Volitelné: `AI_ZAPNUTO=0` (vypne AI pro zákazníky), `AI_MESICNI_LIMIT_KC` (výchozí 25 Kč ≈ 190 kreditů – přes AI Gateway se platí kredity Netlify a jejich vyčerpání pozastaví celý web), `ASISTENT_DENNI_LIMIT` (výchozí 40 dotazů/den), `ASISTENT_PORADI` (výchozí `claude,gemini,gpt,grok`), `CLAUDE_MODEL` / `OPENAI_MODEL` / `GEMINI_MODEL` / `XAI_MODEL` (modely pro majitele; výchozí Opus 5.5 / GPT-5 / Gemini 2.5 Pro), `ASISTENT_CLAUDE_MODEL` / `ASISTENT_OPENAI_MODEL` / `ASISTENT_GEMINI_MODEL` (modely pro zákazníky – rozhodnutí R8: výchozí Sonnet 5.5 / GPT-5 mini / Gemini 2.5 Flash). **API klíče nezakládej** – dodává je Netlify AI Gateway.
 11. Lokální ověření: `netlify dev` ve webHSPGH (Gateway lokálně nemusí být – asistent pak správně jede bez AI). Testy balíčku proti webu: v `../hspg-balicek` `npm install` a `HSPG_MIRROR=$(pwd)/../webHSPGH CHROMIUM=<cesta k Chromiu> npm run test:e2e` (server balíčku servíruje web + nové soubory + falešné AI; nic neodesílá ven).
@@ -53,6 +54,8 @@ s `defer`, takže **HTML stránek se měnit nemusí**).
 - [ ] První načtení `/cenik.html` nestahuje `hbot-panel.js` ani nevolá `/api/*` (Network panel nebo e2e test 1).
 - [ ] Lighthouse mobil `/cenik.html` a `/`: výkon ani přístupnost neklesly oproti stavu před úkolem (uveď čísla před/po).
 - [ ] `/ai-centrum/` vrací `X-Robots-Tag: noindex` a není v sitemap ani robots.txt.
+- [ ] Nouzový vypínač: v kartě „Vše ve tvých rukách“ tlačítko „Vypnout AI pro zákazníky“ → `curl -s <náhled>/api/asistent` vrátí `"ai":false` bez nového nasazení; „Zapnout“ vrátí `true`.
+- [ ] Na náhledu 150 rychlých `curl` na jeden soubor v `/media/` z jedné IP → po ~100 požadavcích odpověď 429 (pravidlo Netlify funguje); běžné prohlížení stránky 429 nedostane.
 - [ ] Funkce `holub-ai` ve zdroji neexistuje (`git grep -n holub-ai` → nic) a na náhledu `curl -s -o /dev/null -w '%{http_code}' -X POST <náhled>/api/holub-ai` vrací 404.
 - [ ] Při výpadku úložiště (test `npm test` v balíčku) veřejná AI nic nevolá a H-BOT odpovídá z FAQ.
 - [ ] `git grep -n "HSPG_PANEL_HESLO=" ` a hledání hesel/klíčů v diffu: nic.

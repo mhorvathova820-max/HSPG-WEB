@@ -164,3 +164,16 @@ export async function utrataMesice(ul, ted) {
 export async function rozpocetVycerpan(ul, env, ted) {
   return (await utrataMesice(ul, ted)).celkemKc >= mesicniLimitKc(env);
 }
+
+// Provozní nastavení měněné za běhu (bez nasazení – změna proměnné v Netlify by vyžadovala nové
+// nasazení za 15 kreditů). Majitel přepíná v panelu „Vše ve tvých rukách“.
+const NASTAVENI = "nastaveni/provoz";
+export async function nactiNastaveni(ul) {
+  return { verejnaAI: true, ...((await cti(ul, NASTAVENI)) || {}) };
+}
+export async function ulozNastaveni(ul, zmena, ted) {
+  return aktualizuj(ul, NASTAVENI, (z) => {
+    const nove = { verejnaAI: true, ...(z || {}), ...zmena, zmeneno: new Date(ted).toISOString() };
+    return { hodnota: nove, vysledek: nove };
+  });
+}

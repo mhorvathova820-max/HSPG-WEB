@@ -9,7 +9,7 @@ import { POSKYTOVATELE, jeZapnuty, vytvorAdaptery, sLimitem, verejneEnv } from "
 import { PRAVIDLA_PRAVDIVOSTI, POKYN_ZAKAZNIK, POKYN_KONTROLOR } from "../lib/ai/pravidla.mjs";
 import { povolenyOrigin } from "../lib/ai/autorizace.mjs";
 import { znalostiProAI } from "../lib/ai/znalosti.mjs";
-import { vychoziUloziste, otiskKlienta, povolVerejnyDotaz, zapisUtratu, rozpocetVycerpan, rezervuj, odhadTokenu } from "../lib/ai/limity.mjs";
+import { vychoziUloziste, otiskKlienta, povolVerejnyDotaz, zapisUtratu, rozpocetVycerpan, rezervuj, odhadTokenu, nactiNastaveni } from "../lib/ai/limity.mjs";
 
 const MAX_ZPRAV = 8;
 const MAX_ZNAKU = 600;
@@ -73,7 +73,8 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
     if (req.method === "GET") {
       let vycerpano = false;
       try {
-        vycerpano = dostupne.length > 0 && (await rozpocetVycerpan(await dejUloziste(), env, ted()));
+        const ul0 = dejUloziste && (await dejUloziste());
+        vycerpano = dostupne.length > 0 && ((await nactiNastaveni(ul0)).verejnaAI === false || (await rozpocetVycerpan(ul0, env, ted())));
       } catch {
         vycerpano = true; // bez úložiště AI nevoláme (viz POST)
       }
@@ -99,6 +100,8 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
     let store;
     try {
       store = await dejUloziste();
+      // Nouzový vypínač majitele (platí okamžitě, bez nasazení).
+      if ((await nactiNastaveni(store)).verejnaAI === false) return json({ rezim: "bez-ai", duvod: "vypnuto" }, 503);
       if (await rozpocetVycerpan(store, env, start)) return json({ rezim: "bez-ai", duvod: "rozpocet" }, 503);
       const klient = otiskKlienta(context.ip || req.headers.get("x-nf-client-connection-ip"), start);
       const povoleno = await povolVerejnyDotaz(store, klient, env, start);

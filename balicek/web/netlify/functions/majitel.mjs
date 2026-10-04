@@ -47,5 +47,6 @@ export function vytvorPrihlaseni({ env = process.env, uloziste, ted = () => Date
 
 export default vytvorPrihlaseni();
 
-// Druhé (a poslední) pravidlo Netlify v kódu pro tarif Personal – hráz proti hádání hesla.
-export const config = { path: "/api/majitel", rateLimit: { windowLimit: 10, windowSize: 60, aggregateBy: ["ip", "domain"] } };
+// Bez pravidla Netlify: tarif Personal má jen 2 pravidla v kódu (mají je /api/asistent a /media/*).
+// Hádání hesla brzdí zámek 5 pokusů / 15 min v Netlify Blobs a zdržení po chybě.
+export const config = { path: "/api/majitel" };

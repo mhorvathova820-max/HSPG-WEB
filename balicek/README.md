@@ -23,11 +23,13 @@
 | `POST /api/ai` | majitel | jedna AI, streamovaná odpověď |
 | `GET /api/ai-stav` | majitel | stav AI, útrata, kredity |
 | `submission-created` | Netlify | druhý kanál upozornění na poptávky (ntfy / Telegram / SMTP), směrování na 5 schránek |
+| `POST /api/ai-stav` | majitel | nouzový vypínač AI pro zákazníky (okamžitě, bez nasazení) |
+| edge `media-limit` | Netlify | limit hromadného stahování `/media/*` (ochrana kreditů) |
 
 ## Testy
 ```
 npm install
-npm test                                                      # 49 jednotkových testů
+npm test                                                      # 51 jednotkových testů
 HSPG_MIRROR=/cesta/k/webu CHROMIUM=/cesta/k/chromium npm run test:e2e   # 13 testů v prohlížeči
 HSPG_MIRROR=/cesta/k/webu node balicek/testy/server.mjs       # ruční prohlížení na http://127.0.0.1:8787
 ```

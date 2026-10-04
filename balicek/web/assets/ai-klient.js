@@ -40,6 +40,12 @@
     });
   }
 
+  // Nouzový vypínač AI pro zákazníky (platí okamžitě, bez nasazení).
+  function nastavVerejnouAI(token, zapnuto) {
+    return fetch('/api/ai-stav', { method: 'POST', headers: hlavicky(token, { 'content-type': 'application/json' }), body: JSON.stringify({ verejnaAI: !!zapnuto }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { if (!r.ok) throw chyba(r, d); return d; }); });
+  }
+
   // Jedno volání jedné AI; text chodí průběžně do naText(celyTextZatim).
   function zavolej(o) {
     return fetch('/api/ai', {
@@ -118,5 +124,5 @@
     return 'Stránka: ' + document.title + '\nAdresa: ' + location.href + '\n\n' + t.slice(0, max || 30000);
   }
 
-  g.HSPG_AI = { ULOHY: ULOHY, BARVY: BARVY, nactiStav: nactiStav, zavolej: zavolej, spolupracuj: spolupracuj, obsazeni: obsazeni, textStranky: textStranky };
+  g.HSPG_AI = { ULOHY: ULOHY, BARVY: BARVY, nactiStav: nactiStav, nastavVerejnouAI: nastavVerejnouAI, zavolej: zavolej, spolupracuj: spolupracuj, obsazeni: obsazeni, textStranky: textStranky };
 })(window);

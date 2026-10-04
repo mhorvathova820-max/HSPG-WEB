@@ -134,3 +134,32 @@ test("ai-stav ukazuje model pro majitele i pro zákazníky", async () => {
   assert.equal(c.model, "claude-opus-5-5");
   assert.equal(c.modelZakaznik, "claude-sonnet-5-5");
 });
+
+test("nouzový vypínač AI pro zákazníky: majitel vypne bez nasazení, asistent hned odpovídá bez AI", async () => {
+  const { vytvorAsistenta } = await import("../../web/netlify/functions/asistent.mjs");
+  const ul = pametoveUloziste();
+  const stav = vytvorStav({ env: env(), uloziste: ul });
+  const auth = { authorization: `Bearer ${vydejToken(env()).token}` };
+  assert.equal((await stav(pozadavek("/api/ai-stav", { method: "POST", body: { verejnaAI: false } }))).status, 401, "jen majitel");
+  const r = await stav(pozadavek("/api/ai-stav", { method: "POST", headers: auth, body: { verejnaAI: false } }));
+  assert.equal((await r.json()).nastaveni.verejnaAI, false);
+  const ad = { claude: falesnyAdapter(), gemini: falesnyAdapter(), gpt: falesnyAdapter() };
+  const h = vytvorAsistenta({ env: env(), adaptery: ad, uloziste: ul, znalosti: "Z" });
+  const p = await h(pozadavek("/api/asistent", { method: "POST", body: { zpravy: [{ role: "user", text: "x" }] } }));
+  assert.equal(p.status, 503);
+  assert.equal((await p.json()).duvod, "vypnuto");
+  assert.equal(ad.claude.volani.length, 0);
+  assert.equal((await (await h(pozadavek("/api/asistent"))).json()).ai, false);
+  assert.equal((await (await stav(pozadavek("/api/ai-stav", { headers: auth }))).json()).verejnyAsistent, false);
+  await stav(pozadavek("/api/ai-stav", { method: "POST", headers: auth, body: { verejnaAI: true } }));
+  assert.equal((await (await h(pozadavek("/api/asistent"))).json()).ai, true);
+});
+
+test("pravidla Netlify v kódu: nejvýš 2 (tarif Personal) – /api/asistent a /media/*", async () => {
+  const a = await import("../../web/netlify/functions/asistent.mjs");
+  const m = await import("../../web/netlify/functions/majitel.mjs");
+  const e = await import("../../web/netlify/edge-functions/media-limit.mjs");
+  const pravidla = [a.config, m.config, e.config].filter((c) => c.rateLimit);
+  assert.equal(pravidla.length, 2);
+  assert.equal(e.config.path, "/media/*");
+});

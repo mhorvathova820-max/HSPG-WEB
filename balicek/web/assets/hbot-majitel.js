@@ -75,7 +75,17 @@
         stav.appendChild(el('span', { class: 'hbm-cip', title: 'AI běží přes Netlify AI Gateway a platí se kredity Netlify. Po vyčerpání kreditů Netlify pozastaví celý web.' },
           'Kredity Netlify na AI ≈ ' + s.kredity.utraceno + ' / ' + s.kredity.limit));
       }
-      stav.appendChild(el('span', { class: 'hbm-cip' + (s.verejnyAsistent ? ' on' : '') }, s.verejnyAsistent ? 'AI pro zákazníky zapnutá' : 'AI pro zákazníky vypnutá (AI_ZAPNUTO=0)'));
+      stav.appendChild(el('span', { class: 'hbm-cip' + (s.verejnyAsistent ? ' on' : '') }, s.verejnyAsistent ? 'AI pro zákazníky zapnutá' : 'AI pro zákazníky vypnutá'));
+      // Nouzový vypínač: platí okamžitě, bez nasazení; zákazníci pak dostávají ověřené FAQ.
+      var vyp = el('button', { type: 'button', class: 'hbm-prepinac' }, s.verejnyAsistent ? 'Vypnout AI pro zákazníky' : 'Zapnout AI pro zákazníky');
+      vyp.addEventListener('click', function () {
+        vyp.disabled = true;
+        AI.nastavVerejnouAI(o.token, !s.verejnyAsistent).then(function () {
+          info.textContent = s.verejnyAsistent ? 'AI pro zákazníky vypnuta – odpovídají ověřené FAQ.' : 'AI pro zákazníky zapnuta.';
+          vykresli(koren, o);
+        }).catch(function (e) { if (!odhlasPriChybe(e)) { info.textContent = e.message; vyp.disabled = false; } });
+      });
+      stav.appendChild(vyp);
       if (!zapnute.length) info.textContent = 'Žádná AI nemá klíč – vložte ho do Netlify → Environment variables.';
     }).catch(function (e) {
       if (!odhlasPriChybe(e)) stav.textContent = 'Stav AI se nepodařilo načíst: ' + e.message;
