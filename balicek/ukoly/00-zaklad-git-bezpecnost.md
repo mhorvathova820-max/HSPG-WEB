@@ -38,7 +38,7 @@ NE: změny obsahu webu, produkční nasazení, mazání čehokoli z historie bez
    - [ ] Změnit heslo Seznam (profiserv@seznam.cz i schránky @hspg.cz, pokud sdílely heslo) a zapnout dvoufázové ověření.
    - [ ] Zneplatnit token z 4. 10. (tam, kde byl vydán) a vydat nový jen do Netlify proměnných.
    - [ ] Heslo z e-mailu „Master plán“ považovat za prozrazené; pokud se používá jinde, změnit. Do Netlify zadat nové `HSPG_PANEL_HESLO` (16+ znaků, generátor hesel).
-   - [ ] **Netlify → Usage & billing → auto-recharge: zapnout (Personal: 500 kreditů za 5 USD).** Jediná spolehlivá ochrana proti pozastavení webu – zapíná jen vlastník týmu.
+   - [x] **Netlify → Usage & billing → auto-recharge: zapnuto majitelem 4. 10.** (500 kreditů za 5 USD).
    - [ ] Ověřit, že e-maily Netlify o spotřebě (50 / 75 / 100 %) chodí do schránky, kterou čtete (e-mail účtu vlastníka týmu Netlify).
    - [ ] Jednou týdně: Usage & billing → Account usage insights (graf spotřeby podle položek).
    - [ ] Rozhodnout, zda repozitář `HSPG-WEB` (balíček) přepnout na soukromý.

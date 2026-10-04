@@ -190,15 +190,16 @@
      Jde o **vzetí na vědomí, ne o souhlas.** Slovo „souhlas“ u tohoto pole nepoužívej: u reklamace je právním titulem smlouva a zákonná povinnost (§ 19 ZOS). Souhlas by šel odvolat a odporoval by nálezům audit-pravni #4 a audit-formulare #10. Zdůvodnění uveď v hlášení.
    - U fotek nápověda: „Až 3 fotografie. Fotky z mobilu před odesláním zmenšíme. Nefoťte prosím osoby ani poznávací značky.“
    - Tlačítko „Odeslat reklamaci“. Písmo polí 16 px, výška ovládacích prvků ≥ 44 px, `label` u každého pole, nápovědy přes `aria-describedby`.
-7. **`assets/reklamace.js`** – bez závislostí, jen na této stránce, `defer`. Bez JS formulář funguje nativně.
-   - **Inicializace:** `form.noValidate = true` (bez JS zůstává validace prohlížeče), sloučení tří polí fotek do jednoho výběru s náhledy a tlačítky „Odebrat“. Původní tři pole zůstanou v DOM jako `hidden`.
+7. **`assets/reklamace.js`** – bez knihoven třetích stran (smí používat jen `assets/spolecne.js` z úkolu 17), jen na této stránce, `defer`. Bez JS formulář funguje nativně.
+   - **Inicializace:** `form.noValidate = true` (bez JS zůstává validace prohlížeče), sloučení tří polí fotek do jednoho výběru s náhledy a tlačítky „Odebrat“. Nový výběr nemá atribut `name`, aby do payloadu nepřidal klíč, který ve statickém formuláři není. Původní tři pole zůstanou v DOM jako `hidden`.
    - **Validace:**
+     - telefon, e-mail a masku kódu dělej funkcemi `telefon()`, `email()` a `kod()` z `window.HSPG_SPOLECNE` (úkol 17), soubor `spolecne.js` neupravuj. Pokud `assets/spolecne.js` v `main` není (úkol 17 nesloučený) nebo se nenačetl, použij zálohu z úkolu 17 (krok 6): telefon aspoň 9 číslic s volitelným `+`, v e-mailu `@`, maska kódu jako funkce `maskuj` na `/recenze/`. Kvůli chybějícímu pomocnému skriptu odeslání nikdy neblokuj. Použitou variantu zapiš do hlášení,
      - u pole vlastní text `<p id="<pole>-chyba">`, `aria-invalid="true"` a `aria-describedby`,
      - souhrn chyb nahoře s `role="alert"` a odkazy na pole, fokus na první chybné pole,
      - konkrétní hlášky, např. „Popis vady musí mít aspoň 20 znaků (teď má 12).“, „Kód pasu domu má tvar HS-RRRR-ČČČČ.“
    - **Fotky:**
      - nejvýš 3; při výběru více se zobrazí „Odešleme první 3 fotografie.“,
-     - dekóduj přes `createImageBitmap(file)`, při selhání přes `FileReader` → `data:`. **Nepoužívej `blob:` adresy**, CSP `img-src` povoluje jen `'self' data:`,
+     - dekóduj přes `createImageBitmap(file)`, při selhání přes `FileReader` → `data:`. **Nepoužívej `blob:` adresy** – skript nesmí záviset na tom, zda CSP `img-src` obsahuje `blob:` (viz Proč),
      - zmenši na 1 600 px, JPEG 0,82 (parametry jako `fotky-upload.js`); pokud má výsledek přes 2 MB, ještě jednou s kvalitou 0,7, jinak fotku odmítni,
      - celý požadavek nejvýš 7 MB (rezerva pod limitem 8 MB),
      - náhled přes `canvas.toDataURL`,
@@ -233,22 +234,23 @@
     |---|---|
     | `footer.foot` (šablona v `build-regions.mjs` + 2 rozcestníky) | před „Nastavení cookies“, oddělené „ · “ jako ostatní odkazy; pak přegeneruj 232 stránek |
     | `footer.site-foot` (9 stránek, 404, 2 nové) | do `.site-foot-links` za „Ochrana osobních údajů“ |
-    | `footer.sheet-foot` (`/nabidka-svj`) | k ostatním odkazům patičky |
+    | `footer.sheet-foot` (`/nabidka-svj`) | do `.site-foot-links` za „Ochrana osobních údajů“ |
     | `/` (inline styl) | sloupec DOKUMENTY za „Zásady ochrany osobních údajů“ |
-    | `/akce/` | vedle „Pravidla akce“ uvnitř `<p class="fbot">` |
-    | `/en.html` | `<a href="/reklamace/" hreflang="cs">Complaints (in Czech)</a>` |
+    | `/akce/` | za „Pravidla akce a ochrana údajů“ uvnitř `<p class="fbot">`, oddělené „ · “ |
+    | `/en.html` | do `.footer-links` za „Privacy policy“: `<a href="/reklamace/" hreflang="cs">Complaints (in Czech)</a>` |
+    | další veřejné stránky s `<footer>`, které mezitím přibyly (např. `/offline/` z úkolu 17) | k odkazům patičky podle jejich varianty |
 
-    Pak spusť `node scripts/build-kontakty.mjs --kontrola` (úkol 03). Pokud jeho testy počítají pevné počty `data-mail`, uprav je kvůli novým stránkám a uveď to v hlášení.
+    Interní `rd-control-panel/` a `ai-centrum/` vynech (stejně jako úkol 03). Pak spusť `node scripts/build-kontakty.mjs` (doplní `data-mail` do nových stránek) a `node scripts/build-kontakty.mjs --kontrola` (úkol 03). Pokud testy úkolů 02 a 03 počítají pevné počty (např. „právě 5“ registračních formulářů s polem `subject` v úkolu 02 nebo počty `data-mail` v úkolu 03), rozšiř je o nové stránky a formulář `hspg-reklamace` a uveď to v hlášení.
 11. **H-BOT** (`content/hbot-faq.json`, pak `node scripts/build-hbot.mjs` a `--kontrola`). Přidej otázku:
     ```json
-    { "k": ["reklam", "vada", "vady", "vadn", "zavad", "nespokoj", "stiznost"],
+    { "k": ["reklam", "vada", "vady", "vadu", "vadn", "zavad", "nespokoj", "stiznost"],
       "q": "Jak reklamovat provedenou práci?",
       "a": "Reklamaci uplatníte nejrychleji formulářem na stránce Reklamace, kde můžete přiložit i fotky. Najdete tam také e-mail a adresu pro písemné podání. Uplatnění vám písemně potvrdíme a reklamaci vyřídíme nejpozději do 30 dnů ode dne uplatnění.",
       "link": ["/reklamace/", "Reklamace"] }
     ```
-    Adresu do JSON nepiš (soubor je veřejný, ochrana proti sběračům adres). Testy balíčku proti webu (`npm test`, `npm run test:e2e` v `../hspg-balicek`) musí dál projít.
+    Klíč se porovnává se začátkem slova a okamžitá odpověď z FAQ (bez AI) vyžaduje aspoň 2 shody (`skoreFaq` v `hbot-panel.js`). Proto je v seznamu i tvar „vadu“: „Chci reklamovat vadu“ dá shody „reklam“ + „vadu“. Adresu do JSON nepiš (soubor je veřejný, ochrana proti sběračům adres). Testy balíčku proti webu (`npm test`, `npm run test:e2e` v `../hspg-balicek`) musí dál projít.
 12. **Šablona obchodních podmínek a reklamačního řádu (NEPUBLIKOVAT).**
-    - **Umístění:** soubor `obchodni-podminky.sablona.md` dej mimo publikovaný adresář. Pokud se publikuje kořen repozitáře, ověř na náhledu (krok 14), že cesta vrací 404. Pokud ne, šablonu do repozitáře webu nedávej, dej ji jen do hlášení a nahlas to pro úkol 15.
+    - **Umístění:** `docs/obchodni-podminky.sablona.md`, ale jen pokud `docs/` leží mimo publikovaný adresář (stejné pravidlo jako v úkolech 02 a 09). Na náhledu (krok 14) pak ověř, že `/docs/obchodni-podminky.sablona.md` vrací 404. Pokud je publikovaným adresářem kořen repozitáře, šablonu do repozitáře webu nedávej: přilož ji jen k hlášení a nahlas to pro úkol 15.
     - **Obsah:** sekce, u každé zdroj a `[DOPLNIT: …]` pro právníka. Čísla jen jako odkaz na data:
       1. **Identifikace podnikatele:** Dušan Holub, IČO, sídlo, zápis v RŽP `[DOPLNIT: evidující úřad – úkol 08]`, neplátce DPH, kontakty (§ 435 a § 1820 odst. 1 písm. b–d OZ).
       2. **Pro koho podmínky platí:** spotřebitel, podnikatel, SVJ.
@@ -265,7 +267,7 @@
           - žádost o zahájení prací ve lhůtě (§ 1824a odst. 3 a § 1828 odst. 5),
           - poměrná část ceny (§ 1834),
           - zánik práva po úplném provedení (§ 1837 písm. a)),
-          - vzorové poučení a vzorový formulář podle NV č. 29/2023 Sb. (přílohy předpisu převezmi doslova z e-Sbírky).
+          - vzorové poučení a vzorový formulář podle NV č. 29/2023 Sb.: v A1 jen odkaz na přílohy předpisu a `[DOPLNIT: doslovné znění příloh z e-Sbírky – převezme fáze B]`.
       12. **Tarify SENTINEL:**
           - ceny z `content/sentinel.json`,
           - celková roční cena při měsíční platbě (12 × 219 = 2 628 Kč; 12 × 389 = 4 668 Kč, ověř výpočtem z dat),
@@ -274,14 +276,14 @@
       14. **Mimosoudní řešení sporů:** ČOI a odkaz podle `firma.reklamace.adr` (§ 14 ZOS).
       15. **Ochrana osobních údajů:** odkaz na zásady (úkol 09).
       16. **Závěrečná ustanovení:** „Platné od“ a verze.
-13. **Testy** (struktura testů z úkolů 02 a 03, Node test runner, Playwright a axe-core jako v `balicek/testy/e2e/hbot.test.mjs`, žádné jiné nové závislosti, testy se nepublikují):
-    - **`tests/reklamace.test.mjs`** (statický průchod publikovaného adresáře `$PUB`):
+13. **Testy** (struktura testů z úkolů 02 a 03 v `tests/`, Node test runner, Playwright a axe-core jako v `balicek/testy/e2e/hbot.test.mjs`, žádné jiné nové závislosti; pokud je `tests/` uvnitř publikovaného adresáře, nahlas to pro úkol 15):
+    - **`tests/reklamace.test.mjs`** (statický průchod publikovaného adresáře `$PUB`; při porovnání s daty a hledání výrazů dekóduj HTML entity a U+00A0 nahraď obyčejnou mezerou, jen test nezlomitelných mezer pracuje s textem bez této náhrady):
       - **Formulář:** atributy z kroku 6; všechna pole z tabulky existují, povinnost odpovídá; tři pole souborů bez `multiple`; `subject` má `data-remove-prefix`.
       - **Text stránky:** obsahuje „30 dnů“, „§ 19“, „634/1992 Sb.“, „Česká obchodní inspekce“, odkaz `firma.reklamace.adr.url`, adresu sídla z `firma.sidlo` a doslovně `firma.zaruka.veta` i `podminka`.
       - **Zakázané výrazy:** žádné „15 let“, „[DOPLNIT“, „pojišt“, „ec.europa.eu/consumers/odr“, „formsubmit“, „profiserv“ ani `/api/sentinel/validate`.
       - **Nezlomitelné mezery:** viditelný text nové stránky nemá za jednopísmennou předložkou nebo spojkou (`v k s z o u a i`) ani mezi číslem a jednotkou (`dnů`, `Kč`, `MB`, `%`) obyčejnou mezeru; `§` následuje nezlomitelná mezera.
       - **Děkovací stránka:** `dekujeme/` má `noindex`; sitemap má `/reklamace/` právě 1× a `dekujeme` 0×; přesměrování `/reklamace.html` → `/reklamace/` 301 je v pravidlech.
-      - **Patičky:** každý HTML soubor s `<footer>` má **uvnitř `<footer>`** odkaz na `/reklamace/`. Test vypíše počet stránek s patičkou a počet stránek s odkazem a ty se musí rovnat.
+      - **Patičky:** každý HTML soubor s `<footer>` (kromě interních `rd-control-panel/` a `ai-centrum/`) má **uvnitř `<footer>`** odkaz na `/reklamace/`. Test vypíše počet stránek s patičkou a počet stránek s odkazem a ty se musí rovnat.
       - **Data:** `firma.json` je platný JSON; `smerovani_formularu["hspg-reklamace"] === "reklamace"`; `nazvy_formularu["hspg-reklamace"] === "Reklamace"`; `potvrzeni_reklamace.schvaleno === false`.
     - **`tests/e2e/reklamace.e2e.test.mjs`** (vlastní statický server nad `$PUB`; externí požadavky `ctx.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort())` a test ověří, že žádný neodešel; POST zachyť přes `page.route`):
       - Prázdné odeslání: chyby u 7 povinných polí, `aria-invalid="true"`, souhrn `role="alert"`, fokus na „Jméno“ a **žádný POST**.
@@ -289,6 +291,7 @@
         - `form-name=hspg-reklamace`,
         - `subject` odpovídající `^\[HSPG\] Reklamace R-\d{6}-[A-HJ-NP-Z2-9]{4} · vyřídit do `,
         - `Číslo reklamace` podle regexu,
+        - `Telefon` v normalizovaném tvaru z `telefon()` (např. `+420736618486`), pokud je `assets/spolecne.js` k dispozici,
         - `Fotografie 1` jako `image/jpeg` ≤ 2 MB,
         - celkem ≤ 7 MB,
         - **každý klíč payloadu existuje ve statickém formuláři**.
@@ -299,12 +302,12 @@
       - `javaScriptEnabled: false`: nativní multipart POST na `/reklamace/dekujeme/` obsahuje všechna povinná pole.
       - Šířky 360 a 1 280 px: `scrollWidth <= innerWidth`, žádná chyba konzole.
       - axe-core (WCAG 2.2 AA) nad formulářem, stavem s chybami i potvrzením → 0 porušení.
-      - H-BOT: dotaz „Chci reklamovat vadu“ → odpověď s odkazem `/reklamace/`.
+      - H-BOT: dotaz „Chci reklamovat vadu“ → okamžitá odpověď z FAQ (bez požadavku na `/api/asistent`) s odkazem `/reklamace/`.
 14. **Náhled** (`npm run nahled`, tj. `node scripts/nasadit.mjs`, 0 kreditů). Jen GET, **nic neodesílej**:
     - kontroly `curl` z části Ověření,
-    - formulář `hspg-reklamace` je v seznamu Netlify Forms (UI Forms nebo `npx netlify api listSiteForms --data '{"site_id":"e4dff53f-791b-4c8c-946c-a23d06421774"}'`, vypiš jen názvy),
-    - šablona podmínek vrací 404,
-    - Lighthouse mobil `/reklamace/`. Pokud náhled posílá `X-Robots-Tag: noindex` (ověř `curl -sI`), audit `is-crawlable` v SEO ignoruj a SEO změř i lokálně.
+    - formulář `hspg-reklamace` je v seznamu Netlify Forms (UI Forms nebo příkaz z části Ověření, vypiš jen názvy),
+    - `/docs/obchodni-podminky.sablona.md` vrací 404,
+    - Lighthouse mobil `/reklamace/`, medián 3 běhů (příkaz v části Ověření). Pokud náhled posílá `X-Robots-Tag: noindex` (ověř `curl -sI`), audit `is-crawlable` v SEO ignoruj a SEO změř i lokálně.
 
     Pokud se formulář v seznamu neobjeví, nahlas to. Neřeš to produkčním nasazením.
 15. **Hlášení fáze A1** (formát níže) a **zastav se**.
@@ -319,6 +322,8 @@
       - lze reklamaci podat osobně v sídle,
       - schválení textu potvrzení,
       - souhlas s jedním `TEST` odesláním v A2.
+
+> Pokud celou A1 v jednom sezení nestihneš, krok 12 (šablona podmínek) nech na konec, protože na něm nic jiného nezávisí. Dokonči kroky 1–11, 13 a 14 a podej hlášení „A1 – částečně (chybí šablona podmínek)“. Větev pushni a nesluč ji. Šablonu doplň v dalším sezení na téže větvi, teprve pak větev sluč. Žádný jiný krok A1 nevynechávej.
 
 ### Fáze A2 – lhůta a potvrzení v oznámeních, koncový test (po sloučení úkolu 02 a se souhlasem majitele)
 16. Ověř, že je sloučený úkol 02. Pokud ne, A2 nedělej a nahlas to.
@@ -388,17 +393,17 @@
 **Fáze A1:**
 - [ ] `node --test tests/reklamace.test.mjs` prošel; hlášení uvádí počty a čísla patiček (stránek s `<footer>` = stránek s odkazem na `/reklamace/`).
 - [ ] `node --test --test-concurrency=1 tests/e2e/reklamace.e2e.test.mjs` prošel, test ověřil 0 požadavků mimo 127.0.0.1 a axe-core hlásí 0 porušení.
-- [ ] `node scripts/build-kontakty.mjs --kontrola` a `node scripts/build-hbot.mjs --kontrola` → kód 0. Testy úkolů 02 a 03 a testy balíčku proti webu prošly.
+- [ ] `node scripts/build-kontakty.mjs --kontrola` a `node scripts/build-hbot.mjs --kontrola` → kód 0. Testy úkolů 02 a 03 a testy balíčku proti webu prošly (příkazy v části Ověření).
 - [ ] Okresní stránky se změnily jen v patičce: `git diff main -U0 -- 'cisteni-*/*/index.html' | grep -E '^[+-][^+-]' | grep -vc 'reklamace'` → 0.
 - [ ] Na náhledu:
   - `/reklamace/` → 200 bez `noindex`,
   - `/reklamace` a `/reklamace.html` → 301 s `location` na `/reklamace/` (bez řetězení),
   - `/reklamace/dekujeme/` → 200 s `noindex`,
   - sitemap obsahuje `/reklamace/` 1× a `dekujeme` 0×,
-  - šablona podmínek → 404.
+  - `/docs/obchodni-podminky.sablona.md` → 404 (platí i tehdy, když šablona v repozitáři webu není a je jen v hlášení).
 - [ ] Netlify Forms obsahuje formulář `hspg-reklamace`. Výpis jen názvů je v hlášení.
-- [ ] Lighthouse mobil `/reklamace/`: přístupnost 100, SEO 100 (bez auditu `is-crawlable` na náhledu), výkon ≥ 90 (čísla v hlášení).
-- [ ] `grep -rIl "\[DOPLNIT" "$PUB" --include=*.html` → nic. `git grep -nE "(SMTP_HESLO|NTFY_TEMA|TELEGRAM_BOT_TOKEN)\s*=\s*\S"` → nic.
+- [ ] Lighthouse mobil `/reklamace/`, medián 3 běhů: přístupnost 100, SEO 100 (bez auditu `is-crawlable` na náhledu), výkon ≥ 90 (čísla všech běhů v hlášení).
+- [ ] `grep -rIl "\[DOPLNIT" "$PUB" --include=*.html` → nic. `git grep -nE "(NTFY_TEMA|SMTP_HESLO|TELEGRAM_BOT_TOKEN|TELEGRAM_CHAT_ID)[[:space:]]*=[[:space:]]*[^=[:space:]]"` → nic (stejný vzor jako v úkolu 02: porovnání `===` nezachytí).
 - [ ] Hlášení obsahuje ověřenou verzi předpisů z e-Sbírky, návod pro majitele a otázky pro majitele.
 
 **Fáze A2:**

@@ -174,7 +174,7 @@ Vzor, jak to udělat, už web má. `data-cena` je na 240 stránkách s vepsanou 
    - Telefon a pracovní dobu ber z `firma.json` (`telefon`, `telefon_zobrazeni`, `pracovni_doba`). Odstavec „Jak záruku uplatnit“ obsahuje jen tuto větu s kontakty (a odkazy z dalšího bodu). Nic nedopisuj o postupu, lhůtách, prohlídce ani dokladech: postup dodá právník (úkol 04B).
    - Pokud v `main` existuje `/reklamace` (úkol 04A), přidej odkaz na ni. Pokud proběhl úkol 03, přidej e-mail přes `a[data-kontakt="reklamace"]`. Jinak jen telefon a předávka pro 04.
    - Při `podminky.schvaleno === true` vloží generátor navíc sekce „Na co se záruka vztahuje“, „Na co se nevztahuje“, „Postup uplatnění“ a „Záruka a zákonná práva“ ze seznamů v datech. Do té doby se nevypíšou.
-   - V `zaruka.html` ani v žádném souboru, který tento úkol mění, nesmí být `[DOPLNIT` (test). Výskyty z jiných úkolů jen uveď v hlášení.
+   - V `zaruka.html` ani v žádném HTML nebo JS výstupu, který tento úkol mění, nesmí být `[DOPLNIT` (test; data v `content/` ho mít smí). Výskyty z jiných úkolů jen uveď v hlášení.
 8. `build-ceny.mjs` a `content/sentinel.json`:
    - ze `sentinel.json` odeber `podminka_zaruky`,
    - `build-ceny.mjs` importuje knihovnu a do `assets/ceny.js` přidá `g.HSPG_ZARUKA = zarukaProProhlizec()`; `HSPG_SENTINEL` zůstane bez `podminka_zaruky`,
@@ -266,7 +266,7 @@ Fáze A:
   - 1× `<h1>`, `title`, meta description s `s_podminkou`, canonical, `og:image`,
   - obsahuje `veta`, `podminka` a `rozsah`,
   - je v sitemapě,
-  - `grep -c "\[DOPLNIT" "$PUB/zaruka.html"` → 0 a `git diff --name-only main... | xargs -r grep -l "\[DOPLNIT"` → nic (výskyty z jiných úkolů jen do hlášení).
+  - `grep -c "\[DOPLNIT" "$PUB/zaruka.html"` → 0 a `git diff --name-only main... -- '*.html' '*.js' ':!tests' | xargs -r grep -l "\[DOPLNIT"` → nic (výskyty z jiných úkolů jen do hlášení).
 - [ ] Data v `firma.json` → `zaruka` (test):
   - formy s číslem (`veta`, `kratce`, `s_podminkou`, `delka`, cs i en) mají shodu detektoru s číslem `delka_let` a žádný text cs ani en nemá shodu s jiným číslem,
   - v českých formách (`veta`, `podminka`, `rozsah`, `kratce`, `s_podminkou`, `delka`, `popisek`, `odkaz_text`) není obyčejná mezera po jednopísmenných předložkách a spojkách ani mezi číslem a jednotkou; v `en` jen mezi číslem a jednotkou (`_poznamka`, `potvrzeno_kdy`, `nahradni_veta` a `podminky` se nekontrolují),
@@ -288,7 +288,7 @@ Fáze B:
   - každý `[data-zaruka="kratce"]` a `[data-zaruka="delka"]` je uvnitř `a[href="/zaruka"]`, nebo jeho `closest('[data-zaruka-blok]')` obsahuje `[data-zaruka="podminka"]`, `[data-zaruka="plne"]` nebo `a[href="/zaruka"]`,
   - každá stránka se zárukou (kromě `/zaruka.html`) obsahuje `a[href="/zaruka"]`,
   - 0 neošetřených výjimek (`pageerror`) a 0 chyb konzole kromě „Failed to load resource“ u externích adres zablokovaných testem (počet a adresy vypiš),
-  - na jinou adresu než `127.0.0.1` nejde žádný požadavek mimo ty, které stránka posílala už před úkolem (porovnej s `main`).
+  - externí požadavky test blokuje (`ctx.route`); žádný z nich nevyvolává kód tohoto úkolu (seznam zablokovaných adres vypiš).
 - [ ] E2E podklad SVJ: na `/kalkulacka-svj.html` po kliknutí na `#tisk-kalkulace` obsahuje náhled `veta` a `podminka` a žádné jiné číslo let u záruky.
 - [ ] E2E PDF nabídka: na `/akce/dekujeme/` se testovací lead podstrčí do `sessionStorage['hspg-holub-lead']` přes `ctx.addInitScript` ještě před načtením stránky (skript ho čte hned při načtení a inline skript stránky ho maže; formát ověř ve zdroji). `window.print` v testu nahraď prázdnou funkcí, pak klikni na `#stahnout-nabidku`. Nic se neodesílá. List nabídky (`.nb-guarantee`) obsahuje `veta` a `podminka` a žádné jiné číslo let u záruky.
 - [ ] H-BOT:
@@ -299,10 +299,10 @@ Fáze B:
   - meta, JSON-LD, `data-zaruka`, `ceny.js` a 77 okresních stránek ukazují 12,
   - záruční shoda s číslem 10 zůstane **jen** ve výjimkách (vypiš je jako seznam míst k ruční úpravě). Nesoulad data „ZÁRUKA DO 8/2036“ v ukázce pasu se v simulaci hlásí jako místo k ruční úpravě, ne jako chyba testu.
 - [ ] Na náhledu:
-  - `curl -s <náhled>/zaruka` → 200 a obsahuje `veta`,
+  - `curl -s -o /dev/null -w '%{http_code}' <náhled>/zaruka` → 200 a `curl -s <náhled>/zaruka | grep -c "<text veta>"` ≥ 1,
   - `curl -s <náhled>/ | grep -c "Deset let se zárukou"` → 0,
   - `curl -s <náhled>/cisteni-fasad/kolin/ | LC_ALL=C.UTF-8 grep -cP "24\x{00A0}měsíců"` ≥ 1 (podmínka je s nezlomitelnou mezerou).
-- [ ] Lighthouse mobil `/zaruka` na náhledu: SEO i přístupnost 100 (jako homepage 4. 10.). U `/` se přístupnost ani SEO nezhoršily. Uveď čísla.
+- [ ] Lighthouse mobil `/zaruka` na náhledu: SEO i přístupnost 100 (jako homepage 4. 10.). U `/` se přístupnost ani SEO nezhoršily. Pokud náhled posílá `X-Robots-Tag: noindex` (ověř `curl -sI`), audit `is-crawlable` v SEO ignoruj a SEO změř i lokálně (stejně jako úkol 04). Uveď čísla.
 - [ ] V diffu nejsou hesla, tokeny ani klíče (úkol žádné nepotřebuje).
 
 ## Ověření
@@ -313,17 +313,18 @@ node scripts/build-regions.mjs && node scripts/build-ceny.mjs && node scripts/bu
 node scripts/build-zaruka.mjs --kontrola                    # → kód 0
 node --test tests/zaruka.test.mjs                           # → vše prošlo (uveď počet)
 CHROMIUM=<cesta k Chromiu> node --test --test-concurrency=1 tests/e2e/zaruka.e2e.test.mjs
-git grep -nIiP "(?<![\p{L}\p{N}])(15|patnáct)(\s|&nbsp;|\x{00A0}|-)+(let|roků|years?)(?![\p{L}\p{N}])" -- . ':!node_modules'; echo "kód $?"   # → nic, kód 1
-grep -rIciE "deset let se zárukou|poskytujeme záruku|dáváme záruku|chráněný dalších|dle podmínek nabídky|záruka na vrstvu|subject to the offer terms" "$PUB" | grep -v ":0$"   # → nic
+git grep -nIiP "(?<![\p{L}\p{N}])(15|patnáct)(\s|&nbsp;|\x{00A0}|-)+(let|roků|years?)(?![\p{L}\p{N}])" -- . ':!node_modules' ':!tests' ':!CLAUDE.md'; echo "kód $?"   # → nic, kód 1
+grep -rIciE --exclude-dir=node_modules --exclude-dir=tests --exclude-dir=.git "deset let se zárukou|se zárukou 10|poskytujeme záruku|dáváme záruku|chráněný dalších|dle podmínek nabídky|záruka na vrstvu|subject to the offer terms" "$PUB" | grep -v ":0$"   # → nic
 grep -rhoE 'data-zaruka="[a-z_]+"' --include=*.html "$PUB" | sort | uniq -c   # → počty podle klíčů (vypiš)
 git grep -n podminka_zaruky                                 # → nic
-grep -rIl "\[DOPLNIT" "$PUB"                                # → nic
+grep -c "\[DOPLNIT" "$PUB/zaruka.html"                      # → 0
+git diff --name-only main... -- '*.html' '*.js' ':!tests' | xargs -r grep -l "\[DOPLNIT"   # → nic
 node scripts/build-hbot.mjs --kontrola                      # jen s úkolem 01 → „je aktuální“
 ```
 
 Testy, které přidáš:
 - **`tests/zaruka.test.mjs`** (Node, bez závislostí):
-  - knihovna: chyby z kroku 5 (kopie dat v paměti), `formy("cs")` a `formy("en")`, nezlomitelné mezery, detektor. Detektor má najít „10 let“, „Deset let“, „10&nbsp;let“, „10-year“, „15 let“ a nemá najít „Po 10 letech“ ani „Každá 10. poptávka“,
+  - knihovna: chyby z kroku 5 (kopie dat v paměti), `formy("cs")` a `formy("en")`, nezlomitelné mezery, detektor. Detektor má najít „10 let“, „Deset let“, „10&nbsp;let“, „10-year“, „15 let“, „Garantovaný certifikát · 10 let“ a `10 let</div><div style="…dlouhý styl přes 80 znaků…">záruka na impregnaci` a nemá najít „Po 10 letech“, „Každá 10. poptávka“ ani „DESET LET V JEDNOM POSUVNÍKU“ (bez slova záruka v okolí),
   - průchod `$PUB`, `assets/` a `content/` podle akceptačních kritérií fází A a B,
   - `--kontrola` nad dočasnou kopií: upravená `firma.json` → kód 1, po běhu generátoru → kód 0,
   - simulace změny na 12 let s výpisem výjimek,
@@ -338,7 +339,7 @@ Testy, které přidáš:
 - **Na náhledu jen GET** (příkazy v akceptačních kritériích). Na produkci totéž až po schváleném nasazení.
 
 ## Bez AI / s AI
-Úkol AI nevolá. Bez AI odpovídá H-BOT z `assets/hbot-znalosti.json`, které se generuje z `firma.json`. S AI dostává model záruku v systémových znalostech (`znalostiProAI()`, řádek „Záruka: {veta} {podminka}“), tedy ze stejného zdroje. Ověř to přes `node -e` bez volání API. Pojistka v knihovně: při `potvrzeno !== true` se web nesestaví a H-BOT i AI v balíčku přejdou na `nahradni_veta` bez čísla.
+Úkol AI nevolá. Bez AI odpovídá H-BOT z `assets/hbot-znalosti.json`, které se generuje z `firma.json`. S AI dostává model záruku v systémových znalostech (`znalostiProAI()`, řádek „Záruka: {veta} {podminka}“), tedy ze stejného zdroje. Ověř to přes `node -e` bez volání API. Pojistka v knihovně: při `potvrzeno !== true` se web nesestaví. Kód balíčku má vlastní pojistku: H-BOT přejde na `nahradni_veta` a AI dostane pokyn délku záruky neuvádět (`znalosti.mjs`).
 
 ## Nepřekročitelná pravidla
 Viz `balicek/KONTEXT.md` §4. Pro tento úkol navíc:
@@ -367,5 +368,5 @@ Po **fázi A** i **fázi B** formát z `KONTEXT.md` §5 a k tomu:
   - **13:** „Garantovaný certifikát“; název SENTINEL START v `zaruka.podminka`; seznam zakázaných výrazů může převzít detektor z knihovny.
   - **Majitel:** spot (video) ukazuje „záruka 10 let“ bez podmínky. Při novém střihu zvážit „podmínky na hspg.cz/zaruka“.
 - Návrhy mimo rozsah:
-  - skloňování „1 let“ a „1 roky“ na `/` a v pasu domu (audit-funkcnost_js #11),
+  - skloňování „1 let“ a „1 roky“ na `/` a v pasu domu řeší úkol 17 (#11, v pořadí před tímto úkolem). Neopravuj ho tady, jen ověř, že je hotové. Pokud není, uveď to v hlášení,
   - otázka „Jak dlouho vydrží impregnace H-STONE?“ je zodpovězená zárukou. Skutečná životnost potřebuje technický list H-STONE (čeká na majitele).
