@@ -163,6 +163,8 @@ Na mobilu je mezi začátkem `#holub-sekce` a tlačítkem „🕊 VYPUSŤTE HOLU
     - Výskyty v `index.html` ř. 2023 jsou správné JS a neměň je. Do hlášení pro úkol 19 napiš přesnou definici kontroly (mimo `<script>`), jinak by CI hlásila 34 planých poplachů.
 12. Testy fáze A (sekce Ověření), Lighthouse po změně a náhled přes `npm run nahled` (0 kreditů). Na náhledu spusť e2e test kotev (jen GET, nic neodesílá). **Hlášení po fázi A.**
 
+> Pokud fázi A v jednom sezení nestihneš, rozděl ji. **A1 (P0)** = kroky 1–4, e2e test kotev, test výstupu `data-cv`, Lighthouse, náhled a hlášení. A1 se smí sloučit do `main` samostatně. **A2** = kroky 5–11 a zbytek testů fáze A.
+
 ### Fáze B – kalkulačky, tisk, offline, CSP, plátno
 13. **Součty v kalkulačce SVJ** (`kalkulacka-svj.html` ř. 336–372):
     - řádek slevy = `Math.round((práce + MASK) × r.sleva)`, jen když je sleva větší než 0,
@@ -201,7 +203,8 @@ Na mobilu je mezi začátkem `#holub-sekce` a tlačítkem „🕊 VYPUSŤTE HOLU
     - `sw.js`:
       - `CORE = ['/offline/', '/manifest.webmanifest']`,
       - navigace offline: uložená stránka, jinak `/offline/`,
-      - fallback na `/` a `/404.html` odstraň,
+      - fallback na `/` a `/404.html` odstraň a uprav i úvodní komentář (ř. 2 dnes zmiňuje `/404.html`, jinak selže kontrola „`sw.js` neobsahuje `404.html`“),
+      - navigační odpověď ukládej jen při `res.ok && !res.redirected`,
       - strategii pro CSS/JS a obrázky ani razítkování verze neměň.
 20. **CSP:** do `img-src` stávající hlavičky `Content-Security-Policy-Report-Only` přidej `blob:` hned za `data:` (`img-src 'self' data: blob: https://*.clarity.ms …`), na jednom místě konfigurace. Nic dalšího v CSP neměň (úkoly 03 a 15).
 21. **`hstone-rain`:**
@@ -212,14 +215,17 @@ Na mobilu je mezi začátkem `#holub-sekce` a tlačítkem „🕊 VYPUSŤTE HOLU
     - Ostatní optimalizace jsou úkol 07.
 22. Testy fáze B, Lighthouse před a po (homepage, `/kalkulacka-svj.html`), náhled, **hlášení po fázi B**. Produkce jen po schválení majitelem, v dávce s dalšími úkoly (15 kreditů za nasazení, KONTEXT §4 bod 4).
 
+> Pokud fázi B v jednom sezení nestihneš, rozděl ji: **B1** = kroky 13–17 (kalkulačka SVJ, čítače, skloňování, tisk podkladu) s jejich testy, **B2** = kroky 18–21 (tisk plovoucích prvků, offline, CSP, plátno). Po každé části náhled a hlášení.
+
 ## Akceptační kritéria
 Fáze A:
 - [ ] E2E kotvy. Pro viewporty 375×812, 1280×720, 1366×900 a 1920×1080, každý bez i s `reducedMotion: 'reduce'`, čerstvé načtení a první klik na první viditelný odkaz na `#holub-sekce`:
   - po ustálení posunu je první tlačítko v `#hspg-form-panel` celé mezi spodní hranou sticky hlavičky a `innerHeight`,
   - totéž při druhém kliku.
 - [ ] E2E kotvy: pro `#predpo`, `#sluzby`, `#spot` a `#obsah` leží horní hrana cíle mezi `hlavička − 2 px` a `hlavička + 80 px`. Výjimka: stránka už dál scrollovat nemůže a cíl je vidět.
-- [ ] E2E kotvy na 1366×900: každý z 19 odkazů `href="#…"` na homepage, každý na čerstvé stránce (`el.click()`), splní kritérium svého cíle.
-- [ ] E2E deep linky `/#holub-sekce`, `/#predpo` a `/#sluzby` (čerstvé načtení): stejná kritéria po `load` a `document.fonts.ready`.
+- [ ] E2E kotvy na 1366×900: každý odkaz `a[href^="#"]:not([href="#"])` na homepage (test je najde v DOM, dnes 17: 8× `#holub-sekce`, 4× `#predpo`, 3× `#sluzby`, 1× `#spot`, 1× `#obsah`; počet uveď v hlášení), každý na čerstvé stránce (`el.click()`), splní kritérium svého cíle. Odkazy `href="#"` („Napsat týmu“) kotvy nejsou a test je vynechá.
+- [ ] E2E plovoucí nabídka na 375×812 a 1366×900: po odscrollování z úvodu (jinak je `#cta-stack` skrytý) otevři `#cta-main` a klikni na „🕊 ODESLAT POPTÁVKU“. Splní kritérium `#holub-sekce` a za 1 s po ustálení se `scrollY` už nemění (žádný druhý posun).
+- [ ] E2E deep linky `/#holub-sekce`, `/#predpo`, `/#sluzby` a `/#spot-prepis` (na něj odkazuje `/akce/` ř. 95), vše s čerstvým načtením: stejná kritéria po `load` a `document.fonts.ready`. Pro `#spot-prepis` platí kritérium ostatních kotev.
 - [ ] Test výstupu: v `index.html` publikačního adresáře neleží žádný prvek s `data-cv` v pořadí dokumentu nad prvkem, jehož `id` je cílem nějakého odkazu `#…` nebo `/#…` na webu.
 - [ ] Unit `spolecne`. Přijme:
   - „736 618 486“ → `+420736618486`,
@@ -239,14 +245,14 @@ Fáze A:
   - „“ → `prazdne`,
   - „-50“, „0“, „1e9“, „abc“, „1000000“ a „12,555“ → chyba.
 - [ ] Unit `spolecne` – kód a skloňování:
-  - `kod("HS-206-0001", 5)` → `{hodnota:"HS-2060-001", kurzor:5}`,
+  - `kod("HS-209-0001", 5)` → `{hodnota:"HS-2090-001", kurzor:5}`,
   - `sklonuj` dává pro 0, 1, 2, 4, 5 a 22 tvary let, rok, roky, roky, let a let, mezi číslem a slovem vždy U+00A0.
 - [ ] E2E formuláře (`/` krok Telefon, `/akce/`, `/akce/dekujeme/` fotky, `/recenze/` `#kontakt`):
   - přijímané vstupy projdou, odmítané ukážou českou hlášku u pole s `aria-invalid="true"`,
   - zachycený POST (`page.route`, nic neodchází ven) obsahuje normalizovaný telefon.
 - [ ] `/akce/` s `javaScriptEnabled: false`: `#tel` = „abc“ → `checkValidity() === false` a `#mail` = „audit@example“ → `false`. „736 618 486“ a „jan@email.cz“ → `true`.
 - [ ] E2E plocha v průvodci: „-50“ a „1e9“ nejdou dál (hláška u pole), „12,5“ se odešle jako „12,5“ a prázdné pole jako „neuvedeno“.
-- [ ] E2E maska na `pas-domu.html` i `/recenze/`: v „HS-2026-0001“ kurzor na pozici 5, `Delete`, napsat „5“ → „HS-2056-0001“ a `selectionStart === 6`. Dosavadní případy z kroku 8 fungují.
+- [ ] E2E maska na `pas-domu.html` i `/recenze/`: v „HS-2099-0001“ kurzor na pozici 5, `Delete`, napsat „5“ → „HS-2059-0001“ a `selectionStart === 6`. Dosavadní případy z kroku 8 fungují.
 - [ ] E2E `/akce/dekujeme/`:
   - bez údajů v `sessionStorage` se scéna (`.hspg-dove-scene`) do 3 s neobjeví,
   - s údaji (`addInitScript`) se přehraje,
@@ -267,7 +273,7 @@ Fáze B:
   - počet kombinací s `minimum_uplatneno` je 0.
 - [ ] Výchozí stav: „Odklad prodraží ošetření HSPG o“ = „+ 68 000 Kč“. Řádky varianty s lešením (pokud zůstaly) mají v popisku slovo „lešením“. Sekce „3 · Cena odkladu“ v podkladu má stejné popisky i hodnoty jako stránka (test porovná).
 - [ ] S `javaScriptEnabled: false`:
-  - homepage `.citac` ukazuje „24 h“, „0 Kč“ a „2×“ a nikde „0 h“ ani „0×“,
+  - homepage `.citac` ukazuje „24 h“, „0 Kč“ a „2×“ a nikde „0 h“ ani „0×“ (mezera smí být U+00A0, test porovnává po normalizaci mezer),
   - výstupy kalkulačky SVJ nejsou „—“ a rovnají se výpočtu enginem pro výchozí stav (test hodnoty počítá, neopisuje je).
 - [ ] Emulace tisku homepage bez scrollu: `.citac` mají cílové hodnoty.
 - [ ] `node scripts/build-ceny.mjs --kontrola` (nebo nový skript) → kód 0. Po dočasné změně sazby v kopii `content/ceny.json` → kód 1.
@@ -278,23 +284,25 @@ Fáze B:
   - `.sp-bar` má `display:none`,
   - žádný jiný potomek `body` než `.sp-overlay` není vidět,
   - všech 7 sekcí („1 ·“ až „7 ·“) je vidět,
-  - `page.pdf()` má stejný počet stran jako cesta přes tlačítko (dnes 3).
-- [ ] Tisk plovoucích prvků: na `/`, `/cenik.html`, `/nabidka-svj.html`, `/pas-domu.html`, `/cisteni-strech/kolin/`, `/akce/`, `/kariera.html`, `/kalkulacka-svj.html`, `/recenze/` a `/en.html` mají v emulaci tisku `#souhlas-lista`, `#hbot-btn`, `#hspg-lista`, `#cta-stack`, `#reel-bublina` a `canvas.hstone-rain` `display:none`, nebo neexistují.
+  - `page.pdf()` má stejný počet stran jako cesta přes tlačítko (audit: 3). Cestu přes tlačítko test napodobí takto: `window.print` nahradí prázdnou funkcí, klikne na tlačítko tisku (třída `sp-print` zůstane nastavená) a zavolá `page.pdf()`.
+- [ ] Tisk plovoucích prvků: na `/`, `/cenik.html`, `/nabidka-svj.html`, `/pas-domu.html`, `/cisteni-strech/kolin/`, `/akce/`, `/kariera.html`, `/kalkulacka-svj.html`, `/recenze/` a `/en.html` mají v emulaci tisku `#souhlas-lista`, `#hbot-btn`, `#hspg-lista`, `#cta-stack`, `#reel-bublina` a `canvas.hstone-rain` `display:none`, nebo neexistují. Platí ve třech stavech souhlasu: bez volby (lišta se ukazuje), po kliknutí na „Jen nezbytné“ a při **novém načtení s uloženou volbou** (`nezbytne` i `analytika`, nastavenou přes `addInitScript` stejně, jako ji ukládá `souhlas.js`).
 - [ ] E2E offline:
-  - po návštěvě `/` a `/cenik.html` je SW aktivní a stránku ovládá,
+  - po návštěvě `/` a `/cenik.html` je SW aktivní a stránku ovládá. `souhlas.js` registruje SW jen na `https:` (ř. 148), proto ho test na `http://127.0.0.1` zaregistruje sám (`navigator.serviceWorker.register('/sw.js')`, pak `navigator.serviceWorker.ready` a nové načtení, dokud `controller` není `null`),
   - po zastavení testovacího serveru: `/cenik.html` → uložená stránka, `/kariera.html` (nenavštívená) → stránka „Jste offline“ s `a[href="tel:+420736618486"]`, `/` → uložená nebo offline stránka,
   - nikde text „Stránka nenalezena“,
   - v cache není žádná odpověď s `redirected === true`.
-- [ ] CSP: `img-src` v konfiguraci obsahuje `blob:`. E2E s hlavičkou CSP načtenou z konfigurace (testovací server ji posílá stejně jako produkce): výběr fotky na `/akce/` a `/akce/dekujeme/` vyvolá 0 událostí `securitypolicyviolation`.
+- [ ] CSP: `img-src` v konfiguraci obsahuje `blob:`. E2E s hlavičkou CSP načtenou z konfigurace (testovací server ji posílá stejně jako produkce): výběr fotky na `/akce/` a `/akce/dekujeme/` vyvolá 0 událostí `securitypolicyviolation` s `effectiveDirective` `img-src` (dnes 1 na každé stránce).
 - [ ] `hstone-rain`:
+  - test zajistí, že plátno vznikne: bez reduced motion, `navigator.hardwareConcurrency` přes `addInitScript` nastavené na 8, čekání po `load` (start přes `requestIdleCallback` + 600 ms). Když `canvas.hstone-rain` nevznikne, test **selže** (nesmí projít naprázdno),
   - na 375×812 je výška plátna v CSS ≤ 812 px a `canvas.height` ≤ 812 × 1,5,
-  - na 1366×900 je vzhled první obrazovky stejný (snímky před a po v hlášení),
+  - na 1366×900 je výška plátna v CSS = 900 px (= `innerHeight`, hero má 964 px),
+  - na 1920×1080 (hero 964 px se vejde) má plátno stejné rozměry jako před úpravou: CSS 964 px a stejné `canvas.width/height`. Hodnoty před a po a snímky jsou v hlášení,
   - po odscrollování první obrazovky se kreslení zastaví (test: `requestAnimationFrame` z `hstone-rain.js` nebo neměnné pixely).
 - [ ] Lighthouse homepage a `/kalkulacka-svj.html` (mobil a desktop): přístupnost a SEO neklesly, výkon nejvýš o 2 body pod stavem před úkolem.
 
 ## Ověření
 ```bash
-PUB=<publikační adresář z netlify.toml>
+export PUB=<publikační adresář z netlify.toml>                   # testy výstupu čtou PUB z prostředí
 <build příkaz z netlify.toml>                                   # např. node scripts/build-site.mjs (ověř)
 node scripts/build-ceny.mjs --kontrola                           # → kód 0 (fáze B)
 node --test tests/spolecne.test.mjs tests/vystup.test.mjs        # → vše prošlo (uveď počty)
@@ -327,7 +335,9 @@ Testy, které přidáš (styl jako `balicek/testy`: `node:test` + `playwright`):
   - externí požadavky blokuj `ctx.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort())`,
   - každý POST (formuláře, `/api/sentinel/validate`) zachyť přes `page.route` a odpověz lokálně,
   - testovací fotku vytvoř v testu (malé PNG),
-  - offline simuluj zastavením testovacího serveru po instalaci SW (`context.setOffline` požadavky SW spolehlivě neodpojí).
+  - offline simuluj zastavením testovacího serveru po instalaci SW (`context.setOffline` požadavky SW spolehlivě neodpojí),
+  - texty s čísly porovnávej po normalizaci mezer (U+00A0 a U+202F → mezera), protože `toLocaleString('cs-CZ')` a `sklonuj()` vkládají nezlomitelné mezery,
+  - kódy pasu jen fiktivní `HS-2099-…`, v mock odpovědích `/api/sentinel/validate` fiktivní obec (např. „Testov“). Žádná skutečná data zákazníků (úkol 14).
 
 Na náhledu (jen GET, **formuláře neodesílej**):
 - `BASE_URL=<náhled> … tests/e2e/kotvy.e2e.test.mjs` → projde,
