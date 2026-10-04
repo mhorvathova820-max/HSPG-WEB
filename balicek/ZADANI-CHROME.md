@@ -24,11 +24,11 @@ Majitel si přeje pracovat přes VS Code: **v Netlify nic nenastavuj** (C1, C2 a
 
 **C4 Poptávky ve schránce** – Seznam Email: proveď majitele vytvořením pravidla „Od: Netlify / předmět obsahuje Form submission nebo 🕊 Poptávka → štítek Poptávky + označit jako důležité“. Ověř na dosavadních 8 zprávách.
 
-**C5 Google Firemní profil** – profil „HOLUB surface protection group“ je ověřený (4. 10.) – nezakládat druhý; zbývá doplnit fotky, datum otevření a sjednotit popis s webem. S majitelem doplň: název podle skutečnosti, telefon +420 736 618 486, web https://hspg.cz, pracovní doba Po–So 7:00–19:00, kategorie a služby (čištění a impregnace střech, fasád, dlažeb; čištění fotovoltaiky), oblast působnosti, popis bez nedoložených tvrzení (bez „nejlepší“, bez čísel, která nejsou na webu). Ověření profilu dělá majitel (video). Zjisti odkaz pro psaní recenzí – předej pro úkol 14.
+**C5 Google Firemní profil** – 4. 10. uloženo se souhlasem majitele: název „HOLUB Surface Protection Group“, kategorie Tlakové mytí (hlavní), Impregnační služby, Čištění okapů, Údržba solárních panelů, Malíř, datum otevření červen 2020, oblast Česko (podrobnosti KONTEXT §2). **Profil teď čeká na ověření videem – natáčí majitel**; do ověření nejsou změny veřejně vidět. Po ověření: zkontroluj veřejné zobrazení profilu, ověř, že odkaz https://g.page/r/CfDMNxuuAwDqEBM/review otevře formulář recenze, a nahlas to (podmínka pro úkol 14). Fotky a popis bez nedoložených tvrzení doplň jen po „ano“ majitele. Druhý profil nezakládat.
 
 **C6 Firmy.cz (Seznam)** – záznam je nepřevzatý (bez webu, telefonu, oboru). Proveď majitele převzetím a doplň stejné údaje jako v C5 (NAP musí sedět s webem).
 
-**C7 Webmaster nástroje** – Google Search Console je hotová (ověřeno, sitemap odeslaná 4. 10.); zbývá Bing Webmaster Tools a Seznam Webmaster: ověření vlastnictví (TXT záznam ve Wedos DNS – přidání TXT nemění poštu; i tak jen po souhlasu majitele), odeslání sitemap https://hspg.cz/sitemap.xml. Výstup: stav indexace, chyby.
+**C7 Webmaster nástroje** – Google Search Console je hotová (ověřeno, sitemap odeslaná 4. 10.). **Seznam Webmaster:** přihlášení nabízí účty profiserv@seznam.cz a info@hspg.cz – heslo zadává majitel; ověření jen souborem nebo meta tagem – vygenerovaný kód předej majiteli pro úkol 11 (meta tag; DNS ani MX neměnit). **Bing Webmaster:** zkus import ze Search Console; když projde, meta tag není potřeba – nahlas výsledek. Po ověření odešli sitemap https://hspg.cz/sitemap.xml. Výstup: stav indexace, chyby.
 
 **C8 Doména a DNS (jen návrh, změny až po souhlasu)** – Wedos: DMARC zatím `p=none` – navrhni přidání reportů `rua` na schránku @hspg.cz; CAA záznam pro vydavatele certifikátů Netlify (Let's Encrypt); u CZ.NIC / registrátora blokace převodu domény. MX nechat.
 

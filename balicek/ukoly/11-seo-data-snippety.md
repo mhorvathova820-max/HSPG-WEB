@@ -440,7 +440,7 @@ Po **fázi A** i **fázi B** použij formát z `KONTEXT.md` §5 a doplň:
 - **checklist pro majitele:**
   - [ ] Na náhledu schválit titulky `/` a `/en`, nadtitulek H1 na `/`, texty `/kontakt` a `/cisteni-fotovoltaiky/` a nový OG obrázek.
   - [ ] Odpovědět na O12 (působnost v EU) z úkolu 13.
-  - [ ] S Claude v Chrome (C5): doplnit **existující** Firemní profil Google podle karty NAP (druhý nezakládat) a poslat odkaz na profil. Adresu sídla v profilu nezveřejňovat (sídlo není provozovna). Oblast obsluhy (dnes Česko, Slovensko, Polsko) sjednotit s webem podle odpovědi O12.
+  - [ ] S Claude v Chrome (C5): doplnit **existující** Firemní profil Google podle karty NAP (druhý nezakládat) a poslat odkaz na profil. Adresu sídla v profilu nezveřejňovat (sídlo není provozovna). Oblast obsluhy (od 4. 10. jen Česko; profil čeká na ověření videem – KONTEXT §2) sjednotit s webem podle odpovědi O12. Ověřovací meta tagy Seznamu (a Bingu, pokud neprojde import ze Search Console) vlož, až je majitel pošle – kód si nevymýšlej.
   - [ ] S Claude v Chrome (C6): převzít záznam na Firmy.cz („Dušan Holub, Praha“, IČO 09291881, dnes neověřený), vyplnit ho podle karty NAP a poslat URL detailu.
   - [ ] S Claude v Chrome (C7): Seznam Webmaster a Bing Webmaster (DNS TXT ve Wedosu, MX neměnit) a odeslat sitemap.
   - [ ] Po produkčním nasazení: Facebook Sharing Debugger, „Scrape Again“ pro `/`, `/akce/` a `/cenik`.
