@@ -1,9 +1,9 @@
 # Pořadí úkolů
 
 **Pořadí provádění (agent ve VS Code jde přesně takto):**
-00 → 01 → 02 → 17 → 03 → 04 → 05 → 13 → 09 → 06 → 07 → 08 → 16 → 10 → 11 → 18 → 19 → 15 → 14 → 12
+00 → 20 → 01 → 02 → 17 → 03 → 04 → 05 → 13 → 09 → 06 → 07 → 08 → 16 → 10 → 11 → 18 → 19 → 15 → 14 → 12
 
-Důvod: nejdřív bezpečí a záloha (00), asistent (01), poptávky (02) a chyba, kvůli které se návštěvník nedostane k formuláři (17), pak právní a pravdivostní rizika (03–05, 13, 09), pak technika a kvalita (06–08, 16, 10, 11, 18, 19, 15) a nakonec věci čekající na data (14, 12).
+Důvod: nejdřív bezpečí a záloha (00), malé ověření webu v Seznamu (20 – soubor jede s nejbližším schváleným nasazením), asistent (01), poptávky (02) a chyba, kvůli které se návštěvník nedostane k formuláři (17), pak právní a pravdivostní rizika (03–05, 13, 09), pak technika a kvalita (06–08, 16, 10, 11, 18, 19, 15) a nakonec věci čekající na data (14, 12).
 
 Stav „hotové zadání“ = zadání je kompletní. „v1“ = zadání je napsané z ověřených nálezů, po dokončení
 zbývajících oblastí auditu se může zpřesnit (před každým úkolem `git pull` balíčku).
@@ -30,3 +30,4 @@ zbývajících oblastí auditu se může zpřesnit (před každým úkolem `git 
 | 17 | [Funkční chyby: kotvy na homepage, kalkulačky, tisk, offline](17-funkcni-chyby.md) | P0 (kotvy) / P1 | 00 | – |
 | 18 | [Obsah a cesta k poptávce](18-obsah-cesta-k-poptavce.md) | P1 | 02, 13 | slib reakční doby, texty |
 | 19 | [CI: automatické kontroly před sloučením (a provoz formulářů)](19-ci-kontroly.md) | P1 | 00, 07 (fáze B, `dist/`) | doba uchování poptávek, místo pro zálohy exportu, GitHub Pro (ochrana větve) |
+| 20 | [Ověření webu v Seznam Webmasteru (soubor)](20-overeni-seznam.md) | P1 | 00 | schválení produkčního nasazení, kliknutí na „Ověřit“ v Seznam Webmasteru |
