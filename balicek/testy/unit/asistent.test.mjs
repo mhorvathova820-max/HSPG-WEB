@@ -121,10 +121,14 @@ test("útrata se zapisuje za oba kroky", async () => {
   assert.ok(u.celkemKc > 0);
 });
 
-test("výpadek úložiště asistenta neshodí", async () => {
+test("výpadek úložiště: AI se nevolá (ochrana kreditů), GET ai=false, odpoví FAQ", async () => {
   const rozbite = { get: async () => { throw new Error("blobs down"); }, setJSON: async () => { throw new Error("blobs down"); } };
-  const { h } = sestav({ ul: rozbite });
-  assert.equal((await (await h(post())).json()).rezim, "ai");
+  const { h, ad } = sestav({ ul: rozbite });
+  const r = await h(post());
+  assert.equal(r.status, 503);
+  assert.equal((await r.json()).rezim, "bez-ai");
+  assert.equal(ad.claude.volani.length, 0);
+  assert.equal((await (await h(pozadavek("/api/asistent"))).json()).ai, false);
 });
 
 test("honeypot vyplněný robotem → predat bez volání AI", async () => {

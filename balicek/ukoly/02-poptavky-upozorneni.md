@@ -3,9 +3,9 @@
 
 ## Proč (s důkazy)
 - **Oznámení dorazila, ale zapadla.** Netlify posílá oznámení o odeslaných formulářích na `profiserv@seznam.cz` i `info@hspg.cz` s předmětem „Form submission from hspg-… form“. Majitel je přehlédl mezi 2 710 nepřečtenými e-maily. Problém je tedy ve viditelnosti, ne v doručení. Všech 8 dosavadních odeslání vypadá jako testy (`KONTEXT.md` §2).
-- **Předmět ani Reply-To nejsou nastavené** (audit-formulare #3). Ve zdroji živého webu není `name="subject"` v žádném formuláři (mirror: 0 souborů). Podle dokumentace Netlify ([Form notifications](https://docs.netlify.com/manage/forms/notifications/)) se předmět nastavuje skrytým polem `subject`. Atribut `data-remove-prefix` odstraní předponu „[Netlify]“ a hodnota smí obsahovat `%{formName}`, `%{siteName}` a `%{submissionId}`. Reply-To vznikne jen z pole `name="email"`. Průvodce na homepage ale posílá `hspg-poptavka` s polem **`E-mail`** (`index.html`, skrytý registrační formulář i `submitLead`), takže „Odpovědět“ míří na Netlify (`formresponses@netlify.com`), ne na zákazníka. `hspg-akce` má pole `email` správně.
+- **Předmět ani Reply-To nejsou nastavené** (audit-formulare #3). Ve zdroji živého webu není `name="subject"` v žádném formuláři (mirror: 0 souborů). Podle dokumentace Netlify ([Form notifications](https://docs.netlify.com/manage/forms/notifications/)) jde předmět nastavit v UI (Forms → Submission notifications → Options → Edit notifications) nebo skrytým polem `subject` ve formuláři. Pole v HTML má přednost před UI a je verzované, proto ho tento úkol používá. Atribut `data-remove-prefix` odstraní předponu „[Netlify]“ a hodnota smí obsahovat `%{formName}`, `%{siteName}` a `%{submissionId}`. Reply-To vznikne jen z pole `name="email"`. Průvodce na homepage ale posílá `hspg-poptavka` s polem **`E-mail`** (`index.html`, skrytý registrační formulář i `submitLead`), takže „Odpovědět“ míří na Netlify (`formresponses@netlify.com`), ne na zákazníka. `hspg-akce` má pole `email` správně.
 - **Zákazník nemá číslo poptávky a fotky se párují jen podle telefonu** (audit-formulare #15). Žádný payload nenese identifikátor. `assets/fotky-upload.js` píše „podle něj [telefonu] fotky přiřadíme k poptávce“.
-- **Poptávky nenesou zdroj návštěvy** (audit-formulare #19). Pole `Zdroj` je jen statické: „Web HSPG / Vypustit holuba“, „Web HSPG / stránka akce“, „H-BOT“. V kódu webu není žádné zpracování `utm_*`, `gclid` ani `fbclid` (grep mirroru: 0, kromě skriptu Netlify).
+- **Poptávky nenesou zdroj návštěvy** (audit-formulare #19). Pole `Zdroj` je jen statické: „Web HSPG / Vypustit holuba“, „Web HSPG / stránka akce“, „Web HSPG / stránka hodnocení“, „H-BOT“. V kódu webu není žádné zpracování `utm_*`, `gclid` ani `fbclid` (grep mirroru: 0, kromě skriptu Netlify).
 - **Druhý kanál je hotový, ale vypnutý.** Funkci `netlify/functions/submission-created.mjs` převzal úkol 01. Dokud nejsou nastavené proměnné, jen zapíše do logu „není nastaven žádný kanál“. Netlify ji spouští **jen pro ověřená (ne spamová) odeslání** a volání podepisuje (JWS), viz [Event-triggered functions](https://docs.netlify.com/build/functions/trigger-on-events/).
 - **Funkce má mezery, které tento úkol opraví:**
   - Každý formulář označí jako „🕊 Poptávka“, i hodnocení z `/recenze/`.
@@ -15,8 +15,8 @@
   - SMTP a push nemají časový limit.
 
 ## Cíl (měřitelný)
-1. Majitel se o každém odeslání kteréhokoli formuláře dozví **do 60 s** pushem do mobilu (ntfy nebo Telegram) a **do 2 min** e-mailem ve složce „Poptávky“. Ověří se v koncovém testu (fáze B) u všech 5 formulářů.
-2. Všechna oznámení (Netlify i SMTP) mají český předmět začínající `[HSPG]` s typem formuláře a číslem poptávky. U formulářů s e-mailem funguje „Odpovědět“ přímo zákazníkovi.
+1. Majitel se o každém ověřeném (ne spamovém) odeslání kteréhokoli formuláře dozví **do 60 s** pushem do mobilu (ntfy nebo Telegram) a **do 2 min** e-mailem ve složce „Poptávky“. Ověří se v koncovém testu (fáze B) u všech 5 formulářů.
+2. Všechna oznámení (Netlify i SMTP) mají český předmět začínající `[HSPG]` s typem formuláře a číslem poptávky. U poptávky a akce (pole `email`) funguje „Odpovědět“ přímo zákazníkovi v oznámení Netlify i v SMTP e-mailu. U hodnocení (`Kontakt (nezveřejňuje se)`) jen v SMTP e-mailu.
 3. Poptávka, zavolání zpět a fotky nesou stejné **číslo poptávky**, které zákazník vidí po odeslání.
 4. Poptávky nesou zdroj návštěvy podle pravidla v kroku A8, které se nijak neopírá o úložiště prohlížeče.
 5. Push neobsahuje osobní údaje, dokud není `OZNAMENI_S_UDAJI=1`. Potvrzení zákazníkovi odchází jen se schváleným textem.
@@ -34,11 +34,11 @@
 **NE:**
 - adresy na webu, `data-mail`, odstranění FormSubmitu a mailto zálohy (audit #1, #4, #5, #6) → **úkol 03**
 - formulář `hspg-reklamace` → **úkol 04** (tento úkol jen připraví štítek a směrování)
-- text zásad, nové příjemce v zásadách, doba uchování a mazání podání (#21) → **úkol 09**
+- text zásad, nové příjemce v zásadách a doba uchování (#21) → **úkol 09**; export a mazání podání v Netlify Forms → **úkol 19**
 - lišta souhlasu, kategorie analytika/marketing, GA4 a `generate_lead` → **úkol 10** (stávající `dataLayer.push` neměň)
 - okresní stránky → **úkol 12** (odkazy neupravuj)
-- tvrzení „do 24 hodin“ → **úkol 13**
-- přehled poptávek v interním panelu → **úkol 14**
+- slib „do 24 hodin“ → **úkol 18** (slib reakční doby; čítač „24 h“ na homepage patří úkolům 13 a 17)
+- přehled poptávek v interním panelu → zatím žádný úkol (úkol 14 ho má jen jako návrh, potřebuje nový token), zapiš do návrhů
 - týdenní kontrola Forms vs. oznámení a monitoring funkce → **úkol 15**
 - nálezy #7, #9, #11, #12 a #16 (průvodce není `<form>`, chování bez JS, děkovací stránka soutěže, neutrální poptávkový formulář, jednotné chyby) → **úkoly 17 a 18** (tady nedělat)
 - produkční nasazení
@@ -59,7 +59,7 @@
    Pokud se HTML generuje skriptem, uprav generátor, ne výstup. Zjisti také, zda formuláře ve zdroji mají `netlify-honeypot` (na živém webu ho Netlify odstraňuje, z mirroru to nejde poznat). **Jen zapiš do hlášení, neměň.** Dále zjisti adresář `publish`. Nové neveřejné soubory (testy, návod) nesmí skončit na webu.
 3. **Ověř předpoklady:**
    - `submission-created.mjs` a `content/firma.json` existují.
-   - `nodemailer` je v `package.json`.
+   - `nodemailer` a `@netlify/blobs` jsou v `package.json` (Blobs kvůli limitu potvrzení v kroku A5).
    - Ověř v dokumentaci Netlify ([Event-triggered functions](https://docs.netlify.com/build/functions/trigger-on-events/)), že funguje i starší konvence „název souboru + `export default async (req)` → `(await req.json()).payload`“, kterou funkce používá. Dokumentace ji dnes uvádí jako podporovanou vedle novější `export default { formSubmitted(event) {…} }`. **Nepřepisuj** ji, pokud to dokumentace nevyžaduje.
 4. **`content/firma.json` – štítky formulářů a text potvrzení** (jediné místo; nic natvrdo ve funkci):
    ```json
@@ -72,7 +72,7 @@
      "text": "Dobrý den,\n\nděkujeme, vaši poptávku jsme přijali pod číslem {{cislo}}. [DOPLNIT: lhůta odpovědi potvrzená majitelem – např. „Ozveme se do 2 hodin v pracovní době.“; bez potvrzení: „Ozveme se v pracovní době {{pracovni_doba}}.“]\nPokud spěcháte, volejte {{telefon_zobrazeni}}.\n\n{{znacka}} · {{provozovatel}}, IČO {{ico}}\n{{web}}\n\nTento e-mail byl odeslán automaticky na základě formuláře na hspg.cz. Pokud jste nic neodesílali, e-mail prosím ignorujte."
    }
    ```
-   Slib „do 2 hodin“ **nikam jinam nepiš**. Na webu dnes není (mirror: 0 výskytů). Web na 241 z 247 stránek slibuje „cenu do 24 hodin“, a text potvrzení s tím nesmí být v rozporu.
+   Slib „do 2 hodin“ **nikam jinam nepiš**. Na webu dnes není (mirror: 0 výskytů). Web na 238 z 247 HTML stránek (mirror) slibuje cenu „do 24 hodin“, a text potvrzení s tím nesmí být v rozporu.
 5. **Funkce `submission-created.mjs`** (převzatá z balíčku). Uprav ji, testy jsou v kroku A11.
    - **Typ:** štítek z `nazvy_formularu`. Nadpis e-mailu: `[HSPG] 🕊 <štítek> <číslo> – <jméno>, <telefon>`. Push: `[HSPG] <štítek> <číslo>` bez osobních údajů (stávající logika `OZNAMENI_S_UDAJI`).
    - **Číslo:** použij `data["Číslo poptávky"]`, pokud odpovídá `^P-\d{6}-[A-HJ-NP-Z2-9]{4}$`. Jinak použij stávající záložní hodnotu (posledních 6 znaků `payload.id`). Neplatnou hodnotu ignoruj, nepropisuj ji do předmětu.
@@ -97,6 +97,8 @@
    - `cislo()` vrátí `P-RRMMDD-XXXX` (4 znaky z `crypto.getRandomValues`, abeceda bez 0/O/1/I). Tvar se záměrně liší od kódu pasu domu `HS-RRRR-ČČČČ`.
    - `pole(nazevFormulare, cislo)` vrátí objekt skrytých polí: `subject`, `Číslo poptávky` (jen u poptávkových formulářů), `Předchozí stránka`, `Kampaň`, `Reklamní kliknutí` (prázdná pole vynech).
    - `subject` má tvar `[HSPG] <štítek> <číslo>` se stejnými štítky jako `nazvy_formularu`. Shodu hlídá test v kroku A11.
+   - Pole zdroje (`Předchozí stránka`, `Kampaň`, `Reklamní kliknutí`) vrací jen pro `hspg-poptavka`, `hspg-akce` a `hspg-zavolejte`. Pro `hspg-fotky` vrátí jen `subject` a `Číslo poptávky`. `hspg-recenze` funkci nepoužívá (jen statický `subject`).
+   - Stávající pole `Zdroj` nech beze změny (e2e test balíčku ho kontroluje).
 7. **Formuláře** (skrytá pole doplň do **statického registračního HTML formuláře** i do JS payloadu, jinak je Netlify neuloží; dokumentace vyžaduje, aby registrační formulář obsahoval všechna pole):
 
    | Formulář | Změny |
@@ -104,7 +106,7 @@
    | `hspg-poptavka` (homepage) | přejmenuj `E-mail` → `email` (registrační formulář i `submitLead`). Přidej `subject`, `Číslo poptávky` a pole zdroje. Číslo zobraz v potvrzení odeslání v panelu průvodce a ulož do `hspg-holub-lead` jako `cislo` |
    | `hspg-akce` (`/akce/`) | přidej skrytá pole do `<form>`. Statická hodnota `subject` je `[HSPG] Poptávka (akce) %{submissionId}` a platí pro odeslání bez JS. JS ji před odesláním přepíše na číslo. Číslo ulož v `ulozProHolubaLet` do `hspg-holub-lead` |
    | `hspg-zavolejte` (H-BOT) | v `hbot-panel.js` (`zavolejteMi`) přidej pole z `HSPGPoptavka.pole('hspg-zavolejte', …)`. Skript načti líně při otevření formuláře, stejně jako panel načítá `hbot-majitel.js`, nevkládej ho do 243 stránek. Děkovná zpráva musí dál začínat „Děkujeme. Ozveme se“ (e2e test balíčku) a doplň „Číslo požadavku: P-…“. Registrační formulář v `index.html` rozšiř o nová pole |
-   | `hspg-fotky` (`/akce/dekujeme/`) | přidej skrytá pole `Číslo poptávky` a `subject` a vyplň je z `hspg-holub-lead.cislo` v `fotky-upload.js` (čte před smazáním). Na stránce zobraz „Číslo vaší poptávky: …“, jen pokud číslo existuje. Bez čísla zůstává párování podle telefonu |
+   | `hspg-fotky` (`/akce/dekujeme/`) | přidej skrytá pole `Číslo poptávky` a `subject` (statická hodnota `[HSPG] Fotky k poptávce %{submissionId}`). Na stránce načti `poptavka-zdroj.js` před `fotky-upload.js` a v `fotky-upload.js` (čte `hspg-holub-lead` před smazáním) je vyplň přes `HSPGPoptavka.pole('hspg-fotky', lead.cislo)`, jen pokud číslo existuje. Na stránce zobraz „Číslo vaší poptávky: …“, také jen pokud číslo existuje. Bez čísla zůstává statický `subject` a párování podle telefonu |
    | `hspg-recenze` | jen `subject` = `[HSPG] Hodnocení %{submissionId}` (bez čísla a bez zdroje) |
 
    Ke každému `<input name="subject">` v registračním formuláři dej `data-remove-prefix`.
@@ -119,8 +121,8 @@
    - Vícekrokovou atribuci po souhlasu pokrývá GA4 (úkol 10).
 
    **Omezení (uveď v hlášení):** při více než jednom přechodu mezi stránkami se UTM ztratí. Existující `hspg-holub-lead` v `sessionStorage` zůstává, protože je nezbytný pro službu, o kterou zákazník požádal (děkovací stránka, fotky).
-9. **Oznámení Netlify (bod b).** Předmět v UI Netlify nastavit nejde, řídí ho pole `subject` z kroku A7. Zjisti jen pro čtení, kam oznámení chodí: Netlify → Forms → Submission notifications (`app.netlify.com/projects/<projekt>/forms?tab=notifications`), nebo přes CLI, např. `netlify api listHooksBySiteId` (ve výpisu jen typ, událost a příjemce, žádné tokeny). Pokud nemáš přístup, požádej majitele o snímek obrazovky. **Příjemce neměň.** Doporučení do hlášení: po dobu alespoň 14 dní ponechat oznámení Netlify na `info@hspg.cz` i `profiserv@seznam.cz` jako nezávislou zálohu. Duplicitní e-maily třídí filtr do složky „Poptávky“. O dalším nastavení rozhodne majitel.
-10. **Návod pro majitele (bod c)** – připrav text do hlášení a do `docs/poptavky-upozorneni.md`, jen pokud `docs/` není v publikovaném adresáři (jinak jen do hlášení). Názvy položek v rozhraní Seznamu a ntfy ověř a případně oprav:
+9. **Oznámení Netlify.** Předmět jde nastavit i v UI Netlify, ale pole `subject` z kroku A7 má podle dokumentace přednost. V UI předmět neměň. Pokud tam nějaký vlastní je, zapiš ho do hlášení. Zjisti jen pro čtení, kam oznámení chodí: Netlify → Forms → Submission notifications (`app.netlify.com/projects/<projekt>/forms?tab=notifications`), nebo přes CLI, např. `netlify api listHooksBySiteId` (ve výpisu jen typ, událost a příjemce, žádné tokeny). Pokud nemáš přístup, požádej majitele o snímek obrazovky. **Příjemce neměň.** Doporučení do hlášení: po dobu alespoň 14 dní ponechat oznámení Netlify na `info@hspg.cz` i `profiserv@seznam.cz` jako nezávislou zálohu. Duplicitní e-maily třídí filtr do složky „Poptávky“. O dalším nastavení rozhodne majitel.
+10. **Návod pro majitele** – připrav text do hlášení a do `docs/poptavky-upozorneni.md`, jen pokud `docs/` není v publikovaném adresáři (jinak jen do hlášení). Názvy položek v rozhraní Seznamu a ntfy ověř a případně oprav:
     - **Push (doporučeno ntfy):** nainstalovat aplikaci ntfy (Android/iOS). Vymyslet téma generátorem hesel (např. 32 náhodných malých písmen a číslic) a přihlásit ho v aplikaci. Totéž jméno zadat do Netlify → Environment variables jako `NTFY_TEMA`. Jméno tématu funguje jako heslo (kdo ho zná, čte zprávy na veřejném ntfy.sh), proto ho nikam jinam nepsat. Push proto ve výchozím stavu nenese osobní údaje. **Alternativa Telegram:** bot přes @BotFather, `TELEGRAM_BOT_TOKEN` a `TELEGRAM_CHAT_ID` jen do Netlify.
     - **E-mail přes SMTP:** `SMTP_UZIVATEL=info@hspg.cz` a `SMTP_HESLO`. Pokud schránka používá dvoufázové ověření a Seznam nabízí heslo pro aplikace, použít to, jinak heslo schránky. Zadává se **jen v Netlify**, nikdy do chatu, e-mailu ani souboru. Po každé změně hesla schránky (checklist úkolu 00) je nutné `SMTP_HESLO` aktualizovat, jinak e-mailový kanál přestane fungovat (push poběží dál). DNS se nemění: SPF `include:spf.seznam.cz` a DKIM už odesílání přes Seznam pokrývají. **MX neměnit.**
     - **Filtry ve schránce Seznam** (v `info@hspg.cz` i v `profiserv@seznam.cz`, Nastavení → Filtry). Tři pravidla, všechna s akcí „přesunout do složky **Poptávky**“ a „označit jako důležité / hvězdičkou“, pokud to filtr umí:
@@ -145,8 +147,9 @@
       - že text potvrzení neobsahuje text zadaný zákazníkem
       - selhání všech kanálů → 200
       - timeout fetch → kanál selže a ostatní doběhnou
-    - `tests/e2e/formulare.test.mjs` (Playwright). Web servíruj lokálně, třeba `HSPG_MIRROR=$(pwd) node ../hspg-balicek/balicek/testy/server.mjs`. **Všechny POST zachyť přes `page.route` a odpověz 200, nic nesmí odejít ven.** Pro každý z 5 formulářů vyplň a odešli formulář s daty `TEST` a ověř:
+    - `tests/e2e/formulare.test.mjs` (Playwright). Web servíruj lokálně malým statickým serverem v testu (`node:http`, jen publikovaný adresář z kroku A2; cesty jako `balicek/testy/server.mjs`: adresář → `index.html`, `/x` → `/x.html`). **Server balíčku `balicek/testy/server.mjs` sem nepoužívej:** soubory z `balicek/web/` servíruje přednostně, takže by místo upraveného `hbot-panel.js` a `firma.json` z webHSPGH dostal test původní verze z balíčku. `/api/*` server obsluhovat nemusí, formulář „Zavolejte mi“ otevři přímo jeho tlačítkem. **Všechny POST zachyť přes `page.route` a odpověz 200. Požadavky na jiný původ než lokální server zablokuj (`route.abort()`) a zaznamenej. Žádný z nich nesmí být POST, nic nesmí odejít ven.** Pro každý z 5 formulářů vyplň a odešli formulář s daty `TEST` a ověř:
       - payload má `subject` začínající `[HSPG] `
+      - payload `hspg-poptavka` má klíč `email` a nemá `E-mail`
       - `Číslo poptávky` odpovídá regexu (u poptávka/akce/zavolejte) a `hspg-fotky` nese stejné číslo jako předchozí poptávka
       - **každý klíč payloadu existuje v registračním formuláři** stejného jména (u `hspg-poptavka` a `hspg-zavolejte` skryté formuláře v `index.html`)
       - `/?utm_source=test&utm_campaign=a` → payload z homepage má `Kampaň` s `utm_source=test`
@@ -154,7 +157,7 @@
       - `gclid` v URL bez souhlasu → pole `Reklamní kliknutí` chybí, s `hspg-souhlas=analytika` je přítomné
       - `poptavka-zdroj.js` nevytvoří žádný nový klíč v `localStorage`, `sessionStorage` ani cookies (porovnej před a po; `hspg-holub-lead` je výjimka)
       - číslo poptávky je vidět na homepage po odeslání, na `/akce/dekujeme/` i v H-BOT
-    - Statický test: hodnoty `subject` v HTML a `poptavka-zdroj.js` používají štítky z `content/firma.json` → `nazvy_formularu`.
+    - Statický test: hodnoty `subject` v HTML a `poptavka-zdroj.js` používají štítky z `content/firma.json` → `nazvy_formularu`. Každý z 5 registračních formulářů má právě jeden `<input name="subject">` s `data-remove-prefix`.
 12. **Hlášení fáze A** (formát níže) a **zastav se**. Majitel nastaví proměnné, nainstaluje ntfy, schválí text potvrzení (nebo ponechá `schvaleno:false`) a souhlasí s testem na náhledu.
 
 ### Fáze B – koncový test s majitelem (náhledové nasazení, ne produkce)
@@ -178,23 +181,26 @@
 ## Akceptační kritéria
 - [ ] `node --test tests/oznameni.test.mjs` – vše prošlo, hlášení uvádí počet testů a jejich názvy z kroku A11.
 - [ ] `node --test tests/e2e/formulare.test.mjs` – vše prošlo. Během testu neodešel žádný požadavek mimo lokální server (test to ověřuje).
-- [ ] `grep -rnE "name=['\"]subject['\"]"` ve zdroji najde registrační formuláře `hspg-poptavka`, `hspg-zavolejte`, `hspg-akce`, `hspg-fotky`, `hspg-recenze` (5) a každý řádek obsahuje `data-remove-prefix`.
-- [ ] `grep -rn "name=\"E-mail\""` ve zdroji: 0 výskytů ve formuláři `hspg-poptavka`.
-- [ ] `git diff main --name-only | grep -cE "^cisteni-[a-z]+/[a-z-]+/"` = 0 (okresní stránky beze změny).
-- [ ] `git grep -nE "(NTFY_TEMA|SMTP_HESLO|TELEGRAM_BOT_TOKEN|TELEGRAM_CHAT_ID)\s*=\s*\S"` nenajde nic (jen názvy v dokumentaci, žádné hodnoty).
-- [ ] `git diff main | grep -n "2 hodin"` – výskyt jen uvnitř `[DOPLNIT: …]`.
-- [ ] `content/firma.json` je platný JSON (`node -e "JSON.parse(require('fs').readFileSync('content/firma.json'))"`), `potvrzeni_zakaznikovi.schvaleno` je `false`, dokud majitel text neschválí.
+- [ ] `grep -rnoE "<input[^>]*name=['\"]subject['\"][^>]*>" "$PUB" --include=*.html | grep -v node_modules` najde právě 5 tagů (registrační formuláře `hspg-poptavka`, `hspg-zavolejte`, `hspg-akce`, `hspg-fotky`, `hspg-recenze`) a `… | grep -vc data-remove-prefix` = 0. `$PUB` je publikovaný adresář z kroku A2. Hledá se jen tag `<input>`, aby se nezapočítal inline JS, který `subject` přepisuje.
+- [ ] `grep -rnE "name=['\"]E-mail['\"]|['\"]E-mail['\"][[:space:]]*:" <soubor(y) homepage z kroku A2>` → 0 (registrační formulář ani payload `submitLead` už `E-mail` nemají). Klíč `email` v payloadu ověřuje e2e test.
+- [ ] `git diff main --name-only | grep -cE "(^|/)cisteni-[a-z]+/[a-z-]+/"` = 0 (okresní stránky beze změny).
+- [ ] `git grep -nE "(NTFY_TEMA|SMTP_HESLO|TELEGRAM_BOT_TOKEN|TELEGRAM_CHAT_ID)[[:space:]]*=[[:space:]]*[^=[:space:]]"` nenajde nic (jen názvy v dokumentaci, žádné hodnoty; porovnání `===` vzor nezachytí).
+- [ ] `git diff main -U0 | grep "^+" | grep "2 hodin" | grep -vF "[DOPLNIT"` → nic (slib je jen uvnitř `[DOPLNIT: …]`).
+- [ ] `node -e "const f=JSON.parse(require('fs').readFileSync('content/firma.json'));process.exit(f.potvrzeni_zakaznikovi.schvaleno===false?0:1)"` → kód 0 (platný JSON a `schvaleno` je `false`, dokud majitel text neschválí).
 - [ ] Fáze B: u všech 5 formulářů na náhledu přišel push do 60 s a e-mail do 2 min. Podání je v Netlify Forms mezi ověřenými. Předměty začínají `[HSPG]` bez „[Netlify]“. Reply-To u poptávky a akce = testovací e-mail. Filtr přesunul e-maily do „Poptávky“. Tabulka časů je v hlášení.
 - [ ] Fáze B: push neobsahoval jméno, telefon, e-mail ani adresu (snímek nebo přepis titulku a textu).
 - [ ] Fáze B: `TEST` podání jsou smazaná (nebo majitel potvrdil, že je smaže).
 
 ## Ověření
 ```bash
+PUB=<absolutní cesta k publikovanému adresáři webHSPGH z kroku A2>
 node --test tests/oznameni.test.mjs                  # očekávej: pass N, fail 0
 CHROMIUM=<cesta> node --test tests/e2e/formulare.test.mjs   # pass, fail 0, žádný externí požadavek
-grep -rnE "name=['\"]subject['\"]" --include=*.html . | grep -v node_modules   # 5 řádků, všechny s data-remove-prefix
-git grep -nE "(NTFY_TEMA|SMTP_HESLO|TELEGRAM_BOT_TOKEN|TELEGRAM_CHAT_ID)\s*=\s*\S"  # nic
-cd ../hspg-balicek && npm test && HSPG_MIRROR=$(pwd)/../webHSPGH CHROMIUM=<cesta> npm run test:e2e   # testy balíčku proti webu dál projdou (H-BOT)
+grep -rnoE "<input[^>]*name=['\"]subject['\"][^>]*>" "$PUB" --include=*.html | grep -v node_modules   # 5 tagů
+grep -rnoE "<input[^>]*name=['\"]subject['\"][^>]*>" "$PUB" --include=*.html | grep -v node_modules | grep -vc data-remove-prefix   # 0
+git grep -nE "(NTFY_TEMA|SMTP_HESLO|TELEGRAM_BOT_TOKEN|TELEGRAM_CHAT_ID)[[:space:]]*=[[:space:]]*[^=[:space:]]"  # nic
+git diff main -U0 | grep "^+" | grep "2 hodin" | grep -vF "[DOPLNIT"   # nic
+cd ../hspg-balicek && npm test && HSPG_MIRROR="$PUB" CHROMIUM=<cesta> npm run test:e2e   # testy balíčku proti webu dál projdou (H-BOT; server balíčku servíruje přednostně soubory balíčku, upravený hbot-panel.js testuje formulare.test.mjs)
 ```
 Fáze B: `curl -s <náhled>/` → 200; log funkce `submission-created` v Netlify (Logs → Functions) po každém odeslání bez „no channel“ a bez „selhalo“. Časy push a e-mailu měř hodinkami telefonu od kliknutí na Odeslat.
 
@@ -232,5 +238,6 @@ Formát z `KONTEXT.md` §5, zvlášť po fázi A a po fázi B, a navíc:
   - potvrzení smazání `TEST` podání
 - **Návrhy mimo rozsah:**
   - audit-formulare #7, #9, #11, #12, #16 (patří do úkolů 17 a 18)
-  - #21 (mazání podání) → úkoly 09/15
+  - #21 (doba uchování a mazání podání) → úkoly 09 (zásady) a 19 (export a mazání)
+  - přehled poptávek v interním panelu (zatím žádný úkol)
   - případně chybějící `netlify-honeypot`

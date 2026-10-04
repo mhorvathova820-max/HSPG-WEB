@@ -5,7 +5,7 @@
 import { POSKYTOVATELE, jeZapnuty, vytvorAdaptery } from "../lib/ai/poskytovatele.mjs";
 import { PRAVIDLA_PRAVDIVOSTI } from "../lib/ai/pravidla.mjs";
 import { overPozadavek } from "../lib/ai/autorizace.mjs";
-import { vychoziUloziste, zapisUtratu, odhadKc } from "../lib/ai/limity.mjs";
+import { vychoziUloziste, zapisUtratu, odhadKc, rozpocetVycerpan, mesicniLimitKc } from "../lib/ai/limity.mjs";
 
 const MAX_TOKENU = 8000;
 const MAX_ZNAKU_VSTUPU = 60000;
@@ -42,6 +42,13 @@ export function vytvorAI({ env = process.env, adaptery, uloziste, ted = () => Da
     if (!platne) return json({ chyba: "Zprávy musí končit dotazem uživatele." }, 400);
     if (JSON.stringify(zpravy).length + String(pokyn || "").length > MAX_ZNAKU_VSTUPU) return json({ chyba: "Dotaz je příliš dlouhý." }, 413);
 
+    // Měsíční rozpočet AI platí i pro majitele – kredity Netlify jsou společné s chodem webu.
+    try {
+      if (await rozpocetVycerpan(await dejUloziste(), env, ted()))
+        return json({ chyba: `Měsíční rozpočet AI (${mesicniLimitKc(env)} Kč, proměnná AI_MESICNI_LIMIT_KC) je vyčerpaný.` }, 402);
+    } catch {
+      // Úložiště nedostupné: přihlášený majitel smí pokračovat (nízký objem), útrata se dopočítá později.
+    }
     const system = pokyn ? `${PRAVIDLA_PRAVDIVOSTI}\n\nRole v této úloze:\n${String(pokyn)}` : PRAVIDLA_PRAVDIVOSTI;
     const adapter = (adaptery || vytvorAdaptery(env))[ai];
     const enc = new TextEncoder();

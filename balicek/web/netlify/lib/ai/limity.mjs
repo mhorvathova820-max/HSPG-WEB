@@ -24,12 +24,9 @@ export function otiskKlienta(ip, ted) {
   return createHash("sha256").update(`${den(ted)}|${ip || "neznama"}`).digest("hex").slice(0, 24);
 }
 
+// Chyba úložiště se nepolyká: volající rozhodne (veřejná AI se při výpadku úložiště vypne).
 async function cti(ul, k) {
-  try {
-    return (await ul.get(k, { type: "json" })) ?? null;
-  } catch {
-    return null;
-  }
+  return (await ul.get(k, { type: "json" })) ?? null;
 }
 
 // Okénkový čítač: vrací true, když se požadavek do limitu vejde (a započítá ho).

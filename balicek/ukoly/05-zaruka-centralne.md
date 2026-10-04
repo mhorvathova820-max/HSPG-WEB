@@ -43,7 +43,7 @@ Problémy:
 - **Zdroj je jen napůl centrální:** `content/sentinel.json` (`podminka_zaruky` → `assets/ceny.js` → `HSPG_SENTINEL`) a `content/firma.json` → `zaruka` (balíček, H-BOT a AI přes `netlify/lib/ai/znalosti.mjs`). Nic dalšího z nich nečte.
 - **Pracnost změny:** dnes by změna znamenala ruční úpravu přes 90 souborů.
 
-Vzor, jak to udělat, už web má. `data-cena` je na 240 stránkách s vepsanou hodnotou, přitom `ceny.js` načítají jen 3 stránky (`/`, `/kalkulacka-svj.html`, `/en.html`), takže hodnoty vpisuje build. `/cenik.html` má generovaný blok `<!-- SENTINEL:START … -->`.
+Vzor, jak to udělat, už web má. `data-cena` je na 240 stránkách s vepsanou hodnotou, přitom `ceny.js` načítají v kopii jen 3 stránky (`/`, `/kalkulacka-svj.html`, `/en.html`; na živém webu navíc `/akce/dekujeme/`). Hodnoty tedy nejspíš vpisuje build (ověř v `build-ceny.mjs`). `/cenik.html` má generovaný blok `<!-- SENTINEL:START … -->`.
 
 ## Cíl (měřitelný)
 1. **Jeden zdroj:** text záruky (cs i en) je jen v `content/firma.json` → `zaruka`. `content/sentinel.json` nemá `podminka_zaruky` a `git grep -n podminka_zaruky` nic nenajde.
@@ -87,7 +87,7 @@ Vzor, jak to udělat, už web má. `data-cena` je na 240 stránkách s vepsanou 
    - `scripts/build-ceny.mjs`: **jak vpisuje `data-cena`** do ručně psaných stránek (přepis na místě regexem nebo parserem?) a jak generuje blok `SENTINEL` a `assets/ceny.js`. Stejný přístup použiješ pro `data-zaruka`,
    - ostatní `scripts/build-*.mjs` (`build-references`, `build-recenze`, `build-hbot` a `build-kontakty`, pokud už proběhly úkoly 01 a 03) a jejich pořadí v build příkazu,
    - zdroj sitemapy (soubor, nebo generátor z úkolu 06), stránku 404, existující testy (`tests/`?) a zda je v `devDependencies` `playwright`.
-3. Inventura: `git grep -nIiE "záruk|zaruk|warrant|garanc|(10|15|deset|patnáct)[[:space:]]+(let|years?)|(10|15)-year|podminka_zaruky|HSPG_SENTINEL" -- . ':!node_modules'`. Výsledek (soubor, řádek, typ: text / meta / JSON-LD / JS / data) dej do hlášení a porovnej s tabulkou v části Proč. Co chybí, doplň.
+3. Inventura: `git grep -nIiE "záruk|zaruk|warrant|garanc|(10|15|deset|patnáct)[[:space:]]+(let|years?)|(10|15)-year|podminka_zaruky|HSPG_SENTINEL" -- . ':!node_modules'`. Výsledek (soubor, řádek, typ: text / meta / JSON-LD / JS / data) dej do hlášení a porovnej s tabulkou v části Proč. Co chybí, doplň. Pokud se „15 let“ najde mimo web (dokumentace, poznámky) a jde o záruku, oprav ho na 10 let. Jinak ho uveď v hlášení.
 4. `content/firma.json`:
    - Pokud v `main` už je (úkol 01 nebo 03), uprav **jen** klíč `zaruka`.
    - Pokud tam není, převezmi celý soubor z `../hspg-balicek/balicek/web/content/firma.json`, ostatní klíče nech beze změny a zapiš to do hlášení kvůli slučování s 01 a 03.
@@ -209,7 +209,7 @@ Vzor, jak to udělat, už web má. `data-cena` je na 240 stránkách s vepsanou 
     - **`/en.html`:** ř. 145 `veta` + `podminka` (en) + odkaz s textem `odkaz_text` (en) na `/zaruka`.
     - **`/kalkulacka-svj.html`:** ř. 266 „Celkem · “ + `kratce`, ř. 273 „…a dům je chráněný dalších 10 let“ → „… % – “ + `veta` + odkaz. Tvrzení o ochraně domu zmizí.
     - **`/nabidka-svj.html`:** ř. 167 dlaždice `delka` + `popisek`, odkaz.
-    - **`/pas-domu.html`:** ukázka ř. 198 → `delka` a `.facts` jako `data-zaruka-blok` s odkazem pod ukázkou. Datum „ZÁRUKA DO 8/2036“ v ukázce zůstává, test hlídá rok 2026 + `delka_let`. Skutečný pas (`p.zaruka.do` z API) je údaj konkrétní zakázky a nemění se.
+    - **`/pas-domu.html`:** ukázka ř. 198 → `delka`. Celou ukázku `#ukazkovy-pas` označ `data-zaruka-blok` a na její konec (uvnitř bloku) přidej odkaz `data-zaruka="odkaz_text"`. Datum „ZÁRUKA DO 8/2036“ v ukázce zůstává, test hlídá rok 2026 + `delka_let`. Skutečný pas (`p.zaruka.do` z API) je údaj konkrétní zakázky a nemění se.
     - **Rozcestníky `/cisteni-fasad/` (ř. 18, 20) a `/cisteni-strech/` (ř. 6):** `s_podminkou` + odkaz, věty o rozsahu → `rozsah`.
 
     Spusť `node scripts/build-zaruka.mjs`.
@@ -267,7 +267,10 @@ Fáze A:
 - [ ] Pokud je převzatý úkol 01: `node scripts/build-hbot.mjs --kontrola` projde. Původní testy webu projdou.
 
 Fáze B:
-- [ ] Úplný průchod publikovaného výstupu (HTML včetně inline skriptů, meta a JSON-LD, `assets/*.js`, `content/*.json`): 0 záručních shod detektoru mimo prvky `data-zaruka`, mimo přesné dlouhé formy a mimo `VYJIMKY`. Výjimky projdou svou kontrolou (`cislo`, `presne`). Test vypíše seznam výjimek.
+- [ ] Úplný průchod publikovaného výstupu (HTML včetně inline skriptů, meta a JSON-LD, `assets/*.js`, `content/*.json`): 0 záručních shod detektoru mimo prvky `data-zaruka`, mimo přesné dlouhé formy a mimo `VYJIMKY`. Výjimky projdou svou kontrolou (`cislo`, `presne`). Test vypíše seznam výjimek. Z průchodu se vynechávají:
+  - zdroj `content/firma.json` a záznam `content/zaruka-vlozeno.json`,
+  - vložený objekt `HSPG_ZARUKA` v `assets/ceny.js` (kontroluje se zvlášť shodou s knihovnou),
+  - `assets/hbot-znalosti.json` (kontroluje se shodou s `build-hbot.mjs --kontrola`).
 - [ ] Staré formulace jsou pryč (0 výskytů ve výstupu): „Deset let se zárukou“, „poskytujeme záruku“, „dáváme záruku“, „chráněný dalších“, „dle podmínek nabídky“, „ZÁRUKA NA VRSTVU“, „subject to the offer terms“, „se zárukou 10 let“.
 - [ ] Každý `description`, `og:description` a `twitter:description` se zmínkou o záruce obsahuje `s_podminkou` (en: forma en) a má nejvýš 160 znaků (test).
 - [ ] Každý JSON-LD projde `JSON.parse`. Řetězce se záruční shodou obsahují `s_podminkou` nebo `veta` a `podminka`.
@@ -275,7 +278,7 @@ Fáze B:
 - [ ] E2E (Chromium, lokální server, stránky `/`, `/akce/`, `/cenik.html`, `/en.html`, `/kalkulacka-svj.html`, `/nabidka-svj.html`, `/pas-domu.html`, `/cisteni-fasad/`, `/cisteni-strech/`, `/cisteni-fasad/kolin/`, `/zaruka.html`):
   - text každého `[data-zaruka]` = forma pro `<html lang>`,
   - každý `[data-zaruka="kratce"]` a `[data-zaruka="delka"]` je uvnitř `a[href="/zaruka"]`, nebo jeho `closest('[data-zaruka-blok]')` obsahuje `[data-zaruka="podminka"]`, `[data-zaruka="plne"]` nebo `a[href="/zaruka"]`,
-  - každá stránka se zárukou (kromě `/zaruka.html`) má viditelný `a[href="/zaruka"]`,
+  - každá stránka se zárukou (kromě `/zaruka.html`) obsahuje `a[href="/zaruka"]`,
   - konzole je bez chyb a žádné požadavky nejdou ven.
 - [ ] E2E podklad SVJ: na `/kalkulacka-svj.html` po kliknutí na `#tisk-kalkulace` obsahuje náhled `veta` a `podminka` a žádné jiné číslo let u záruky.
 - [ ] E2E PDF nabídka: na `/akce/dekujeme/` se testovací lead podstrčí do `sessionStorage['hspg-holub-lead']` (formát ověř ve zdroji), nic se neodesílá. Nabídka obsahuje totéž co podklad SVJ.
@@ -289,7 +292,7 @@ Fáze B:
 - [ ] Na náhledu:
   - `curl -s <náhled>/zaruka` → 200 a obsahuje `veta`,
   - `curl -s <náhled>/ | grep -c "Deset let se zárukou"` → 0,
-  - `curl -s <náhled>/cisteni-fasad/kolin/ | grep -c "24 měsíců"` ≥ 1 (s nezlomitelnou mezerou: `grep -cP "24\x{00A0}měsíců"`).
+  - `curl -s <náhled>/cisteni-fasad/kolin/ | LC_ALL=C.UTF-8 grep -cP "24\x{00A0}měsíců"` ≥ 1 (podmínka je s nezlomitelnou mezerou).
 - [ ] Lighthouse mobil `/zaruka` na náhledu: SEO i přístupnost 100 (jako homepage 4. 10.). U `/` se přístupnost ani SEO nezhoršily. Uveď čísla.
 - [ ] V diffu nejsou hesla, tokeny ani klíče (úkol žádné nepotřebuje).
 
@@ -297,7 +300,7 @@ Fáze B:
 ```bash
 PUB=<publikační adresář z netlify.toml>
 export LC_ALL=C.UTF-8
-node scripts/build-regions.mjs && node scripts/build-ceny.mjs && node scripts/build-zaruka.mjs
+node scripts/build-regions.mjs && node scripts/build-ceny.mjs && node scripts/build-zaruka.mjs   # nebo celý build příkaz webu
 node scripts/build-zaruka.mjs --kontrola                    # → kód 0
 node --test tests/zaruka.test.mjs                           # → vše prošlo (uveď počet)
 CHROMIUM=<cesta k Chromiu> node --test --test-concurrency=1 tests/e2e/zaruka.e2e.test.mjs

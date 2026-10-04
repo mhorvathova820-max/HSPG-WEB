@@ -17,7 +17,7 @@ test("token: platný, podvržený, prošlý, po změně hesla neplatný", () => 
 });
 
 test("krátké nebo chybějící heslo = interní část zamčená (503)", () => {
-  const r = overPozadavek(pozadavek("/api/ai-stav", { headers: { "x-panel-heslo": "kratke" } }), { HSPG_PANEL_HESLO: "kratke" });
+  const r = overPozadavek(pozadavek("/api/ai-stav", { headers: { authorization: "Bearer x" } }), { HSPG_PANEL_HESLO: "kratke" });
   assert.equal(r.status, 503);
 });
 
@@ -73,9 +73,19 @@ test("ai: bez přihlášení 401, chybějící klíč 400, chyba AI se vrátí v
   assert.equal(JSON.parse(chyba).zprava, "Chyba Claude (500): overloaded", "chyba je oddělená od textu odpovědi");
 });
 
-test("starší AI centrum: heslo v x-panel-heslo stále funguje", async () => {
+test("heslo v hlavičce x-panel-heslo neprojde (heslo jen přes /api/majitel se zámkem pokusů)", async () => {
   const h = vytvorStav({ env: env(), uloziste: pametoveUloziste() });
-  assert.equal((await h(pozadavek("/api/ai-stav", { headers: { "x-panel-heslo": HESLO } }))).status, 200);
+  assert.equal((await h(pozadavek("/api/ai-stav", { headers: { "x-panel-heslo": HESLO } }))).status, 401);
+});
+
+test("ai: vyčerpaný rozpočet platí i pro majitele (402)", async () => {
+  const ul = pametoveUloziste();
+  await ul.setJSON(`utrata/${new Date().toISOString().slice(0, 7)}`, { celkemKc: 999, ai: {} });
+  const ad = { claude: falesnyAdapter() };
+  const h = vytvorAI({ env: env(), adaptery: ad, uloziste: ul });
+  const r = await h(pozadavek("/api/ai", { method: "POST", headers: { authorization: `Bearer ${vydejToken(env()).token}` }, body: { ai: "claude", zpravy: [{ role: "user", text: "x" }] } }));
+  assert.equal(r.status, 402);
+  assert.equal(ad.claude.volani.length, 0);
 });
 
 test("Netlify AI Gateway: bez beta parametrů (hlavičky neprojdou), Grok přes OpenRouter", async () => {

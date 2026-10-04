@@ -68,7 +68,7 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
       try {
         vycerpano = dostupne.length > 0 && (await rozpocetVycerpan(await dejUloziste(), env, ted()));
       } catch {
-        // Bez úložiště stav nezjistíme; prohlížeč se dozví při prvním dotazu.
+        vycerpano = true; // bez úložiště AI nevoláme (viz POST)
       }
       const ai = dostupne.length > 0 && !vycerpano;
       return json({ ai, poskytovatele: ai ? dostupne.map((id) => POSKYTOVATELE[id].nazev) : [] }, 200, { "cache-control": "public, max-age=60" });
@@ -96,9 +96,9 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
       const povoleno = await povolVerejnyDotaz(store, klient, env, start);
       if (!povoleno.ok) return json({ rezim: "limit" }, 429);
     } catch (e) {
-      // Výpadek úložiště nesmí shodit asistenta, jen se nezapočítá útrata.
-      console.warn("asistent: úložiště nedostupné", e?.message);
-      store = null;
+      // Bez úložiště nejde hlídat limity ani rozpočet → AI se nevolá (ochrana kreditů), odpoví FAQ.
+      console.warn("asistent: úložiště nedostupné, AI vypnuta", e?.message);
+      return json({ rezim: "bez-ai", duvod: "uloziste" }, 503);
     }
 
     const ad = dejAdaptery();

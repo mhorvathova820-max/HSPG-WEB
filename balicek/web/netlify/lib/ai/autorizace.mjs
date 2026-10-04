@@ -42,12 +42,11 @@ export function overToken(token, env = process.env, ted = Date.now()) {
   return stejne(sig, podpis(platnost, klic));
 }
 
-// Interní endpointy přijmou token (Authorization: Bearer …) nebo heslo v x-panel-heslo (starší AI centrum).
+// Interní endpointy přijmou jen token (Authorization: Bearer …). Heslo se ověřuje výhradně v /api/majitel,
+// kde platí zámek po 5 chybných pokusech – jinde by šlo heslo hádat bez omezení.
 export function overPozadavek(req, env = process.env, ted = Date.now()) {
   if (!hesloNastaveno(env)) return { ok: false, status: 503, duvod: "HSPG_PANEL_HESLO není v Netlify nastavené (min. 16 znaků)." };
   const auth = req.headers.get("authorization") || "";
   if (auth.startsWith("Bearer ") && overToken(auth.slice(7), env, ted)) return { ok: true };
-  const heslo = req.headers.get("x-panel-heslo");
-  if (heslo && overHeslo(heslo, env)) return { ok: true };
   return { ok: false, status: 401, duvod: "Přihlášení vypršelo nebo je neplatné." };
 }
