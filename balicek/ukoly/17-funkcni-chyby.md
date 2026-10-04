@@ -195,7 +195,7 @@ Na mobilu je mezi začátkem `#holub-sekce` a tlačítkem „🕊 VYPUSŤTE HOLU
     - **Nikdy neskrývej `.sp-overlay`** (tisk podkladu SVJ).
 19. **Offline:**
     - Nová stránka `offline/index.html` na adrese **`/offline/`**. Adresářová podoba jako `/akce/` je zvolená proto, aby ji nezměnilo sjednocení `/x` vs. `/x.html` v úkolu 06. Service worker nesmí uložit přesměrovanou odpověď.
-    - Stránka je samostatná: inline CSS v paletě R7 (tmavě modrá a zlatá), žádné externí fonty ani skripty, `<meta name="robots" content="noindex">`, `<title>Jste offline | HOLUB – HSPG</title>`.
+    - Stránka je samostatná: inline CSS v paletě R7 (tmavě modrá a zlatá), žádné externí fonty ani skripty, bez `<footer>` (úkoly 03, 04, 08 a 09 ji z patiček vynechávají), `<meta name="robots" content="noindex">`, `<title>Jste offline | HOLUB – HSPG</title>`.
     - Obsah: nadpis „Jste offline“, věta „Stránku teď nejde načíst, protože zařízení není připojené k internetu.“, odkaz `tel:` s telefonem a pracovní doba z `content/firma.json` (`telefon`, `telefon_zobrazeni`, `pracovni_doba`; vygeneruj buildem, pokud to jde) a odkaz „Úvodní stránka“.
     - E-mail na stránku nedávej (úkol 03). Stránka nesmí být v sitemap.
     - `sw.js`:
@@ -203,12 +203,12 @@ Na mobilu je mezi začátkem `#holub-sekce` a tlačítkem „🕊 VYPUSŤTE HOLU
       - navigace offline: uložená stránka, jinak `/offline/`,
       - fallback na `/` a `/404.html` odstraň,
       - strategii pro CSS/JS a obrázky ani razítkování verze neměň.
-20. **CSP:** do `img-src` stávající hlavičky `Content-Security-Policy-Report-Only` přidej `blob:`, na jednom místě konfigurace. Nic dalšího v CSP neměň (úkoly 03 a 15).
+20. **CSP:** do `img-src` stávající hlavičky `Content-Security-Policy-Report-Only` přidej `blob:` hned za `data:` (`img-src 'self' data: blob: https://*.clarity.ms …`), na jednom místě konfigurace. Nic dalšího v CSP neměň (úkoly 03 a 15).
 21. **`hstone-rain`:**
     - V `resize()` použij `H = Math.min(výška hera, innerHeight)`. Plátnu dej v CSS stejnou výšku, např. `.hstone-rain{height:min(100%,100svh);bottom:auto}`.
     - `IntersectionObserver` sleduj na plátně, ne na celém heru.
     - Počet kapek se dál odvozuje z `W×H`, takže se na mobilu sám sníží.
-    - Na desktopu, kde se hero vejde na obrazovku, se vzhled nesmí změnit (snímek před a po).
+    - Na desktopu, kde se hero vejde na obrazovku (1920×1080: hero 964 px), se plátno nesmí změnit (rozměry před a po, snímek). Na 1366×900 a 1280×720 je hero (964 px) vyšší než okno, proto tam bude plátno vysoké jako okno a pokryje celou první obrazovku.
     - Ostatní optimalizace jsou úkol 07.
 22. Testy fáze B, Lighthouse před a po (homepage, `/kalkulacka-svj.html`), náhled, **hlášení po fázi B**. Produkce jen po schválení majitelem, v dávce s dalšími úkoly (15 kreditů za nasazení, KONTEXT §4 bod 4).
 
