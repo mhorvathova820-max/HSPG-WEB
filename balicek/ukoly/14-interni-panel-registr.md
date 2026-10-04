@@ -74,7 +74,9 @@ NE (patří jinam):
 - `AggregateRating`/`Review`, hvězdičky, pojistné částky a „satelitní analýza“ – **nikdy**.
 
 ## Postup
-Každá fáze má vlastní hlášení a dá se po ověření sloučit do `main` samostatně. Pokud fázi v sezení nestihneš, podej hlášení po poslední dokončené fázi a zastav se. Do produkce se nasazuje jen v dávce po schválení majitelem (KONTEXT §4.4).
+Každá fáze má vlastní hlášení a dá se po ověření sloučit do `main` samostatně. Do produkce se nasazuje jen v dávce po schválení majitelem (KONTEXT §4.4).
+- **B1 a B2 jdou do produkce jen společně.** Migrované pasy se otevřou až po vydání přístupového kódu v panelu (B2). Registr s kontakty a fotkami se do produkce nasadí až poté, co majitel schválí zásady s novým zpracováním (úkol 09).
+- **Když fázi v sezení nestihneš:** commitni hotové kroky do větve úkolu, podej hlášení „částečně“ s číslem posledního hotového kroku a zastav se. Zbytek dokonči v dalším sezení na téže větvi. Do `main` slučuj jen celou fázi. B1 je největší fáze: přirozená hranice je po krocích 1–6 a 9 (bez API a migrace), kroky 7–8 jdou do dalšího sezení.
 
 ### Fáze A – panel: jedno přihlášení, stav AI, AI centrum
 1. **Větev `ukol-14-interni-panel-registr` z aktuální `main`.** Předtím `git -C ../hspg-balicek pull`. Ověř, že je sloučený úkol 01: existují `netlify/lib/ai/autorizace.mjs`, `netlify/lib/ai/limity.mjs`, `netlify/functions/majitel.mjs`, `ai-stav.mjs`, `asistent.mjs`, `ai-centrum/index.html`, `assets/ai-klient.js`, `assets/hbot-panel.js` a `assets/hbot-majitel.js`. Pokud ne, zastav se a nahlas to.
@@ -99,7 +101,9 @@ Každá fáze má vlastní hlášení a dá se po ověření sloučit do `main` 
    - Pokud `rd-stav` dosud četl jinou proměnnou než `HSPG_PANEL_HESLO`, sjednoť to. Do hlášení napiš název staré proměnné (bez hodnoty), kterou má majitel po nasazení smazat.
    - V `overPozadavek()` odstraň větev `x-panel-heslo`. Napřed ověř přes `git grep -n "x-panel-heslo"`, že ji žádný klient nepoužívá. Jedinou cestou k heslu tak zůstane `/api/majitel` se zámkem pokusů. Testy webu uprav. Do hlášení napiš, že test balíčku „starší AI centrum: heslo v x-panel-heslo stále funguje“ je zastaralý (návrh pro balíček).
 4. **Sekce AI v panelu** (data z `GET /api/ai-stav` s tokenem; vykreslení jen přes `textContent`):
-   - Pro každého poskytovatele zobraz název, model a „klíč k dispozici“ / „klíč chybí“. **Nepiš „funguje“ ani ✓**, skutečný test funkčnosti přidá úkol 15. Až ho přidá do odpovědi `/api/ai-stav`, panel ho jen zobrazí.
+   - Pro každého poskytovatele zobraz název, model a „klíč k dispozici“ / „klíč chybí“. **Panel sám z existence klíče nikdy nevyvozuje „funguje“ ani ✓.**
+   - Úkol 15 běží před tímto úkolem. Pokud odpověď `/api/ai-stav` obsahuje `zdravi`, zobraz jeho semafor a text beze změny. „Funguje“ je pak v pořádku, protože vychází ze skutečného provozu. Pokud existuje `/api/provoz-stav`, sekce „Stav webu“ zobrazí jeho souhrn jen čtením. Funkce z úkolu 15 neměň.
+   - Texty sekce skládej v čisté funkci bez DOM (např. `textyAI(odpoved)` → pole řádků), aby šla otestovat s fixturami.
    - Dále zobraz:
      - stav „AI pro zákazníky zapnutá / vypnutá“ a z jakého důvodu (proměnná `AI_ZAPNUTO=0`, vypínač v panelu, vyčerpaný rozpočet),
      - „Útrata tento měsíc ≈ X Kč z limitu Y Kč (≈ A z B kreditů Netlify) – odhad podle tokenů“,
@@ -111,15 +115,17 @@ Každá fáze má vlastní hlášení a dá se po ověření sloučit do `main` 
      - Stav vypínače se drží v paměti funkce nejvýš 60 s. Když úložiště nejde přečíst, platí poslední známý stav, jinak „zapnuto“ (chování jako dnes).
      - Klíč s příponou kontextu (viz krok B1.1) zajistí, že přepnutí na náhledu nevypne produkci.
      - Odpověď `/api/ai-stav` rozšiř o `verejnyAsistentPanel` a `verejnyAsistentEnv`. Popisek v `assets/hbot-majitel.js` uprav tak, aby říkal skutečný důvod.
-   - Odkaz „AI centrum“ vede na `/ai-centrum/` **ve stejné kartě**. Token je v `sessionStorage` té karty a do karty otevřené přes `target="_blank"` se nemusí přenést (ověř v Chrome i Safari). Do `ai-centrum/index.html` přidej odkaz „← Interní panel“ a do seznamu odkazů v `assets/hbot-majitel.js` přidej „Interní panel“.
-   - Odkaz „Konzole Claude (útrata AI)“ odstraň, útrata je teď v panelu. Přidej „Netlify – spotřeba kreditů“ a přesnou adresu stránky Usage & billing ověř v účtu.
+   - Odkaz „AI centrum“ vede na `/ai-centrum/` **ve stejné kartě**. Token je v `sessionStorage` té karty a do karty otevřené přes `target="_blank"` se nemusí přenést. Proto odkazy panel ↔ AI centrum nemají `target="_blank"`. Lokálně ověř v Chrome, v Safari to ověří majitel na náhledu. Do `ai-centrum/index.html` přidej odkaz „← Interní panel“ a do seznamu odkazů v `assets/hbot-majitel.js` přidej „Interní panel“.
+   - Odkaz „Konzole Claude (útrata AI)“ odstraň, útrata je teď v panelu. Přidej „Netlify – spotřeba kreditů“. Tým zjisti přes `npx netlify status` a odkaz veď na stránku spotřeby týmu v rozhraní Netlify. Pokud přesnou adresu ověřit nejde, odkaz veď na `https://app.netlify.com/` a nahlas to.
    - Do panelu nevkládej `souhlas.js`, GTM, Clarity ani `hbot.js` (dnes je panel bez externích skriptů a tak to zůstane).
 5. **Hlavičky pro `/rd-control-panel/*`:** `X-Frame-Options: DENY`, `Cache-Control: no-store`, `X-Robots-Tag: noindex, nofollow` (stejně jako `/ai-centrum/*` z úkolu 01). Ověř na náhledu, že každá hlavička přijde **jen jednou**. Pokud obecné pravidlo pro `/*` posílá `SAMEORIGIN`, uprav pravidla tak, aby pro panel vyšla jediná hodnota `DENY`. CSP neměň (úkol 15) a `robots.txt` neměň (úkol 11). Panel ani AI centrum se nikdy nevkládají do `iframe`.
 6. **Testy fáze A** (`node --test` nebo konvence repozitáře; nové závislosti nepřidávej; soubory např. `tests/ukol-14/`). Funkce testuj přes jejich továrny (`vytvorX({ env, uloziste, ted })`) s paměťovým úložištěm, stejně jako testy balíčku:
    - `rd-stav`: bez tokenu 401, správné heslo v těle 401, správné heslo v `x-panel-heslo` 401, platný token 200, prošlý token 401,
    - `overPozadavek`: hlavička `x-panel-heslo` už neautorizuje,
    - vypínač: `POST /api/ai-stav` bez tokenu 401. S tokenem uloží a `GET /api/asistent` pak vrátí `ai:false` bez změny `env`. `AI_ZAPNUTO=0` přebije zapnutý vypínač. Klíč náhledu neovlivní produkční klíč,
-   - statická kontrola souborů panelu: `heslo` se posílá jen na `/api/majitel` a v `sessionStorage`/`localStorage` se heslo nikdy neukládá (`grep` v testu).
+   - statická kontrola souborů panelu: `heslo` se posílá jen na `/api/majitel` a v `sessionStorage`/`localStorage` se heslo nikdy neukládá (`grep` v testu),
+   - statická kontrola jednoho přihlášení: panel, `ai-centrum/index.html` a `assets/hbot-panel.js` používají stejné klíče `sessionStorage`, odkazy panel ↔ AI centrum nemají `target="_blank"` a `platform.claude.com` se v panelu nevyskytuje,
+   - sekce AI (`textyAI` s fixturami odpovědi `/api/ai-stav`): bez `zdravi` není v textu „funguje“ ani ✓, se `zdravi` se text převezme z odpovědi, útrata je v Kč i v kreditech a při `utrata: null` vyjde „Útratu teď nejde načíst.“.
 7. **Lokální ověření:** `netlify dev` s **testovacím** heslem v `.env` (soubor je v `.gitignore`, nikdy skutečné heslo). Přihlas se do panelu → přejdi do AI centra bez druhého přihlášení → vrať se zpět → vyzkoušej vypínač → odhlas se. V záložce Network ověř, že heslo odešlo jen v jednom požadavku na `/api/majitel`. Pak `npm run nahled` (náhled zdarma) a `curl -sI` hlaviček. Přihlášení na náhledu provede majitel, agent heslo nezná.
 8. **Hlášení fáze A a zastav se.**
 
@@ -186,7 +192,7 @@ Každá fáze má vlastní hlášení a dá se po ověření sloučit do `main` 
    - `DELETE /api/registr/<kod>/kontakt` smaže kontakt (doba uchování `[DOPLNIT: úkol 09]`).
    - Chybu validace vrátí jako 400 `{"chyby": {"<pole>": "<zpráva>"}}`.
    - Do logu nikdy nejde obec, kontakt, kód ani přístupový kód (`console.log` jen technické stavy).
-8. **Migrace stávající evidence** (podle zjištění z A2). Převeď záznamy do schématu B1.2. Migrované záznamy dostanou `pristup_otisk: null`, takže pas se neotevře, dokud majitel v panelu nevydá přístupový kód. Panel ukáže „N zakázek bez přístupového kódu“.
+8. **Migrace stávající evidence** (podle zjištění z A2). Převeď záznamy do schématu B1.2. Migrované záznamy dostanou `pristup_otisk: null`, takže pas se neotevře, dokud majitel v panelu nevydá přístupový kód (tlačítko přibude v B2.1). Sekce „Stav webu“ ukáže z čísel `rd-stav` „N zakázek bez přístupového kódu“.
    - Migraci proveď jednorázově přes chráněný endpoint nebo přes `npx netlify blobs:set` (ověř `--help`).
    - Po ověření odstraň starý zdroj z repozitáře. Historii nepřepisuj, a pokud starý zdroj obsahoval osobní údaje, nahlas to majiteli (repozitář webu je soukromý, úkol 00).
    - Pokud `rd-stav` kontroloval evidenci v repozitáři, přepni kontrolu na registr. Výstupem jsou jen čísla: počet zakázek a počet zakázek bez přístupového kódu.
@@ -195,17 +201,19 @@ Každá fáze má vlastní hlášení a dá se po ověření sloučit do `main` 
    - přístupový kód: délka, abeceda, normalizace vstupu. V uloženém JSON se hodnota přístupového kódu nevyskytuje,
    - `sentinel-validate`: GET 405. Samotný kód, chybný přístupový kód, neexistující kód i záznam bez přístupového kódu dají **shodný** stav i tělo. Správná dvojice vrátí 200 přesně s povolenými klíči (test whitelistu). 6. neúspěch během 15 min vrátí 429,
    - výběr úložiště podle kontextu (produkční jen v produkci),
-   - statické kontroly: `pas-domu` nevykresluje `poznamka`, `/recenze/` nevolá `/api/sentinel/validate`, formulář `/recenze/` nemá pole s přístupovým kódem.
+   - statické kontroly: `pas-domu` nevykresluje `poznamka`, inline skript pasu volá `history.replaceState(null, '', location.pathname)` dřív než `fetch`, `/recenze/` nevolá `/api/sentinel/validate`, formulář `/recenze/` nemá pole s přístupovým kódem,
+   - e2e testy z úkolu 17, které otevírají pas s mockem `/api/sentinel/validate` (`page.route`), uprav na dvojici kód pasu + přístupový kód a na nový tvar odpovědi bez `poznamka`. Musí dál projít. Přidej e2e: po otevření `#kod=HS-2099-0001&pristup=…` (mock) adresa fragment neobsahuje.
 10. **Hlášení fáze B1 a zastav se.** Uveď jen čísla (počty záznamů), žádné kódy ani obce.
 
 ### Fáze B2 – zadání zakázky do 2 minut (panel)
 1. **Sekce „Registr“ v panelu.** Seznam obsahuje kód, datum, obec, služby, ikony souhlasů, stav žádosti o hodnocení a štítky „bez přístupového kódu“ a „bez fotek“. Tlačítko „+ Nová zakázka“. Vše se vykresluje přes `textContent`, žádné `innerHTML` s daty.
+   - V detailu zakázky je tlačítko „Vydat nový přístupový kód“ (`POST /api/registr/<kod>/pristup`). Před vydáním se zobrazí potvrzení „Starý přístupový kód přestane platit.“ Pak následuje obrazovka „Hotovo“ (krok 4). Tudy majitel vydá kódy i migrovaným zakázkám.
 2. **Formulář** je navržený pro mobil: 390 px bez vodorovného posunu, ovládací prvky ≥ 44 px, `<label>` u každého pole, chyby u pole přes `aria-describedby`, po chybě se data zachovají.
-   - **Povinná pole (nejvýš 7):**
+   - **Povinná pole (nejvýš 7 ve výchozím stavu, tj. jeden povrch a žádný souhlas; „+ Další povrch“ a „Doklad souhlasu“ přidávají povinná pole až podle volby):**
      1. datum ošetření (výchozí dnes),
      2. obec,
      3. PSČ (`^\d{3} ?\d{2}$`, `inputmode="numeric"`),
-     4. okres (výběr z `content/kraje.json`, pokud ho úkol 12 zavedl, jinak ze stejného zdroje jako `scripts/build-regions.mjs`; `kraj_slug` se doplní sám),
+     4. okres (výběr ze stejného zdroje okresů jako `scripts/build-regions.mjs`; `content/kraje.json` zavede až úkol 12, druhý zdroj nezakládej). `kraj_slug` se doplní z téhož zdroje. Pokud tam příslušnost ke kraji chybí, ulož `kraj_slug: null` a nahlas to úkolu 12. Export (C1) pak kraj doplní z aktuálního zdroje krajů, a když ho nezjistí, položku vynechá,
      5. služba (výběr z klíčů `content/ceny.json` s popisky z ceníku),
      6. plocha m² (číslo > 0 a ≤ 100 000),
      7. šarže H-STONE (povinná jen u `ochrana_hstone.*`; předvyplní se poslední hodnota z `localStorage`, protože to není osobní údaj).
@@ -219,13 +227,16 @@ Každá fáze má vlastní hlášení a dá se po ověření sloučit do `main` 
      Při zaškrtnutí kteréhokoli souhlasu je povinné pole „Doklad souhlasu“ (např. „předávací protokol 3. 10., podpis“), protože `/reference.html` slibuje písemný souhlas. `souhlas.datum` se doplní automaticky.
    - **Text souhlasu** dej do `content/registr.json` → `souhlas_text` (`"schvaleno": false`). Panel ho nabídne k přečtení a tisku. Návrh k revizi majitelem (případně právníkem; souvisí s úkolem 09), placeholdery z `content/firma.json`:
      > Souhlasím, aby {{znacka}} ({{provozovatel}}, IČO {{ico}}) zveřejnil na {{web}} a ve svých materiálech: ☐ obec, druh a rozsah provedené práce a měsíc realizace; ☐ fotografie před a po (bez adresy a bez osob, poloha z fotografií odstraněna). ☐ Souhlasím se zasláním jednoho e-mailu se žádostí o hodnocení. Souhlas mohu kdykoli odvolat na {{email}} nebo {{telefon_zobrazeni}}; zveřejnění pak odstraníte. [DOPLNIT: schválení znění majitelem]
+
+     Dokud `schvaleno !== true`, panel text jen zobrazí s označením „Čeká na schválení“ a tisk nenabídne. Text s `[DOPLNIT` se nikdy netiskne (test).
+   - **Registr zpracování (úkol 09).** Pokud existuje `content/zpracovani.json`, zapiš do něj podle jeho struktury nové zpracování: registr zakázek, fotky před/po, kontakty pro žádost o hodnocení, souhlasy a doklady, otisk klienta u pasu domu. Přidej i klíč `localStorage` pro šarži. Testy z úkolu 09 musí projít. Změnu znění zásad uveď v hlášení ke schválení majitelem. Pokud registr neexistuje, jen to nahlas.
 3. **Fotky.**
    - Klient: `createImageBitmap(soubor, { imageOrientation: "from-image" })` → canvas, delší strana nejvýš 1600 px → `toBlob("image/webp", 0.8)`. Pokud prohlížeč WebP nevytvoří (kontroluj `blob.type`, Safari může vrátit PNG), použij `toBlob("image/jpeg", 0.85)`. Překreslením přes canvas zmizí EXIF i poloha (`/reference.html` slibuje „Z fotek odstraňujeme polohu“). Zobraz náhled a velikost.
    - Odesílání: každá fotka zvlášť přes `PUT /api/registr/<kod>/foto/<pred|po>` (binárně, `content-type` `image/webp` nebo `image/jpeg`, rozměry v hlavičkách `x-sirka` / `x-vyska`), až po uložení zakázky.
    - Server přijme jen WebP/JPEG podle magických bajtů a nejvýš 1,5 MB. Odmítne soubor s metadaty: JPEG s jakýmkoli segmentem APP1, WebP s blokem `EXIF` nebo `XMP `. Uloží ho do `foto/<kod>/<pred|po>` s metadaty (typ, velikost, rozměry).
    - Limit těla požadavku funkce ověř v dokumentaci Netlify. Ověř i to, jestli a jak se Netlify Blobs účtují v kreditech, a uveď to v hlášení.
    - Panel zobrazuje fotky přes `fetch` s tokenem → `URL.createObjectURL` (obrázek hlavičku `Authorization` neposlat neumí). `GET` a `DELETE` téže cesty jsou jen pro přihlášeného.
-   - Ručně ověř na iPhonu (HEIC z galerie) i na Androidu.
+   - Na iPhonu (HEIC z galerie) a na Androidu to ověří majitel na náhledu. Agent to uvede v hlášení jako bod k ověření.
 4. **Po uložení** se zobrazí obrazovka „Hotovo“:
    - kód pasu, přístupový kód velkým písmem, odkaz na pas (tvar z B1.5) s tlačítkem „Kopírovat“,
    - tlačítka „Vytisknout certifikát“ a „Zpět na seznam“,
@@ -235,12 +246,13 @@ Každá fáze má vlastní hlášení a dá se po ověření sloučit do `main` 
    - Na certifikátu nesmí být jméno, adresa, pojištění ani hodnocení.
    - QR kód přidej jen tehdy, když repozitář už generátor má (zjištění z A2). Jinak QR vynech a navrhni ho v hlášení. Novou závislost nepřidávej.
 6. **Testy B2:**
-   - formulář má nejvýš 7 polí `required` a souhlasy nejsou ve výchozím stavu `checked`,
+   - formulář má ve výchozím stavu nejvýš 7 polí `required` a souhlasy nejsou `checked`,
+   - při `souhlas_text.schvaleno !== true` panel nenabízí tisk souhlasu,
    - server: neplatné PSČ, plocha ≤ 0, neznámý okres a neznámý klíč služby vrátí 400 s názvem pole. Souhlas bez dokladu vrátí 400. Chybějící šarže u H-STONE vrátí 400,
    - fotky: soubor, který není obrázek, soubor > 1,5 MB a JPEG s APP1 / WebP s `EXIF` vrátí 400. Čistý WebP/JPEG vrátí 200. Fixtury sestav v testu z bajtů, ne ze skutečných fotek,
    - detail zakázky přístupový kód nevrací,
    - certifikát obsahuje větu a podmínku záruky **shodnou** s centrálním zdrojem a neobsahuje „15 let“ ani „pojišt“.
-   - Pokud repozitář má Playwright, přidej e2e testy (zadání zakázky s fiktivními daty na 390 px, žádný vodorovný posun, axe bez vážných chyb). Jinak udělej ruční kontrolu na náhledu se snímky jen s fiktivními daty.
+   - Pokud repozitář má Playwright (zavádí ho úkol 17), přidej e2e testy: zadání zakázky s fiktivními daty na 390 px a mockovaným API, `document.documentElement.scrollWidth <= 390`, axe bez vážných chyb. Jinak udělej ruční kontrolu na náhledu se snímky jen s fiktivními daty a v hlášení uveď, proč e2e chybí.
 7. **Hlášení fáze B2 a zastav se.** Přilož čas zadání jedné zakázky na mobilu (změří majitel na náhledu, data „Testov“) a velikost testovací fotky před a po zmenšení.
 
 ### Fáze C – výstupy z registru
@@ -306,44 +318,51 @@ Každá fáze má vlastní hlášení a dá se po ověření sloučit do `main` 
 
 ## Akceptační kritéria
 **Fáze A**
-- [ ] `git grep -n "x-panel-heslo"` → 0 výskytů v kódu. Test: požadavek s touto hlavičkou a správným heslem vrátí 401.
+- [ ] `git grep -n "x-panel-heslo" -- . ':!tests'` → 0 výskytů (testy tu hlavičku záměrně posílají). Test: požadavek s touto hlavičkou a správným heslem vrátí 401.
 - [ ] Testy `rd-stav`: bez tokenu 401, heslo v těle 401, platný token 200, prošlý token 401.
-- [ ] Heslo se v souborech panelu posílá jen na `/api/majitel` a nikde se neukládá (statický test). V DevTools → Application → Session/Local Storage je jen token a platnost, žádné heslo (ruční kontrola, snímek).
+- [ ] Heslo se v souborech panelu posílá jen na `/api/majitel` a nikde se neukládá (statický test).
 - [ ] Vypínač: test přepnutí bez nasazení (`/api/asistent` → `ai:false`), `AI_ZAPNUTO=0` má přednost, klíč náhledu ≠ klíč produkce.
-- [ ] Panel ukazuje u AI „klíč k dispozici / chybí“ (nikde „funguje“ ani ✓), útratu v Kč i v kreditech a srozumitelný stav bez úložiště.
+- [ ] Test `textyAI`: bez `zdravi` u AI jen „klíč k dispozici / chybí“ (žádné „funguje“ ani ✓), se `zdravi` text z odpovědi, útrata v Kč i v kreditech, při `utrata: null` „Útratu teď nejde načíst.“.
 - [ ] `curl -sI <náhled>/rd-control-panel/`: `x-frame-options: DENY`, `x-robots-tag: noindex, nofollow`, `cache-control: no-store`, každá hlavička právě jednou. Totéž pro `/ai-centrum/`.
-- [ ] Panel → AI centrum → panel bez druhého přihlášení (lokálně agent, na náhledu majitel). Odkaz „Konzole Claude“ zmizel.
+- [ ] Statický test jednoho přihlášení (stejné klíče `sessionStorage` ve třech souborech, odkazy bez `target="_blank"`). `git grep -n "platform.claude.com"` → 0. Průchod panel → AI centrum → panel bez druhého přihlášení agent ověří lokálně (`netlify dev`) a zapíše do hlášení.
 
 **Fáze B1**
 - [ ] `sentinel-validate`: GET 405. Samotný kód, chybný přístupový kód a neexistující kód dají shodný stav 404 i shodné tělo (test porovná řetězce). Správná dvojice vrátí 200 s klíči přesně podle whitelistu. 6. neúspěch → 429.
 - [ ] V uloženém záznamu není hodnota přístupového kódu, jen otisk (test).
-- [ ] `grep -n "poznamka" <zdroj pas-domu>` → 0. `grep -n "sentinel/validate" <zdroj recenze>` → 0. `grep -n 'placeholder="HS-2026-0001"'` → 0.
-- [ ] Fragment s kódem se po načtení pasu odstraní z adresního řádku (e2e nebo ruční kontrola na náhledu s fiktivním záznamem v úložišti náhledu).
+- [ ] `grep -n "poznamka" <zdroj pas-domu>` → 0. `grep -n "sentinel/validate" <zdroj recenze>` → 0. `git grep -n "HS-2026-0001"` → 0.
+- [ ] Fragment s kódem se po načtení pasu odstraní z adresního řádku: statický test (`history.replaceState` před `fetch`) a e2e s mockem, pokud je ve webu Playwright. E2e testy pasu z úkolu 17 po úpravě prošly.
 - [ ] `git grep -nE "HS-20[0-9]{2}-[0-9]{4}"` mimo testy najde jen ukázku `HS-2026-0000` (a vzory jako `HS-RRRR-ČČČČ`). V repozitáři nejsou žádné skutečné kódy, obce zákazníků ani kontakty.
 - [ ] Úložiště: produkce `hspg-registr`, jinde `hspg-registr-nahled` (test výběru + výpis kontextu v hlášení).
 - [ ] Hlášení obsahuje počet migrovaných záznamů a počet záznamů bez přístupového kódu (jen čísla).
 
 **Fáze B2**
-- [ ] Formulář: ≤ 7 polí `required`, souhlasy nejsou `checked`, souhlas bez dokladu → 400 (testy).
+- [ ] Formulář: ve výchozím stavu ≤ 7 polí `required`, souhlasy nejsou `checked`, souhlas bez dokladu → 400, neschválený text souhlasu nejde vytisknout (testy).
 - [ ] Validace serveru (PSČ, plocha, okres, služba, šarže) → 400 s názvem pole (testy).
-- [ ] Fotky: obrázek s EXIF/XMP → 400, > 1,5 MB → 400, čistý WebP/JPEG → 200 (testy). Testovací fotka z mobilu má po zmenšení ≤ 1,5 MB a `exiftool` (nebo jiná kontrola metadat) nenajde polohu.
+- [ ] Fotky: obrázek s EXIF/XMP → 400, > 1,5 MB → 400, čistý WebP/JPEG → 200 (testy).
 - [ ] Přístupový kód se zobrazí jen jednou a detail ho nevrací (test).
 - [ ] Certifikát obsahuje záruku shodnou s centrálním zdrojem a neobsahuje „15 let“ ani „pojišt“ (test).
-- [ ] Na 390 px žádný vodorovný posun. Majitel na náhledu zadá fiktivní zakázku do 2 minut (čas v hlášení).
+- [ ] Na 390 px žádný vodorovný posun: e2e (`scrollWidth <= 390`), nebo bez Playwrightu snímek z náhledu s fiktivními daty.
 - [ ] `grep -n "innerHTML"` v nových souborech panelu → 0, nebo jen statické šablony bez dat (seznam v hlášení).
+- [ ] Testy z úkolu 09 (registr zpracování) prošly i s novými záznamy, nebo hlášení uvádí, že registr neexistuje.
 
 **Fáze C**
 - [ ] Testy exportu (souhlas, whitelist, odvolání, `--kontrola`) prošly. Se současnými daty build nezměnil `/reference.html` ani homepage (`git diff --stat`).
 - [ ] Testy žádosti o hodnocení (nezávislost na spokojenosti, zákaz pobídek, 409, neaktivní tlačítka bez schválení) prošly.
 - [ ] Bez platného Google odkazu se blok `RECENZE-GOOGLE` nevytvoří a panel upozorní. S platným odkazem (fixtura) se vytvoří.
 - [ ] Test-pojistka: `/pojišt|pojist/i` ve výstupu webu → 0 (nebo jen odůvodněné výjimky) a nikde `10 000 000` ve spojení s pojištěním.
-- [ ] Panel má sekce Stav webu · AI · Registr · Hodnocení · Podklady a bez přihlášení nezobrazí žádná data.
+- [ ] Statický test: HTML panelu má sekce Stav webu · AI · Registr · Hodnocení · Podklady a neobsahuje žádná data zakázek (data jdou jen z API). `curl` bez tokenu na `/api/registr`, `/api/ai-stav` a `/api/rd-stav` (metodou zvolenou v A3) na náhledu → 401.
+
+**Ověří majitel na náhledu** (agent připraví náhled s fiktivními daty a body uvede v hlášení; nejsou to příkazy agenta):
+- přihlášení → AI centrum → zpět → vypínač → odhlášení, i v Safari. V DevTools → Application → Session/Local Storage je jen token a platnost, žádné heslo,
+- zadání fiktivní zakázky („Testov“) na mobilu do 2 minut (čas do hlášení),
+- fotka z iPhonu (HEIC) a z Androidu: po zmenšení ≤ 1,5 MB a bez polohy (server ji s metadaty odmítne).
 
 ## Ověření
 ```
 git -C ../hspg-balicek pull
 node --test tests/ukol-14/                      # nebo test skript repozitáře → vše prošlo, uveď počet
-git grep -n "x-panel-heslo"                     # → nic
+git grep -n "x-panel-heslo" -- . ':!tests'      # → nic
+git grep -n "platform.claude.com"               # → nic
 git grep -nE "HS-20[0-9]{2}-[0-9]{4}" -- . ':!tests'   # → jen HS-2026-0000 (ukázka)
 netlify dev                                     # lokálně s testovacím heslem v .env (v .gitignore)
 npm run nahled                                  # náhled zdarma → <náhled>
@@ -351,6 +370,7 @@ curl -sI <náhled>/rd-control-panel/ | grep -iE "x-frame-options|x-robots-tag|ca
 curl -sI <náhled>/ai-centrum/      | grep -iE "x-frame-options|x-robots-tag|cache-control"
 curl -s -o /dev/null -w "%{http_code}\n" <náhled>/api/registr                 # 401
 curl -s -o /dev/null -w "%{http_code}\n" <náhled>/api/ai-stav                 # 401
+curl -s -o /dev/null -w "%{http_code}\n" -X <metoda z A3> <náhled>/api/rd-stav   # 401 (bez tokenu)
 curl -s -o /dev/null -w "%{http_code}\n" <náhled>/api/sentinel/validate       # 405 (GET)
 for i in 1 2 3 4 5 6; do curl -s -o /dev/null -w "%{http_code} " -X POST -H "content-type: application/json" \
   -d '{"sentinel_code":"HS-2099-0001","pristup":"0000-0000-0000"}' <náhled>/api/sentinel/validate; done   # 404 ×5, pak 429
@@ -402,7 +422,8 @@ Formát z `KONTEXT.md` §5 po **každé** fázi. Navíc:
   - snímky formuláře a certifikátu na 390 px (jen fiktivní data),
   - čas zadání změřený majitelem,
   - velikost fotky před a po zmenšení a výsledek kontroly metadat,
-  - zjištění k limitu těla funkce a účtování Netlify Blobs.
+  - zjištění k limitu těla funkce a účtování Netlify Blobs,
+  - co přibylo v registru zpracování z úkolu 09 a jak se tím mění znění zásad (nebo že registr neexistuje).
 - **Fáze C:**
   - počet položek a fotek v exportu (0 je v pořádku),
   - `git diff --stat` buildu referencí,
@@ -416,8 +437,10 @@ Formát z `KONTEXT.md` §5 po **každé** fázi. Navíc:
   - vydání a předání přístupových kódů ke stávajícím pasům,
   - doklad o pojištění (do té doby se pojištění nikde neuvádí),
   - doba uchování kontaktů (úkol 09),
+  - schválení zásad s novým zpracováním před produkčním nasazením B1/B2,
   - kontrola checklistu hesel z úkolu 00 (heslo panelu nesmí být to z e-mailu „Master plán“).
-- **Pro úkol 09:** nové zpracování – registr zakázek v Netlify Blobs (obec, PSČ, okres, plochy, šarže), fotky před/po, kontakty pro žádost o hodnocení, souhlasy a jejich doklady, otisk klienta pro omezení pokusů u pasu domu.
+- **Pro úkol 09** (už proběhl, jen kontrola znění): nové zpracování – registr zakázek v Netlify Blobs (obec, PSČ, okres, plochy, šarže), fotky před/po, kontakty pro žádost o hodnocení, souhlasy a jejich doklady, otisk klienta pro omezení pokusů u pasu domu. Do registru zpracování ho zapisuje krok B2.2.
+- **Pro úkol 12:** schéma exportu, `fotovoltaika` navíc a stav `kraj_slug` (z jakého zdroje, případně kolik zakázek má `null`).
 - **Návrhy mimo rozsah:**
   - token v HttpOnly cookie místo `sessionStorage` (audit-ai_integrace.json #12, #19),
   - seznam poptávek v panelu přes Netlify Forms API (vyžaduje token, rozhodnutí majitele),
@@ -426,4 +449,5 @@ Formát z `KONTEXT.md` §5 po **každé** fázi. Navíc:
   - generátor QR pro certifikát,
   - interní poznámka k zakázce, která nikdy neopustí panel,
   - blok ověřených realizací v podkladu pro SVJ,
-  - úprava testu balíčku k `x-panel-heslo`.
+  - úprava testu balíčku k `x-panel-heslo`,
+  - souhrn `/api/provoz-stav` v panelu, pokud ho úkol 15 nezavedl.

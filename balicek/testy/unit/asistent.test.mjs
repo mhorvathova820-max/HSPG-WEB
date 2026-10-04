@@ -188,3 +188,32 @@ test("telefon a e-mail návštěvníka do AI neodchází", async () => {
   await h(post({ zpravy: [{ role: "user", text: "Zavolejte mi na 603 111 222" }] }));
   assert.equal(ad.claude.volani[0].zpravy[0].text, "Zavolejte mi na [telefon]");
 });
+
+test("rozpočet: rezervace před voláním – při malém limitu AI vůbec nezavolá", async () => {
+  const { h, ad } = sestav({ e: env({ AI_MESICNI_LIMIT_KC: "0.01" }) });
+  const r = await h(post());
+  assert.equal(r.status, 503);
+  assert.equal((await r.json()).duvod, "rozpocet");
+  assert.equal(ad.claude.volani.length, 0);
+});
+
+test("souběžné dotazy nepřetečou limit na návštěvníka (podmíněné zápisy)", async () => {
+  const { h } = sestav();
+  const vysledky = await Promise.all(Array.from({ length: 20 }, () => h(post(), { ip: "7.7.7.7" })));
+  assert.equal(vysledky.filter((r) => r.status === 200).length, 12);
+  assert.equal(vysledky.filter((r) => r.status === 429).length, 8);
+});
+
+test("cizí web nesmí asistenta volat (Origin), web a náhledy ano", async () => {
+  const { h } = sestav();
+  const s = (origin) => h(pozadavek("/api/asistent", { method: "POST", body: OTAZKA, headers: { origin } })).then((r) => r.status);
+  assert.equal(await s("https://zly-web.example"), 403);
+  assert.equal(await s("https://hspg.cz"), 200);
+  assert.equal(await s("https://deploy-preview-3--tourmaline-dasik-9de005.netlify.app"), 200);
+});
+
+test("pravidlo Netlify rateLimit je v konfiguraci funkce", async () => {
+  const { config } = await import("../../web/netlify/functions/asistent.mjs");
+  assert.equal(config.path, "/api/asistent");
+  assert.deepEqual(config.rateLimit.aggregateBy, ["ip", "domain"]);
+});

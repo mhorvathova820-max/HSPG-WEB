@@ -68,18 +68,21 @@ const claude = (env) => ({
 // --- ChatGPT a Grok (stejné rozhraní, Grok má jinou adresu) ---
 const openaiKompatibilni = (env, id, apiKey, baseURL) => {
   const klient = () => new OpenAI({ apiKey, baseURL, maxRetries: 0 });
+  // Uvažující modely (gpt-5…, o3…) počítají tokeny uvažování do max_completion_tokens – pro rychlé
+  // veřejné odpovědi proto nízké uvažování, jinak by odpověď mohla zůstat prázdná.
+  const uvazovani = (p) => (p.rychle && /^(gpt-5|o\d)/.test(POSKYTOVATELE[id].model(env)) ? { reasoning_effort: "low" } : {});
   const zpravy = (p) => [{ role: "system", content: p.system }, ...p.zpravy.map((z) => ({ role: z.role, content: z.text }))];
   return {
     async dotaz(p) {
       const r = await klient().chat.completions.create(
-        { model: POSKYTOVATELE[id].model(env), max_completion_tokens: p.maxTokenu, messages: zpravy(p) },
+        { model: POSKYTOVATELE[id].model(env), max_completion_tokens: p.maxTokenu, messages: zpravy(p), ...uvazovani(p) },
         { signal: p.signal },
       );
       return { text: r.choices?.[0]?.message?.content || "", stat: { vstup: r.usage?.prompt_tokens || 0, vystup: r.usage?.completion_tokens || 0 } };
     },
     async *stream(p) {
       const s = await klient().chat.completions.create(
-        { model: POSKYTOVATELE[id].model(env), stream: true, stream_options: { include_usage: true }, max_completion_tokens: p.maxTokenu, messages: zpravy(p) },
+        { model: POSKYTOVATELE[id].model(env), stream: true, stream_options: { include_usage: true }, max_completion_tokens: p.maxTokenu, messages: zpravy(p), ...uvazovani(p) },
         { signal: p.signal },
       );
       for await (const ch of s) {
@@ -96,22 +99,21 @@ const openaiKompatibilni = (env, id, apiKey, baseURL) => {
 const gemini = (env) => {
   const ai = () => new GoogleGenAI({ apiKey: env.GEMINI_API_KEY, ...(env.GOOGLE_GEMINI_BASE_URL ? { httpOptions: { baseUrl: env.GOOGLE_GEMINI_BASE_URL } } : {}) });
   const obsah = (p) => p.zpravy.map((z) => ({ role: z.role === "assistant" ? "model" : "user", parts: [{ text: z.text }] }));
-  const stat = (u) => ({ vstup: u?.promptTokenCount ?? 0, vystup: u?.candidatesTokenCount ?? 0 });
+  // Tokeny uvažování (thoughtsTokenCount) se účtují jako výstup.
+  const stat = (u) => ({ vstup: u?.promptTokenCount ?? 0, vystup: (u?.candidatesTokenCount ?? 0) + (u?.thoughtsTokenCount ?? 0) });
+  const nastaveni = (p) => ({
+    systemInstruction: p.system,
+    maxOutputTokens: p.maxTokenu,
+    abortSignal: p.signal,
+    ...(p.rychle && /gemini-(2\.5|3)/.test(POSKYTOVATELE.gemini.model(env)) ? { thinkingConfig: { thinkingBudget: 512 } } : {}),
+  });
   return {
     async dotaz(p) {
-      const r = await ai().models.generateContent({
-        model: POSKYTOVATELE.gemini.model(env),
-        contents: obsah(p),
-        config: { systemInstruction: p.system, maxOutputTokens: p.maxTokenu, abortSignal: p.signal },
-      });
+      const r = await ai().models.generateContent({ model: POSKYTOVATELE.gemini.model(env), contents: obsah(p), config: nastaveni(p) });
       return { text: r.text || "", stat: stat(r.usageMetadata) };
     },
     async *stream(p) {
-      const s = await ai().models.generateContentStream({
-        model: POSKYTOVATELE.gemini.model(env),
-        contents: obsah(p),
-        config: { systemInstruction: p.system, maxOutputTokens: p.maxTokenu, abortSignal: p.signal },
-      });
+      const s = await ai().models.generateContentStream({ model: POSKYTOVATELE.gemini.model(env), contents: obsah(p), config: nastaveni(p) });
       let posledni;
       let konec;
       for await (const ch of s) {

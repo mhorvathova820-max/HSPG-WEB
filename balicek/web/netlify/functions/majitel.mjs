@@ -1,7 +1,7 @@
 // /api/majitel – přihlášení majitele do plovoucího panelu „Vše ve tvých rukách“ a do AI centra.
 //   POST { heslo } -> { token, platnost }   (5 neúspěšných pokusů / 15 min, pak 429)
 //   GET  (Authorization: Bearer …) -> { ok: true } | 401
-import { overHeslo, vydejToken, overPozadavek, hesloNastaveno } from "../lib/ai/autorizace.mjs";
+import { overHeslo, vydejToken, overPozadavek, hesloNastaveno, povolenyOrigin } from "../lib/ai/autorizace.mjs";
 import { vychoziUloziste, otiskKlienta, povolPokusOPrihlaseni, zapisNeuspesnePrihlaseni } from "../lib/ai/limity.mjs";
 
 const json = (data, status = 200) =>
@@ -18,6 +18,7 @@ export function vytvorPrihlaseni({ env = process.env, uloziste, ted = () => Date
       return a.ok ? json({ ok: true }) : json({ chyba: a.duvod }, a.status);
     }
     if (req.method !== "POST") return json({ chyba: "Použijte POST." }, 405);
+    if (!povolenyOrigin(req.headers.get("origin"), env)) return json({ chyba: "Nepovolený původ požadavku." }, 403);
     if (!hesloNastaveno(env)) return json({ chyba: "HSPG_PANEL_HESLO není v Netlify nastavené (min. 16 znaků)." }, 503);
 
     const klient = otiskKlienta(context.ip || req.headers.get("x-nf-client-connection-ip"), ted());
@@ -46,4 +47,5 @@ export function vytvorPrihlaseni({ env = process.env, uloziste, ted = () => Date
 
 export default vytvorPrihlaseni();
 
-export const config = { path: "/api/majitel" };
+// Druhé (a poslední) pravidlo Netlify v kódu pro tarif Personal – hráz proti hádání hesla.
+export const config = { path: "/api/majitel", rateLimit: { windowLimit: 10, windowSize: 60, aggregateBy: ["ip", "domain"] } };

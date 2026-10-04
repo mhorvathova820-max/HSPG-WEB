@@ -110,7 +110,7 @@ test("mobil 390 px: lišta Zavolat · Zeptat se · Cena, panel jako spodní list
   await p.waitForSelector("#hspg-lista .hl-bot");
   assert.equal(await p.isHidden("#hbot-btn"), true);
   const polozky = await p.$$eval("#hspg-lista > *", (e) => e.map((x) => x.textContent.trim()));
-  assert.deepEqual(polozky, ["📞 Zavolat", "💬 Zeptat se", "🕊 Cena do 24 h"]);
+  assert.deepEqual(polozky, ["Zavolat", "Zeptat se", "Cena do 24 h"]);
   await p.evaluate(() => { localStorage.removeItem("hspg-souhlas"); });
   await p.click("#hspg-lista .hl-bot");
   await p.waitForSelector("#hbot:not([hidden]) .hb-chip");
@@ -122,6 +122,24 @@ test("mobil 390 px: lišta Zavolat · Zeptat se · Cena, panel jako spodní list
   const zavrit = await p.locator("#hbot .hb-close").boundingBox();
   assert.ok(zavrit.y >= 0 && zavrit.height >= 40, "zavírací tlačítko je vidět a má ≥ 40 px");
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  assert.ok(await p.evaluate(() => document.getElementById("hbot").getBoundingClientRect().width <= innerWidth), "panel není širší než obrazovka");
+});
+
+test("mobilní lišta: popisky na jeden řádek a bez přetečení na šířkách 320–412 px", async () => {
+  for (const sirka of [320, 344, 360, 375, 390, 393, 412]) {
+    const { p } = await stranka("ai", { sirka, vyska: 800 });
+    await p.waitForSelector("#hspg-lista .hl-bot");
+    const vada = await p.$$eval("#hspg-lista > *", (e) => e.filter((x) => x.getBoundingClientRect().height > 52 || x.scrollWidth > x.clientWidth + 1 || x.getBoundingClientRect().right > innerWidth).map((x) => x.textContent.trim()));
+    assert.deepEqual(vada, [], `šířka ${sirka}px`);
+    await p.context().close();
+  }
+});
+
+test("běžný návštěvník nevidí přihlášení majitele", async () => {
+  const { p } = await stranka("ai");
+  await p.click("#hbot-btn");
+  await p.waitForSelector("#hbot .hb-chip");
+  assert.equal(await p.isVisible("#hbot [data-majitel]"), false);
 });
 
 test("přístupnost otevřeného panelu (axe): žádné vážné ani kritické chyby", async () => {
@@ -134,10 +152,9 @@ test("přístupnost otevřeného panelu (axe): žádné vážné ani kritické c
   assert.deepEqual(vazne, [], JSON.stringify(v));
 });
 
-test("majitel: přihlášení, Vše ve tvých rukách – všechny AI najednou i spolupráce, odhlášení", async () => {
-  const { p, chyby } = await stranka("ai");
-  await p.click("#hbot-btn");
-  await p.click("#hbot [data-majitel]");
+test("majitel: přihlášení přes #majitel, Vše ve tvých rukách – všechny AI najednou i spolupráce, odhlášení", async () => {
+  const { p, chyby } = await stranka("ai", { cesta: "/cenik.html#majitel" });
+  await p.waitForSelector("#hb-heslo");
   await p.fill("#hb-heslo", "spatne-heslo-123456789");
   await p.press("#hb-heslo", "Enter");
   await p.waitForSelector("#hbot .hb-login .hb-chyba:not([hidden]) >> text=Špatné heslo.");

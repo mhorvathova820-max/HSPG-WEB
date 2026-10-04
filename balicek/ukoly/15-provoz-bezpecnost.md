@@ -1,12 +1,12 @@
 # Úkol 15: Provoz – kredity, monitoring, bezpečnostní hlavičky
-> Priorita P1 · Závisí na: 00 (kroky s AI a formuláři potřebují sloučené úkoly 01 a 02, bez nich je přeskoč a nahlas) · Čeká na majitele: rozhodnutí o auto-recharge, založení uptime monitoru, adresa pro reporty DMARC a změny DNS u Wedosu (**MX neměnit**), souhlas s CAA a s HSTS preload, souhlas s odstraněním `holub-ai`, rozpočet produkčních nasazení, schválení produkce · Rozsah: **fáze A** = pojistka kreditů, dohled, sběr hlášení CSP a 404, `security.txt`, nic se nevynucuje → hlášení a stop. **Fáze B** (nejdřív 14 dní po produkčním nasazení fáze A) = vynucená CSP, odstranění `holub-ai`, další krok DMARC, rozhodnutí o HSTS preload. Stav zadání: v1, po bezpečnostním auditu se může zpřesnit (před začátkem `git -C ../hspg-balicek pull`).
+> Priorita P1 · Závisí na: 00 (kroky s AI a formuláři potřebují sloučené úkoly 01 a 02, bez nich je přeskoč a nahlas) · Čeká na majitele: rozhodnutí o auto-recharge, založení uptime monitoru, adresa pro reporty DMARC a změny DNS u Wedosu (**MX neměnit**), souhlas s CAA a s HSTS preload, rozpočet produkčních nasazení, schválení produkce · Rozsah: tři sezení, nic se ve fázi A nevynucuje. **Fáze A1** = pojistka kreditů, sběr hlášení CSP a 404, zdravotní adresy, CSP Report-Only z jednoho zdroje, `security.txt` → hlášení a stop. **Fáze A2** = měření a zdraví AI, upozornění, počítadla formulářů, týdenní kontrola, příručka, CI → hlášení s checklistem a stop. **Fáze B** (nejdřív 14 dní po produkčním nasazení fáze A1, fáze A2 sloučená) = vynucená CSP, ověření, že `holub-ai` je pryč (odstraňuje ji úkol 01), další krok DMARC, rozhodnutí o HSTS preload. Stav zadání: v1 zpřesněná podle bezpečnostního auditu ze 4. 10. 2026 (před začátkem `git -C ../hspg-balicek pull`).
 
 ## Proč (s důkazy)
-Zdroje: `KONTEXT.md` §2, `audit-nasazeni_provoz.json` #10, #14, #17, #18, #22 a `audit-ai_integrace.json` #11, #14. Dále GET na https://hspg.cz, veřejné DNS a kopie živého webu (247 stránek), vše ze 4. 10. 2026.
+Zdroje: `KONTEXT.md` §2, `audit-nasazeni_provoz.json` #10, #14, #17, #18, #22, `audit-ai_integrace.json` #11, #14 a bezpečnostní audit (`overeno-bezpecnost` #4–#6, #18–#21). Dále GET na https://hspg.cz, veřejné DNS a kopie živého webu (247 stránek), vše ze 4. 10. 2026.
 
 **Kredity Netlify rozhodují o dostupnosti celého webu** (`KONTEXT.md` §2)
-- Tarif má 1 000 kreditů na období (11. 9.–10. 10.). Zbývalo 426. Spotřeba: 32 produkčních nasazení × 15 = 480, přenos dat 77,9, požadavky 8,7, AI 7,1. Auto-recharge je vypnuté.
-- **Po vyčerpání Netlify pozastaví projekty týmu** („Site not available“). Nefungují ani formuláře.
+- Tarif má 1 000 kreditů na období (11. 9.–10. 10.). Spotřeba minulého období: 32 produkčních nasazení × 15 = 480, přenos dat 77,9, požadavky 8,7, AI 7,1. Aktuální zůstatek a stav auto-recharge jsou v `KONTEXT.md` §2. Do veřejných souborů (zadání, balíček, commity veřejného repozitáře) je neopisuj.
+- Po vyčerpání kreditů Netlify projekty týmu pozastaví (podrobnosti `KONTEXT.md` §2). Proto pojistka v `nasadit.mjs` a prahy v kroku 13.
 - Netlify posílá e-mail při 50, 75 a 100 % jen vlastníkovi týmu. Upozornění na 90 % ani týdenní přehled neexistují.
 - `scripts/nasadit.mjs` (úkol 00) hlídá nejvýš 1 produkční nasazení denně. Rozpočet na celé období ale nehlídá. Při 1 nasazení denně by se za 30 dní spotřebovalo 450 kreditů.
 - Odhad útraty AI v kreditech už vrací `/api/ai-stav` (`kredity.utraceno` / `kredity.limit`) a ukazuje ho panel majitele (úkol 01). Počítá se za kalendářní měsíc, období Netlify ale běží od 11. do 10.
@@ -22,7 +22,7 @@ Zdroje: `KONTEXT.md` §2, `audit-nasazeni_provoz.json` #10, #14, #17, #18, #22 a
 
 | Co | Stav | Nález |
 |---|---|---|
-| CSP | jen `content-security-policy-report-only`, **bez `report-uri` i `report-to`** | `script-src 'self' 'unsafe-inline' …`, takže ani v režimu Report-Only nehlásí inline skripty. `form-action 'self' https://formsubmit.co` (FormSubmit odstraňuje úkol 03). `img-src` nemá `blob:`, přitom `/akce/` vykresluje náhled fotky přes `URL.createObjectURL` (úkol 17, nález #15). Vynucená CSP chybí. |
+| CSP | jen `content-security-policy-report-only`, **bez `report-uri` i `report-to`** | `script-src 'self' 'unsafe-inline' …`, takže ani v režimu Report-Only nehlásí inline skripty. `form-action 'self' https://formsubmit.co` (FormSubmit odstraňuje úkol 03). `img-src` nemá `blob:`, přitom `/akce/` a `assets/fotky-upload.js` zmenšují fotky přes `URL.createObjectURL`. S vynucenou CSP bez `blob:` se příloha fotky odmítne (bezpečnostní audit #6). `blob:` doplňuje úkol 17 (nález #15). Vynucená CSP chybí. |
 | HSTS | `max-age=31536000; includeSubDomains`, bez `preload` | audit #22 (hstspreload.org: „preload missing“) |
 | `/.well-known/security.txt` | **404** | audit #22, ověřeno |
 | ostatní | `X-Frame-Options: SAMEORIGIN`, `nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, `COOP: same-origin`, `X-Permitted-Cross-Domain-Policies: none` | v pořádku, neměnit |
@@ -35,20 +35,20 @@ Zdroje: `KONTEXT.md` §2, `audit-nasazeni_provoz.json` #10, #14, #17, #18, #22 a
 
 | Adresa | Stav | Tělo |
 |---|---|---|
-| `/api/holub-ai` | 405 | `{"chyba":"Method Not Allowed"}` |
+| `/api/holub-ai` | 405 | `{"chyba":"Method Not Allowed"}`. Funkci odstraňuje úkol 01 (krok 9). Po jeho nasazení na produkci → 404 |
 | `/api/rd-stav` | 405 | `{"chyba":"Method Not Allowed"}` |
 | `/api/pocasi` | 400, s `?q=Praha` 200 | `{"chyba":"Zadejte prosím obec."}`, s obcí JSON s polem `dny` a `"zdroj":"Open-Meteo.com"`, `cache-control: public,max-age=1800` |
 | `/api/sentinel/validate` | 400 | česká hláška o formátu kódu |
 | `/api/webhooks/facebook` | 403 | `Forbidden` |
 | `/api/asistent` | 404 | úkol 01 ještě není na produkci |
 
-Odpovědi bez přihlášení jsou v pořádku a žádná neobsahuje výpis chyby (stack trace). Zdroj funkcí ale nikdo nekontroloval. Živý `assets/hbot.js` volá `/api/holub-ai` (kopie webu, ř. 184). Po úkolu 01 se volat přestane a funkce zůstane jako nepoužívaná veřejná adresa.
+Odpovědi bez přihlášení jsou v pořádku a žádná neobsahuje výpis chyby (stack trace). Zdroj funkcí projde krok 3. Živý `assets/hbot.js` volá `/api/holub-ai` (kopie webu, ř. 184). Úkol 01 `hbot.js` nahrazuje a funkci `holub-ai` ze zdroje **odstraňuje** (úkol 01, krok 9 a akceptační kritérium). Tento úkol jen ověří, že je pryč (kroky 3 a 21).
 
 Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě není potřeba. **Ověř ve zdroji funkce `pocasi`** (krok 3).
 
-**Inventura pro CSP** (kopie webu, 247 stránek)
-- Inline skripty s kódem jsou na 5 stránkách: `/` (43 682 znaků), `/kalkulacka-svj` (6 322), `/pas-domu` (7 371), `/akce/` (7 885) a `/recenze/` (5 072). Úkol 07 přesouvá inline JS homepage do souboru.
-- Inline handler je 1: `onload="this.rel='stylesheet'"` u `holub-let.css` na `/`. Úkol 07 ho odstraňuje. Odkazy `javascript:` ani `eval`/`new Function` v `assets/*.js` nejsou.
+**Inventura pro CSP** (kopie webu, 247 stránek, a stránky mimo ni: `/akce/dekujeme/`, `/recenze/karta/`, `/rd-control-panel/`, 404; bezpečnostní audit #5)
+- Inline skriptů s kódem je 7. V kopii webu jich je 5: `/` (43 682 znaků), `/kalkulacka-svj` (6 322), `/pas-domu` (7 371), `/akce/` (7 885) a `/recenze/` (5 072). Mimo kopii jsou 2: `/akce/dekujeme/` (916) a `/rd-control-panel/` (2 460). Úkol 07 přesouvá inline JS homepage do souboru. Úkoly 10 a 16 naopak přidávají do `<head>` krátké inline skripty a jejich hash předávají sem.
+- Inline handlery jsou 2. `onload="this.rel='stylesheet'"` u `holub-let.css` na `/` odstraňuje úkol 07. `onclick="window.print()"` na `/recenze/karta/` žádný jiný úkol neřeší, proto ho řeší fáze B (krok 20). Handler nejde povolit hashem bez `'unsafe-hashes'`. Odkazy `javascript:` ani `eval`/`new Function` v `assets/*.js` nejsou.
 - Bloků JSON-LD je 479. Nejsou spustitelné a `script-src` se na ně nevztahuje.
 - Stylů je 745 bloků `<style>` a 481 atributů `style=""`. `style-src 'unsafe-inline'` proto v této fázi zůstává.
 - Externí skripty jsou jen GTM a Clarity. Načítá je `assets/souhlas.js` až po souhlasu. `<iframe>` na webu není. Service worker `/sw.js` registruje `assets/souhlas.js`.
@@ -61,7 +61,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
 3. **AI:** majitel vidí u každé AI semafor a za 24 h počty odpovědí AI, záložních odpovědí a chyb podle kódu a p95 latence. Při chybě 401, 402, 403 nebo 404 dostane push do 15 min (1× denně za typ). Kontrola stavu nespotřebuje žádné tokeny.
 4. **Formuláře:** týdenní kontrola porovná počet ověřených odeslání v Netlify Forms s počtem spuštění `submission-created` a úspěšných kanálů. Každý rozdíl je v hlášení vysvětlený.
 5. **Hlášení prohlížečů:** porušení CSP a návštěvy 404 se sbírají anonymně, jen jako počty. Týdenní přehled obsahuje top 10.
-6. **Hlavičky:** fáze A = přísná kandidátní CSP v režimu Report-Only s reporty a `security.txt` (200, platné `Expires`). Fáze B = vynucená CSP po 14 dnech bez neočekávaných porušení, Playwright bez porušení, `/api/holub-ai` → 404.
+6. **Hlavičky:** fáze A1 = přísná kandidátní CSP v režimu Report-Only s reporty a `security.txt` (200, platné `Expires`). Fáze B = vynucená CSP po 14 dnech bez neočekávaných porušení, Playwright bez porušení. `/api/holub-ai` na produkci → 404 (funkci odstranil úkol 01).
 7. **Pošta a DNS:** DMARC má `rua` (majitel) a do 8 týdnů `p=quarantine` bez ztráty legitimní pošty. HSTS preload jen s rozhodnutím majitele po inventuře subdomén. Týdenní kontrola hlásí každou změnu MX, SPF, DMARC, CAA a `www`.
 8. **Žádná funkce nevrací stack trace** (test a kontrola zdroje). Žádná nová data neobsahují osobní údaje.
 
@@ -78,11 +78,12 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
 - týdenní skript `scripts/provoz-tyden.mjs`
 - příručka `docs/provoz.md`, checklist pro majitele a doplnění `CLAUDE.md`
 - testy a kroky do CI z úkolu 19
-- ve fázi B vynucení CSP, odstranění `holub-ai` a HSTS `preload` (jen se souhlasem)
+- ve fázi B vynucení CSP (včetně přesunu zbylých inline skriptů a handlerů do souborů), ověření, že `holub-ai` je pryč, a HSTS `preload` (jen se souhlasem)
 
 **NE:**
 - Git, rotace hesel, zapnutí auto-recharge, MFA účtů → **úkol 00**, Claude v Chrome C1/C3 (zde jen připomínka v checklistu)
 - chování H-BOT, FAQ, prompty, limity AI → **úkol 01** (zde jen měření bez změny odpovědí)
+- odstranění funkce `holub-ai` → **úkol 01** (krok 9). Zde jen ověření. Pokud je funkce ve zdroji ještě, sám ji nemaž a nahlas to.
 - obsah upozornění, předmět, Reply-To, kanály → **úkol 02** (zde jen počítání)
 - odstranění FormSubmitu v kódu → **úkol 03** (zde jen kontrola `form-action` v CSP)
 - `Cache-Control`, otisky souborů, přesun inline JS homepage, `publish = "dist"` → **úkol 07**
@@ -98,12 +99,22 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
 ## Postup
 
 ### Fáze A – dohled, sběr hlášení, pojistka kreditů (nic se nevynucuje)
-1. **Větev `ukol-15-provoz-bezpecnost` z aktuální `main`** (`git fetch`, `git switch main`, `git pull`, `git switch -c ukol-15-provoz-bezpecnost`). Zapiš, které úkoly už jsou v `main` (`git log --oneline -30`). Bez úkolu 00 se zastav. Bez 01 vynech kroky 5–6, bez 02 krok 7 a nahlas to.
+
+> **Fáze A má dvě sezení.** Na jedno je moc velká. Každé sezení končí hlášením a zastavením. Obě běží ve větvi `ukol-15-provoz-bezpecnost`. Fáze A1 se smí po ověření na náhledu sloučit do `main` samostatně. Pokud je sloučená, začni A2 příkazem `git merge main`.
+>
+> | Sezení | Kroky | Testy z kroku 15 | Konec |
+> |---|---|---|---|
+> | **A1** – sběr, hlavičky, pojistka | 1–4, 8–12 | `provoz-lib`, `sberace`, `chyby-bez-stacku`, `security-txt`, `nasadit-obdobi`, `csp-politika`, `tests/e2e/csp.test.mjs` | krok 17 (body hlavičky, `security.txt`, zdraví, sběrače, CSP, 404, `sw.js`), hlášení A1 se žádostí o produkční nasazení v dávce → stop |
+> | **A2** – AI, upozornění, formuláře, týdenní kontrola | 5–7, 13, 14, 16 | `ai-metriky`, `formulare-pocty`, `provoz-tyden` | krok 17 (H-BOT a panel majitele), krok 18 s checklistem → stop |
+>
+> Akceptační kritéria jsou označená (A1) / (A2).
+
+1. **Větev `ukol-15-provoz-bezpecnost` z aktuální `main`** (`git fetch`, `git switch main`, `git pull`, `git switch -c ukol-15-provoz-bezpecnost`). Zapiš, které úkoly už jsou v `main` (`git log --oneline -30`). Bez úkolu 00 se zastav. Bez 01 vynech krok 5, bez 02 kroky 6 a 7 (oba v sezení A2) a nahlas to.
 2. **Najdi v repozitáři soubory, které generují:**
    - hlavičky: `netlify.toml` (`[[headers]]`) a/nebo `_headers`. Kde je dnes CSP a HSTS a kde hlavičky `/ai-centrum/*` z úkolu 01?
    - publikační adresář a build (`[build] publish`, `command`, `package.json`). Po úkolu 07 může být `dist` a `npm run build`. Nové neveřejné soubory (`docs/`, `tests/`, konfigurace skriptů) nesmí skončit na webu.
    - zdroj stránky 404 (`404.html` nebo generátor)
-   - adresář funkcí a zdroje všech funkcí: `facebook-webhook`, `holub-ai`, `pocasi`, `rd-stav`, `sentinel-validate`, `asistent`, `majitel`, `ai`, `ai-stav`, `submission-created`
+   - adresář funkcí a zdroje všech funkcí: `facebook-webhook`, `pocasi`, `rd-stav`, `sentinel-validate`, `asistent`, `majitel`, `ai`, `ai-stav`, `submission-created` (`holub-ai` po úkolu 01 neexistuje)
    - `netlify/lib/ai/limity.mjs` (vzor práce s Blobs), `scripts/nasadit.mjs`, `.nasazeni-produkce.json`, `CLAUDE.md`
    - testy a CI (`.github/workflows/` z úkolu 19), exportní skript Netlify Forms z úkolu 19 a kam ukládá výstup
 
@@ -112,14 +123,14 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
    - **Proměnné prostředí:** vypiš jména, která kód čte, např. `git grep -ohE "env\.[A-Z][A-Z0-9_]+|env\[[\"'][A-Z0-9_]+|Netlify\.env\.get\([\"'][A-Z0-9_]+" -- '*.js' '*.mjs' | sort -u`. Doplň jména skládaná za běhu (`CENA_<ID>_VSTUP`, `klic` v `POSKYTOVATELE`). Porovnej je se jmény nastavenými v Netlify. Seznam jmen ti dá majitel (snímek obrazovky), nebo použij výpis z CLI, který ukáže **jen klíče**. Pokud příkaz vypisuje i hodnoty, nepoužívej ho. Označ, co dodává Netlify AI Gateway (`ANTHROPIC_*`, `OPENAI_*`, `GEMINI_*`, `GOOGLE_GEMINI_BASE_URL`, `OPENROUTER_*`) a co se nezakládá (klíče Gemini, xAI, OpenWeatherMap).
    - **Funkce `pocasi`:** ověř ve zdroji, že volá Open-Meteo bez klíče. Pokud čte proměnnou typu `OPENWEATHER*`, nahlas ji jako kandidáta na smazání (smaže majitel). Nic nezakládej.
    - **Výpis chyb:** ve zdroji všech funkcí najdi odpovědi, které vracejí `e.stack`, `String(e)`, `e.message` nebo `err` celé. U veřejných funkcí smí jít ven jen obecná česká hláška. U interních (`/api/ai`) smí jít zpráva poskytovatele bez stacku. Nálezy oprav a zapiš (soubor, řádek, co odešlo ven).
-   - **`holub-ai`:** `git grep -n "holub-ai"` (po úkolu 01 zbude jen funkce sama, případně dokumentace) a `curl -s https://hspg.cz/assets/hbot.js | grep -c "holub-ai"`.
+   - **`holub-ai`** (odstranil ji úkol 01): `git grep -n "holub-ai"` → nic. Pokud něco najde, nemaž to a nahlas jako nesplněné kritérium úkolu 01. Na produkci `curl -s -o /dev/null -w '%{http_code}' https://hspg.cz/api/holub-ai` (jen GET): 404 = úkol 01 je na produkci, 405 = ještě není. Výsledek zapiš do hlášení. Očekávaný stav nastaví krok 13 v `provoz-ocekavani.json`.
    - **CSP:** nový skript `scripts/csp-inventura.mjs`. Projde **publikovaný výstup** (ne šablony) a vypíše po stránkách:
      - inline skripty s kódem (SHA-256, velikost; `application/ld+json` a jiné nespustitelné typy vynech)
      - atributy `on*=`, odkazy `javascript:`
      - počty `<style>` a `style=""`
      - externí původy v `src`/`href`, `<iframe>`
 
-     Porovnej výsledek se stavem v části Proč a rozdíly vysvětli.
+     Na konci vypíše souhrn: počet **unikátních** hashů inline skriptů (stejný skript v `<head>` všech stránek z úkolů 10 a 16 je jeden hash) a počet handlerů `on*=`. Porovnej výsledek se stavem v části Proč a rozdíly vysvětli.
    - **Subdomény:** veřejně ověř `www` (CNAME na Netlify). Majitele požádej o snímek seznamu DNS záznamů z Wedosu, je potřeba pro rozhodnutí o HSTS preload ve fázi B. Celou zónu zvenku vyjmenovat nejde.
 4. **Knihovna `netlify/lib/provoz.mjs`** (vzor `limity.mjs`, úložiště `getStore({ name: "hspg-provoz", consistency: "strong" })`, v testech `pametoveUloziste`):
    - `pricti(ul, oblast, den, cesta, n = 1)` připočte k vnořenému počítadlu v klíči `<oblast>/<RRRR-MM-DD>`.
@@ -133,7 +144,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
    - Chyba úložiště nikdy neshodí volající funkci (`try/catch`, `waitUntil`).
 5. **Měření a pasivní zdraví AI** (audit-ai_integrace #14, #11). **Odpovědi a chování funkcí se nemění**, testy balíčku z úkolu 01 musí projít beze změny.
    - `asistent.mjs`: u každého POST zapiš do oblasti `ai`:
-     - výsledek `rezim` (`ai`, `ai_overeno`, `predat`, `chyba`, `bez_ai` s důvodem `vypnuto` / `bez-klice` / `rozpocet`, `limit`)
+     - výsledek přesně podle odpovědi funkce: `rezim` a u `bez-ai` i `duvod`. Dnes (balíček, `asistent.mjs`) to jsou `ai` (s `overeno: true/false` → položky `ai.overeno` / `ai.neovereno`), `predat`, `chyba`, `limit` a `bez-ai` s `duvod` `rozpocet` / `uloziste`, bez `duvod` = žádná dostupná AI (bez klíče nebo `AI_ZAPNUTO=0`). Nové hodnoty nevymýšlej. Pokud funkce vrátí jinou hodnotu, započítej ji pod jejím jménem.
      - u každého poskytovatele `ok` nebo kód chyby (`e.status`, jinak `timeout` / `sit`)
      - latenci celé odpovědi
    - `ai.mjs` (interní): jen `ok` a kód chyby poskytovatele, kvůli zdraví.
@@ -144,7 +155,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
      | šedá | AI nemá klíč nebo `AI_ZAPNUTO=0` | „vypnuto“ |
      | zelená | úspěch za 24 h a po něm žádná chyba 401/402/403/404 | „funguje“ |
      | oranžová | za 24 h bez provozu, nebo jen timeouty a 429 | „bez provozu“ / „pomalá odpověď“ / „limit poskytovatele“ |
-     | červená | po posledním úspěchu chyba 401/403, 402 nebo 404 | „neplatný klíč nebo přístup“ / „vyčerpaný kredit“ / „model nedostupný – zkontroluj `<ID>_MODEL`“ (jméno proměnné z `POSKYTOVATELE`) |
+     | červená | po posledním úspěchu chyba 401/403, 402 nebo 404 | „neplatný klíč nebo přístup“ / „vyčerpaný kredit“ / „model nedostupný – zkontroluj `<proměnná>`“. Proměnná: `claude` → `CLAUDE_MODEL`, `gpt` → `OPENAI_MODEL`, `gemini` → `GEMINI_MODEL`, `grok` → `XAI_MODEL`. Dnes je jméno jen uvnitř funkce `model` v `POSKYTOVATELE`. Přidej k poskytovateli pole `modelPromenna`, test hlídá shodu s funkcí `model`. |
    - `ai-stav.mjs`: k dosavadním polím (beze změny) přidej `zdravi` (semafor a text na poskytovatele) a `provoz` (souhrn 24 h a 7 dní: dotazy, podíl záložních odpovědí, chyby podle kódu, p50/p95). **Žádné volání AI**, test ověří 0 volání adaptérů.
    - `/api/provoz-stav` (nová funkce jen pro přihlášeného majitele, ověření přes `overPozadavek` jako `ai-stav`) vrátí souhrn 7 dní pro oblasti `ai`, `formulare`, `404` a `csp` (jen počty, top 10). Využije ji týdenní kontrola a později interní panel (úkol 14).
    - `assets/hbot-majitel.js`: u každé AI ukaž semafor a text a k tomu řádek „24 h: AI N · záložní N (x %) · chyby: 402×1 … · p95 x,x s“. Přidej i řádek „Provoz 7 dní: formuláře N · 404 N · CSP N“ z `/api/provoz-stav`. Zachovej styl karty, bez nových inline skriptů a bez nových závislostí.
@@ -158,8 +169,6 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
    - Každý typ nejvýš 1× denně. Deduplikace je v klíči `upozorneni/<den>`. Timeout je 5 s a selhání nesmí ovlivnit odpověď návštěvníkovi.
    - Text zprávy: `[HSPG] AI: Claude – vyčerpaný kredit (402). H-BOT odpovídá z FAQ.` Žádný text dotazu ani osobní údaj. Bez nastaveného kanálu jen `console.warn`.
 7. **Počítadla formulářů** v `submission-created.mjs`: oblast `formulare`, položky `<form_name>.prijato` a `<form_name>.<kanál>_ok` / `<kanál>_selhalo`. Nic z obsahu podání. Chování z úkolu 02 se nemění (200 i při chybě, kopie, směrování).
-
-   Zjisti, jak dlouho Netlify na tarifu drží logy funkcí. Pokud méně než 7 dní, přidej do funkce `holub-ai` jen počítadlo volání podle metody (oblast `holub-ai`). Nic jiného v ní neměň. Slouží jako důkaz pro krok 21.
 8. **Sběrné funkce** (jen POST, odpověď 204, žádné cookies, `cache-control: no-store`):
    - `/api/csp-hlaseni` přijme `application/csp-report` (pole `csp-report`) i `application/reports+json` (pole objektů `type: "csp-violation"`). Uloží jen tyto údaje:
      - direktivu (`effective-directive`)

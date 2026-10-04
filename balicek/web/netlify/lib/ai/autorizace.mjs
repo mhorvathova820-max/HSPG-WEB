@@ -50,3 +50,13 @@ export function overPozadavek(req, env = process.env, ted = Date.now()) {
   if (auth.startsWith("Bearer ") && overToken(auth.slice(7), env, ted)) return { ok: true };
   return { ok: false, status: 401, duvod: "Přihlášení vypršelo nebo je neplatné." };
 }
+
+// Požadavky smí posílat jen stránky webu (a náhledy na Netlify); ASISTENT_POVOLENE_ORIGINY přidá další.
+export function povolenyOrigin(origin, env = process.env) {
+  if (!origin) return true; // prohlížeče u fetch POST Origin posílají; bez něj (server, curl) rozhodují limity
+  let h;
+  try { h = new URL(origin).hostname; } catch { return false; }
+  const dalsi = (env.ASISTENT_POVOLENE_ORIGINY || "").split(",").map((x) => x.trim()).filter(Boolean);
+  return h === "hspg.cz" || h === "www.hspg.cz" || h === "localhost" || h === "127.0.0.1" ||
+    h === "tourmaline-dasik-9de005.netlify.app" || h.endsWith("--tourmaline-dasik-9de005.netlify.app") || dalsi.includes(h);
+}

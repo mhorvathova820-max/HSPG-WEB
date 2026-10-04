@@ -7,11 +7,15 @@
 //        S hlavičkou Accept: application/x-ndjson přijde nejdřív živý průběh spolupráce, pak výsledek.
 import { POSKYTOVATELE, jeZapnuty, vytvorAdaptery, sLimitem } from "../lib/ai/poskytovatele.mjs";
 import { PRAVIDLA_PRAVDIVOSTI, POKYN_ZAKAZNIK, POKYN_KONTROLOR } from "../lib/ai/pravidla.mjs";
+import { povolenyOrigin } from "../lib/ai/autorizace.mjs";
 import { znalostiProAI } from "../lib/ai/znalosti.mjs";
-import { vychoziUloziste, otiskKlienta, povolVerejnyDotaz, zapisUtratu, rozpocetVycerpan } from "../lib/ai/limity.mjs";
+import { vychoziUloziste, otiskKlienta, povolVerejnyDotaz, zapisUtratu, rozpocetVycerpan, rezervuj, odhadTokenu } from "../lib/ai/limity.mjs";
 
 const MAX_ZPRAV = 8;
 const MAX_ZNAKU = 600;
+// Strop výstupu včetně tokenů uvažování (Claude, gpt-5 i Gemini je počítají do stropu); stručnost hlídá pokyn.
+const MAX_TOKENU = 1500;
+
 // Časový rozpočet jednoho dotazu: prohlížeč čeká max. 12 s, pak odpoví z FAQ.
 const CASY = { celkem: 9000, maxNavrh: 6500, minNavrh: 3500, minKontrola: 2500 };
 
@@ -74,6 +78,7 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
       return json({ ai, poskytovatele: ai ? dostupne.map((id) => POSKYTOVATELE[id].nazev) : [] }, 200, { "cache-control": "public, max-age=60" });
     }
     if (req.method !== "POST") return json({ rezim: "chyba", chyba: "Použijte GET nebo POST." }, 405);
+    if (!povolenyOrigin(req.headers.get("origin"), env)) return json({ rezim: "chyba", chyba: "Nepovolený původ požadavku." }, 403);
 
     let telo;
     try {
@@ -105,7 +110,7 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
     const system = `${PRAVIDLA_PRAVDIVOSTI}\n\n${POKYN_ZAKAZNIK}\n\n${textZnalosti()}`;
     // Útrata se zapisuje souběžně s odpovědí; Netlify ji nechá doběhnout přes waitUntil.
     const zapisy = [];
-    const zapis = (id, stat) => store && zapisy.push(zapisUtratu(store, id, stat, env, ted()).catch(() => {}));
+    const zapis = (id, stat, rezerva) => zapisy.push(zapisUtratu(store, id, stat, env, ted(), rezerva).catch(() => {}));
     const dokonci = () => {
       const hotovo = Promise.allSettled(zapisy);
       if (typeof context.waitUntil === "function") context.waitUntil(hotovo);
@@ -120,12 +125,14 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
       let autor = null;
       for (const id of dostupne) {
         if (zbyva() < casy.minNavrh) break;
+        const rezerva = await rezervuj(store, id, odhadTokenu(system + JSON.stringify(zpravy)), MAX_TOKENU, env, ted());
+        if (rezerva === false) return [{ rezim: "bez-ai", duvod: "rozpocet" }, 503];
         emit({ krok: "navrh", ai: POSKYTOVATELE[id].nazev });
         try {
           const r = await sLimitem(Math.min(casy.maxNavrh, zbyva() - casy.minKontrola), (signal) =>
-            ad[id].dotaz({ system, zpravy, maxTokenu: 700, signal, rychle: true }),
+            ad[id].dotaz({ system, zpravy, maxTokenu: MAX_TOKENU, signal, rychle: true }),
           );
-          zapis(id, r.stat);
+          zapis(id, r.stat, rezerva);
           if (r.text.trim()) {
             navrh = r.text.trim();
             autor = id;
@@ -144,20 +151,19 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
       let odpoved = navrh;
       let overeno = false;
       const ai = [POSKYTOVATELE[autor].nazev];
-      if (kontrolor && zbyva() >= casy.minKontrola) {
+      const systemKontrola = `${PRAVIDLA_PRAVDIVOSTI}\n\n${POKYN_KONTROLOR}\n\n${textZnalosti()}`;
+      const zpravyKontrola = [{ role: "user", text: `OTÁZKA NÁVŠTĚVNÍKA:\n${zpravy.at(-1).text}\n\nNÁVRH ODPOVĚDI:\n${navrh}` }];
+      // Bez rezervy v rozpočtu se kontrola vynechá – návrh se vrátí neověřený.
+      const rezervaK = kontrolor && zbyva() >= casy.minKontrola
+        ? await rezervuj(store, kontrolor, odhadTokenu(systemKontrola + zpravyKontrola[0].text), MAX_TOKENU, env, ted())
+        : false;
+      if (rezervaK !== false) {
         emit({ krok: "kontrola", ai: POSKYTOVATELE[kontrolor].nazev });
         try {
-          const otazka = zpravy.at(-1).text;
           const r = await sLimitem(zbyva() - 300, (signal) =>
-            ad[kontrolor].dotaz({
-              system: `${PRAVIDLA_PRAVDIVOSTI}\n\n${POKYN_KONTROLOR}\n\n${textZnalosti()}`,
-              zpravy: [{ role: "user", text: `OTÁZKA NÁVŠTĚVNÍKA:\n${otazka}\n\nNÁVRH ODPOVĚDI:\n${navrh}` }],
-              maxTokenu: 700,
-              signal,
-              rychle: true,
-            }),
+            ad[kontrolor].dotaz({ system: systemKontrola, zpravy: zpravyKontrola, maxTokenu: MAX_TOKENU, signal, rychle: true }),
           );
-          zapis(kontrolor, r.stat);
+          zapis(kontrolor, r.stat, rezervaK);
           const v = prectiVerdikt(r.text);
           if (v) {
             ai.push(POSKYTOVATELE[kontrolor].nazev);
@@ -194,12 +200,19 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
       });
       return new Response(body, { headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" } });
     }
-    const [data, status] = await spoluprace(() => {});
+    let vysledek;
+    try {
+      vysledek = await spoluprace(() => {});
+    } catch (e) {
+      console.warn("asistent: neočekávaná chyba", e?.message);
+      vysledek = [{ rezim: "chyba" }, 502];
+    }
     await dokonci();
-    return json(data, status);
+    return json(vysledek[0], vysledek[1]);
   };
 }
 
 export default vytvorAsistenta();
 
-export const config = { path: "/api/asistent" };
+// Pravidlo Netlify (tarif Personal: max. 2 pravidla v kódu na projekt) – první hráz před voláním funkce.
+export const config = { path: "/api/asistent", rateLimit: { windowLimit: 8, windowSize: 60, aggregateBy: ["ip", "domain"] } };

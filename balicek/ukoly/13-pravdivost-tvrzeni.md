@@ -17,7 +17,7 @@ Pravidlo `KONTEXT.md` §4.1: žádná nedoložená tvrzení, technologie ve výv
 | T16 | „Skutečná zakázka HOLUB“ | 9× na 3 stránkách (`/`, `/nabidka-svj`, `/cisteni-strech/`) a ve spotu. Snímky nemají metadata, takže pravost nelze ověřit. `/reference` ř. 150 přitom píše „zatím prázdno a nic jsme nedoplnili naoko“. | Skutečné zakázky s fotkami a souhlasy čekají na majitele (§3). |
 | T17 | Akce „Vypusťte holuba“ | `/pravidla-akce/` má 7 bodů (ř. 59–65). Chybí doba konání, okruh účastníků, vymezení území („dojezdová vzdálenost“ v ř. 61 není definovaná), definice výhry, postup při nezpůsobilém povrchu, lhůta k čerpání, způsob prokázání pořadí a daňové ošetření. Pořadatel si vyhrazuje změnu „kdykoli“ (ř. 64). Vlastní část o osobních údajích (ř. 68 a dál) se liší od zásad. Sdělení „každá desátá poptávka … vyhrává“ je na `/` (lišta ř. 1406), `/akce/` (ř. 85, 100), v `assets/holub-let.js` a ve spotu, vždy bez data platnosti. | Riziko klamavé praktiky a sporů s výherci. Výhra nad 10 000 Kč podléhá dani (podle auditu má posoudit daňový poradce). |
 | T18 | `/en` | 5× „Request a quote“ vede na český soutěžní formulář `/akce/` (ř. 134, 147, 258, 301, 340). „Privacy policy“ (ř. 355) a „Cookie settings“ (ř. 358) vedou na českou stránku. | Anglický návštěvník se nevědomky účastní české soutěže a souhlasí s textem, kterému nerozumí. |
-| T21 | Prevence („Master plán“) | Na webu je dnes 0× AggregateRating, ratingValue nebo „4,9/5“, 0× pojištění, 0× „satelit“, 0× „polymerace“ a 0× superlativ (nejlepší, č. 1, lídr). | E-mail „Master plán“ je chce doplnit (`POSUDEK-MASTER-PLANU.md`), kontrola je proto musí trvale blokovat. |
+| T21 | Prevence („Master plán“) | Na webu je dnes 0× AggregateRating, ratingValue nebo „4,9/5“, 0× pojištění či pojistka, 0× „mil. Kč“, 0× „satelit“, 0× „polymerace“ a 0× superlativ (nejlepší, č. 1, lídr). | E-mail „Master plán“ je chce doplnit (`POSUDEK-MASTER-PLANU.md`), kontrola je proto musí trvale blokovat. |
 | T24 | „Garantovaný certifikát“ | `/` 1× (`certifikat__nazev`, „Garantovaný certifikát H-STONE · 10 let · co obsahuje a kdy platí“). Úkol 05 blok certifikátu převádí na data, ale slovo „Garantovaný“ výslovně předává sem. | Délka záruky je potvrzená, název a existence certifikátu ne. Nikdo jiný ho neposuzuje. |
 
 ## Cíl (měřitelný)
@@ -66,7 +66,7 @@ Pravidlo `KONTEXT.md` §4.1: žádná nedoložená tvrzení, technologie ve výv
    - **Generátory:** `scripts/build-regions.mjs` (stránky s `data-gen="build-regions"`: 231 okresních a `/cisteni-dlazby/`, celkem 232) a `scripts/build-ceny.mjs` (`content/ceny.json` → `assets/ceny.js` a bloky ceníku). Dále `content/sentinel.json`, případně `build-recenze.mjs` a `build-references.mjs`.
    - **Ručně psané stránky:** `index.html`, `cenik.html`, `kariera.html`, `spoluprace.html`, `pas-domu.html`, `nabidka-svj.html`, `kalkulacka-svj.html`, `en.html`, `akce/index.html`, `pravidla-akce/index.html`, `recenze/index.html`, `cisteni-strech/index.html`, `cisteni-fasad/index.html` a `reel/index.html`. Komentář v `index.html` u přepisu spotu uvádí „Znění je doslovné podle `reel/index.html`“.
    - **JS:** `assets/hbot.js`, nebo po sloučení úkolu 01 `content/hbot-faq.json` → `assets/hbot-znalosti.json`. Dále `assets/svj-podklad.js`, `assets/en-sections.js` a `assets/holub-let.js`.
-   - **Funkce** (adresář podle `netlify.toml` → `[functions]`, obvykle `netlify/functions/`: `holub-ai`, `facebook-webhook` a další, po úkolu 01 i `netlify/lib/ai/`): prompty a texty automatických odpovědí zahrň do inventury. Opravuješ jen text, který obsahuje vzor z tabulky T (krok 14), logiku funkcí neměň. Úkol 09 sem předává případné „satelitní analýze“ v odpovědích `facebook-webhook`.
+   - **Funkce** (adresář podle `netlify.toml` → `[functions]`, obvykle `netlify/functions/`: `holub-ai`, `facebook-webhook` a další, po úkolu 01 i `netlify/lib/ai/`): prompty a texty automatických odpovědí zahrň do inventury. Opravuješ jen text, který obsahuje vzor z tabulky T (krok 14), logiku funkcí neměň. Úkol 09 sem předává případné zmínky o „satelitní analýze“ v odpovědích `facebook-webhook` (T21).
    - **Testy:** adresář testů a `package.json`. Test runner ověř ve zdroji. Pokud žádný není, použij `node --test` bez závislostí.
 3. **Registr `content/tvrzeni.json`.** Musí být mimo publikovaný adresář, nebo z publikace vyloučený. Struktura:
    ```json
@@ -82,7 +82,7 @@ Pravidlo `KONTEXT.md` §4.1: žádná nedoložená tvrzení, technologie ve výv
      "kariera": { "pozice": [] }
    }
    ```
-   Výchozí obsah tvoří tabulky T01–T23 a F1–F8 níže. Samotné doklady (faktury, technické listy, nabídky lešení s údaji třetích osob) **do repozitáře nedávej**. V registru stačí popis dokladu, jeho datum a místo uložení.
+   Výchozí obsah tvoří tabulky T01–T24 a F1–F8 níže. Samotné doklady (faktury, technické listy, nabídky lešení s údaji třetích osob) **do repozitáře nedávej**. V registru stačí popis dokladu, jeho datum a místo uložení.
 4. **Skript `scripts/inventura-tvrzeni.mjs`** (Node, bez závislostí):
    - **Co prochází:** publikované `*.html`, `assets/**/*.js`, `content/*.json` (kromě `tvrzeni.json`) a zdrojové kódy funkcí.
    - **Normalizace:** odstraní tagy, sjednotí `&nbsp;` a U+00A0 na mezeru a zkrátí bílé znaky.
@@ -111,7 +111,7 @@ Pravidlo `KONTEXT.md` §4.1: žádná nedoložená tvrzení, technologie ve výv
 
    | ID | Vzory (regex) | Výchozí stav | Fáze A (hned) | Fáze B (po odpovědi) |
    |---|---|---|---|---|
-   | T01 | `[Bb]ez lešení`, `[Ww]ithout scaffolding` | preformulovat | V těle, JSON-LD a JS jen F1–F4. H1 okresních stránek změň na „… — zpravidla bez lešení“ (F1). Měděný prvek: vypusť „— bez lešení“. | O6: majitel potvrdí nebo upraví F1–F4 |
+   | T01 | `[Bb]ez lešení`, `[Ww]ithout scaffolding` | preformulovat | V těle, JSON-LD a JS jen F1–F4. H1 okresních stránek změň na „… — zpravidla bez lešení“ (F1). Měděný hřebenový prvek (`/` text, FAQ i JSON-LD „…při ošetření střechy — bez lešení“, dlaždice „montáž bez lešení při ošetření střechy“, `assets/hbot.js`, `/en` „installed without scaffolding during roof treatment“): údaj o lešení vypusť. | O6: majitel potvrdí nebo upraví F1–F4 |
    | T02 | `[Bb]ez lešení a plošin`, `lešení neplatíte`, `[Nn]o scaffolding charge`, `[Žž]ádné lešení`, `ZA LEŠENÍ — VLASTNÍ TECHNIKA` | odstranit | Nahraď F2 nebo F3. H1 `/kalkulacka-svj` a `/nabidka-svj` přeformuluj bez slibu. Platí i v `<head>`: v šabloně okresních stránek střech změň „Vlastní technika, lešení neplatíte.“ na „Vlastní technika, zpravidla bez lešení.“ (F1). Na `/en` nahraď „No scaffolding charge.“ za „Usually without scaffolding.“ Popisek čítače viz krok 8. | – |
    | T03 | `[Vv]lastní receptur`, `nakupované náhražky`, `[Oo]wn (H-STONE\|technology\|formula)` | odstranit | Použij F7. | O4: s dokladem lze vrátit |
    | T04 | `8–10 m²` (vydatnost), `PLNÁ FUNKCE` | odstranit | Odstraň oba údaje z `/`. | O4: vrátit jen s technickým listem |
@@ -199,7 +199,7 @@ Pravidlo `KONTEXT.md` §4.1: žádná nedoložená tvrzení, technologie ve výv
 19. **Kariéra:** u každé písemně potvrzené pozice doplň `kariera.pozice` v registru a JobPosting se všemi poli podle testu f. Popis musí obsahovat náplň, místo výkonu, formu (HPP/DPP/OSVČ) a mzdu nebo rozpětí. Build musí markup po `validThrough` sám vypustit, ověř to testem s datem v minulosti. Rich Results Test projde majitel ručně. Pokud majitel žádnou pozici nepotvrdí, zůstane stav z fáze A.
 20. **Akce:**
     - Pokud majitel akci prodlouží, publikuj pravidla v2 z vyplněného návrhu (bez `[DOPLNIT]`) a na `/akce/` a do lišty na `/` přidej „Platí do …“.
-    - Pokud akci ukončí, vypni sdělení o výhře na `/`, `/akce/` a v `holub-let.js`. Stránku pravidel ponech s datem ukončení. Dosavadní účastníky se řídí původními pravidly (bod „již zařazené poptávky tím nejsou dotčeny“).
+    - Pokud akci ukončí, vypni sdělení o výhře na `/`, `/akce/` a v `holub-let.js`. Stránku pravidel ponech s datem ukončení. Dosavadní účastníci se řídí původními pravidly (bod „již zařazené poptávky tím nejsou dotčeny“).
 21. **Fotky, spot a EN:** vrať popisek „Skutečná zakázka“ jen u fotek s archivovaným originálem a souhlasem (O10). Spot vykresli nově podle schváleného textu (O11). Odkaz „Privacy policy“ nasměruj na anglické shrnutí, až ho dodá úkol 09.
 22. Na konci spusť inventuru a test znovu. V hlášení uveď počet tvrzení ve stavu `ceka`: buď 0, nebo seznam s důvodem.
 
@@ -292,14 +292,17 @@ Použij formát z `KONTEXT.md` §5 a doplň:
 - **Tabulka počtů pro každé ID:** stav 4. 10. (část Proč) → před změnou → po změně, rozdělená podle oblastí (`head` / `telo` / `jsonld` / `js`).
 - **Výstupy kontrol:** výstup testu a `--kontrola`, odkaz na běh workflow a odkaz na náhled.
 - **Řádky diffu s číslicí:** každý se zdrojem.
-- **Otázky O1–O13** pro majitele.
+- **Otázky O1–O14** pro majitele.
 - **Předávky jiným úkolům:**
   - úkol 11: „bez lešení“ v `<head>` (počet stránek), F1–F4, O12 a `areaServed`,
   - úkol 05: „chráněný dalších 10 let“ na `/kalkulacka-svj`,
   - úkol 09: anglické shrnutí zásad, údaje v akci, uchazeči o práci,
-  - balíček: `content/hbot-faq.json` ř. 11, 23, 33, 43.
+  - úkol 17: upravené testy kalkulačky SVJ (cena odkladu bez výchozího růstu) a případně doplněné statické hodnoty čítačů,
+  - úkol 18: „do 24 hodin“ a čítač „24 h“, anglický formulář, anglická informace o reklamaci,
+  - úkol 19: `npm run kontrola:tvrzeni` do společného CI,
+  - balíček: `content/hbot-faq.json` ř. 11, 23, 33, 43 a případné nálezy v `netlify/lib/ai/*`.
 - **Návrhy mimo rozsah:**
-  - neutrální poptávkový formulář mimo soutěž a anglický formulář (`audit-formulare.json` #11, #12),
+  - neutrální poptávkový formulář mimo soutěž a anglický formulář (`audit-formulare.json` #11, #12; úkol 18),
   - formuláře kariéry a spolupráce (#20),
   - podmínky tarifů SENTINEL (`audit-pravni_pravdivost.json` #15),
   - shoda tvrzení na Facebooku a v profilu Google s webem,

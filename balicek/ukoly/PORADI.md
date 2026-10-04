@@ -24,7 +24,7 @@ zbývajících oblastí auditu se může zpřesnit (před každým úkolem `git 
 | 11 | [SEO: strukturovaná data, snippety, Kontakt](11-seo-data-snippety.md) | P1 | 05, 06 | – |
 | 12 | [Krajské huby místo okresních stránek](12-krajske-huby.md) | P2 | 11 | skutečné zakázky, souhlas se strategií |
 | 13 | [Pravdivost tvrzení: technologie, H-BIO, kariéra, akce](13-pravdivost-tvrzeni.md) | P0 | – | stav HYDRA/RAIL/SCAN/SENTINEL, doklady H-BIO, pravidla akce |
-| 14 | [Interní panel: AI centrum, registr čistých domů, recenze](14-interni-panel-registr.md) | P2 | 01 | – |
+| 14 | [Interní panel: AI centrum, registr čistých domů, recenze](14-interni-panel-registr.md) | P2 | 01 | odkaz na Google recenze, schválení textů (souhlas, žádost, odpovědi), přístupové kódy ke stávajícím pasům, doklad o pojištění |
 | 15 | [Provoz: kredity, monitoring, bezpečnostní hlavičky](15-provoz-bezpecnost.md) | P1 | 00 | rozhodnutí o auto-recharge |
 | 16 | [Přístupnost a ovládání klávesnicí](16-pristupnost-klavesnice.md) | P1 | 08 | – |
 | 17 | [Funkční chyby: kotvy na homepage, kalkulačky, tisk, offline](17-funkcni-chyby.md) | P0 (kotvy) / P1 | 00 | – |

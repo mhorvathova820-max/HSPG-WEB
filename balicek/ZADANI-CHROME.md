@@ -12,6 +12,8 @@ Pravidla pro tebe:
 3. Výsledky piš jako „ověřená fakta“ s datem a tím, kde jsi je viděl; co jsi neověřil, tak označ.
 4. Výstup každého úkolu předej majiteli ve formě, kterou vloží do chatu s cloudovým Claude Code nebo agentovi ve VS Code.
 
+Majitel si přeje pracovat přes VS Code: **v Netlify nic nenastavuj** (C1, C2 a C10 dělá majitel sám nebo agent ve VS Code), dokud to majitel výslovně nezmění.
+
 Úkoly (v tomto pořadí; po každém krátké hlášení):
 
 **C1 Kredity Netlify (nejvyšší priorita)** – Usage & billing: zůstatek, spotřeba podle položek, datum obnovy. Proveď majitele zapnutím **auto-recharge** (Personal: 500 kreditů za 5 USD) – kliká a potvrzuje majitel. Zjisti, na jaký e-mail chodí upozornění 50/75/100 % a zda ho majitel čte.
@@ -22,11 +24,11 @@ Pravidla pro tebe:
 
 **C4 Poptávky ve schránce** – Seznam Email: proveď majitele vytvořením pravidla „Od: Netlify / předmět obsahuje Form submission nebo 🕊 Poptávka → štítek Poptávky + označit jako důležité“. Ověř na dosavadních 8 zprávách.
 
-**C5 Google Firemní profil** – profil „HOLUB surface protection group“ už existuje (nezakládat druhý). S majitelem doplň: název podle skutečnosti, telefon +420 736 618 486, web https://hspg.cz, pracovní doba Po–So 7:00–19:00, kategorie a služby (čištění a impregnace střech, fasád, dlažeb; čištění fotovoltaiky), oblast působnosti, popis bez nedoložených tvrzení (bez „nejlepší“, bez čísel, která nejsou na webu). Ověření profilu dělá majitel (video). Zjisti odkaz pro psaní recenzí – předej pro úkol 14.
+**C5 Google Firemní profil** – profil „HOLUB surface protection group“ je ověřený (4. 10.) – nezakládat druhý; zbývá doplnit fotky, datum otevření a sjednotit popis s webem. S majitelem doplň: název podle skutečnosti, telefon +420 736 618 486, web https://hspg.cz, pracovní doba Po–So 7:00–19:00, kategorie a služby (čištění a impregnace střech, fasád, dlažeb; čištění fotovoltaiky), oblast působnosti, popis bez nedoložených tvrzení (bez „nejlepší“, bez čísel, která nejsou na webu). Ověření profilu dělá majitel (video). Zjisti odkaz pro psaní recenzí – předej pro úkol 14.
 
 **C6 Firmy.cz (Seznam)** – záznam je nepřevzatý (bez webu, telefonu, oboru). Proveď majitele převzetím a doplň stejné údaje jako v C5 (NAP musí sedět s webem).
 
-**C7 Webmaster nástroje** – Google Search Console (doména hspg.cz), Bing Webmaster Tools, Seznam Webmaster: ověření vlastnictví (TXT záznam ve Wedos DNS – přidání TXT nemění poštu; i tak jen po souhlasu majitele), odeslání sitemap https://hspg.cz/sitemap.xml. Výstup: stav indexace, chyby.
+**C7 Webmaster nástroje** – Google Search Console je hotová (ověřeno, sitemap odeslaná 4. 10.); zbývá Bing Webmaster Tools a Seznam Webmaster: ověření vlastnictví (TXT záznam ve Wedos DNS – přidání TXT nemění poštu; i tak jen po souhlasu majitele), odeslání sitemap https://hspg.cz/sitemap.xml. Výstup: stav indexace, chyby.
 
 **C8 Doména a DNS (jen návrh, změny až po souhlasu)** – Wedos: DMARC zatím `p=none` – navrhni přidání reportů `rua` na schránku @hspg.cz; CAA záznam pro vydavatele certifikátů Netlify (Let's Encrypt); u CZ.NIC / registrátora blokace převodu domény. MX nechat.
 

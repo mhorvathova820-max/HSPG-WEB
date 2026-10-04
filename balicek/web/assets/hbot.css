@@ -6,7 +6,7 @@
   box-shadow:0 30px 80px -24px rgba(0,0,0,.9);color:var(--hb-text);font:14px/1.55 Manrope,Inter,system-ui,sans-serif;overflow:hidden}
 #hbot[hidden]{display:none}
 #hbot.hb-siroky{width:min(760px,calc(100vw - 36px));max-height:min(820px,calc(100dvh - 110px))}
-#hbot *{box-sizing:border-box}
+#hbot,#hbot *{box-sizing:border-box}
 #hbot button,#hbot input,#hbot select,#hbot textarea{font:inherit;color:inherit}
 #hbot :focus-visible{outline:2px solid #fff3c4;outline-offset:2px}
 #hbot a{color:#e2c685}
@@ -64,6 +64,8 @@
 #hbot .hbm-odkazy{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
 #hbot .hbm-odkazy a{padding:4px 9px;border:1px solid var(--hb-linka);border-radius:8px;text-decoration:none;color:var(--hb-text)}
 @media (max-width:760px){
+  /* 16 px: iOS Safari při fokusu menšího písma stránku přiblíží */
+  #hbot input,#hbot select,#hbot textarea{font-size:16px}
   #hbot,#hbot.hb-siroky{left:0;right:0;bottom:0;width:100%;max-height:min(88dvh,calc(100dvh - 12px));border-radius:18px 18px 0 0;padding-bottom:env(safe-area-inset-bottom)}
   #hbot .hbm-radek{grid-template-columns:1fr}
 }

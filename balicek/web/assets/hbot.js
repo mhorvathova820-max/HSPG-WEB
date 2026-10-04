@@ -30,15 +30,17 @@
     '@media (max-width:1499px){#hbot-btn .hb-btn-text{display:none}#hbot-btn{padding:0 7px}}' +
     '#hspg-lista{display:none}' +
     '@media (max-width:760px){#hbot-btn,#cta-stack{display:none !important}' +
-    '#hspg-lista{position:fixed;left:0;right:0;bottom:0;z-index:61;display:grid;grid-template-columns:1fr auto 1fr;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:rgba(10,15,26,.95);border-top:1px solid rgba(201,169,98,.45);backdrop-filter:blur(12px);box-shadow:0 -14px 34px -18px rgba(0,0,0,.9);transition:transform .3s ease,visibility 0s}' +
-    '#hspg-lista a,#hspg-lista button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:48px;padding:0 12px;border-radius:12px;font:800 14px Manrope,Inter,system-ui,sans-serif;letter-spacing:.2px;text-decoration:none;cursor:pointer}' +
+    '#hspg-lista{position:fixed;left:0;right:0;bottom:0;z-index:61;display:flex;gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:rgba(10,15,26,.95);border-top:1px solid rgba(201,169,98,.45);backdrop-filter:blur(12px);box-shadow:0 -14px 34px -18px rgba(0,0,0,.9);transition:transform .3s ease,visibility 0s}' +
+    '#hspg-lista a,#hspg-lista button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:48px;padding:0 8px;border-radius:12px;font:800 14px Manrope,Inter,system-ui,sans-serif;letter-spacing:.2px;text-decoration:none;cursor:pointer;white-space:nowrap;flex:1 1 auto;min-width:0}' +
+    '#hspg-lista svg{width:18px;height:18px;flex:none}' +
     '#hspg-lista .hl-tel{color:#f4e4b8;border:1px solid rgba(201,169,98,.55);background:transparent}' +
     '#hspg-lista .hl-bot{color:#f4e4b8;border:1px solid rgba(201,169,98,.55);background:rgba(201,169,98,.12)}' +
     '#hspg-lista .hl-cena{color:#16181c;background:linear-gradient(160deg,#f4e4b8,#c9a962 55%,#9a7a3d);border:0}' +
     '#hspg-lista a:focus-visible,#hspg-lista button:focus-visible{outline:2px solid #fff3c4;outline-offset:2px}' +
     'body{padding-bottom:calc(66px + env(safe-area-inset-bottom))}' +
     'body.hero-cta-na-obrazovce #hspg-lista{transform:translateY(110%);visibility:hidden;transition:transform .3s ease,visibility 0s linear .3s}}' +
-    '@media (max-width:360px){#hspg-lista{gap:6px;padding-left:6px;padding-right:6px}#hspg-lista a,#hspg-lista button{padding:0 9px;font-size:13px}}' +
+    '@media (max-width:360px){#hspg-lista a,#hspg-lista button{font-size:13px}}' +
+    '@media (max-width:370px){#hspg-lista svg{display:none}}' +
     '@media (prefers-reduced-motion:reduce){#hspg-lista{transition:none}}';
   d.head.appendChild(css);
 
@@ -55,10 +57,12 @@
   var lista = d.createElement('nav');
   lista.id = 'hspg-lista'; lista.setAttribute('aria-label', 'Rychlý kontakt');
   var naAkci = /^\/akce\/?$/.test(location.pathname) && d.getElementById('poptavka');
+  // Ikony jako SVG: na všech systémech vypadají stejně (emoji kreslí každý telefon jinak).
+  var IKONA = function (d) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="' + d + '"/></svg>'; };
   lista.innerHTML =
-    '<a class="hl-tel" href="tel:' + TEL + '"><span aria-hidden="true">📞</span> Zavolat</a>' +
-    '<button type="button" class="hl-bot" aria-controls="hbot" aria-expanded="false" aria-haspopup="dialog"><span aria-hidden="true">💬</span> Zeptat se</button>' +
-    '<a class="hl-cena" href="' + (naAkci ? '#poptavka' : '/akce/') + '"><span aria-hidden="true">🕊</span> Cena do 24 h</a>';
+    '<a class="hl-tel" href="tel:' + TEL + '">' + IKONA('M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z') + 'Zavolat</a>' +
+    '<button type="button" class="hl-bot" aria-controls="hbot" aria-expanded="false" aria-haspopup="dialog">' + IKONA('M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z') + 'Zeptat se</button>' +
+    '<a class="hl-cena" href="' + (naAkci ? '#poptavka' : '/akce/') + '">' + IKONA('M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8zM7 7h.01') + 'Cena do 24 h</a>';
 
   d.body.appendChild(btn);
   d.body.appendChild(lista);

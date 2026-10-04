@@ -70,7 +70,7 @@
     '<button class="hb-zlate" type="submit">Poslat</button></form></div>' +
     '<div class="hb-view" id="hb-view-m" role="tabpanel" aria-labelledby="hb-tab-m" hidden></div>' +
     '<div class="hb-pata"><span>' + esc(DOBA) + ' · <a href="tel:' + TEL + '">' + TEL_TEXT + '</a></span>' +
-    '<button type="button" class="hb-odkaz" data-majitel>Přihlášení majitele</button></div>';
+    '<button type="button" class="hb-odkaz" data-majitel hidden>Přihlášení majitele</button></div>';
   d.body.appendChild(box);
 
   var log = box.querySelector('.hb-log');
@@ -80,6 +80,11 @@
   var tabZ = box.querySelector('#hb-tab-z'), tabM = box.querySelector('#hb-tab-m');
   var viewZ = box.querySelector('#hb-view-z'), viewM = box.querySelector('#hb-view-m');
   var majitelBtn = box.querySelector('[data-majitel]');
+  // Návštěvníci odkaz nevidí. Majitel otevře panel přes hspg.cz/#majitel; zařízení si to pak pamatuje.
+  var ZARIZENI_KLIC = 'hspg-majitel-zarizeni';
+  function zarizeniMajitele() { try { return localStorage.getItem(ZARIZENI_KLIC) === '1'; } catch (e) { return false; } }
+  function zapamatujZarizeni() { try { localStorage.setItem(ZARIZENI_KLIC, '1'); } catch (e) {} }
+  function ukazOdkazMajitele() { majitelBtn.hidden = !(token() || zarizeniMajitele() || location.hash === '#majitel'); }
 
   function msg(html, trida) {
     var m = d.createElement('div'); m.className = 'hb-msg' + (trida ? ' ' + trida : '');
@@ -186,7 +191,7 @@
         historie.pop();
         if (j.rezim === 'predat') { msg('Na tohle vám nejlépe odpoví přímo náš tým.'); zavolejteMi(); return; }
         // Bez AI, po limitu nebo po dvou chybách za sebou už se zbytek návštěvy AI nevolá – odpovídá FAQ.
-        if (x.s === 503 || j.rezim === 'bez-ai' || j.rezim === 'limit' || ++aiChyby >= 2) aiVypnuto = true;
+        if (x.s === 503 || x.s === 429 || j.rezim === 'bez-ai' || j.rezim === 'limit' || ++aiChyby >= 2) aiVypnuto = true;
         faq(text);
       })
       .catch(function () { pise.remove(); historie.pop(); if (++aiChyby >= 2) aiVypnuto = true; faq(text); })
@@ -295,6 +300,7 @@
         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok || !j.token) throw new Error(j.chyba || 'Přihlášení selhalo.'); return j; }); })
         .then(function (j) {
           ss(TOKEN_KLIC, j.token); ss(PLATNOST_KLIC, String(j.platnost));
+          zapamatujZarizeni();
           f.remove(); zapniMajitele(true);
         })
         .catch(function (e) { ch.textContent = e.message; ch.hidden = false; b.disabled = false; b.textContent = 'Přihlásit'; pole.select(); });
@@ -326,9 +332,14 @@
     styly.then(function () {
       box.hidden = false; Z.otevreno(true);
       if (!zacatek) uvitani();
+      ukazOdkazMajitele();
       if (token()) zapniMajitele(location.hash === '#majitel');
       else if (location.hash === '#majitel') prihlaseni();
-      (viewM.hidden ? vstup : (viewM.querySelector('textarea') || tabM)).focus({ preventScroll: true });
+      // Na dotyku by fokus do pole vysunul klávesnici dřív, než zákazník uvidí rychlé otázky.
+      var dotyk = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+      if (!viewM.hidden) (viewM.querySelector('textarea') || tabM).focus({ preventScroll: true });
+      else if (dotyk) { box.setAttribute('tabindex', '-1'); box.focus({ preventScroll: true }); }
+      else vstup.focus({ preventScroll: true });
       udalost('hbot_open', { majitel: !!token() });
     });
   }

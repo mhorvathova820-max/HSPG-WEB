@@ -38,7 +38,7 @@
 
     var dotazW = el('div');
     dotazW.appendChild(el('label', { for: 'hbm-dotaz' }, 'Zadání (fakta pište sem – AI nesmí nic vymýšlet)'));
-    var dotaz = el('textarea', { id: 'hbm-dotaz', placeholder: 'Např.: Paní Nováková z Kolína poptává čištění eternitové střechy 120 m²…' });
+    var dotaz = el('textarea', { id: 'hbm-dotaz', placeholder: 'Např.: Paní Nováková z Kolína poptává čištění střechy z betonové tašky, 120 m²…' });
     dotazW.appendChild(dotaz);
 
     var akce = el('div', { class: 'hbm-akce' });
@@ -106,7 +106,9 @@
       return { k: k, text: text, st: st };
     }
 
-    function zacni() { preruseni = new AbortController(); odeslat.disabled = true; zastavit.disabled = false; return preruseni.signal; }
+    var posunuto = false;
+    function ukazVysledky() { if (!posunuto && vysledky.firstChild) { posunuto = true; vysledky.firstChild.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }
+    function zacni() { posunuto = false; preruseni = new AbortController(); odeslat.disabled = true; zastavit.disabled = false; return preruseni.signal; }
     function skonci(t) { odeslat.disabled = false; zastavit.disabled = true; preruseni = null; info.textContent = t || 'Hotovo.'; }
     zastavit.addEventListener('click', function () { if (preruseni) preruseni.abort(); });
 
@@ -122,7 +124,7 @@
         info.textContent = 'Ptám se ' + zapnute.length + ' AI…';
         Promise.all(zapnute.map(function (a) {
           var c = karta(a.nazev, AI.BARVY[a.id] || '#c9a962', a.model);
-          return AI.zavolej({ ai: a.id, zpravy: [{ role: 'user', text: zadani }], pokyn: pokyn, token: o.token, signal: signal, naText: function (t) { c.text.textContent = t; } })
+          return AI.zavolej({ ai: a.id, zpravy: [{ role: 'user', text: zadani }], pokyn: pokyn, token: o.token, signal: signal, naText: function (t) { c.text.textContent = t; ukazVysledky(); } })
             .then(function (r) { c.st.textContent = r.stat.vstup + ' + ' + r.stat.vystup + ' tokenů' + (r.stat.kc ? ' · ≈ ' + r.stat.kc.toFixed(2) + ' Kč' : ''); })
             .catch(function (e) { if (!odhlasPriChybe(e)) { c.text.textContent = e.name === 'AbortError' ? 'Zastaveno.' : e.message; c.text.classList.add('hb-chyba'); } });
         })).then(function () { skonci(); });
@@ -138,7 +140,7 @@
           info.textContent = i + '/3 ' + nazev.toLowerCase() + '…';
           c.text.appendChild(el('div', { class: 'hbm-krok' }, i + '. ' + nazev + ' – ' + jmeno(ai)));
           var cil = el('div'); c.text.appendChild(cil);
-          return function (t) { cil.textContent = t; c.text.scrollTop = c.text.scrollHeight; };
+          return function (t) { cil.textContent = t; c.text.scrollTop = c.text.scrollHeight; ukazVysledky(); };
         }
       }).then(function (k) {
         c.k.setAttribute('data-final', k.final);

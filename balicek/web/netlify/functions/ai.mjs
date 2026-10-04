@@ -5,7 +5,7 @@
 import { POSKYTOVATELE, jeZapnuty, vytvorAdaptery } from "../lib/ai/poskytovatele.mjs";
 import { PRAVIDLA_PRAVDIVOSTI } from "../lib/ai/pravidla.mjs";
 import { overPozadavek } from "../lib/ai/autorizace.mjs";
-import { vychoziUloziste, zapisUtratu, odhadKc, rozpocetVycerpan, mesicniLimitKc } from "../lib/ai/limity.mjs";
+import { vychoziUloziste, zapisUtratu, odhadKc, rezervuj, odhadTokenu, mesicniLimitKc } from "../lib/ai/limity.mjs";
 
 const MAX_TOKENU = 8000;
 const MAX_ZNAKU_VSTUPU = 60000;
@@ -42,14 +42,18 @@ export function vytvorAI({ env = process.env, adaptery, uloziste, ted = () => Da
     if (!platne) return json({ chyba: "Zprávy musí končit dotazem uživatele." }, 400);
     if (JSON.stringify(zpravy).length + String(pokyn || "").length > MAX_ZNAKU_VSTUPU) return json({ chyba: "Dotaz je příliš dlouhý." }, 413);
 
-    // Měsíční rozpočet AI platí i pro majitele – kredity Netlify jsou společné s chodem webu.
-    try {
-      if (await rozpocetVycerpan(await dejUloziste(), env, ted()))
-        return json({ chyba: `Měsíční rozpočet AI (${mesicniLimitKc(env)} Kč, proměnná AI_MESICNI_LIMIT_KC) je vyčerpaný.` }, 402);
-    } catch {
-      // Úložiště nedostupné: přihlášený majitel smí pokračovat (nízký objem), útrata se dopočítá později.
-    }
     const system = pokyn ? `${PRAVIDLA_PRAVDIVOSTI}\n\nRole v této úloze:\n${String(pokyn)}` : PRAVIDLA_PRAVDIVOSTI;
+    // Měsíční rozpočet AI platí i pro majitele – kredity Netlify jsou společné s chodem webu.
+    // Rezervuje se nejvyšší možná cena volání; po odpovědi se vyrovná na skutečnou.
+    let rezerva = 0;
+    let store = null;
+    try {
+      store = await dejUloziste();
+      rezerva = await rezervuj(store, ai, odhadTokenu(system + JSON.stringify(zpravy)), MAX_TOKENU, env, ted());
+    } catch {
+      store = null; // úložiště nedostupné: přihlášený majitel smí pokračovat (nízký objem)
+    }
+    if (rezerva === false) return json({ chyba: `Měsíční rozpočet AI (${mesicniLimitKc(env)} Kč, proměnná AI_MESICNI_LIMIT_KC) by se překročil.` }, 402);
     const adapter = (adaptery || vytvorAdaptery(env))[ai];
     const enc = new TextEncoder();
     const body = new ReadableStream({
@@ -61,7 +65,7 @@ export function vytvorAI({ env = process.env, adaptery, uloziste, ted = () => Da
               const kc = odhadKc(ai, kus.stat.vstup || 0, kus.stat.vystup || 0, env);
               ctrl.enqueue(enc.encode("\n\u0000STAT" + JSON.stringify({ ...kus.stat, kc: Math.round(kc * 100) / 100 })));
               try {
-                await zapisUtratu(await dejUloziste(), ai, kus.stat, env, ted());
+                if (store) await zapisUtratu(store, ai, kus.stat, env, ted(), rezerva);
               } catch {
                 // Útrata se nezapíše, odpověď ale doběhne.
               }
