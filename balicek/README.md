@@ -2,7 +2,9 @@
 
 | Soubor | K čemu |
 |---|---|
-| [VLOZ-DO-VSCODE.md](VLOZ-DO-VSCODE.md) | **jediný blok, který majitel vloží agentovi Claude Code ve VS Code** |
+| [VLOZ-DO-VSCODE.md](VLOZ-DO-VSCODE.md) | **blok, který majitel vloží agentovi Claude Code ve VS Code** (mění kód webu) |
+| [ZADANI-CHROME.md](ZADANI-CHROME.md) | blok pro **Claude v Chrome** – administrace (Netlify, Seznam, Google, Wedos) a kontrola náhledů v prohlížeči |
+| [ZADANI-CLAUDE-PRO.md](ZADANI-CLAUDE-PRO.md) | projekt a úkoly pro **Claude Pro** (claude.ai) – rozhodnutí majitele, texty, podklady pro právníka |
 | [KONTEXT.md](KONTEXT.md) | ověřená fakta, rozhodnutí majitele a nepřekročitelná pravidla |
 | [POSUDEK-MASTER-PLANU.md](POSUDEK-MASTER-PLANU.md) | co z e-mailu „Master plán“ převzít a co ne |
 | [ukoly/PORADI.md](ukoly/PORADI.md) | pořadí úkolů 00–15 |
