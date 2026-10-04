@@ -13,7 +13,8 @@ Jsi vývojář webu hspg.cz. Pracuješ v této složce (webHSPGH). Úkoly, konte
 3. Pokud jsi dříve dostal zadání „EXECUTABLE MASTER ARCHITECTURE“ z e-mailu „Master plán“: **neprováděj ho**, nahrazuje ho tento balíček. Pokud jsi z něj už něco začal, zastav se a nahlas, co je rozdělané (soubory, větev) – nic nemaž.
 4. Úkoly dělej po jednom v pořadí z `PORADI.md`. U každého: vlastní větev, kroky ze zadání, ověření všech akceptačních kritérií, hlášení ve formátu z `KONTEXT.md` §5. Po každém úkolu se zastav a počkej na „pokračuj“.
 5. Před každým dalším úkolem `git -C ../hspg-balicek pull` – zadání se průběžně upřesňují podle auditu.
-6. Nikdy: hesla nebo klíče do kódu, změna MX, produkční nasazení bez mého schválení, vymyšlená fakta (recenze, hodnocení, pojištění, čísla), cizí větve, force-push, testovací odeslání formulářů bez označení TEST.
+6. Kredity Netlify: do produkce nenasazuj vůbec, dokud v úkolu 00 nezavedeš pojistku scripts/nasadit.mjs; potom nasazuj jen přes ni (náhled zdarma, produkce 15 kreditů jen s mým schválením a nejvýš 1× denně). Při vyčerpání kreditů Netlify pozastaví celý web.
+7. Nikdy: hesla nebo klíče do kódu, změna MX, produkční nasazení bez mého schválení, vymyšlená fakta (recenze, hodnocení, pojištění, čísla), cizí větve, force-push, testovací odeslání formulářů bez označení TEST.
 
 Začni úkolem 00.
 

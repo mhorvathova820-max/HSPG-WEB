@@ -26,16 +26,21 @@ NE: změny obsahu webu, produkční nasazení, mazání čehokoli z historie bez
    - do `main` jen sloučením ověřené větve; před sloučením `git fetch` a kontrola, že `main` nemá cizí nové commity,
    - pravidla z `balicek/KONTEXT.md` §4 (pravdivost, tajemství, kredity, formuláře).
    - Doporuč majiteli ve VS Code vypnout automatickou synchronizaci/přepínání větví u „cloud agenta“ (nastavení rozšíření), dokud běží úkoly.
-6. Nasazování a kredity – do `CLAUDE.md` i do hlášení:
-   - průběžně `netlify dev` lokálně nebo `netlify deploy` (náhled, bez `--prod`); produkční `netlify deploy --prod` jen po schválení majitelem, ideálně 1× denně v dávce,
-   - před produkčním nasazením zkontroluj zbývající kredity (Netlify → Team → Billing / Usage),
-   - napojení Netlify na Git (automatické nasazení při každém pushi do `main`) **zatím nezapínat** – každé nasazení stojí 15 kreditů; rozhodne majitel po sloučení prvních úkolů.
+6. Nasazování a kredity – **pojistka proti vyčerpání kreditů** (po vyčerpání Netlify pozastaví celý web):
+   - zkopíruj `balicek/web/scripts/nasadit.mjs` do `scripts/nasadit.mjs`, přidej `.nasazeni-produkce.json` do repozitáře (prázdné pole `[]`) a do `package.json` skripty `"nahled": "node scripts/nasadit.mjs"` a `"produkce": "node scripts/nasadit.mjs --produkce"`,
+   - propoj složku s projektem: `npx netlify link --id e4dff53f-791b-4c8c-946c-a23d06421774` (ověř `npx netlify status` → hspg.cz),
+   - ověř pojistku: `node scripts/nasadit.mjs --produkce` bez `--schvaleno` musí skončit „PRODUKCE ZAMÍTNUTA“ (nic se nenasadí); `npm run nahled` vytvoří náhled zdarma,
+   - do `CLAUDE.md`: nasazovat jen přes `npm run nahled` / `npm run produkce -- --schvaleno "…"`; přímé `netlify deploy --prod` je zakázané; žádné automatické nasazování při uložení,
+   - napojení Netlify na Git (automatické produkční nasazení při každém pushi do `main`) **nezapínat**; pokud je už zapnuté, nahlas to majiteli (Netlify → Project configuration → Build & deploy → Stop builds / Lock publishing),
+   - zjisti, kdo a jak dosud nasazoval 32× za měsíc (git log, historie Netlify Deploys, skripty s `deploy --prod`, cloud agent) a všechna taková místa převeď na pojistku nebo odstraň.
 7. Checklist pro majitele (vlož do hlášení, majitel provede sám):
    - [ ] Změnit heslo Wedos (klientské centrum) a zapnout dvoufázové ověření.
    - [ ] Změnit heslo Seznam (profiserv@seznam.cz i schránky @hspg.cz, pokud sdílely heslo) a zapnout dvoufázové ověření.
    - [ ] Zneplatnit token z 4. 10. (tam, kde byl vydán) a vydat nový jen do Netlify proměnných.
    - [ ] Heslo z e-mailu „Master plán“ považovat za prozrazené; pokud se používá jinde, změnit. Do Netlify zadat nové `HSPG_PANEL_HESLO` (16+ znaků, generátor hesel).
-   - [ ] Netlify → Billing: upozornění na kredity 50 / 75 / 90 / 100 %; rozhodnout o auto-recharge nebo vyšším tarifu (bez toho hrozí pozastavení webu).
+   - [ ] **Netlify → Usage & billing → auto-recharge: zapnout (Personal: 500 kreditů za 5 USD).** Jediná spolehlivá ochrana proti pozastavení webu – zapíná jen vlastník týmu.
+   - [ ] Ověřit, že e-maily Netlify o spotřebě (50 / 75 / 100 %) chodí do schránky, kterou čtete (e-mail účtu vlastníka týmu Netlify).
+   - [ ] Jednou týdně: Usage & billing → Account usage insights (graf spotřeby podle položek).
    - [ ] Rozhodnout, zda repozitář `HSPG-WEB` (balíček) přepnout na soukromý.
 
 ## Akceptační kritéria
@@ -43,6 +48,8 @@ NE: změny obsahu webu, produkční nasazení, mazání čehokoli z historie bez
 - [ ] `gitleaks detect` (nebo trufflehog) bez nálezů v pracovním stromu; nálezy v historii nahlášené bez hodnot.
 - [ ] Vzdálený repozitář existuje, je **private**, `git push` všech větví proběhl.
 - [ ] `CLAUDE.md` obsahuje pravidla pro dva agenty, nasazování a kredity.
+- [ ] `node scripts/nasadit.mjs --produkce` bez schválení → „PRODUKCE ZAMÍTNUTA“; `npm run nahled` → adresa náhledu (0 kreditů).
+- [ ] V repozitáři nezůstalo žádné jiné místo, které volá `netlify deploy --prod` (`git grep -n "deploy --prod"` jen v `scripts/nasadit.mjs`).
 - [ ] Hlášení obsahuje checklist pro majitele.
 
 ## Ověření
