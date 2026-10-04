@@ -198,7 +198,7 @@ Na mobilu je mezi začátkem `#holub-sekce` a tlačítkem „🕊 VYPUSŤTE HOLU
 19. **Offline:**
     - Nová stránka `offline/index.html` na adrese **`/offline/`**. Adresářová podoba jako `/akce/` je zvolená proto, aby ji nezměnilo sjednocení `/x` vs. `/x.html` v úkolu 06. Service worker nesmí uložit přesměrovanou odpověď.
     - Stránka je samostatná: inline CSS v paletě R7 (tmavě modrá a zlatá), žádné externí fonty ani skripty, bez `<footer>` (úkoly 03, 04, 08 a 09 ji z patiček vynechávají), `<meta name="robots" content="noindex">`, `<title>Jste offline | HOLUB – HSPG</title>`.
-    - Obsah: nadpis „Jste offline“, věta „Stránku teď nejde načíst, protože zařízení není připojené k internetu.“, odkaz `tel:` s telefonem a pracovní doba z `content/firma.json` (`telefon`, `telefon_zobrazeni`, `pracovni_doba`; vygeneruj buildem, pokud to jde) a odkaz „Úvodní stránka“.
+    - Obsah: nadpis „Jste offline“, věta „Stránku teď nejde načíst. Zkontrolujte prosím připojení k internetu.“ (SW nepozná, jestli chybí připojení zařízení, nebo nejde dosáhnout server, proto netvrdí příčinu), odkaz `tel:` s telefonem a pracovní doba z `content/firma.json` (`telefon`, `telefon_zobrazeni`, `pracovni_doba`; vygeneruj buildem, pokud to jde) a odkaz „Úvodní stránka“.
     - E-mail na stránku nedávej (úkol 03). Stránka nesmí být v sitemap.
     - `sw.js`:
       - `CORE = ['/offline/', '/manifest.webmanifest']`,
