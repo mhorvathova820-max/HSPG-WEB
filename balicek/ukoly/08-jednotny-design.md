@@ -43,7 +43,7 @@ Ověřeno 4. 10. 2026 v kopii živého webu (247 HTML) a Playwrightem v Chromiu 
 - `kariera.html`, `en.html` a starý `assets/hbot.js`: po 1×.
 
 Dále jsou pod 12 px:
-- v `assets/brand.css` `.brand span{font-size:.56rem}`, tedy asi 9 px u „Surface Protection Group“ v hlavičce `/akce/`,
+- hodnoty v `rem` (6×): `assets/brand.css` 4×, načítá ho 239 stránek, a `akce/index.html` 2×, rozsah `.56rem`–`.74rem`, tedy asi 9–11,8 px. Například `.brand span{font-size:.56rem}` u „Surface Protection Group“ v hlavičce `/akce/`,
 - v souborech z úkolu 01: `assets/hbot.js` 1× (`.hb-odznak` 10 px) a `assets/hbot.css` 3× (11–11,5 px v panelu majitele).
 
 **Plovoucí prvky zakrývají obsah:**
@@ -118,7 +118,7 @@ NE:
 - JSON-LD, viditelné drobečky, H1, title a description, obsah rozcestníků (úkol 11),
 - **obsahové** prolinkování z homepage a ceníku na rozcestníky a Prahu a krajské huby (úkol 12 B). Tady jde jen o navigační komponentu, viz krok 4,
 - tvrzení o technologiích, H-BIO, kariéře a akci, včetně textu proužku akce na homepage (úkol 13),
-- vzhled a chování plovoucího tlačítka H-SPG CORE (úkol 01, R4). Výjimkou je bezpečná zóna a případně velikost písma odznaku (krok 15),
+- vzhled a chování plovoucího tlačítka H-SPG CORE (úkol 01, R4). Výjimkou je bezpečná zóna (krok 16) a zvednutí 4 velikostí písma pod 12 px v jeho souborech (krok 15),
 - interní stránky `/rd-control-panel/` a `/ai-centrum/` (R7: tam zůstává antracit), jejich hlavička ani patička se nemění,
 - jakékoli texty v těle stránek.
 
@@ -213,7 +213,7 @@ NE:
    | `--plovouci-zona` | výška zóny plovoucích prvků (18 + 52 + rezerva, změř) | – | – |
 
    - `#C9A227` zůstává jen u AI tlačítka (R4). Antracit a cyan zůstávají jen u AI tlačítka a interního panelu (R7).
-   - Komu se paleta nelíbí, změní ji v jednom souboru. Agent ji jen nenavrhuje znovu.
+   - Paleta je výchozí návrh sestavený z hodnot, které už na webu jsou. Pokud ji majitel po snímcích změní, mění se jen tento soubor.
    - Soubor obsahuje tokeny, základ typografie, komponenty hlavičky a patičky, viditelný fokus, odkaz pro přeskočení na obsah a třídu `.sr-only`.
    - Velikost nejvýš 15 KB. Žádné nové soubory písem, žádné inline skripty ani `on…=` atributy (CSP, úkol 15).
    - Do `<head>` všech stránek ho vkládá skript z kroku 6 jako `<link rel="stylesheet">` s otiskem verze (`?v=` prvních 8 znaků SHA-256 obsahu). Pokud úkol 07 už zavedl jiný mechanismus otisků, použij jeho.
@@ -342,14 +342,14 @@ Fáze A:
 - [ ] Náhled: GET `/`, `/cisteni-strech/`, `/en` → patička s IČO, sídlem, zápisem v RŽP a odkazem na zásady (URL náhledu v hlášení).
 
 Fáze B:
-- [ ] Nejvýš 3 podoby hlavičky a 2 podoby patičky (test). `build-regions.mjs` nemá vlastní kopii hlavičky ani patičky (`git grep -n "<footer\|<header" -- scripts/build-regions.mjs` → jen volání komponenty).
+- [ ] Nejvýš 3 podoby hlavičky a 2 podoby patičky (test). `build-regions.mjs` nemá vlastní kopii hlavičky ani patičky: `git grep -n "<footer\|<header" -- scripts/build-regions.mjs` → prázdné, značkování vytváří jen `scripts/lib/layout.mjs`.
 - [ ] Menu se na žádné šířce 320–1920 px (krok 10 px) nezalomí, hlavička je ≤ 96 px a stránka nemá vodorovný posun. Uveď počet otestovaných kombinací stránka × šířka.
 - [ ] Mobilní menu funguje klávesnicí i s vypnutým JavaScriptem (test).
 - [ ] Definice barevných proměnných s pevnou hodnotou mimo tokeny: `git grep -hoE -e "--(ink|navy[-a-z0-9]*|gold[-a-z0-9]*|lux-(gold[-a-z]*|navy|ink|sapphire)|copper[-a-z]*|cream|paper|mist|panel|line|muted[-a-z]*)[[:space:]]*:[[:space:]]*(#|rgb)" -- '*.html' '*.css' 'scripts/*.mjs' ':!assets/zaklad.css' ':!assets/hbot*' ':!ai-centrum/*' ':!rd-control-panel/*' | wc -l` → 0 (výchozí stav v kopii webu: 2 922 výskytů).
 - [ ] Na všech typech stránek je stejné pozadí stránky, hlavičky a patičky a stejná barva výzvy k akci. U textu jsou nejvýš 2 rodiny písma (test).
 - [ ] Písmo pod 12 px ve zdrojích:
   - `git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?([0-9]|1[01])(\.[0-9]+)?px" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' | wc -l` → 0. Výchozí stav v kopii webu je 73 výskytů v 10 souborech a k tomu 4 v souborech úkolu 01.
-  - `git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?0?\.([0-6][0-9]*|7|7[0-4][0-9]*)r?em" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' | wc -l` → 0. Výchozí stav: 1 (`brand.css` `.56rem`).
+  - `git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?0?\.([0-6][0-9]*|7|7[0-4][0-9]*)r?em" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' | wc -l` → 0. Výchozí stav: 6 (`brand.css` 4×, `akce/index.html` 2×).
 - [ ] e2e: 0 viditelných textů pod 12 px (včetně SVG) a `main p`/`main li` ≥ 14 px.
 - [ ] Plovoucí prvky nezakrývají H1, úvodní odstavec, hlavní výzvu ani patičku (test na všech typech stránek a uvedených rozměrech).
 - [ ] axe: 0 porušení v hlavičce a patičce. Celkový počet závažných porušení není vyšší než před úkolem.
@@ -374,7 +374,7 @@ node scripts/nasadit.mjs                                # → URL náhledu (zdar
 # Fáze B (navíc)
 git grep -hoE -e "--(ink|navy[-a-z0-9]*|gold[-a-z0-9]*|lux-(gold[-a-z]*|navy|ink|sapphire)|copper[-a-z]*|cream|paper|mist|panel|line|muted[-a-z]*)[[:space:]]*:[[:space:]]*(#|rgb)" -- '*.html' '*.css' 'scripts/*.mjs' ':!assets/zaklad.css' ':!assets/hbot*' ':!ai-centrum/*' ':!rd-control-panel/*' | wc -l   # → 0 (předtím 2 922)
 git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?([0-9]|1[01])(\.[0-9]+)?px" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' | wc -l   # → 0 (předtím 73 + 4 z úkolu 01)
-git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?0?\.([0-6][0-9]*|7|7[0-4][0-9]*)r?em" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' | wc -l   # → 0 (předtím 1)
+git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?0?\.([0-6][0-9]*|7|7[0-4][0-9]*)r?em" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' | wc -l   # → 0 (předtím 6)
 node testy/vizualni.mjs --stav po && node testy/vizualni.mjs --porovnej   # → .artefakty/ukol-08/porovnani.html
 node testy/vizualni.mjs --zaklad && node testy/vizualni.mjs --kontrola    # → 0 odchylek nad 0,5 %
 npx -y lighthouse <náhled>/cenik --only-categories=performance,accessibility --form-factor=mobile --quiet --chrome-flags="--headless" --output=json --output-path=.artefakty/ukol-08/lh-cenik-po.json
@@ -418,7 +418,7 @@ Formát z `KONTEXT.md` §5 (po fázi A i po fázi B) a k tomu:
   - počet různých pozadí stránek a zlatých odstínů,
   - rodiny písma,
   - definice barevných proměnných s pevnou hodnotou (2 922 → 0),
-  - deklarace písma pod 12 px (73 + 4 + 1 → 0) a viditelné texty pod 12 px na `/` a `/en`,
+  - deklarace písma pod 12 px (73 v px + 4 z úkolu 01 + 6 v rem → 0) a viditelné texty pod 12 px na `/` a `/en`,
   - výška hlavičky na 320, 768, 1004 a 1920 px pro `/`, `/cenik`, `/cisteni-fasad/kolin/` a `/en`,
   - zalomené položky menu,
   - nalezené překryvy,
@@ -427,5 +427,5 @@ Formát z `KONTEXT.md` §5 (po fázi A i po fázi B) a k tomu:
 - Lighthouse a axe před/po,
 - URL náhledu,
 - **čeká na majitele:** schválení vzhledu, potvrzení evidujícího úřadu RŽP (nebo `[DOPLNIT]`, pokud se nepodařilo ověřit), případné změny položek menu v `content/navigace.json`,
-- změny v souborech úkolu 01 (např. `.hb-odznak`) k převzetí do balíčku,
+- změny v souborech úkolu 01 (velikosti písma v `hbot.js` a `hbot.css`) k převzetí do balíčku,
 - návrhy mimo rozsah (např. obsah proužku akce, kanonický odkaz na Facebook → úkol 11, e-mail bez JS → úkol 03).

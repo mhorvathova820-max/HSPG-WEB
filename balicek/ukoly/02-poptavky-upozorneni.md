@@ -40,7 +40,7 @@
 - tvrzení „do 24 hodin“ → **úkol 13**
 - přehled poptávek v interním panelu → **úkol 14**
 - týdenní kontrola Forms vs. oznámení a monitoring funkce → **úkol 15**
-- nálezy #7, #9, #11, #12 a #16 (průvodce není `<form>`, chování bez JS, děkovací stránka soutěže, neutrální poptávkový formulář, jednotné chyby): nedělat, zapsat do hlášení jako návrhy
+- nálezy #7, #9, #11, #12 a #16 (průvodce není `<form>`, chování bez JS, děkovací stránka soutěže, neutrální poptávkový formulář, jednotné chyby) → **úkoly 17 a 18** (tady nedělat)
 - produkční nasazení
 - změna DNS nebo MX
 
@@ -164,7 +164,7 @@
     - volitelně `NOTIFIKACE_EMAIL` pro test
 
     `OZNAMENI_S_UDAJI` **nenastavovat**, dokud úkol 09 neuvede ntfy/Telegram v zásadách. `POTVRZENI_ZAKAZNIKOVI=1` jen pokud majitel schválil text a `schvaleno` je `true`. Hodnoty nikdy nevypisuj.
-14. `netlify deploy` (bez `--prod`) → odkaz na náhled. Ověř, že Netlify formuláře na náhledu zaregistroval (Forms) a že se odeslání z náhledu objeví v Netlify → Forms. **Pokud se podání z náhledu nezpracují, zastav se.** Test na produkci je možný jen s výslovným souhlasem majitele po produkčním nasazení v dávce (`KONTEXT.md` §4.4, §4.5).
+14. `npm run nahled` (pojistka z úkolu 00 – náhled zdarma, nikdy `--prod`) → odkaz na náhled. Ověř, že Netlify formuláře na náhledu zaregistroval (Forms) a že se odeslání z náhledu objeví v Netlify → Forms. **Pokud se podání z náhledu nezpracují, zastav se.** Test na produkci je možný jen s výslovným souhlasem majitele po produkčním nasazení v dávce (`KONTEXT.md` §4.4, §4.5).
 15. **S majitelem a s jeho souhlasem** odešli na náhledu každý formulář **jednou**, vždy s `TEST` ve jménu i poznámce (např. „TEST Holub – neodpovídat“). Použij majitelův vlastní telefon a e-mail, nikdy cizí. Formuláře: homepage průvodce, `/akce/` s jednou malou fotkou, H-BOT „Zavolejte mi“, fotky na `/akce/dekujeme/`, `/recenze/` (majitel pak hodnocení nezveřejní). U každého zapiš:
     - čas odeslání → push (s) → e-mail (s)
     - předmět Netlify oznámení i SMTP e-mailu
@@ -210,7 +210,7 @@ Viz `balicek/KONTEXT.md` §4. Zvlášť pro tento úkol:
 - `OZNAMENI_S_UDAJI` zůstává vypnuté, dokud zásady (úkol 09) neuvádějí ntfy/Telegram. Potvrzení zákazníkovi jen se schváleným textem. Žádný nový slib lhůty („do 2 hodin“) bez potvrzení majitele.
 - Příjemce oznámení Netlify neměň bez souhlasu majitele. **MX a DNS neměnit.**
 - Nic neukládat do prohlížeče kvůli zdroji návštěvy. `gclid`/`fbclid` jen se souhlasem.
-- Produkční nasazení jen po schválení majitelem a v dávce (`netlify deploy --prod` není součástí úkolu).
+- Nasazení jen přes pojistku (`npm run nahled`); produkce jen po schválení majitelem a v dávce, není součástí úkolu.
 
 ## Hlášení po dokončení
 Formát z `KONTEXT.md` §5, zvlášť po fázi A a po fázi B, a navíc:
@@ -231,6 +231,6 @@ Formát z `KONTEXT.md` §5, zvlášť po fázi A a po fázi B, a navíc:
   - zjištěný tvar payloadu (pole `ip`/`user_agent`/`referrer`, soubory)
   - potvrzení smazání `TEST` podání
 - **Návrhy mimo rozsah:**
-  - audit-formulare #7, #9, #11, #12, #16
+  - audit-formulare #7, #9, #11, #12, #16 (patří do úkolů 17 a 18)
   - #21 (mazání podání) → úkoly 09/15
   - případně chybějící `netlify-honeypot`
