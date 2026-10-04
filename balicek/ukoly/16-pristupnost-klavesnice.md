@@ -175,7 +175,7 @@ WCAG 2.2 AA na všech typech stránek, ovládání klávesnicí bez slepých mí
      html { scroll-padding-top: calc(var(--hlavicka, 0px) + 8px);
             scroll-padding-bottom: calc(max(var(--hspg-spodek, 0px), var(--souhlas-spodek, 0px)) + 12px); }
      ```
-   - `scroll-padding-top` a `scroll-margin-top` se při posunu na cíl **sčítají**. Pravidlo úkolu 17 `main [id]{scroll-margin-top:calc(var(--hlavicka) + 8px)}` proto odstraň (zarovnání pod hlavičku teď zajistí `scroll-padding-top`), jinak kotvy přistanou o výšku hlavičky níž. Logiku `dojedNaCil` (výjimka `#holub-sekce`, dorovnání) neměň.
+   - `scroll-padding-top` a `scroll-margin-top` se při posunu na cíl **sčítají**. Pravidlo úkolu 17 `scroll-margin-top:calc(var(--hlavicka) + 8px)` (v zadání 17 např. na `main [id]`; najdi, jak ho skutečně zapsal) proto odstraň (zarovnání pod hlavičku teď zajistí `scroll-padding-top`), jinak kotvy přistanou o výšku hlavičky níž. Logiku `dojedNaCil` (výjimka `#holub-sekce`, dorovnání) neměň.
    - V `pristupnost.js` měř a zapisuj do těchto proměnných:
      - `--hlavicka` = výška sticky hlavičky. Proměnnou zavedl úkol 17 a úkol 08 ji napojil na novou hlavičku. **Druhou proměnnou nezakládej.** Pokud ji dnes měří jen skript homepage, přesuň měření do `pristupnost.js` pro všechny stránky (háček `data-hspg-hlavicka` na kořen hlavičky v partialu) a skript homepage ji jen čte. Pokud hlavička není sticky, hodnota je 0.
      - `--hspg-spodek` = největší `innerHeight − rect.top` z viditelných prvků `#hspg-lista`, `#hbot-btn` a `#cta-stack` (seznam jako konstanta v souboru).
@@ -246,8 +246,8 @@ WCAG 2.2 AA na všech typech stránek, ovládání klávesnicí bez slepých mí
     - **Bez přepínače (třpytky):** `.btn-gold::after` (`brand.css`) a `.btn-lux::after` (`/`) poběží celkem nejvýš 5 s (počet průběhů × délka ≤ 5 s, např. 1 průběh) a znovu při `:hover`/`:focus-visible`. Spot na `/akce/` (`video.spotvid`) dostane trvale `controls`.
 15. **Omezený pohyb (B2).**
     - `scroll-behavior:smooth` (`brand.css` ř. 23, `index.html` ř. 50 pro `html, body`, `en.html` ř. 39) přesuň do `@media (prefers-reduced-motion: no-preference) { html:not([data-pohyb="omezeny"]) { scroll-behavior: smooth } }`.
-    - Všechna volání `behavior:'smooth'` (`/` ř. 2008, `pas-domu` ř. 311, `recenze/` ř. 239) nahraď `behavior: HSPGA11y.chovaniPosunu()` se zálohou.
-    - Handler kotev (ř. 2391) a odkaz na přepis spotu (ř. 2033) už obsluhuje `dojedNaCil` z úkolu 17. Funkci nepřepisuj, jen její volbu pohybu („`smooth` jen bez `prefers-reduced-motion`“) nahraď `HSPGA11y.chovaniPosunu()` se zálohou na `matchMedia`. Testy kotev úkolu 17 musí projít.
+    - Všechna zbylá volání `behavior:'smooth'` (`pas-domu` ř. 311, `recenze/` ř. 239 a cokoli, co najde `git grep` z části Ověření) nahraď `behavior: HSPGA11y.chovaniPosunu()` se zálohou.
+    - Handler kotev (ř. 2391), odkaz na přepis spotu (ř. 2033) a odkaz „🕊 ODESLAT POPTÁVKU“ v `#cta-stack` (ř. 2007–2008) už obsluhuje `dojedNaCil` z úkolu 17. Funkci nepřepisuj, jen její volbu pohybu („`smooth` jen bez `prefers-reduced-motion`“) nahraď `HSPGA11y.chovaniPosunu()` se zálohou na `matchMedia`. Testy kotev úkolu 17 musí projít.
     - Nápověda „☂ klikněte kamkoliv — …“ (`/` ř. 1215) bude výchozí `hidden` a zobrazí ji až `hstone-rain.js`, když efekt opravdu běží. Při `hspg:pohyb` ji zase skryje. Text neměň.
 16. **Landmarky (B3).**
     - Ověř axe `region` na všech typech stránek.

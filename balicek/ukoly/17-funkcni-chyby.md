@@ -134,7 +134,7 @@ Na mobilu je mezi začátkem `#holub-sekce` a tlačítkem „🕊 VYPUSŤTE HOLU
 6. **Napojení validace** (hlášky u pole: `aria-invalid="true"`, text přes `aria-describedby`, fokus na pole):
    - `/` průvodce: `phoneOk`/`emailOk` nahraď voláním modulu, chybové UI `chybaPole` zachovej. Do payloadu (ř. 2243 a `sessionStorage` ř. 2227) dej `hodnota` z modulu.
    - `/akce/`:
-     - `#tel` dostane záložní `pattern` pro prohlížeč bez JS, např. `\+?[0-9 \(\)\-]{9,20}`. Escapování musí fungovat i s příznakem `v`, který Chromium u `pattern` používá; ověř testem,
+     - `#tel` dostane záložní `pattern` pro prohlížeč bez JS, např. `[\+0-9 \(\)\-\.\/]{9,20}`. Pattern platí i se zapnutým JS, proto musí být **nadmnožinou** toho, co přijme modul: všechny přijímané vektory z akceptačních kritérií (např. „(+420) 736 618 486“) ním musí projít, jinak je prohlížeč zablokuje dřív než JS. Escapování musí fungovat i s příznakem `v`, který Chromium u `pattern` používá; ověř testem,
      - `#mail` dostane `pattern="[^@\s]+@[^@\s]+\.[^@\s]{2,}"`,
      - v JS před odesláním proveď kontrolu modulem a `setCustomValidity` / hlášku u pole. Do `FormData` dej normalizovaný telefon.
    - `/akce/dekujeme/` (`fotky-upload.js` ř. 67): modul, normalizovaný telefon. Fotky se tak spárují s poptávkou podle stejného tvaru čísla. Ověř, jestli s telefonem nepracuje i funkce z úkolu 02, a tvary sjednoť.
