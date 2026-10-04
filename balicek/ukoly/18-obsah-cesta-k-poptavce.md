@@ -13,7 +13,7 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
 - Na `/akce/` míří také:
   - `LANDING_URL = '/akce/'` na `/` (ř. 1922, plovoucí menu `#cta-stack`),
   - tlačítko „🕊 VYPUSTIT HOLUBA“ v překryvu spotu na `/` (`openSpot`, šablona v JS, ř. 2023),
-  - H-BOT z úkolu 01: spodní lišta „🕊 Cena do 24 h“ a záložní přechod při nenačteném panelu `location.href = '/akce/'` (`assets/hbot.js`, v balíčku ř. 65 a 89), čip „Chci cenu do 24 h“ (`hbot-panel.js`) a znalosti AI „formulář hspg.cz/akce/“ (`netlify/lib/ai/znalosti.mjs`, `pravidla.mjs`).
+  - H-BOT z úkolu 01: spodní lišta „🕊 Cena do 24 h“ a odkaz „Poptávka – cena do 24 h“ v záložním okně `#hbot-zaloha` při nenačteném panelu (funkce `zalozni()`, `href="/akce/"`; přesměrování přes `location.href` už není; oboje v `assets/hbot.js`, místa najdi `grep -n "/akce/" assets/hbot.js assets/hbot-panel.js`), čip „Chci cenu do 24 h“ (`hbot-panel.js`) a znalosti AI „formulář hspg.cz/akce/“ (`netlify/lib/ai/znalosti.mjs`, `pravidla.mjs`).
   - Měření: `assets/souhlas.js` (ř. 56) počítá kliky na `a[href="/akce/"]` jako událost Clarity `odkaz_akce`.
 - `/akce/` je stránka soutěže s H1 „Vypusťte holuba. Každá desátá poptávka z této stránky vyhrává.“
   - Jediný povinný checkbox (ř. 156–157) zní: „Souhlasím se zpracováním osobních údajů pro přípravu cenové nabídky a se zásadami ochrany údajů a pravidly akce.“
@@ -192,7 +192,7 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
    - **skripty:** `assets/holub-let.js`, `fotky-upload.js`, `nabidka-pdf.js`, `poptavka-zdroj.js` (02), `spolecne.js` (17), `hbot.js`, `hbot-panel.js`, `netlify/lib/ai/znalosti.mjs` a `pravidla.mjs` (01),
    - **konfigurace:** `netlify.toml` (`publish`, přesměrování, CSP včetně `form-action`), `_redirects`, existující testy a Playwright.
 
-   Pak spusť `git grep -n -E "href=\"/akce/|'/akce/|LANDING_URL|/akce/\?|hspg\.cz/akce|target=\"_blank\"" -- '*.html' '*.js' '*.mjs'` (zachytí i `location.href = '/akce/'` a text „hspg.cz/akce/“ ve znalostech) a počty podle souborů ulož do hlášení. Pokud se HTML generuje, uprav generátor, ne výstup.
+   Pak spusť `git grep -n -E "href=\"/akce/|'/akce/|LANDING_URL|/akce/\?|hspg\.cz/akce|target=\"_blank\"" -- '*.html' '*.js' '*.mjs'` (zachytí i odkaz v záložním okně H-BOT a text „hspg.cz/akce/“ ve znalostech) a počty podle souborů ulož do hlášení. Pokud se HTML generuje, uprav generátor, ne výstup.
 3. **Výchozí stav.** Výsledky ulož do `.artefakty/ukol-18/pred/`, mimo publikovaný adresář.
    - Napiš měřicí pomocník `tests/e2e/pomocne-obsah.mjs`, který použijí i testy:
      - **Kontext:** 390 × 844, `isMobile`. Před načtením nastav `localStorage['hspg-souhlas'] = 'nezbytne'`. Všechny požadavky mimo lokální server a všechny ne-GET zablokuj (`page.route`).
@@ -304,7 +304,7 @@ Zdroje: `audit-obsah_konverze.json` (#4, #5, #6, #8, #10, #11, #13, #16–#21), 
    - **CSS na `/`:** pravidlo `a[href="/akce/"]` (ř. 715) uprav na nový cíl, aby se zachoval vzhled.
    - **Šablona `build-regions.mjs`:** změň **jen** `href` čtyř výzev. Vygeneruj stránky a proveď normalizační kontrolu z části Ověření (jiná změna = 0).
    - **H-BOT** (soubory převzaté z balíčku, změny jen v cíli odkazu):
-     - `assets/hbot.js`: lišta „Cena do 24 h“ vede na stránkách s `form[data-hspg-poptavka]` na tento formulář, na `/akce/` jako dnes na `#poptavka` a jinde na `/poptavka/`. Stejný cíl dostane záložní přechod při nenačteném panelu (`location.href = '/akce/'`, v balíčku ř. 89). Konstantu cíle kontroluje test shody s `content/poptavka.json`,
+     - `assets/hbot.js`: lišta „Cena do 24 h“ vede na stránkách s `form[data-hspg-poptavka]` na tento formulář, na `/akce/` jako dnes na `#poptavka` a jinde na `/poptavka/`. Stejný cíl dostane odkaz v záložním okně `#hbot-zaloha` (funkce `zalozni()` v `assets/hbot.js`; místa najdi přes `grep -n "/akce/" assets/hbot.js assets/hbot-panel.js`, ne podle čísel řádků). Konstantu cíle kontroluje test shody s `content/poptavka.json`,
      - `hbot-panel.js`: čip vede na `/poptavka/`, parametr události `hbot_cta` je `cil:'poptavka'`,
      - `netlify/lib/ai/znalosti.mjs` a `pravidla.mjs`: text `hspg.cz/akce/` → `hspg.cz/poptavka/`,
      - potom spusť `node scripts/build-hbot.mjs` a `--kontrola`,

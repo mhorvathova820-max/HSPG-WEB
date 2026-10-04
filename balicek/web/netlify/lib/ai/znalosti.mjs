@@ -48,7 +48,7 @@ export function znalostiProAI({ faq = faqData, firma = firmaData, ceny = cenyDat
     .join("\n");
   const sazby = (nazev, t) => Object.entries(t).map(([k, v]) => `${{ facade: "fasáda", roof: "střecha", driveway: "dlažba", solar: "fotovoltaika" }[k] || k} od ${v} Kč/m²`).join(", ");
   return `SCHVÁLENÉ ZNALOSTI HSPG (jediný zdroj faktů):
-Firma: ${firma.znacka}, provozovatel ${firma.provozovatel} (${firma.pravni_forma}), IČO ${firma.ico}, ${firma.dph}. Telefon ${firma.telefon_zobrazeni}, pracovní doba ${firma.pracovni_doba}. Působnost: ${firma.pusobnost}. Web ${firma.web}.
+Firma: ${firma.znacka}, provozovatel ${firma.provozovatel} (${firma.pravni_forma}), IČO ${firma.ico}, ${firma.dph}. Telefon ${firma.telefon_zobrazeni}, pracovní doba ${firma.pracovni_doba} (tj. ${String(firma.pracovni_doba).replace(/:00/g, "")} h). Působnost: ${firma.pusobnost}. Web ${firma.web}.
 Poptávka a přesná cena zdarma: formulář hspg.cz/akce/ (adresa → cena z mapy do 24 hodin), nebo zavolání zpět přes H-BOT.
 Ceník (platný od ${ceny.platnost_od}, konečné ceny, neplátce DPH):
 - Ochrana H-STONE (čištění + impregnace): ${sazby("ochrana", ceny.ochrana_hstone)}.

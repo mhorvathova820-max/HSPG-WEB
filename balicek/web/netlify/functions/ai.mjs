@@ -5,7 +5,7 @@
 import { POSKYTOVATELE, jeZapnuty, vytvorAdaptery } from "../lib/ai/poskytovatele.mjs";
 import { PRAVIDLA_PRAVDIVOSTI } from "../lib/ai/pravidla.mjs";
 import { overPozadavek } from "../lib/ai/autorizace.mjs";
-import { vychoziUloziste, zapisUtratu, odhadKc, rezervuj, odhadTokenu, mesicniLimitKc } from "../lib/ai/limity.mjs";
+import { vychoziUloziste, zapisUtratu, odhadKc, rezervuj, odhadTokenu, odhadTokenuKlienta, mesicniLimitKc } from "../lib/ai/limity.mjs";
 
 const MAX_TOKENU = 8000;
 const MAX_ZNAKU_VSTUPU = 60000;
@@ -45,9 +45,11 @@ export function vytvorAI({ env = process.env, adaptery, uloziste, ted = () => Da
     // Bez úložiště nejde rozpočet ověřit → AI se nevolá (kredity nesmí dojít ani přes panel majitele).
     let rezerva;
     let store;
+    const model = POSKYTOVATELE[ai].model(env);
+    const t0 = ted(); // rezervace i vyrovnání patří do stejného období rozpočtu
     try {
       store = await dejUloziste();
-      rezerva = await rezervuj(store, ai, odhadTokenu(system + JSON.stringify(zpravy)), MAX_TOKENU, env, ted(), POSKYTOVATELE[ai].model(env));
+      rezerva = await rezervuj(store, ai, odhadTokenu(PRAVIDLA_PRAVDIVOSTI) + odhadTokenuKlienta(JSON.stringify(zpravy) + String(pokyn || "")), MAX_TOKENU, env, t0, model);
     } catch {
       return json({ chyba: "Rozpočet AI teď nejde ověřit (úložiště je nedostupné). Zkuste to za chvíli." }, 503);
     }
@@ -56,25 +58,35 @@ export function vytvorAI({ env = process.env, adaptery, uloziste, ted = () => Da
     const enc = new TextEncoder();
     const body = new ReadableStream({
       async start(ctrl) {
+        const posli = (t) => { try { ctrl.enqueue(enc.encode(t)); } catch {} }; // klient mohl odejít (Zastavit)
+        let stat = null;
+        let odeslano = false;
         try {
           for await (const kus of adapter.stream({ system, zpravy, maxTokenu: MAX_TOKENU, signal: req.signal })) {
-            if (kus.text) ctrl.enqueue(enc.encode(kus.text));
-            if (kus.stat) {
-              const kc = odhadKc(ai, kus.stat.vstup || 0, kus.stat.vystup || 0, env, POSKYTOVATELE[ai].model(env));
-              ctrl.enqueue(enc.encode("\n\u0000STAT" + JSON.stringify({ ...kus.stat, kc: Math.round(kc * 100) / 100 })));
-              try {
-                await zapisUtratu(store, ai, kus.stat, env, ted(), rezerva, POSKYTOVATELE[ai].model(env));
-              } catch {
-                // Útrata se nezapíše, odpověď ale doběhne.
-              }
-            }
+            if (kus.text) { odeslano = true; posli(kus.text); }
+            // Usage může přijít ve více kusech (kumulativně) – vyrovná se jednou, po skončení streamu.
+            if (kus.stat) stat = { vstup: Math.max(stat?.vstup || 0, kus.stat.vstup || 0), vystup: Math.max(stat?.vystup || 0, kus.stat.vystup || 0) };
           }
         } catch (e) {
+          // Poskytovatel požadavek odmítl dřív, než cokoli vygeneroval (HTTP chyba) → nic neúčtoval, rezervace se vrátí.
+          // Přerušení nebo vypršení času rezervaci nechá (tokeny, i neviditelné uvažování, mohly být účtované).
+          if (!odeslano && !stat && e?.status >= 400 && e.status <= 599 && e.status !== 504 && e.status !== 422) {
+            try { await zapisUtratu(store, ai, { vstup: 0, vystup: 0 }, env, t0, rezerva, model); } catch {}
+          }
           // Klíče se do chyby nedostanou; vracíme jen stav a zprávu poskytovatele.
           const kod = e?.status ? ` (${e.status})` : "";
-          ctrl.enqueue(enc.encode("\n\u0000CHYBA" + JSON.stringify({ zprava: `Chyba ${POSKYTOVATELE[ai].nazev}${kod}: ${String(e?.message || e).slice(0, 300)}` })));
+          posli("\n\u0000CHYBA" + JSON.stringify({ zprava: `Chyba ${POSKYTOVATELE[ai].nazev}${kod}: ${String(e?.message || e).slice(0, 300)}` }));
         }
-        ctrl.close();
+        if (stat) {
+          try {
+            await zapisUtratu(store, ai, stat, env, t0, rezerva, model);
+          } catch {
+            // Útrata se nezapíše (rezervace zůstane), odpověď ale doběhne.
+          }
+          const kc = odhadKc(ai, stat.vstup || 0, stat.vystup || 0, env, model);
+          posli("\n\u0000STAT" + JSON.stringify({ ...stat, kc: Math.round(kc * 100) / 100 }));
+        }
+        try { ctrl.close(); } catch {}
       },
     });
     return new Response(body, {

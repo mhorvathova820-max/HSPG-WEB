@@ -2,7 +2,7 @@
 //   POST { heslo } -> { token, platnost }   (5 pokusů / 15 min, pak 429; bez úložiště 503)
 //   GET  (Authorization: Bearer …) -> { ok: true } | 401
 import { overHeslo, vydejToken, overPozadavek, hesloNastaveno, povolenyOrigin, tajemstviServeru } from "../lib/ai/autorizace.mjs";
-import { vychoziUloziste, otiskKlienta, povolPokusOPrihlaseni } from "../lib/ai/limity.mjs";
+import { vychoziUloziste, otiskKlienta, sitKlienta, povolPokusOPrihlaseni, vratPokusOPrihlaseni } from "../lib/ai/limity.mjs";
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
@@ -22,7 +22,7 @@ export function vytvorPrihlaseni({ env = process.env, uloziste, ted = () => Date
     if (!povolenyOrigin(req.headers.get("origin"), env)) return json({ chyba: "Nepovolený původ požadavku." }, 403);
     if (!hesloNastaveno(env)) return json({ chyba: "HSPG_PANEL_HESLO není v Netlify nastavené (min. 16 znaků)." }, 503);
 
-    const klient = otiskKlienta(context.ip || req.headers.get("x-nf-client-connection-ip"), ted());
+    const klient = otiskKlienta(sitKlienta(context.ip || req.headers.get("x-nf-client-connection-ip")), ted());
     let heslo = "";
     try {
       heslo = String((await req.json())?.heslo || "");
@@ -40,6 +40,8 @@ export function vytvorPrihlaseni({ env = process.env, uloziste, ted = () => Date
         return json({ chyba: "Špatné heslo." }, 401);
       }
       tajemstvi = await tajemstviServeru(env, store);
+      // Úspěch se do zámku nepočítá (majitel se přihlašuje v každé nové kartě).
+      await vratPokusOPrihlaseni(store, klient).catch(() => {});
     } catch {
       return json({ chyba: "Přihlášení je dočasně nedostupné. Zkuste to za chvíli." }, 503);
     }

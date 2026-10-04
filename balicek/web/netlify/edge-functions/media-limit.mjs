@@ -1,5 +1,7 @@
-// Hráz proti hromadnému stahování videí a obrázků z /media/ (útok na kredity: přenos dat stojí
-// 20 kreditů za GB). Běžná návštěva stáhne desítky souborů; skript, který stahuje dokola, dostane 429.
+// Brzda rychlého stahování videí a obrázků z /media/ (přenos dat stojí 20 kreditů za GB). Běžná návštěva
+// stáhne desítky souborů; rychlá smyčka (> 100 požadavků / min z jedné IP a domény) dostane 429.
+// Pomalé stahování z jedné IP pravidlo NEzastaví (~100 GB/den ≈ 2 000 kreditů) – proti tomu chrání
+// auto-recharge, hlídání přenosu dat (úkol 15) a menší videa (úkol 07). Přísnější limit by rozbil úvodní stránku.
 // Pravidlo Netlify v kódu (tarif Personal: max. 2 na projekt – druhé má /api/asistent).
 export default async (req, context) => context.next();
 

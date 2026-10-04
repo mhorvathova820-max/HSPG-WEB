@@ -1,8 +1,8 @@
 {
-  "_poznamka": "Schválené odpovědi H-BOTa (převzaté z dosavadního /assets/hbot.js). Zdroj pro okamžité odpovědi bez AI i pro znalosti AI. {{zaruka}} a {{zaruka_podminka}} se doplní z content/firma.json; typ 'cena' se počítá z content/ceny.json. Po úpravě spusť: node scripts/build-hbot.mjs",
+  "_poznamka": "Klíče „k“: hledají se od začátku slova (kmen „impregn“ najde „impregnace“); klíč do 3 znaků nebo s „=“ na začátku jen jako celé slovo (\"=panel\" nenajde „panelák“). Schválené odpovědi H-BOTa (převzaté z dosavadního /assets/hbot.js). Zdroj pro okamžité odpovědi bez AI i pro znalosti AI. {{zaruka}} a {{zaruka_podminka}} se doplní z content/firma.json; typ 'cena' se počítá z content/ceny.json. Po úpravě spusť: node scripts/build-hbot.mjs",
   "rychle_otazky": ["Kolik to stojí?", "Potřebujete lešení?", "Jak dlouho vydrží impregnace H-STONE?", "Musím být doma?", "Kde působíte?", "Děláte i pro SVJ a bytové domy?"],
   "otazky": [
-    { "k": ["cena", "cen", "kolik", "stoj", "platit", "cenik", "ceník", "kč"],
+    { "k": ["cena", "cen", "ceny", "cenu", "ceně", "cenov", "cenách", "kolik", "stoj", "platit", "cenik", "ceník", "kč"],
       "q": "Kolik to stojí?",
       "typ": "cena",
       "link": ["/cenik.html", "Kompletní ceník"] },
@@ -24,7 +24,7 @@
     { "k": ["prask", "tašk", "rozbij", "šlap"],
       "q": "Nepraskají při vaší práci na střeše tašky?",
       "a": "Ne. Víme, kam šlápnout, a váhu rozkládáme. Kdyby přesto praskla zdravá taška, vyměníme ji na vlastní náklady. Platí to pro tašky, které nebyly poškozené nebo zkřehlé už před zahájením prací — to doloží úvodní fotodokumentace." },
-    { "k": ["péč", "udržb", "kontrol", "servis"],
+    { "k": ["péče", "péči", "pečuj", "udržb", "kontrol", "servis"],
       "q": "Jak funguje trvalá péče?",
       "a": "Každý dům v záruce má tarif SENTINEL START zdarma — technickou kontrolu jednou za 24 měsíců a digitální pas domu. Tarify PLUS a PREMIUM přidávají servis dvakrát ročně, čištění okapů a lokální obnovu vrstvy.",
       "link": ["/cenik.html#sentinel", "Tarify SENTINEL"] },
@@ -35,7 +35,7 @@
     { "k": ["kde", "oblast", "region", "okres", "praha", "brno", "ostrav", "republik", "eu", "zahranič"],
       "q": "Kde působíte?",
       "a": "Po celé České republice, na vyžádání i v EU. Zaměříme na dálku z map, takže technik k vám kvůli ceně jezdit nemusí." },
-    { "k": ["fotovolt", "fve", "panel", "solár"],
+    { "k": ["fotovolt", "fve", "=panel", "panely", "panelů", "solár"],
       "q": "Čistíte i fotovoltaiku?",
       "a": "Ano. U fotovoltaiky posuzujeme přístup, povrch panelů a bezpečný způsob čištění. Vhodný postup potvrdíme podle objektu a dostupných podkladů." },
     { "k": ["postup", "jak prob", "kroky", "průběh"],

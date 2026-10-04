@@ -28,7 +28,29 @@ export function pametoveUloziste() {
 }
 
 const den = (ted) => new Date(ted).toISOString().slice(0, 10);
-export const mesic = (ted) => new Date(ted).toISOString().slice(0, 7);
+
+// Klíč rozpočtu = období kreditů Netlify, ne kalendářní měsíc: na tarifu Personal běží od 11. do 10.
+// (AI_OBDOBI_DEN, výchozí 11; 1 = kalendářní měsíc). Vrací „RRRR-MM“ měsíce, ve kterém období začalo (UTC),
+// takže v jednom období kreditů nejde utratit limit dvakrát.
+export const mesic = (ted, env = {}) => {
+  const zacatek = Math.min(28, Math.max(1, Math.trunc(cislo(env.AI_OBDOBI_DEN, 11))));
+  const d = new Date(ted);
+  let rok = d.getUTCFullYear(), m = d.getUTCMonth();
+  if (d.getUTCDate() < zacatek) { m -= 1; if (m < 0) { m = 11; rok -= 1; } }
+  return `${rok}-${String(m + 1).padStart(2, "0")}`;
+};
+
+// IPv6: celá síť /64 (jedna domácnost nebo server jich má tisíce), IPv4 celá adresa.
+export function sitKlienta(ip) {
+  const s = String(ip || "").trim().toLowerCase();
+  const v4 = s.match(/(\d{1,3}(?:\.\d{1,3}){3})$/);
+  if (v4) return v4[1];
+  if (!s.includes(":")) return s;
+  const [hlava, ocas = ""] = s.split("::");
+  const h = hlava ? hlava.split(":") : [], o = ocas ? ocas.split(":") : [];
+  const plna = s.includes("::") ? [...h, ...Array(Math.max(0, 8 - h.length - o.length)).fill("0"), ...o] : h;
+  return plna.slice(0, 4).map((x) => x.replace(/^0+(?=.)/, "")).join(":") + "::/64";
+}
 
 export function otiskKlienta(ip, ted) {
   return createHash("sha256").update(`${den(ted)}|${ip || "neznama"}`).digest("hex").slice(0, 24);
@@ -49,7 +71,10 @@ async function aktualizuj(ul, klic, zmena, pokusu = 8) {
     if (!krok) return null;
     const podminka = r && r.etag ? { onlyIfMatch: r.etag } : { onlyIfNew: true };
     const z = await ul.setJSON(klic, krok.hodnota, podminka);
-    if (!z || z.modified !== false) return krok.vysledek;
+    // @netlify/blobs vrací {modified:false} jen při konfliktu (412); jiná chyba zápisu (403, 5xx po opakování)
+    // vrátí {modified:true, etag:""} bez výjimky. Úspěch je proto jen zápis s etagem – jinak výjimka (fail-closed).
+    if (z?.modified === true && z.etag) return krok.vysledek;
+    if (z?.modified !== false) throw new Error(`Úložiště: zápis ${klic} se nepotvrdil`);
     await new Promise((ok) => setTimeout(ok, 5 + Math.random() * 20 * (i + 1)));
   }
   throw new Error(`Úložiště: souběžné zápisy na ${klic} – vzdávám po ${pokusu} pokusech`);
@@ -79,45 +104,56 @@ export async function povolVerejnyDotaz(ul, klient, env, ted) {
   return { ok: true };
 }
 
-// Hádání hesla: 5 pokusů / 15 min na klienta. Pokus se započítá atomicky PŘED ověřením hesla,
-// takže ani souběžné požadavky nezkusí víc hesel (úspěšné přihlášení je jednou za 12 h).
+// Hádání hesla: 5 pokusů / 15 min na klienta (IPv6 po sítích /64, viz sitKlienta) a 100 / hodinu celkem.
+// Pokus se započítá atomicky PŘED ověřením hesla, takže ani souběžné požadavky nezkusí víc hesel.
+// Po úspěšném přihlášení se pokus vrátí (vratPokusOPrihlaseni) – do zámku se počítají jen neúspěchy.
+const LOGIN_CELKEM = "limit/login-vse";
 export async function povolPokusOPrihlaseni(ul, klient, ted) {
-  return pricti(ul, `limit/login/${klient}`, 5, 15 * 60_000, ted);
+  if (!(await pricti(ul, `limit/login/${klient}`, 5, 15 * 60_000, ted))) return false;
+  return pricti(ul, LOGIN_CELKEM, 100, 3_600_000, ted);
+}
+async function vrat(ul, klic) {
+  await aktualizuj(ul, klic, (z) => (z && z.n > 0 ? { hodnota: { ...z, n: z.n - 1 }, vysledek: true } : null));
+}
+export async function vratPokusOPrihlaseni(ul, klient) {
+  await vrat(ul, `limit/login/${klient}`);
+  await vrat(ul, LOGIN_CELKEM);
 }
 
 // ODHAD ceny v Kč (ne faktura – přesnou útratu ukazuje Netlify / poskytovatel). Ceny v USD za milion
-// tokenů (vstup, výstup) jdou přepsat proměnnými CENA_<ID>_VSTUP / CENA_<ID>_VYSTUP; kurz KURZ_USD_CZK.
-const VYCHOZI_CENY_USD = {
-  claude: [4, 20], // claude-opus-5-5 (ceník Anthropic); jiný model → nastav CENA_CLAUDE_*
-  gpt: [5, 20], // odhad, ověř ceník OpenAI pro zvolený model
-  gemini: [5, 20], // odhad, ověř ceník Google pro zvolený model
-  grok: [5, 20], // odhad
-};
-// Ceny podle modelu. Claude podle ceníku Anthropic; ostatní jsou ZÁMĚRNĚ nadsazené odhady
-// (raději dřív vypnout AI než vyčerpat kredity) – přesné ceny ověř u poskytovatele.
+// tokenů (vstup, výstup) podle modelu. Claude podle ceníku Anthropic; ostatní jsou ZÁMĚRNĚ nadsazené
+// odhady (raději dřív vypnout AI než vyčerpat kredity) – přesné ceny ověř u poskytovatele.
+// Nový model doplň sem; dokud tu chybí, počítá se cenou 15/75 USD (rozpočet ho raději zastaví).
 const CENY_MODELU_USD = {
   "claude-opus-5-5": [4, 20],
   "claude-sonnet-5-5": [2, 10],
   "claude-haiku-4-5": [1, 5],
+  "claude-haiku-4-5-20251001": [1, 5],
   "gemini-2.5-flash": [0.5, 4],
   "gemini-2.5-pro": [2.5, 15],
   "gpt-5-mini": [0.5, 4],
   "gpt-5": [2.5, 15],
+  "grok-4": [5, 20], // ceník xAI 3/15 USD – záměrně nadsazeno
+  "x-ai/grok-4": [5, 20], // přes OpenRouter (Netlify AI Gateway)
 };
+const NEZNAMY_MODEL_USD = [15, 75];
 export function odhadKc(id, vstup, vystup, env, model) {
-  // Neznámý model (např. dražší v proměnné prostředí) → raději vysoký odhad, ať rozpočet nepodstřelí.
-  const [cv, cy] = CENY_MODELU_USD[model] || (model ? [15, 75] : VYCHOZI_CENY_USD[id] || [15, 75]);
-  const v = cislo(env[`CENA_${id.toUpperCase()}_VSTUP`], cv);
-  const y = cislo(env[`CENA_${id.toUpperCase()}_VYSTUP`], cy);
+  const znamy = CENY_MODELU_USD[model];
+  const [cv, cy] = znamy || NEZNAMY_MODEL_USD;
+  // CENA_<ID>_VSTUP / _VYSTUP: u neznámého modelu nastaví cenu, u známého ji smí jen zvýšit
+  // (levná cena zákaznického modelu nesmí podhodnotit dražší model majitele téhož poskytovatele).
+  const cena = (k, c) => { const x = cislo(env[`CENA_${id.toUpperCase()}_${k}`], c); return znamy ? Math.max(c, x) : x; };
   const kurz = cislo(env.KURZ_USD_CZK, 24);
-  return ((vstup * v + vystup * y) / 1e6) * kurz;
+  return ((vstup * cena("VSTUP", cv) + vystup * cena("VYSTUP", cy)) / 1e6) * kurz;
 }
 
-// Hrubý odhad počtu tokenů z délky textu (čeština ~3 znaky na token – raději víc než míň).
-export const odhadTokenu = (text) => Math.ceil(String(text || "").length / 3);
+// Odhad tokenů pevného textu (pokyny, znalosti; čeština ~2,7 znaku na token – raději víc než míň).
+export const odhadTokenu = (text) => Math.ceil(String(text || "").length / 2.5);
+// Horní mez pro text od klienta (libovolné Unicode): tokenizéry nevyrobí víc tokenů než bajtů UTF-8.
+export const odhadTokenuKlienta = (text) => Buffer.byteLength(String(text || ""), "utf8");
 
 // Výchozí limit je záměrně nízký: přes Netlify AI Gateway se AI platí kredity Netlify a po jejich
-// vyčerpání Netlify pozastaví CELÝ web. 25 Kč ≈ 1 USD ≈ 190 kreditů. S vlastními API klíči
+// vyčerpání Netlify pozastaví CELÝ web. 25 Kč ≈ 1 USD ≈ 190 kreditů za období kreditů (viz mesic()). S vlastními API klíči
 // (účtují se u poskytovatele, ne v Netlify) nebo se zapnutým auto-recharge jde limit zvýšit.
 export const mesicniLimitKc = (env) => cislo(env.AI_MESICNI_LIMIT_KC, 25);
 // Veřejný asistent smí spotřebovat jen část rozpočtu (výchozí polovinu) – zbytek zůstává majiteli.
@@ -129,10 +165,12 @@ export const kcNaKredity = (kc, env) => Math.round((kc / cislo(env.KURZ_USD_CZK,
 // Rezervace PŘED voláním AI: připočte nejvyšší možnou cenu volání (vstup + plný strop výstupu).
 // Když by se rozpočet překročil, vrátí false a AI se nevolá. Souběžné požadavky tak strop nepřetečou.
 // verejne=true: volání veřejného asistenta – hlídá i podlimit verejnyLimitKc.
+// Vyrovnání (zapisUtratu) volej se stejným `ted` jako rezervaci – jinak by se přes přelom období
+// odečetla rezerva z nového období.
 export async function rezervuj(ul, id, vstupTokenu, maxVystup, env, ted, model, verejne = false) {
   const kc = odhadKc(id, vstupTokenu, maxVystup, env, model);
   const limit = mesicniLimitKc(env);
-  const v = await aktualizuj(ul, `utrata/${mesic(ted)}`, (z) => {
+  const v = await aktualizuj(ul, `utrata/${mesic(ted, env)}`, (z) => {
     const u = z ? { ...z, ai: { ...z.ai } } : { celkemKc: 0, ai: {} };
     if (u.celkemKc + kc > limit) return null;
     if (verejne && (u.verejneKc || 0) + kc > verejnyLimitKc(env)) return null;
@@ -144,14 +182,17 @@ export async function rezervuj(ul, id, vstupTokenu, maxVystup, env, ted, model, 
 }
 
 // Zápis skutečné útraty; rezervaKc = dříve rezervovaná částka, která se tím vyrovná.
-// Selhané volání se nevyrovnává (rezervace zůstane – tokeny mohly být účtovány).
+// Volání odmítnuté poskytovatelem (HTTP chyba, nic se neúčtuje) volající vyrovná se stat {vstup:0, vystup:0};
+// u vypršení času (504) a odmítnutí obsahu (422) rezervace zůstane – tokeny mohly být účtovány.
 export async function zapisUtratu(ul, id, stat, env, ted, rezervaKc = 0, model, verejne = false) {
   if (!stat) return;
   const kc = odhadKc(id, stat.vstup || 0, stat.vystup || 0, env, model);
-  await aktualizuj(ul, `utrata/${mesic(ted)}`, (z) => {
+  await aktualizuj(ul, `utrata/${mesic(ted, env)}`, (z) => {
     const u = z ? { ...z, ai: { ...z.ai } } : { celkemKc: 0, ai: {} };
     u.celkemKc = Math.max(0, u.celkemKc + kc - rezervaKc);
     if (verejne) u.verejneKc = Math.max(0, (u.verejneKc || 0) + kc - rezervaKc);
+    // Vrácená rezervace odmítnutého volání (0 tokenů) se do statistiky dotazů nepočítá.
+    if (!stat.vstup && !stat.vystup) return { hodnota: u, vysledek: true };
     const a = { ...(u.ai[id] || { dotazu: 0, vstup: 0, vystup: 0, kc: 0 }) };
     a.dotazu += 1;
     a.vstup += stat.vstup || 0;
@@ -162,12 +203,12 @@ export async function zapisUtratu(ul, id, stat, env, ted, rezervaKc = 0, model, 
   });
 }
 
-export async function utrataMesice(ul, ted) {
-  return (await cti(ul, `utrata/${mesic(ted)}`)) || { celkemKc: 0, ai: {} };
+export async function utrataMesice(ul, ted, env = {}) {
+  return (await cti(ul, `utrata/${mesic(ted, env)}`)) || { celkemKc: 0, ai: {} };
 }
 
 export async function rozpocetVycerpan(ul, env, ted, verejne = false) {
-  const u = await utrataMesice(ul, ted);
+  const u = await utrataMesice(ul, ted, env);
   return u.celkemKc >= mesicniLimitKc(env) || (verejne && (u.verejneKc || 0) >= verejnyLimitKc(env));
 }
 

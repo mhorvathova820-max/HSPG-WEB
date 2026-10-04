@@ -2,7 +2,7 @@
 //   GET  -> stav;  POST { verejnaAI: true|false } -> nouzový vypínač AI pro zákazníky (okamžitě, bez nasazení)
 import { POSKYTOVATELE, jeZapnuty } from "../lib/ai/poskytovatele.mjs";
 import { overPozadavek } from "../lib/ai/autorizace.mjs";
-import { vychoziUloziste, utrataMesice, mesicniLimitKc, verejnyLimitKc, kcNaKredity, nactiNastaveni, ulozNastaveni } from "../lib/ai/limity.mjs";
+import { vychoziUloziste, utrataMesice, mesic, mesicniLimitKc, verejnyLimitKc, kcNaKredity, nactiNastaveni, ulozNastaveni } from "../lib/ai/limity.mjs";
 import { pres_gateway, verejneEnv } from "../lib/ai/poskytovatele.mjs";
 
 const json = (data, status = 200) =>
@@ -33,7 +33,7 @@ export function vytvorStav({ env = process.env, uloziste, ted = () => Date.now()
     let nastaveni = null;
     try {
       const ul0 = await dejUloziste();
-      utrata = await utrataMesice(ul0, ted());
+      utrata = await utrataMesice(ul0, ted(), env);
       nastaveni = await nactiNastaveni(ul0);
     } catch {
       // Úložiště nedostupné – stav AI ukážeme i bez útraty.
@@ -44,6 +44,8 @@ export function vytvorStav({ env = process.env, uloziste, ted = () => Date.now()
       nastaveni,
       utrata,
       limitKc: mesicniLimitKc(env),
+      // Období kreditů Netlify, za které se útrata počítá (AI_OBDOBI_DEN, výchozí 11.).
+      obdobi: mesic(ted(), env),
       verejnyLimitKc: verejnyLimitKc(env),
       // Přes Netlify AI Gateway se platí kredity Netlify – jejich vyčerpání pozastaví celý web.
       gateway: pres_gateway(env),

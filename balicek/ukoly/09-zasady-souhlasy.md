@@ -89,7 +89,7 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
    - **`holub-ai`** (dokud běží): zda loguje nebo ukládá obsah rozhovoru (zásady dnes tvrdí „Obsah rozhovoru sami neukládáme“).
    - **Prohlížeč:**
      - `localStorage`: `hspg-souhlas`, `hspg-svetly` a `hspg-cookies-ok` (na homepage se zapisuje jen po kliknutí na `[data-action="prijmoutCookies"]` a prvek `#cookie-banner` v kopii webu chybí; ověř, jestli jde o mrtvý kód → návrh pro úkol 10)
-     - `sessionStorage`: `hspg-holub-lead` (co obsahuje a kdy se maže) a tokeny majitele
+     - `sessionStorage`: `hspg-holub-lead` (co obsahuje a kdy se maže), tokeny majitele (`hspg-majitel-token`, `hspg-majitel-platnost`) a `hspgHistorie` (historie AI centra – nepseudonymizovaná zadání a odpovědi, maže se odhlášením v AI centru a zavřením karty); v `localStorage` navíc `hspg-majitel-zarizeni` (jen na zařízení majitele, příznak bez údajů)
      - Cache Storage (`sw.js` ukládá navštívené stránky)
    - **Netlify** (jen pro čtení, v UI nebo přes `netlify api`): jsou zapnuté Netlify Analytics nebo Real User Monitoring? Kam chodí oznámení Forms (převezmi z hlášení úkolu 02)? Které z proměnných `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY` a `XAI_API_KEY` jsou v Netlify nastavené jako vlastní klíč? Zapiš **jen názvy**, hodnoty nikdy nevypisuj ani neukládej. Vlastní klíč znamená, že daná AI nejde přes AI Gateway, ale přímo k poskytovateli (KONTEXT §2), a zásady to musí popsat.
 

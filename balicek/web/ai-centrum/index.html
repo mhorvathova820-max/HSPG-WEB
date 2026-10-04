@@ -320,12 +320,14 @@ $("odeslat").addEventListener("click", () => {
 });
 
 function ulozHistorii(zaznam) {
+  if (!token) return; // po automatickém odhlášení (401) se zadání neukládá
   const h = historie.get();
   h.unshift({ ...zaznam, cas: new Date().toISOString() });
   historie.set(h.slice(0, 30));
 }
 
 async function obnovSpotrebu() {
+  if (!token) return;
   try { stavServer = await AI.nactiStav(token); } catch {}
   vykresliHistorii();
 }
@@ -334,7 +336,7 @@ function vykresliHistorii() {
   const u = stavServer?.utrata;
   const radky = ai.map((a) => { const x = u?.ai?.[a.id]; return x ? `<tr><td>${a.nazev}</td><td>${x.dotazu}</td><td>${x.vstup.toLocaleString("cs")}</td><td>${x.vystup.toLocaleString("cs")}</td><td>${x.kc.toFixed(1)}</td></tr>` : ""; }).join("");
   const souhrn = u ? `<tr><th colspan="4">Celkem / limit</th><th>${Math.round(u.celkemKc)} / ${stavServer.limitKc} Kč</th></tr>` : "";
-  $("spotreba").innerHTML = `<tr><th>Tento měsíc</th><th>Dotazů</th><th>Tokeny vstup</th><th>Tokeny výstup</th><th>≈ Kč</th></tr>${radky || '<tr><td colspan="5" class="prazdne">Zatím nic.</td></tr>'}${souhrn}`;
+  $("spotreba").innerHTML = `<tr><th>Toto období</th><th>Dotazů</th><th>Tokeny vstup</th><th>Tokeny výstup</th><th>≈ Kč</th></tr>${radky || '<tr><td colspan="5" class="prazdne">Zatím nic.</td></tr>'}${souhrn}`;
   const h = historie.get();
   $("historie").innerHTML = "";
   h.forEach((z) => {

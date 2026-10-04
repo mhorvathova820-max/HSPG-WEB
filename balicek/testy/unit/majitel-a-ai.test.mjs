@@ -5,7 +5,7 @@ import { vytvorAI } from "../../web/netlify/functions/ai.mjs";
 import { vytvorStav } from "../../web/netlify/functions/ai-stav.mjs";
 import { createHmac } from "node:crypto";
 import { vydejToken, overToken, overPozadavek } from "../../web/netlify/lib/ai/autorizace.mjs";
-import { HESLO, env, falesnyAdapter, pametoveUloziste, pozadavek } from "../pomocne.mjs";
+import { HESLO, env, falesnyAdapter, pametoveUloziste, pozadavek, obdobi } from "../pomocne.mjs";
 
 test("token: platný, podvržený, prošlý, po změně hesla neplatný", () => {
   const e = env();
@@ -59,7 +59,7 @@ test("ai: streamuje text, na konci STAT s odhadem Kč, zapíše útratu", async 
   assert.equal(text, "Ahoj světe");
   assert.equal(JSON.parse(stat).vstup, 120);
   assert.match(ad.claude.volani[0].system, /Pravidla pravdivosti[\s\S]*Role v této úloze:\nrole/);
-  const mesic = new Date().toISOString().slice(0, 7);
+  const mesic = obdobi();
   assert.equal((await ul.get(`utrata/${mesic}`)).ai.claude.dotazu, 1);
 });
 
@@ -81,7 +81,7 @@ test("heslo v hlavičce x-panel-heslo neprojde (heslo jen přes /api/majitel se 
 
 test("ai: vyčerpaný rozpočet platí i pro majitele (402)", async () => {
   const ul = pametoveUloziste();
-  await ul.setJSON(`utrata/${new Date().toISOString().slice(0, 7)}`, { celkemKc: 999, ai: {} });
+  await ul.setJSON(`utrata/${obdobi()}`, { celkemKc: 999, ai: {} });
   const ad = { claude: falesnyAdapter() };
   const h = vytvorAI({ env: env(), adaptery: ad, uloziste: ul });
   const r = await h(pozadavek("/api/ai", { method: "POST", headers: { authorization: `Bearer ${vydejToken(env()).token}` }, body: { ai: "claude", zpravy: [{ role: "user", text: "x" }] } }));
@@ -202,4 +202,18 @@ test("ai: výpadek úložiště = 503 a AI se nevolá (rozpočet nejde ověřit)
   const r = await h(pozadavek("/api/ai", { method: "POST", headers: { authorization: `Bearer ${vydejToken(env()).token}` }, body: { ai: "claude", zpravy: [{ role: "user", text: "x" }] } }));
   assert.equal(r.status, 503);
   assert.equal(ad.claude.volani.length, 0);
+});
+
+test("obsazení spolupráce: při 2+ AI nekontroluje autor sám sebe, při 3+ tři různé AI", async () => {
+  const vm = await import("node:vm");
+  const { readFile } = await import("node:fs/promises");
+  const okno = {};
+  vm.runInNewContext(await readFile(new URL("../../web/assets/ai-klient.js", import.meta.url), "utf8"), { window: okno });
+  const o = (ids) => ({ ...okno.HSPG_AI.obsazeni(ids.map((id) => ({ id }))) });
+  assert.deepEqual(o(["claude", "gpt", "gemini"]), { autor: "gpt", kontrola: "claude", final: "gemini" });
+  for (const ids of [["claude", "gemini"], ["gpt", "claude"], ["claude", "grok"], ["gemini", "grok", "claude"]]) {
+    const x = o(ids);
+    assert.notEqual(x.autor, x.kontrola, String(ids));
+    if (ids.length >= 3) assert.equal(new Set(Object.values(x)).size, 3, String(ids));
+  }
 });

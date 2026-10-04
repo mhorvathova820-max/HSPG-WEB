@@ -4,6 +4,8 @@
    Majitel: po přihlášení karta „Vše ve tvých rukách“ (/assets/hbot-majitel.js). */
 (function () {
   'use strict';
+  // Pozdě doběhlé první načtení a „Zkusit znovu“ ze záložního okna nesmí vytvořit dva panely.
+  if (window.HSPG_HBOT) return;
   var d = document;
   var Z = window.HSPG_HBOT_ZAVADEC || { tlacitka: [], majitel: function () {}, otevreno: function () {} };
   var TOKEN_KLIC = 'hspg-majitel-token', PLATNOST_KLIC = 'hspg-majitel-platnost';
@@ -25,13 +27,16 @@
       .replace(/\+?420 ?736 ?618 ?486/g, function (m) { return '<a href="tel:' + TEL + '">' + m + '</a>'; })
       .replace(/\n/g, '<br>');
   }
-  function sLimitem(ms, url, opt) {
+  // fetch + přečtení těla v jednom časovém limitu: tělo zaseknuté po hlavičkách limit neobejde.
+  function jsonSLimitem(ms, url, opt) {
     var c = window.AbortController ? new AbortController() : null;
-    var t = setTimeout(function () { if (c) c.abort(); }, ms);
     opt = opt || {}; if (c) opt.signal = c.signal;
-    var p = fetch(url, opt);
-    p.then(function () { clearTimeout(t); }, function () { clearTimeout(t); });
-    return p;
+    return new Promise(function (ok, chyba) {
+      var t = setTimeout(function () { if (c) c.abort(); chyba(new Error('timeout')); }, ms);
+      fetch(url, opt)
+        .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+        .then(function (j) { clearTimeout(t); ok(j); }, function (e) { clearTimeout(t); chyba(e); });
+    });
   }
 
   // --- styly a data ---------------------------------------------------------------------------
@@ -45,20 +50,20 @@
   var ZALOZNI = { firma: { telefon: TEL, telefon_zobrazeni: TEL_TEXT, pracovni_doba: DOBA }, rychle_otazky: [], otazky: [] };
   var KB = null;
   // Znalosti do 4 s, jinak záložní minimum (telefon, doba) – panel nikdy nečeká donekonečna.
-  var znalosti = sLimitem(4000, '/assets/hbot-znalosti.json', { cache: 'no-cache' })
-    .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+  var znalosti = jsonSLimitem(4000, '/assets/hbot-znalosti.json', { cache: 'no-cache' })
     .then(function (j) { return j && Array.isArray(j.otazky) ? j : ZALOZNI; })
     .catch(function () { return ZALOZNI; })
     .then(function (j) { KB = j; return j; });
   var stavAI = { ai: false, poskytovatele: [] };
-  var stavNacten = sLimitem(3000, '/api/asistent', { headers: { accept: 'application/json' } })
-    .then(function (r) { return r.ok ? r.json() : stavAI; })
+  var stavNacten = jsonSLimitem(3000, '/api/asistent', { headers: { accept: 'application/json' } })
     .then(function (s) { if (s && typeof s.ai === 'boolean') stavAI = s; })
     .catch(function () {});
 
   // --- kostra panelu ------------------------------------------------------------------------------
   var box = d.createElement('section');
   box.id = 'hbot'; box.hidden = true;
+  // Fokusovatelný panel: klik do textu odpovědi nechá fokus v panelu, takže Escape dál funguje.
+  box.tabIndex = -1;
   box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'false'); box.setAttribute('aria-labelledby', 'hb-titulek'); box.setAttribute('aria-describedby', 'hb-podtitulek');
   // Microsoft Clarity nesmí nahrávat otázky ani kontakty psané do panelu.
   box.setAttribute('data-clarity-mask', 'true');
@@ -105,13 +110,15 @@
     var t = ' ' + bezDiakritiky(text).replace(/[^a-z0-9-]+/g, ' ') + ' ', nej = null, skore = 0;
     (KB.otazky || []).forEach(function (e) {
       var s = 0, videne = {};
-      // Klíč musí začínat na hranici slova (kmen „cen“ najde „cena“, ale ne „necenzurovaný“ uprostřed).
-      // Krátké klíče (do 3 znaků) jen jako celé slovo; stejný klíč se počítá jednou.
+      // Klíč musí začínat na hranici slova (kmen „impregn“ najde „impregnace“, „cena“ ne „necenzurovaný“).
+      // Klíč do 3 znaků nebo s „=“ na začátku jen jako celé slovo („let“ nenajde „letos“, „=panel“ ne
+      // „panelák“) – kmeny proto piš aspoň 4znakové nebo vypiš tvary. Stejný klíč se počítá jednou.
       (e.k || []).forEach(function (k) {
-        var n = bezDiakritiky(k).trim();
+        var cele = k.charAt(0) === '=';
+        var n = bezDiakritiky(cele ? k.slice(1) : k).trim();
         if (!n || videne[n]) return;
         videne[n] = 1;
-        if (t.indexOf(' ' + n + (n.length <= 3 ? ' ' : '')) !== -1) s++;
+        if (t.indexOf(' ' + n + (cele || n.length <= 3 ? ' ' : '')) !== -1) s++;
       });
       if (bezDiakritiky(e.q) === bezDiakritiky(text).trim()) s += 5;
       if (s > skore) { skore = s; nej = e; }
@@ -341,9 +348,12 @@
   // Na mobilu panel zakryje skoro celou obrazovku → chová se jako modální okno: zbytek stránky je
   // „inert“ (čtečka ani Tab se do něj nedostanou). Na počítači zůstává panel nemodální vedle obsahu.
   var mobil = window.matchMedia ? matchMedia('(max-width: 760px)') : null;
+  // Prvky, které stránka přidá až po otevření (např. lišta souhlasu), musí být inert také.
+  var hlidac = window.MutationObserver ? new MutationObserver(function () { nastavModal(true); }) : null;
   function nastavModal(otevreno) {
     var modal = !!(otevreno && mobil && mobil.matches);
     box.setAttribute('aria-modal', modal ? 'true' : 'false');
+    if (hlidac) { if (modal) hlidac.observe(d.body, { childList: true }); else hlidac.disconnect(); }
     Array.prototype.forEach.call(d.body.children, function (el) {
       if (el === box || el.tagName === 'SCRIPT') return;
       if (modal && !el.inert) { el.inert = true; el.setAttribute('data-hbot-inert', ''); }
@@ -385,15 +395,18 @@
       var heslo = d.getElementById('hb-heslo');
       if (!viewM.hidden) (viewM.querySelector('textarea') || tabM).focus({ preventScroll: true });
       else if (heslo) heslo.focus({ preventScroll: true });
-      else if (dotyk) { box.setAttribute('tabindex', '-1'); box.focus({ preventScroll: true }); }
+      else if (dotyk) box.focus({ preventScroll: true });
       else vstup.focus({ preventScroll: true });
       udalost('hbot_open', { majitel: !!token() });
     });
   }
+  // Viditelný prvek (getClientRects – offsetParent je u position:fixed vždy null).
+  function viditelny(el) { return !!(el && el !== d.body && el.focus && d.contains(el) && !box.contains(el) && el.getClientRects().length); }
   function zavri() {
     box.hidden = true; Z.otevreno(false); nastavModal(false);
-    if (otvirac && otvirac.focus && d.contains(otvirac) && otvirac.offsetParent !== null) otvirac.focus({ preventScroll: true });
-    else if (Z.tlacitka[0]) Z.tlacitka[0].focus({ preventScroll: true });
+    // Fokus zpět na otvírač, jinak na první viditelné tlačítko (na mobilu lišta, na počítači #hbot-btn).
+    var cil = [otvirac].concat(Z.tlacitka).filter(viditelny)[0];
+    if (cil) cil.focus({ preventScroll: true });
   }
   box.querySelector('.hb-close').addEventListener('click', zavri);
   majitelBtn.addEventListener('click', prihlaseni);
@@ -412,7 +425,9 @@
     if (!v || aiBezi) return;
     vstup.value = '';
     // Otázka položená dřív, než dorazí znalosti, se nezahodí – zodpoví se hned po načtení.
-    if (KB) vlastniOtazka(v); else znalosti.then(function () { vlastniOtazka(v); });
+    // Do té doby platí zámek aiBezi – další odeslání počká v poli (žádná souběžná placená volání).
+    if (KB) vlastniOtazka(v);
+    else { aiBezi = true; znalosti.then(function () { aiBezi = false; vlastniOtazka(v); }); }
   });
 
   window.HSPG_HBOT = {

@@ -69,7 +69,7 @@
         stav.appendChild(el('span', { class: 'hbm-cip' + (a.zapnuto ? ' on' : ''), title: a.zapnuto ? 'vy: ' + a.model + ' · zákazníci: ' + (a.modelZakaznik || a.model) : 'Klíč dodává Netlify AI Gateway, nebo vložte ' + a.klic + ' do Netlify' }, a.zapnuto ? a.nazev + ' ✓' : a.nazev + ': není k dispozici'));
       });
       if (s.utrata) {
-        stav.appendChild(el('span', { class: 'hbm-cip' }, 'Útrata AI měsíce ≈ ' + Math.round(s.utrata.celkemKc) + ' / ' + s.limitKc + ' Kč'));
+        stav.appendChild(el('span', { class: 'hbm-cip' }, 'Útrata AI období ≈ ' + Math.round(s.utrata.celkemKc) + ' / ' + s.limitKc + ' Kč'));
         if (s.verejnyLimitKc) stav.appendChild(el('span', { class: 'hbm-cip' }, 'z toho zákazníci ≈ ' + Math.round(s.utrata.verejneKc || 0) + ' / ' + Math.round(s.verejnyLimitKc) + ' Kč'));
       }
       if (s.gateway && s.kredity) {

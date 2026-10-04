@@ -34,7 +34,11 @@ export async function tajemstviServeru(env, ul) {
   if (!z?.hodnota) {
     const nove = { hodnota: randomBytes(32).toString("hex"), vytvoreno: new Date().toISOString() };
     const r = await ul.setJSON(KLIC_TAJEMSTVI, nove, { onlyIfNew: true });
-    z = r && r.modified === false ? await ul.get(KLIC_TAJEMSTVI, { type: "json" }) : nove;
+    // Platí jen potvrzený zápis (s etagem); {modified:false} = souběžná instance zapsala dřív → přečíst její.
+    // Jiný výsledek (chyba zápisu bez výjimky) → výjimka: tajemství, které není v Blobs, nesmí do mezipaměti.
+    if (r?.modified === true && r.etag) z = nove;
+    else if (r?.modified === false) z = await ul.get(KLIC_TAJEMSTVI, { type: "json" });
+    else throw new Error("Tajemství serveru nejde uložit.");
   }
   if (!z?.hodnota) throw new Error("Tajemství serveru nejde načíst.");
   vMezipameti.set(ul, z.hodnota);

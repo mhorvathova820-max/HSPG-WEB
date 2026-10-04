@@ -9,7 +9,7 @@ Zdroje: `KONTEXT.md` §2, `audit-nasazeni_provoz.json` #10, #14, #17, #18, #22, 
 - Po vyčerpání kreditů Netlify projekty týmu pozastaví (podrobnosti `KONTEXT.md` §2). Proto pojistka v `nasadit.mjs` a prahy v kroku 13.
 - Netlify posílá e-mail při 50, 75 a 100 % jen vlastníkovi týmu. Upozornění na 90 % ani týdenní přehled neexistují.
 - `scripts/nasadit.mjs` (úkol 00) hlídá nejvýš 1 produkční nasazení denně. Rozpočet na celé období ale nehlídá. Při 1 nasazení denně by se za 30 dní spotřebovalo 450 kreditů.
-- Odhad útraty AI v kreditech už vrací `/api/ai-stav` (`kredity.utraceno` / `kredity.limit`) a ukazuje ho panel majitele (úkol 01). Počítá se za kalendářní měsíc, období Netlify ale běží od 11. do 10.
+- Odhad útraty AI v kreditech už vrací `/api/ai-stav` (`kredity.utraceno` / `kredity.limit`) a ukazuje ho panel majitele (úkol 01). Počítá se za období kreditů Netlify (od 11. do 10.; `AI_OBDOBI_DEN`, výchozí 11), klíč `utrata/RRRR-MM` = měsíc, ve kterém období začalo (funkce `mesic(ted, env)` v `limity.mjs`).
 
 **Dohled chybí** (audit-nasazeni_provoz #14, audit-ai_integrace #11 a #14)
 - Zdravotní adresa neexistuje: `GET /api/health`, `/api/zdravi` i `/zdravi.txt` vrací 404 (ověřeno). Zda existuje externí uptime monitor, zvenku zjistit nejde.
@@ -144,7 +144,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
    - Chyba úložiště nikdy neshodí volající funkci (`try/catch`, `waitUntil`).
 5. **Měření a pasivní zdraví AI** (audit-ai_integrace #14, #11). **Odpovědi a chování funkcí se nemění**, testy balíčku z úkolu 01 musí projít beze změny.
    - `asistent.mjs`: u každého POST zapiš do oblasti `ai`:
-     - výsledek přesně podle odpovědi funkce: `rezim` a u `bez-ai` i `duvod`. Dnes (balíček, `asistent.mjs`) to jsou `ai` (s `overeno: true/false` → položky `ai.overeno` / `ai.neovereno`), `predat`, `chyba`, `limit` a `bez-ai` s `duvod` `rozpocet` / `uloziste`, bez `duvod` = žádná dostupná AI (bez klíče nebo `AI_ZAPNUTO=0`). Nové hodnoty nevymýšlej. Pokud funkce vrátí jinou hodnotu, započítej ji pod jejím jménem. „Záložní odpověď“ (semafor, upozornění, panel) = každý výsledek kromě `ai`, protože prohlížeč pak odpoví z FAQ nebo nabídne zavolání.
+     - výsledek přesně podle odpovědi funkce: `rezim` a u `bez-ai` i `duvod`. Dnes (balíček, `asistent.mjs`) to jsou `ai` (s `overeno: true/false` → položky `ai.overeno` / `ai.neovereno`), `predat`, `chyba`, `limit` a `bez-ai` s `duvod` `vypnuto` (vypínač majitele) / `rozpocet` (měsíční limit nebo podíl zákazníků) / `uloziste`, bez `duvod` = žádná dostupná AI (bez klíče nebo `AI_ZAPNUTO=0`). Nové hodnoty nevymýšlej. Pokud funkce vrátí jinou hodnotu, započítej ji pod jejím jménem. „Záložní odpověď“ (semafor, upozornění, panel) = každý výsledek kromě `ai`, protože prohlížeč pak odpoví z FAQ nebo nabídne zavolání.
      - u každého poskytovatele `ok` nebo kód chyby (`e.status`, jinak `timeout` / `sit`)
      - latenci celé odpovědi
    - `ai.mjs` (interní): jen `ok` a kód chyby poskytovatele, kvůli zdraví.
@@ -157,7 +157,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
      | oranžová | za 24 h bez provozu, nebo jen timeouty a 429 | „bez provozu“ / „pomalá odpověď“ / „limit poskytovatele“ |
      | červená | po posledním úspěchu chyba 401/403, 402 nebo 404 | „neplatný klíč nebo přístup“ / „vyčerpaný kredit“ / „model nedostupný – zkontroluj `<proměnná>`“. Proměnná: `claude` → `CLAUDE_MODEL`, `gpt` → `OPENAI_MODEL`, `gemini` → `GEMINI_MODEL`, `grok` → `XAI_MODEL`. Dnes je jméno jen uvnitř funkce `model` v `POSKYTOVATELE`. Přidej k poskytovateli pole `modelPromenna`, test hlídá shodu s funkcí `model`. |
    - `ai-stav.mjs`: k dosavadním polím (beze změny) přidej `zdravi` (semafor a text na poskytovatele) a `provoz` (souhrn 24 h a 7 dní: dotazy, podíl záložních odpovědí, chyby podle kódu, p50/p95). **Žádné volání AI**, test ověří 0 volání adaptérů.
-   - `/api/provoz-stav` (nová funkce jen pro přihlášeného majitele, ověření přes `overPozadavek` jako `ai-stav`) vrátí souhrn 7 dní pro oblasti `ai`, `formulare`, `404` a `csp` (jen počty, top 10). Využije ji týdenní kontrola a později interní panel (úkol 14).
+   - `/api/provoz-stav` (nová funkce jen pro přihlášeného majitele) ověřuje `const a = await overPozadavek(req, env, ted(), dejUlozisteAI)` přesně jako `ai-stav.mjs`; `dejUlozisteAI` vrací `vychoziUloziste()` z `netlify/lib/ai/limity.mjs` (`hspg-ai`, tajemství tokenu `tajemstvi/token`). Data čte zvlášť z `hspg-provoz`, které do `overPozadavek` nikdy nepředávej. Test v `env` bez `HSPG_TOKEN_TAJEMSTVI`: token z `/api/majitel` (stejné paměťové úložiště) → 200, nedostupné úložiště → 503. Funkce vrátí souhrn 7 dní pro oblasti `ai`, `formulare`, `404` a `csp` (jen počty, top 10). Využije ji týdenní kontrola a později interní panel (úkol 14).
    - `assets/hbot-majitel.js`: u každé AI ukaž semafor a text a k tomu řádek „24 h: AI N · záložní N (x %) · chyby: 402×1 … · p95 x,x s“. Přidej i řádek „Provoz 7 dní: formuláře N · 404 N · CSP N“ z `/api/provoz-stav`. Zachovej styl karty, bez nových inline skriptů a bez nových závislostí.
    - Volitelně a nejvýš 30 min: tlačítko majitele „Ověřit teď“ přes bezplatný dotaz na informace o modelu (např. `models.retrieve`). Ověř na náhledu, zda ho Netlify AI Gateway podporuje. Pokud ne (404/405), krok vynech a nahlas. Generování textu jako test zdraví nepoužívej nikdy.
 6. **Upozornění pushem** (`netlify/lib/upozorneni.mjs`):
@@ -165,7 +165,8 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
    - Spouštěče:
      - chyba poskytovatele 401/403/402/404
      - podíl záložních odpovědí > 20 % při ≥ 10 dotazech za den
-     - útrata AI ≥ 80 % a ≥ 100 % `AI_MESICNI_LIMIT_KC`
+     - útrata AI ≥ 80 % a ≥ 100 % `AI_MESICNI_LIMIT_KC` (`utrata.celkemKc`) **a zvlášť** útrata zákazníků `utrata.verejneKc` ≥ 80 % a ≥ 100 % `AI_VEREJNY_LIMIT_KC` (výchozí polovina měsíčního limitu; při 100 % H-BOT odpovídá z FAQ). Text: `[HSPG] AI pro zákazníky: rozpočet vyčerpán (X / Y Kč). H-BOT odpovídá z FAQ.`
+     - přenos dat (bandwidth) z Usage & billing / Netlify API > 2 GB za den nebo nečekaný skok proti minulému týdnu (videa `/media/*` – pravidlo 100 požadavků / min brzdí jen rychlé smyčky, ne pomalé stahování)
    - Každý typ nejvýš 1× denně. Deduplikace je v klíči `upozorneni/<den>`. Timeout je 5 s a selhání nesmí ovlivnit odpověď návštěvníkovi.
    - Text zprávy: `[HSPG] AI: Claude – vyčerpaný kredit (402). H-BOT odpovídá z FAQ.` Žádný text dotazu ani osobní údaj. Bez nastaveného kanálu jen `console.warn`.
 7. **Počítadla formulářů** v `submission-created.mjs`: oblast `formulare`, položky `<form_name>.prijato` a `<form_name>.<kanál>_ok` / `<kanál>_selhalo`. Nic z obsahu podání. Chování z úkolu 02 se nemění (200 i při chybě, kopie, směrování).
@@ -185,7 +186,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
      - jiná metoda než POST → 405
      - nejvýš 2 000 zápisů za den na sběrač, nad limit 204 bez zápisu
      - žádné zpracování IP
-   - Ověř v dokumentaci Netlify (Rate limiting pro funkce), zda je limit požadavků na tarifu dostupný. Pokud ano, nastav ho v `config` obou sběračů: omezené požadavky pak funkci vůbec nespustí a nečerpají výpočet.
+   - Do sběračů **nepřidávej** `config.rateLimit`: tarif Personal povoluje 2 pravidla v kódu na projekt a obě mají `/api/asistent` a `/media/*` (úkol 01, krok 8b). Sběrače chrání strop 8 KB a 2 000 zápisů za den. Ověř `git grep -n "rateLimit" -- netlify/` → právě 2 výskyty a přidej test, který spočítá `rateLimit` ve všech funkcích a edge funkcích webu (≤ 2). Pokud by tarif dovolil víc, jen to navrhni do hlášení.
    - `assets/chyba-404.js` (soubor, žádný inline skript) vlož do stránky 404 s `defer`. Na jiných stránkách se nenačítá. Neukládá nic do prohlížeče.
 9. **Zdravotní adresy:**
    - `/zdravi.txt` je statický soubor s textem `HSPG-OK` a hlavičkami `X-Robots-Tag: noindex` a `Cache-Control: no-cache`. Není v sitemap.
@@ -237,7 +238,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
     | TLS | platnost certifikátu ≥ 21 dní (jinak POZOR, < 7 dní KRITICKÉ) a vydavatel |
     | DNS | MX = hosty Seznamu (**změna = KRITICKÉ**), SPF obsahuje `include:spf.seznam.cz`, DMARC odpovídá očekávanému kroku, CAA (pokud je) obsahuje `letsencrypt.org`, `www` je CNAME na Netlify |
     | funkce | očekávané stavy GET z tabulky v části Proč (`/api/asistent` GET 200), těla bez stack trace. `/api/holub-ai` očekává 404. Pokud vrací 405, výsledek je POZOR s textem „úkol 01 ještě není na produkci“ |
-    | kredity | nasazení v období z `.nasazeni-produkce.json`. `--zbyva N` (číslo z Usage & billing) přepočte na % s krokem podle prahu. Zjisti (`npx netlify api --list`, dokumentace), zda Netlify API čerpání kreditů vrací – pokud ano, čti ho automaticky. AI v kreditech čti z Blobs `hspg-ai` (`utrata/RRRR-MM`) |
+    | kredity | nasazení v období z `.nasazeni-produkce.json`. `--zbyva N` (číslo z Usage & billing) přepočte na % s krokem podle prahu. Zjisti (`npx netlify api --list`, dokumentace), zda Netlify API čerpání kreditů vrací – pokud ano, čti ho automaticky. AI v kreditech čti z Blobs `hspg-ai` (`utrata/RRRR-MM` podle období kreditů, viz `mesic()`; `celkemKc` i `verejneKc`). Přenos dat za období a za posledních 7 dní (GB) vypiš zvlášť |
     | AI | souhrn 7 dní a semafor (Blobs `hspg-provoz`) |
     | formuláře | ověřená odeslání za 7 dní po formulářích z Netlify API proti `formulare.*.prijato` a `*_ok`. Data podání zpracuj jen v paměti, vypiš **jen počty** |
     | 404 a CSP | top 10 za 7 dní (návrhy přesměrování pro úkol 06) |

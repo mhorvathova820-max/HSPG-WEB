@@ -20,8 +20,8 @@ after(async () => {
   await Promise.all(servery.map((s) => s.zavri()));
 });
 
-async function stranka(rezim, { sirka = 1280, vyska = 800, cesta = "/cenik.html" } = {}) {
-  const s = await spustServer({ rezim });
+async function stranka(rezim, { sirka = 1280, vyska = 800, cesta = "/cenik.html", zaseknout } = {}) {
+  const s = await spustServer({ rezim, zaseknout });
   servery.push(s);
   const ctx = await prohlizec.newContext({ viewport: { width: sirka, height: vyska } });
   // Externí služby (GTM, Clarity, videa) test nepotřebuje.
@@ -238,4 +238,69 @@ test("anglická stránka asistenta nevkládá (obsah je česky)", async () => {
   const { p } = await stranka("ai", { cesta: "/en.html" });
   await p.waitForTimeout(500);
   assert.equal(await p.locator("#hbot-btn").count(), 0);
+});
+
+test("hbot-panel.js 404: záložní okno bez přesměrování, „Zkusit znovu“ otevře panel; Escape mimo panel ho nezavře", async () => {
+  const { p, chyby } = await stranka("bez-ai");
+  await p.context().route("**/assets/hbot-panel.js", (r) => r.fulfill({ status: 404, body: "404" }));
+  await p.click("#hbot-btn");
+  await p.waitForSelector("#hbot-zaloha:not([hidden])");
+  assert.equal(new URL(p.url()).pathname, "/cenik.html", "žádné přesměrování");
+  assert.equal(await p.evaluate(() => document.activeElement.id), "hbot-zaloha");
+  await p.context().unroute("**/assets/hbot-panel.js");
+  await p.click("#hbot-zaloha [data-znovu]");
+  await p.waitForSelector("#hbot:not([hidden]) .hb-chip");
+  assert.equal(await p.isHidden("#hbot-zaloha"), true);
+  assert.equal(await p.locator("section#hbot").count(), 1, "jeden panel");
+  await p.evaluate(() => [...document.querySelectorAll("a[href]")].find((a) => !a.closest("#hbot") && a.getClientRects().length).focus());
+  await p.keyboard.press("Escape");
+  assert.equal(await p.isVisible("#hbot"), true, "Escape mimo panel ho nezavře");
+  // Klik do textu odpovědi nechá fokus v panelu – Escape pak panel zavře.
+  await p.click("#hbot .hb-msg");
+  await p.keyboard.press("Escape");
+  assert.equal(await p.isHidden("#hbot"), true);
+  assert.deepEqual(chyby, []);
+});
+
+test("průběh AI se zasekne po 1. řádku → do ~12 s odpověď z FAQ a další dotaz funguje", async () => {
+  const { p, chyby } = await stranka("ai", { zaseknout: { "POST /api/asistent": ["application/x-ndjson", '{"krok":"navrh","ai":"Claude"}\n'] } });
+  await p.click("#hbot-btn");
+  await p.waitForSelector("#hbot .hb-info");
+  const t0 = Date.now();
+  await p.fill("#hb-q", "Kolik by stálo vyčistit střechu u rodinného domu?");
+  await p.press("#hb-q", "Enter");
+  await p.waitForSelector("#hbot .hb-pise >> text=/Claude píše/");
+  await p.waitForSelector("#hbot .hb-msg >> text=/střecha od \\d+ Kč/i", { timeout: 16000 });
+  assert.ok(Date.now() - t0 >= 11000, "odpověď z FAQ až po limitu");
+  assert.equal(await p.locator("#hbot .hb-pise").count(), 0);
+  await p.fill("#hb-q", "potřebujete lešení?");
+  await p.press("#hb-q", "Enter");
+  await p.waitForSelector("#hbot .hb-msg >> text=/bez lešení/");
+  assert.deepEqual(chyby, []);
+});
+
+test("znalosti se zaseknou po hlavičkách → do 6 s uvítání a položená otázka se nezahodí", async () => {
+  const { p } = await stranka("bez-ai", { zaseknout: { "GET /assets/hbot-znalosti.json": ["application/json", '{"firma":'] } });
+  await p.click("#hbot-btn");
+  await p.fill("#hb-q", "potřebujete lešení?");
+  await p.press("#hb-q", "Enter");
+  await p.waitForSelector("#hbot .hb-msg >> text=/Dobrý den, jsem holub/", { timeout: 6000 });
+  await p.waitForSelector("#hbot .hb-msg.hb-me >> text=potřebujete lešení?", { timeout: 2000 });
+});
+
+test("FAQ bez AI: tvary slov (ceny, cenu, péče) najdou odpověď, „panelák“ nenajde fotovoltaiku", async () => {
+  const { p } = await stranka("bez-ai");
+  await p.click("#hbot-btn");
+  await p.waitForSelector("#hbot .hb-chip");
+  const zeptej = async (q) => {
+    const n = await p.locator("#hbot .hb-msg").count();
+    await p.fill("#hb-q", q);
+    await p.press("#hb-q", "Enter");
+    await p.waitForFunction((n) => document.querySelectorAll("#hbot .hb-msg").length >= n + 2, n);
+    return p.locator("#hbot .hb-msg").nth(n + 1).textContent();
+  };
+  for (const [q, re] of [["Jaké máte ceny?", /střecha od \d+ Kč/i], ["Chci znát cenu", /střecha od \d+ Kč/i], ["Co obnáší trvalá péče?", /SENTINEL/], ["Čistíte solární panely?", /fotovolt/i]]) {
+    assert.match(await zeptej(q), re, q);
+  }
+  assert.doesNotMatch(await zeptej("Bydlíme v paneláku, je to pro nás?"), /fotovolt/i);
 });

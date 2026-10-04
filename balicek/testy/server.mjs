@@ -19,7 +19,9 @@ async function existuje(p) {
 }
 
 // rezim: "ai" (spolupráce funguje) | "bez-ai" (žádné klíče) | "chyba" (AI padají)
-export async function spustServer({ rezim = "ai", port = 0, mirror = process.env.HSPG_MIRROR } = {}) {
+// zaseknout: { "METODA /cesta": [content-type, začátek těla] } – pošle hlavičky a začátek těla a dál nic
+// (simulace visícího spojení pro testy časových limitů v prohlížeči).
+export async function spustServer({ rezim = "ai", port = 0, mirror = process.env.HSPG_MIRROR, zaseknout = {} } = {}) {
   if (!mirror) throw new Error("Nastav HSPG_MIRROR na složku s kopií webu (wget --mirror https://hspg.cz).");
   const e = rezim === "bez-ai" ? { HSPG_PANEL_HESLO: HESLO } : testEnv();
   const ul = pametoveUloziste();
@@ -51,6 +53,12 @@ export async function spustServer({ rezim = "ai", port = 0, mirror = process.env
     try {
       const url = new URL(req.url, "http://localhost");
       const telo = await new Promise((ok) => { const c = []; req.on("data", (x) => c.push(x)); req.on("end", () => ok(Buffer.concat(c))); });
+      const zasek = zaseknout[`${req.method} ${url.pathname}`];
+      if (zasek) {
+        res.writeHead(200, { "content-type": zasek[0], "cache-control": "no-store" });
+        res.write(zasek[1]);
+        return; // spojení zůstane otevřené bez konce těla
+      }
       if (api[url.pathname]) {
         const r = await api[url.pathname](new Request(url, { method: req.method, headers: req.headers, body: ["GET", "HEAD"].includes(req.method) ? undefined : telo }), { ip: "127.0.0.1" });
         res.writeHead(r.status, Object.fromEntries(r.headers));
@@ -80,7 +88,7 @@ export async function spustServer({ rezim = "ai", port = 0, mirror = process.env
     }
   });
   await new Promise((ok) => server.listen(port, "127.0.0.1", ok));
-  return { url: `http://127.0.0.1:${server.address().port}`, formulare, zavri: () => new Promise((ok) => server.close(ok)) };
+  return { url: `http://127.0.0.1:${server.address().port}`, formulare, zavri: () => new Promise((ok) => { server.close(ok); server.closeAllConnections?.(); }) };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

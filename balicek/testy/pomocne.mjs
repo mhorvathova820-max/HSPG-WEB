@@ -1,5 +1,5 @@
 // Společné pomůcky testů: falešné AI adaptéry (žádné skutečné volání, žádné peníze) a prostředí.
-import { pametoveUloziste } from "../web/netlify/lib/ai/limity.mjs";
+import { pametoveUloziste, mesic } from "../web/netlify/lib/ai/limity.mjs";
 
 export const HESLO = "testovaci-heslo-1234567";
 
@@ -58,3 +58,6 @@ export function pozadavek(url, { method = "GET", body, headers = {} } = {}) {
     body: body === undefined ? undefined : typeof body === "string" ? body : JSON.stringify(body),
   });
 }
+
+// Klíč rozpočtu pro aktuální období kreditů (stejně jako ho počítá limity.mjs; AI_OBDOBI_DEN výchozí 11).
+export const obdobi = (e = {}, ted = Date.now()) => mesic(ted, e);
