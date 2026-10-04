@@ -6,7 +6,7 @@ Podklad: `audit-seo.json`, nálezy #6, #9–#13 a #15–#19. Jinam patří #7 Jo
 
 | # | Nález | Důkaz |
 |---|---|---|
-| #6 | **Firma je v datech v mnoha kopiích, žádná nemá `@id`.** | `/` ř. 45: `HomeAndConstructionBusiness` „HOLUB Surface Protection Group“ bez `@id` a bez `legalName` (provozovatel je OSVČ Dušan Holub). `identifier` je řetězec „IČO 09291881“, `url` je „https://hspg.cz“ bez lomítka, `areaServed` obsahuje i `Place` „Evropská unie“, který ve viditelném textu `/` není. `geo` 50.0925 / 14.449 leží **332 m** od adresního místa RÚIAN 22348603 (Pernerova 10/32). Podle ČÚZK má bod WGS84 souřadnice 50.090789 / 14.452810, ověřeno dotazem GET na `ags.cuzk.cz`. `/en` ř. 35 má druhou entitu s `url` …/en.html. Na 232 stránkách (231 okresních a `/cisteni-dlazby/`) je `Service.provider` samostatná kopie bez `@id` s `addressLocality` „Praha 8“, kdežto `/` uvádí „Praha 8 – Karlín“. Na `/` mají 4× `Service` vlastní `provider` a `VideoObject.publisher` je samostatná `Organization`. Celkem 238 uzlů `HomeAndConstructionBusiness` a 4 `Organization`, `@id` 0×. JSON-LD jde naparsovat bez chyby (0 chyb `JSON.parse`). |
+| #6 | **Firma je v datech v mnoha kopiích, žádná nemá `@id`.** | `/` ř. 45: `HomeAndConstructionBusiness` „HOLUB Surface Protection Group“ bez `@id` a bez `legalName` (provozovatel je OSVČ Dušan Holub). `identifier` je řetězec „IČO 09291881“, `url` je „https://hspg.cz“ bez lomítka, `areaServed` obsahuje i `Place` „Evropská unie“, který ve viditelném textu `/` není. `geo` 50.0925 / 14.449 leží **332 m** od adresního místa RÚIAN 22348603 (Pernerova 10/32). Podle ČÚZK má bod WGS84 souřadnice 50.090789 / 14.452810, ověřeno dotazem GET na `ags.cuzk.cz`. `/en` ř. 35 má druhou entitu s `url` …/en.html. Na 232 stránkách (231 okresních a `/cisteni-dlazby/`) je `Service.provider` samostatná kopie bez `@id` s `addressLocality` „Praha 8“, kdežto `/` uvádí „Praha 8 – Karlín“. Na `/` mají 4× `Service` vlastní `provider` a `VideoObject.publisher` je samostatná `Organization`. Zbylé 3 `Organization` jsou `hiringOrganization` ve 3× `JobPosting` na `/kariera` (ř. 30), které odstraňuje úkol 13. Celkem 238 uzlů `HomeAndConstructionBusiness` a 4 `Organization`, `@id` 0×. JSON-LD jde naparsovat bez chyby (0 chyb `JSON.parse`). |
 | #9 | **„bez lešení“ jako bezpodmínečný slib ve snippetech** | Na 160 stránkách je v 557 polích `<head>`: `title` 154×, `og:title` 154×, `description` 121×, `og:description` 122×, `twitter:description` 6×. Úkol 13 uvádí 554 výskytů na 159 stránkách, rozdíl je v metodě počítání. Rozhoduje test. Text stránek slib omezuje: FAQ okresních stránek „Většinou ne … kdyby bylo lešení výjimečně nutné, uvedeme to v nabídce“, `/cisteni-strech/` „Lešení není automatický předpoklad ani univerzální slib.“ Úkol 13 převádí tělo a H1 na schválenou formulaci F1 „zpravidla bez lešení“. `<head>` výslovně nechává sem. |
 | #10 | **Rozcestníky služeb jsou nejednotné** | `/cisteni-strech/` a `/cisteni-fasad/` jsou psané ručně (bez `data-gen`). Mají jen `BreadcrumbList`, žádný `Service` a žádné viditelné drobečky. `/cisteni-dlazby/` (generuje `build-regions`) má `Service` se 2 nabídkami a drobečky. H1 jsou slogany. Klíčové slovo stojí v `<div class="kicker">` těsně **před** H1: „Čištění a ochrana střech / fasád / dlažby“. |
 | #11 | **BreadcrumbList bez viditelných drobečků** | Na 9 stránkách: `/cenik`, `/kariera`, `/pas-domu`, `/nabidka-svj`, `/kalkulacka-svj`, `/ochrana-osobnich-udaju`, `/pravidla-akce/`, `/cisteni-strech/`, `/cisteni-fasad/`. Vzor komponenty je na 232 generovaných stránkách: `<nav class="crumbs wrap" aria-label="Drobečková navigace"><ol>…<li aria-current="page">…</li></ol></nav>` na začátku `<main>`. |
@@ -80,7 +80,9 @@ Podklad: `audit-seo.json`, nálezy #6, #9–#13 a #15–#19. Jinam patří #7 Jo
 3. **Inventura před změnou** – `scripts/seo-inventura.mjs` (Node, bez sítě):
    - **Parsování:** stejný způsob jako testy úkolů 03, 05 a 08. Pokud žádný není, přidej `node-html-parser` do `devDependencies`.
    - **Co prochází:** všechna HTML v publikačním adresáři kromě interních `rd-control-panel/` a `ai-centrum/`, nebo jeden soubor (`--soubor`).
-   - **Co zapíše pro každou stránku:** cesta podle canonical, `lang`, `robots`, title a jeho délka a přípona, description a délka, všechny `og:*` a `twitter:*`, H1, typy uzlů JSON-LD, hodnoty `@id`, položky `BreadcrumbList` a viditelných drobečků, pole `<head>` s „bez lešení“, počet komentářů HTML a CSS/JS a `main_hash`. `main_hash` je SHA-256 textu `<main>` bez drobečků a H1 a slouží jako pojistka, že se tělo stránek nezměnilo.
+   - **Co zapíše pro každou stránku:** cesta podle canonical, `lang`, `robots`, title a jeho délka a přípona, description a délka, všechny `og:*` a `twitter:*`, H1, typy uzlů JSON-LD, hodnoty `@id`, položky `BreadcrumbList` a viditelných drobečků, pole `<head>` s „bez lešení“, počet komentářů HTML a CSS/JS a `main_hash`. `main_hash` je SHA-256 textu `<main>` bez `nav.crumbs`, H1, `script` a `style`, s mezerami sjednocenými podle pravidla níže. Slouží jako pojistka, že se tělo stránek nezměnilo (ani po čištění výstupu ve fázi B).
+   - **Porovnávání textů** (inventura i všechny testy úkolu): před porovnáním nahraď každou posloupnost bílých znaků včetně NBSP (`\s+` v JS) jednou mezerou a ořízni okraje. Jinak by `nbsp()` z úkolu 03 rozbil shodu.
+   - **„H1 s klíčovým slovem“** počítá inventura stejně jako test v kroku 12: rozcestník = H1 obsahuje „Čištění a ochrana střech|fasád|dlažby“ (ve fázi B i „fotovoltaick“), `/` = „Čištění“ a „střech“, `/en` = „cleaning“.
    - **`--souhrn`** vypíše tabulku metrik. Stav 4. 10. pro srovnání:
 
      | Metrika | 4. 10. |
@@ -98,6 +100,7 @@ Podklad: `audit-seo.json`, nálezy #6, #9–#13 a #15–#19. Jinam patří #7 Jo
      | chyby `JSON.parse` / `AggregateRating` + `Review` | 0 / 0 |
 
    Výstup ulož do `.artefakty/ukol-11/pred.json` (`.artefakty/` je v `.gitignore` z úkolu 08). Souhrn dej do hlášení a commitni skript.
+   - **Lighthouse před změnou:** z čisté větve (stav `main`, ještě bez změn úkolu) udělej náhled `node scripts/nasadit.mjs` (0 kreditů) a změř `/` (desktop: CLS, přístupnost, SEO) prvním příkazem Lighthouse z části Ověření, jen s `--output-path=.artefakty/ukol-11/lh-pred.json`. S ním se porovnává krok 9 a akceptační kritéria.
 4. **Data.**
    - `content/firma.json` je jediný zdroj faktů a druhý nezakládej. Ostatní klíče neměň. Doplň:
    ```json
@@ -160,7 +163,7 @@ Podklad: `audit-seo.json`, nálezy #6, #9–#13 a #15–#19. Jinam patří #7 Jo
    - `drobecky(polozky, jazyk)` → `{ html, jsonld }` z jednoho seznamu, takže nemohou nastat rozdíly.
      - HTML je shodné s dnešní komponentou: `<nav class="crumbs wrap" aria-label="Drobečková navigace">`, `<ol>` a poslední položka `aria-current="page"` bez odkazu. Pro en je `aria-label` „Breadcrumb“.
      - `item` v JSON-LD jsou absolutní URL v kanonické podobě z úkolu 06.
-   - `jsonLdSkript(data)` → `<script type="application/ld+json">` s `JSON.stringify` a s `<` převedeným na `<`, aby text nemohl ukončit skript.
+   - `jsonLdSkript(data)` → `<script type="application/ld+json">` s `JSON.stringify` a s každým `<` převedeným na escape `\u003c` (šest znaků: zpětné lomítko, `u003c`), aby text nemohl ukončit skript. `JSON.parse` z toho vrátí původní `<`.
    - Viditelné texty prožeň `nbsp()` z úkolu 03 (KONTEXT §4.9).
 6. **Generátor `scripts/build-seo.mjs`**:
    - Bloky vkládá mezi neutrální značky bez cest a poznámek (audit #18):
@@ -181,7 +184,7 @@ Podklad: `audit-seo.json`, nálezy #6, #9–#13 a #15–#19. Jinam patří #7 Jo
    - **Rozcestníky** (a ve fázi B fotovoltaika): `sluzba()` a `BreadcrumbList`.
    - **Šablona `build-regions`** (231 okresních stránek a `/cisteni-dlazby/`): `provider` → `odkazNaFirmu()`, drobečky z `drobecky()`, `Service` ze `sluzba()`. Nabídky a ceny musí zůstat stejné (test). Přegeneruj stránky a zkontroluj rozsah diffu. `main_hash` okresních stránek se nesmí změnit.
    - **9 stránek z nálezu #11, `/zaruka` a `/reklamace/` (pokud existují):** `BreadcrumbList` z `drobecky()`.
-   - Nikde nesmí být `AggregateRating`, `Review`, `FAQPage` na nových stránkách ani `JobPosting` (úkol 13).
+   - Nikde nepřidávej `AggregateRating`, `Review`, `FAQPage` na nové stránky ani `JobPosting`. Pokud na `/kariera` ještě je `JobPosting` (úkol 13 nesloučen), neodstraňuj ho (patří úkolu 13). Jen jeho `hiringOrganization` nahraď `kratkyUzelFirmy()`, aby test `@id` prošel, a nahlas to.
 8. **Viditelné drobečky** vlož přes značky `HSPG:DROBECKY` na 9 stránek z nálezu #11, na `/zaruka`, `/reklamace/` a `/kontakt`.
    - Styl `.crumbs` přesuň do sdíleného CSS z úkolu 08 a použij tokeny: písmo 14 px, cíle ≥ 44 px jako dnes, oddělovač „›“, barva textu s kontrastem ≥ 4,5 : 1.
    - Duplicitní pravidla v inline CSS odstraň jen tam, kde už nic necílí (ověř přes `git grep`).
@@ -193,9 +196,10 @@ Podklad: `audit-seo.json`, nálezy #6, #9–#13 a #15–#19. Jinam patří #7 Jo
      - ve sdíleném CSS přidej `h1 .kicker{display:block; …}` se stejným písmem, velikostí, prokladem, barvou a odsazením jako `.kicker` a bez stínu a písma nadpisu,
      - mezi `</span>` a textem nech mezeru, aby čtečka nespojila slova.
    - **`/`:** nadtitulek ř. 1202 přesuň do H1 (ř. 1203) s textem „Čištění a ochrana střech, fasád a dlažeb“ místo „Profesionální čištění a trvalá ochrana povrchů“.
+     - Nadtitulek je dnes `<div style="…display:flex…">` s dekorativní čárou `<span>`. Uvnitř H1 musí být `<span>` (blokový prvek v `<h1>` je neplatné HTML a validátor ho hlásí). `display:flex` ponech, dekorativní čáře přidej `aria-hidden="true"` a za `</span>` nadtitulku nech mezeru.
      - Velká písmena jen přes `text-transform:uppercase`, ne v textu.
      - Inline styly nadtitulku ponech a doplň písmo textu, `font-weight:400`, vlastní `line-height` a `text-shadow` nadtitulku, aby nezdědil styl H1.
-   - **`/en`:** nadtitulek ř. 143 přesuň do H1 s textem „Roof, facade and paving cleaning and protection“.
+   - **`/en`:** nadtitulek ř. 143 (`<div class="kicker">`) přesuň do H1 jako `<span class="kicker">` stejně jako u rozcestníků, s textem „Roof, facade and paving cleaning and protection“.
    - **Kontrola:**
      - vizuální test z úkolu 08 smí ukázat rozdíl jen v textu nadtitulku na `/` a `/en` a v nových drobečcích. Referenční snímky aktualizuj jen pro tyto stránky a snímky před a po přilož k hlášení,
      - Lighthouse desktop `/`: CLS nesmí být horší než před úkolem (uveď čísla).
@@ -203,7 +207,7 @@ Podklad: `audit-seo.json`, nálezy #6, #9–#13 a #15–#19. Jinam patří #7 Jo
 10. **Stránka `/kontakt`.** Soubor `kontakt.html` podle konvence webu (jako `cenik.html`), adresa `/kontakt` podle úkolu 06, `index,follow`.
     - **Head:**
       - `<title>Kontakt a údaje o firmě | HOLUB HSPG</title>`,
-      - description „Telefon, e-mail, sídlo a IČO provozovatele HOLUB – HSPG: Dušan Holub, Pernerova 10/32, Praha 8, neplátce DPH.“ (≤ 160 znaků),
+      - description ze šablony v `seo.json` (krok 6, zástupci `{firma.znacka}`, `{firma.provozovatel}`, `{firma.sidlo.ulice}`, `{firma.sidlo.obec}`). Dnes vyjde „Telefon, e-mail, sídlo a IČO provozovatele HOLUB – HSPG: Dušan Holub, Pernerova 10/32, Praha 8 – Karlín, neplátce DPH.“ (≤ 160 znaků). Natvrdo ji nepiš,
       - canonical podle úkolu 06,
       - hlavička a patička z komponent úkolu 08 (značky `build-layout`),
       - skripty jako na ostatních stránkách (`kontakt.js`, `souhlas.js`, `hbot.js` s `defer`).
@@ -216,7 +220,7 @@ Podklad: `audit-seo.json`, nálezy #6, #9–#13 a #15–#19. Jinam patří #7 Jo
       - Facebook z `firma.facebook`,
       - odkazy: poptávka (stejný cíl jako „Chci cenu“ v hlavičce), Reklamace (`/reklamace/`, pokud existuje), Záruka (`/zaruka`), Ochrana osobních údajů,
       - `<section id="o-nas">` s nadpisem „O nás“ a větou „Za HOLUB – HSPG stojí Dušan Holub, zakladatel a provozovatel.“ (údaje z `firma.json` a z podpisu příběhu na homepage) a odkazem „Příběh zakladatele“ na `/#pribeh`. Pokud blok „Můj příběh“ na `/` nemá `id`, přidej `id="pribeh"`. Nic dalšího nedopisuj.
-    - Bez mapy v `iframe` (CSP `frame-src 'none'`) a bez formuláře.
+    - Bez mapy v `iframe` (úkol 15 zavádí CSP `frame-src 'none'`) a bez formuláře.
     - **`content/navigace.json`** (úkol 08): do sloupce patičky „Na webu“ přidej `{"text":"Kontakt a údaje o firmě","href":"/kontakt"}`, v en `{"text":"Contact details (in Czech)","href":"/kontakt"}`. Spusť `build-layout`, `layout:kontrola` musí vrátit 0.
     - Sitemap doplň mechanismem z úkolu 06. `/o-nas` **nevytvářej**: jedna stránka stačí a nic na tu adresu neodkazuje.
     - Pokud `content/hbot-faq.json` má otázku na kontakt nebo adresu, přidej k ní `"link": ["/kontakt", "Kontakt"]` a spusť `build-hbot` (kód balíčku neměň).
@@ -234,9 +238,10 @@ Podklad: `audit-seo.json`, nálezy #6, #9–#13 a #15–#19. Jinam patří #7 Jo
       - `legalName` je „Dušan Holub“, `identifier.value` je „09291881“, `url` je „https://hspg.cz/“,
       - `geo` leží do 30 m od RÚIAN 50.090789 / 14.452810 (konstanta v testu se zdrojem a datem),
       - `sameAs` neobsahuje `/share/` a `areaServed` neobsahuje „Evropská unie“ ani „European Union“, dokud `oblast_pusobnosti` EU nemá,
-      - NAP (adresa, telefon, IČO) je v uzlu firmy, v patičce i na `/kontakt` znakově stejný,
+      - NAP (adresa, telefon, IČO) je v uzlu firmy, v patičce i na `/kontakt` stejný po normalizaci z kroku 3: telefon se porovnává jen podle číslic (JSON-LD `+420736618486` × zobrazení `+420 736 618 486`), adresa po složkách `ulice`, `psc` a `obec` z `firma.sidlo` (každá musí být v textu patičky i `/kontakt` a v příslušném poli `PostalAddress`; v anglické patičce místo `obec` hodnota `obec_en`), IČO znakově,
       - každá stránka s `BreadcrumbList` má právě jeden `nav.crumbs` se stejnými názvy a URL a naopak,
-      - 3 rozcestníky mají `data-seo="rozcestnik"`, `Service` s cenami rovnými `ceny.json` a H1 s „Čištění a ochrana střech|fasád|dlažby“,
+      - 3 rozcestníky mají `data-seo="rozcestnik"`, `Service` s cenami rovnými `ceny.json` a H1 s „Čištění a ochrana střech|fasád|dlažby“ (po normalizaci mezer z kroku 3, `nbsp()` vloží za „a“ NBSP),
+      - žádný H1 neobsahuje blokový prvek (`div`, `p`, `section`),
       - H1 na `/` obsahuje „Čištění“ a „střech“, na `/en` „cleaning“ a každá stránka má právě 1 H1,
       - `/kontakt` obsahuje „Dušan Holub“, „09291881“, `sidlo.ulice`, odkaz `tel:` a 5 prvků `a[data-kontakt]`, žádné `[DOPLNIT` a odkazuje na něj patička všech stránek,
       - `robots.txt` neobsahuje žádnou cestu kromě `/` a URL sitemap,
@@ -315,14 +320,16 @@ Podklad: `audit-seo.json`, nálezy #6, #9–#13 a #15–#19. Jinam patří #7 Jo
     - Po kroku musí projít vizuální test úkolu 08 (0 rozdílů proti stavu před krokem), testy e2e a axe a test kotev úkolu 17. Na náhledu ověř, že Netlify formuláře dál rozpozná (bez odeslání, viz Ověření).
     - Pokud cokoli selže, ponech jen `removeComments` a důvod napiš do hlášení.
     - Uveď velikost HTML `/` před a po (předávka pro úkol 07).
-20. **NAP pro katalogy** – `scripts/nap.mjs` vypíše z `firma.json` kartu ke vložení do Firemního profilu Google a Firmy.cz: název (obchodní označení a jméno provozovatele), adresu, telefon, web `https://hspg.cz/`, pracovní dobu, IČO, služby z navigace a působnost. Kartu dej do hlášení a do checklistu pro majitele níže. Až majitel s Claude v Chrome dodá URL profilů, doplň je do `firma.profily`, spusť build a ověř `sameAs`.
+20. **NAP pro katalogy** – `scripts/nap.mjs` vypíše z `firma.json` kartu ke vložení do Firemního profilu Google a Firmy.cz: název (obchodní označení a jméno provozovatele), adresu, telefon, web `https://hspg.cz/`, pracovní dobu, IČO, služby z navigace a působnost. Kartu dej do hlášení a do checklistu pro majitele níže.
+    - Adresu karta označí „sídlo (ne provozovna)“ podle `firma.sidlo_zdroj`. Firemní profil Google je dnes bez adresy s oblastí obsluhy (KONTEXT §2). Karta proto u Google adresu **nenavrhuje zveřejnit**, jen ji uvede pro kontrolu.
+    - Působnost na kartě je z `oblast_pusobnosti` (dnes ČR). Profil Google dnes uvádí oblast obsluhy Česko, Slovensko, Polsko. Rozdíl jen nahlas, sjednocení rozhodne majitel spolu s O12. Až majitel s Claude v Chrome dodá URL profilů, doplň je do `firma.profily`, spusť build a ověř `sameAs`.
 21. **Testy fáze B** (rozšíření `seo.test.mjs` a `seo-knihovna.test.mjs`):
     - všechny titulky končí „ | HOLUB HSPG“, mají ≤ 65 znaků a jsou jedinečné; popisy mají ≤ 160 znaků a jsou jedinečné,
     - v polích `<head>` každý výskyt „bez lešení“ předchází „zpravidla “ a každý „without scaffolding“ předchází „usually “,
     - na všech veřejných stránkách jsou vlastnosti ze seznamu v kroku 16 právě jednou, `og:url` se rovná canonical, `og:image` odpovídá jazyku a `og:locale:alternate` je jen na `/` a `/en`,
     - OG obrázky mají 1200 × 630 a < 300 KB a text šablony neobsahuje `záruk|warrant|lešení|scaffold|24 h|Kč`,
     - `/cisteni-fotovoltaiky/` obsahuje cenu rovnou `ceny.json` a v `<main>` nemá „lešení“, „H-STONE“ ani „impregnac“; odkazuje na ni ceník a navigace,
-    - publikační adresář po buildu obsahuje 0× `<!--` a 0× `docs/`, `scripts/build-` a `content/*.json` v HTML,
+    - publikační adresář po buildu obsahuje 0× `<!--` a 0× `docs/`, `scripts/build-` a `content/*.json` v HTML (jen pokud krok 19 proběhl; jinak se test přeskočí a vypíše důvod),
     - negativní testy: popis se 161 znaky, titulek bez přípony a „bez lešení“ bez „zpravidla“ → každý test najde porušení.
 22. Build, všechny kontroly a testy, náhled, ruční validace (jako v kroku 13, navíc `/cisteni-fotovoltaiky/`), Lighthouse a **hlášení fáze B**.
 
@@ -339,8 +346,8 @@ Podklad: `audit-seo.json`, nálezy #6, #9–#13 a #15–#19. Jinam patří #7 Jo
 - [ ] `main_hash` všech 231 okresních stránek je beze změny (test).
 - [ ] Na náhledu `curl -s -o /dev/null -w "%{http_code}" <náhled>/kontakt` → 200. Sitemap obsahuje `https://hspg.cz/kontakt` a patička všech veřejných stránek na `/kontakt` odkazuje (test).
 - [ ] `curl -s <náhled>/robots.txt` neobsahuje interní cestu. `curl -sI <náhled>/rd-control-panel/` dál vrací `x-robots-tag: noindex, nofollow`.
-- [ ] validator.schema.org: `/`, `/kontakt`, `/cisteni-strech/`, `/cisteni-strech/kolin/` a `/cenik` mají 0 chyb a 0 varování. Rich Results Test pro `/` a `/cenik` má 0 chyb a drobečky jsou platné. Čísla nebo snímky jsou v hlášení.
-- [ ] Lighthouse SEO 100 na `/` a `/kontakt`. Přístupnost se nesnížila. CLS desktop `/` není vyšší než před úkolem (uveď čísla).
+- [ ] (ruční krok, nástroj nemá CLI) validator.schema.org: `/`, `/kontakt`, `/cisteni-strech/`, `/cisteni-strech/kolin/` a `/cenik` mají 0 chyb a 0 varování. Rich Results Test pro `/` a `/cenik` má 0 chyb a drobečky jsou platné. Čísla nebo snímky jsou v hlášení. Strojově totéž částečně hlídá `seo.test.mjs` (`JSON.parse`, `@id`, drobečky).
+- [ ] Lighthouse (příkaz z Ověření) na `/` a `/kontakt`: SEO 100, přičemž audit `is-crawlable` se na náhledu s `X-Robots-Tag: noindex` nepočítá (uveď skóre i seznam neprošlých auditů). Přístupnost a CLS desktop `/` nejsou horší než v `.artefakty/ukol-11/lh-pred.json` (uveď čísla).
 - [ ] Testy úkolů 05, 08 (`layout:kontrola`, vizuální test s aktualizovanými referencemi jen pro `/` a `/en` a pro stránky s novými drobečky), 13 (`kontrola:tvrzeni`), 16 (axe včetně `/kontakt`: 0 serious/critical) a e2e balíčku z úkolu 01 prošly.
 
 ### Fáze B
@@ -353,10 +360,10 @@ Podklad: `audit-seo.json`, nálezy #6, #9–#13 a #15–#19. Jinam patří #7 Jo
 - [ ] V `content/tvrzeni.json` nemá T01 výjimku `head`. `npm run kontrola:tvrzeni` → 0.
 - [ ] `node scripts/build-og.mjs --kontrola` → 0. Oba obrázky mají 1200 × 630 a < 300 KB (`file`, `stat -c %s`). `/en` používá anglický obrázek. `assets/og.png` má nový obsah (jiný SHA-256 než 336 560 B soubor ze 4. 10.).
 - [ ] `/cisteni-fotovoltaiky/` vrací na náhledu 200, je v sitemap, `Service` má cenu 39 z `ceny.json` a odkazuje na ni ceník i navigace (test).
-- [ ] Publikační adresář po buildu: `grep -rc "<!--" --include=*.html` dává všude 0 a `grep -rlE "docs/|scripts/build-" --include=*.html` je prázdný. `--kontrola` všech generátorů vrací 0 a vizuální, e2e a axe testy prošly i nad čistým výstupem.
+- [ ] Publikační adresář po buildu: `grep -rl "<!--" --include=*.html "$PUB"` i `grep -rlE "docs/|scripts/build-" --include=*.html "$PUB"` jsou prázdné. `--kontrola` všech generátorů vrací 0 a vizuální, e2e a axe testy prošly i nad čistým výstupem. Pokud publikační adresář není oddělený od zdroje (krok 19 se neprovádí), je toto kritérium „blokováno“ a v hlášení je návrh řešení. Cíl 7 se pak nesplní a úkol se hlásí jako „částečně“.
 - [ ] Na náhledu `curl -s <náhled>/akce/ | grep -c 'name="form-name"'` → ≥ 1 (Netlify formuláře dál rozpozná, nic se neodesílá).
-- [ ] `node scripts/nap.mjs` vypíše kartu NAP, která se znakově shoduje s patičkou (test) a je v hlášení.
-- [ ] validator.schema.org a Rich Results Test pro `/cisteni-fotovoltaiky/` mají 0 chyb. Lighthouse SEO 100 na `/`, `/cenik` a `/cisteni-fotovoltaiky/`.
+- [ ] `node scripts/nap.mjs` vypíše kartu NAP, která se po normalizaci z kroku 3 shoduje s českou patičkou (test: telefon podle číslic, `ulice`, `psc`, `obec` a IČO) a je v hlášení.
+- [ ] (ruční krok) validator.schema.org a Rich Results Test pro `/cisteni-fotovoltaiky/` mají 0 chyb. Lighthouse SEO 100 na `/`, `/cenik` a `/cisteni-fotovoltaiky/` (bez `is-crawlable` na náhledu, jako ve fázi A).
 
 ## Ověření
 ```bash
@@ -386,7 +393,7 @@ node scripts/seo-inventura.mjs --souhrn
 curl -s "$N/robots.txt"                                        # 3 řádky, žádná interní cesta
 curl -sI "$N/rd-control-panel/" | grep -i '^x-robots-tag'      # noindex, nofollow
 for u in /kontakt /cisteni-fotovoltaiky/ /zaruka /cenik /cisteni-strech/ /en; do
-  curl -s -o /dev/null -w "$u %{http_code}\n" "$N$u"; done    # vše 200
+  curl -s -o /dev/null -w "$u %{http_code}\n" "$N$u"; done    # vše 200 (/cisteni-fotovoltaiky/ až po fázi B, ve fázi A 404)
 curl -s "$N/sitemap.xml" | grep -cE "<loc>https://hspg.cz/(kontakt|cisteni-fotovoltaiky/)</loc>"   # 2 (po fázi B)
 curl -s "$N/" -o .artefakty/ukol-11/home.html && node scripts/seo-inventura.mjs --soubor .artefakty/ukol-11/home.html
                                                                # firma s @id, WebSite, 4× Service s provider @id, žádné AggregateRating
@@ -394,7 +401,9 @@ curl -s "$N/akce/" | grep -c 'name="form-name"'                # ≥ 1
 curl -sI "$N/assets/og/<soubor z manifestu>" | grep -iE "^HTTP|content-length"   # 200, < 307200
 
 # Lighthouse (pokud náhled posílá X-Robots-Tag: noindex, audit is-crawlable ignoruj – stejně jako v úkolu 04)
-npx -y lighthouse "$N/" --only-categories=seo,accessibility --preset=desktop --quiet --chrome-flags="--headless" --output=json --output-path=.artefakty/ukol-11/lh-home.json
+npx -y lighthouse "$N/" --only-categories=seo,accessibility,performance --preset=desktop --quiet --chrome-flags="--headless" --output=json --output-path=.artefakty/ukol-11/lh-home.json
+npx -y lighthouse "$N/kontakt" --only-categories=seo,accessibility --preset=desktop --quiet --chrome-flags="--headless" --output=json --output-path=.artefakty/ukol-11/lh-kontakt.json
+node -e 'for (const f of process.argv.slice(1)) { const r = require(require("path").resolve(f)); console.log(f, "SEO", r.categories.seo.score*100, "A11y", r.categories.accessibility.score*100, "CLS", r.audits["cumulative-layout-shift"]?.numericValue ?? "-", "neprošlo:", Object.values(r.audits).filter(a => a.score === 0).map(a => a.id).join(",")) }' .artefakty/ukol-11/lh-pred.json .artefakty/ukol-11/lh-home.json .artefakty/ukol-11/lh-kontakt.json
 ```
 Ruční kroky (výsledek a snímky do hlášení): validator.schema.org (URL náhledu, nebo vložený kód) a Google Rich Results Test pro stránky z akceptačních kritérií.
 
@@ -425,14 +434,14 @@ Po **fázi A** i **fázi B** použij formát z `KONTEXT.md` §5 a doplň:
 - **checklist pro majitele:**
   - [ ] Na náhledu schválit titulky `/` a `/en`, nadtitulek H1 na `/`, texty `/kontakt` a `/cisteni-fotovoltaiky/` a nový OG obrázek.
   - [ ] Odpovědět na O12 (působnost v EU) z úkolu 13.
-  - [ ] S Claude v Chrome (C5): doplnit **existující** Firemní profil Google podle karty NAP (druhý nezakládat) a poslat odkaz na profil.
+  - [ ] S Claude v Chrome (C5): doplnit **existující** Firemní profil Google podle karty NAP (druhý nezakládat) a poslat odkaz na profil. Adresu sídla v profilu nezveřejňovat (sídlo není provozovna). Oblast obsluhy (dnes Česko, Slovensko, Polsko) sjednotit s webem podle odpovědi O12.
   - [ ] S Claude v Chrome (C6): převzít záznam na Firmy.cz („Dušan Holub, Praha“, IČO 09291881, dnes neověřený), vyplnit ho podle karty NAP a poslat URL detailu.
   - [ ] S Claude v Chrome (C7): Seznam Webmaster a Bing Webmaster (DNS TXT ve Wedosu, MX neměnit) a odeslat sitemap.
   - [ ] Po produkčním nasazení: Facebook Sharing Debugger, „Scrape Again“ pro `/`, `/akce/` a `/cenik`.
 - **předávky:**
   - **12:** `scripts/lib/seo.mjs` (`sluzba`, `drobecky`, `odkazNaFirmu`, `socialniBlok`, pravidla titulků a popisů) použije šablona hubů. Rozcestníky mají sdílené komponenty a `data-seo="rozcestnik"`, tělo střech a fasád ale zůstává ručně psané. Kontrola v kroku 1 úkolu 12 = `build-seo --kontrola` a 4 stránky s `data-seo`. `/cisteni-fotovoltaiky/` nemá okresní klony.
   - **13:** `<head>` hotový, výjimka T01 `head` je zrušená. Odpověď O12 → `firma.oblast_pusobnosti` a titulek `/en`. Pokud se ve fázi B vrátí `JobPosting`, `hiringOrganization` = `kratkyUzelFirmy()` (má `legalName`).
-  - **18:** H1 na `/` a `/en` = nadtitulek uvnitř H1. Přeskládání první obrazovky a slib „do 24 hodin“ zůstávají na úkolu 18. `/kontakt` je cíl pro identitu a „Kde nás najdete“.
+  - **18:** H1 na `/` a `/en` = nadtitulek uvnitř H1. Přeskládání první obrazovky a slib „do 24 hodin“ zůstávají na úkolu 18. `/kontakt` je cíl pro identitu a „Kde nás najdete“. Blok „Můj příběh“ má `id="pribeh"`, na který odkazuje `/kontakt`. Při přesunu bloku (úkol 18, krok 18) musí `id` zůstat. `/o-nas` nevzniklo.
   - **19:** do CI `node --test seo*.test.mjs`, `build-seo --kontrola`, `build-og --kontrola` a kontrolu komentářů ve výstupu.
   - **15:** pokud se zavedou hashe inline skriptů v CSP, počítat je z výstupu **po** čištění (krok 19).
   - **07:** OG obrázky mají otisk v názvu (`/assets/og/`), smí mít dlouhou cache; přidej velikost HTML po čištění.
