@@ -5,7 +5,7 @@
 Zdroje: `KONTEXT.md` §2, `audit-nasazeni_provoz.json` #10, #14, #17, #18, #22, `audit-ai_integrace.json` #11, #14 a bezpečnostní audit (`overeno-bezpecnost` #4–#6, #18–#21). Dále GET na https://hspg.cz, veřejné DNS a kopie živého webu (247 stránek), vše ze 4. 10. 2026.
 
 **Kredity Netlify rozhodují o dostupnosti celého webu** (`KONTEXT.md` §2)
-- Tarif má 1 000 kreditů na období (11. 9.–10. 10.). Spotřeba minulého období: 32 produkčních nasazení × 15 = 480, přenos dat 77,9, požadavky 8,7, AI 7,1. Aktuální zůstatek a stav auto-recharge jsou v `KONTEXT.md` §2. Do veřejných souborů (zadání, balíček, commity veřejného repozitáře) je neopisuj.
+- Tarif má 1 000 kreditů na období (11. 9.–10. 10.). Spotřeba v tomto období k 4. 10.: 32 produkčních nasazení × 15 = 480, přenos dat 77,9, požadavky 8,7, AI 7,1. Aktuální zůstatek a stav auto-recharge jsou v `KONTEXT.md` §2. Do veřejných souborů (zadání, balíček, commity veřejného repozitáře) je neopisuj.
 - Po vyčerpání kreditů Netlify projekty týmu pozastaví (podrobnosti `KONTEXT.md` §2). Proto pojistka v `nasadit.mjs` a prahy v kroku 13.
 - Netlify posílá e-mail při 50, 75 a 100 % jen vlastníkovi týmu. Upozornění na 90 % ani týdenní přehled neexistují.
 - `scripts/nasadit.mjs` (úkol 00) hlídá nejvýš 1 produkční nasazení denně. Rozpočet na celé období ale nehlídá. Při 1 nasazení denně by se za 30 dní spotřebovalo 450 kreditů.
@@ -144,7 +144,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
    - Chyba úložiště nikdy neshodí volající funkci (`try/catch`, `waitUntil`).
 5. **Měření a pasivní zdraví AI** (audit-ai_integrace #14, #11). **Odpovědi a chování funkcí se nemění**, testy balíčku z úkolu 01 musí projít beze změny.
    - `asistent.mjs`: u každého POST zapiš do oblasti `ai`:
-     - výsledek přesně podle odpovědi funkce: `rezim` a u `bez-ai` i `duvod`. Dnes (balíček, `asistent.mjs`) to jsou `ai` (s `overeno: true/false` → položky `ai.overeno` / `ai.neovereno`), `predat`, `chyba`, `limit` a `bez-ai` s `duvod` `rozpocet` / `uloziste`, bez `duvod` = žádná dostupná AI (bez klíče nebo `AI_ZAPNUTO=0`). Nové hodnoty nevymýšlej. Pokud funkce vrátí jinou hodnotu, započítej ji pod jejím jménem.
+     - výsledek přesně podle odpovědi funkce: `rezim` a u `bez-ai` i `duvod`. Dnes (balíček, `asistent.mjs`) to jsou `ai` (s `overeno: true/false` → položky `ai.overeno` / `ai.neovereno`), `predat`, `chyba`, `limit` a `bez-ai` s `duvod` `rozpocet` / `uloziste`, bez `duvod` = žádná dostupná AI (bez klíče nebo `AI_ZAPNUTO=0`). Nové hodnoty nevymýšlej. Pokud funkce vrátí jinou hodnotu, započítej ji pod jejím jménem. „Záložní odpověď“ (semafor, upozornění, panel) = každý výsledek kromě `ai`, protože prohlížeč pak odpoví z FAQ nebo nabídne zavolání.
      - u každého poskytovatele `ok` nebo kód chyby (`e.status`, jinak `timeout` / `sit`)
      - latenci celé odpovědi
    - `ai.mjs` (interní): jen `ok` a kód chyby poskytovatele, kvůli zdraví.
@@ -288,7 +288,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
 
     | Krok | Záznam `_dmarc.hspg.cz` | Kdy |
     |---|---|---|
-    | 1 | `v=DMARC1; p=none; rua=mailto:[DOPLNIT: adresa pro reporty]; adkim=r; aspf=r` | hned po fázi A |
+    | 1 | `v=DMARC1; p=none; rua=mailto:[DOPLNIT: adresa pro reporty]; adkim=r; aspf=r` | hned po hlášení fáze A2 (checklist) |
     | 2 | `v=DMARC1; p=quarantine; pct=25; rua=mailto:…; adkim=r; aspf=r` | po ≥ 2–4 týdnech reportů, kde všechny zdroje @hspg.cz mají `dmarc=pass` |
     | 3 | totéž bez `pct` (= 100 %) | po dalších ≥ 2 týdnech bez problémů |
     | (4) | `p=reject` | jen rozhodnutím majitele, nejdřív o 4 týdny později |

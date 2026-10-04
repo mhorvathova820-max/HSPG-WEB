@@ -261,10 +261,13 @@ NE:
      - na 320 px žádný vodorovný posun,
      - po posunu na konec stránky žádný odkaz ani text patičky neleží pod `#hbot-btn`, `#reel-bublina`, `#cta-stack` (≥ 761 px) ani pod spodní lištou `#hspg-lista` (≤ 760 px). Kontrola přes `elementFromPoint` ve středu každého odkazu.
    - Validace: `node scripts/build-layout.mjs --ukazka > .artefakty/ukol-08/komponenty.html && npx -y html-validate .artefakty/ukol-08/komponenty.html`.
-10. Náhled: `node scripts/nasadit.mjs` (bez parametrů = náhled zdarma). Na náhledu GETem ověř 3 stránky (`/`, `/cisteni-strech/`, `/en`), že patička obsahuje IČO a odkaz na zásady.
+   - Dosavadní testy webu (`npm test` a e2e testy úkolů 02–07, 09, 13, 17) projdou. Pokud některý počítal se starou podobou patičky (např. pevný počet `data-mail` nebo `data-zaruka`), uprav jen očekávanou hodnotu a každou změnu zdůvodni v hlášení.
+10. Náhled: `node scripts/nasadit.mjs` (bez parametrů = náhled zdarma). Na náhledu GETem ověř 3 stránky (`/`, `/cisteni-strech/`, `/en`), že patička obsahuje IČO a odkaz na zásady: `for p in / /cisteni-strech/ /en; do curl -s "<náhled>$p" | grep -oE "09291881|ochrana-osobnich-udaju|Pernerova|ivnostensk|Trade Licensing" | sort -u | wc -l; done` → u každé stránky 4 (IČO, zásady, sídlo, zápis v RŽP).
 11. **Hlášení po fázi A** (formát `KONTEXT.md` §5) a **zastav se**.
 
 ### Fáze B – hlavička, menu, paleta, typografie, plovoucí prvky
+> Pokud fázi B v jednom sezení nestihneš, rozděl ji: **B1** = kroky 12 a 17 a z kroku 18 testy hlavičky, menu a mobilního menu (náhled a hlášení po B1); **B2** = kroky 13–16, zbytek kroku 18 a kroky 19–21. B1 se smí sloučit do `main` samostatně až po schválení vzhledu majitelem. Před B2 `git pull`.
+
 12. **Komponenta hlavičky** (z `navigace.json`). Kostra:
     ```html
     <a class="hspg-skip" href="#obsah">Přeskočit na obsah</a>
@@ -275,18 +278,20 @@ NE:
       <nav class="hspg-menu" aria-label="Hlavní navigace">
         <details class="hspg-podmenu"><summary>Služby</summary> … </details>
         <a href="/cenik">Ceník</a> … <a class="hspg-cta" href="/akce/">Chci cenu</a></nav>
-      <details class="hspg-menu-mobil"><summary>Menu</summary><nav aria-label="Mobilní navigace">…</nav></details>
+      <details class="hspg-menu-mobil"><summary>Menu</summary><nav aria-label="Hlavní navigace">…</nav></details>
     </header>
     ```
-    - Cíl odkazu pro přeskočení vezmi z `id` stávajícího `<main>` (dnes `#main` nebo `#obsah`). Pokud `id` chybí, přidej `id="obsah"`.
+    - Desktopové a mobilní menu mají stejný název „Hlavní navigace“ (vidět je vždy jen jedno; tak to čeká i úkol 16). V en variantě „Main navigation“ a odkaz pro přeskočení „Skip to content“.
+    - Cíl odkazu pro přeskočení vezmi z `id` stávajícího `<main>` (dnes `#main` nebo `#obsah`). Pokud `id` chybí (dnes `/en`), přidej `id="main"` – většina stránek ho má a úkol 16 ho na `/en` očekává.
     - `aria-current="page"` určí generátor z cesty. U okresních stránek a rozcestníků je to „Služby“ a příslušná položka podmenu.
     - **Zalamování:** položky mají `white-space: nowrap`. Přechod na mobilní menu nastav podle změřené šířky celé hlavičky (cs i en), ne odhadem. Test v kroku 18 to hlídá na každých 10 px.
-    - **Bez JS:** menu i podmenu jsou `<details>` a fungují bez JavaScriptu. Volitelný malý externí `assets/menu.js` (`defer`) jen zavírá menu klávesou Esc a kliknutím mimo, žádný inline skript.
-    - **Mobil:** na ≤ 760 px je v hlavičce jen logo a „Menu“. Výzvu „Chci cenu“ tam nese spodní lišta z úkolu 01.
+    - **Bez JS:** menu i podmenu jsou `<details>` a fungují bez JavaScriptu. Žádný nový skript pro menu ani inline skript: zavírání klávesou Esc a kliknutím mimo doplní úkol 16 (`assets/pristupnost.js`, háček `data-hspg-menu` na kořen menu – přidej ho už teď).
+    - **Mobil:** na ≤ 760 px je v hlavičce jen logo a „Menu“. Výzvu „Chci cenu“ tam nese spodní lišta z úkolu 01 (je jen do 760 px). Pokud změřený přechod na skládané menu vyjde nad 760 px, má hlavička mezi 761 px a tímto přechodem logo, výzvu „Chci cenu“ a „Menu“.
     - **Sticky:** sjednoť (doporučení: sticky od 761 px, jako dnes homepage; na mobilu ne, kvůli spodní liště).
     - Logo bude všude `logo-160.webp` s `width`/`height` (kvůli CLS), včetně `/en`.
     - Výzva k akci se otevírá ve stejném okně (bez `target="_blank"`).
-    - **Proužek akce** nad hlavičkou homepage zachovej jako volitelný slot `oznameni`, jen na `/`. Jeho text neměň (úkol 13).
+    - **Proužek akce** nad hlavičkou homepage zachovej jako volitelný slot `oznameni` uvnitř `<header>`, jen na `/`. Jeho text neměň (úkol 13). Test podob hlavičky slot před porovnáním odstraní stejně jako `aria-current`.
+    - **Kotvy z úkolu 17:** výšku sticky hlavičky pro `scroll-margin-top` (`--hlavicka`, `ResizeObserver`) musí skript úkolu 17 dál měřit na nové hlavičce; uprav jeho selektor v témže commitu. Testy kotev úkolu 17 projdou; pokud se kvůli odebraným položkám menu `#sluzby` a `#predpo` změní počet odkazů na kotvy na homepage, uprav jen očekávaný počet a zdůvodni to v hlášení.
     - **Soustředěná varianta** pro `/akce/`: logo a telefon, stejné styly.
     - Selektory, na které se váže JS (krok 2), zachovej nebo uprav i skript.
 13. **Paleta.**
@@ -305,27 +310,27 @@ NE:
     - Text „Surface Protection Group“ v logu má nejméně 12 px.
     - **Jediné povolené změny v souborech úkolu 01:** zvednout velikosti pod 12 px na 12 px, a to `.hb-odznak` v `assets/hbot.js` (10 px) a `.hbm-karta h3 span`, `.hbm-krok` a `.hbm-pata` v `assets/hbot.css` (11 a 11,5 px). Nic jiného v těchto souborech neměň. Zapiš to do hlášení, aby se to převzalo i do balíčku.
 16. **Plovoucí prvky.**
-    - Patička dostane na ≥ 761 px `padding-bottom: calc(var(--plovouci-zona) + env(safe-area-inset-bottom))`. Na ≤ 760 px ověř, že rezerva pro spodní lištu z úkolu 01 (`body{padding-bottom:…}`) stačí.
+    - Rezerva v patičce už je z fáze A (krok 7). Po změně hlavičky a typografie ji jen přeměř a případně uprav `--plovouci-zona`.
     - Pro první obrazovku: `#reel-bublina` a `#cta-stack` (jen homepage) skrývej, dokud je vidět výzva v úvodní části. Mechanismus `body.hero-cta-na-obrazovce` už existuje, jen ho zkontroluj na všech šířkách.
     - U `#hbot-btn` nejdřív zkus místo: okraje nebo šířku textového sloupce v úvodní části. Skrývání tlačítka na dalších stránkách použij jen tehdy, když jinak test neprojde, a zapiš to do hlášení. Majitel chce tlačítko vidět (R3, R4).
     - Vzhled ani polohu tlačítka neměň.
 17. Spusť `build-layout` pro hlavičky, odstraň pravidla pro staré hlavičky (`.site-head`, `.sheet-head`, `.hdr`, `.head`, `.rnav`, `.header`, `#hspg-header-row`, `#nav-odkazy`, `#mobile-menu`) a ověř `git grep`, že je nic nepoužívá.
-18. **Testy fáze B** – rozšiř `testy/layout.test.mjs` a `testy/layout.e2e.test.mjs`:
-    - **Hlavička (statický test):** právě 1 blok `HSPG:HLAVICKA` na stránku. Po odstranění `aria-current` nejvýš 3 různé podoby hlavičky a 2 podoby patičky.
+18. **Testy fáze B** – rozšiř `tests/layout.test.mjs` a `tests/e2e/layout.e2e.test.mjs`:
+    - **Hlavička (statický test):** právě 1 blok `HSPG:HLAVICKA` na stránku. Po odstranění `aria-current` a slotu `oznameni` nejvýš 3 různé podoby hlavičky a 2 podoby patičky.
     - **Menu (e2e):** jedno načtení na typ stránky, pak `setViewportSize` od 320 do 1920 px po 10 px. Na každé šířce platí:
       - žádný viditelný odkaz ani `summary` v hlavičce nemá víc než jeden řádek (`Range.getClientRects()`),
       - viditelné položky menu leží v jedné řadě,
       - výška hlavičky (bez proužku akce) je ≤ 96 px a na stejné šířce se mezi typy stránek liší nejvýš o 2 px,
       - `scrollWidth ≤ innerWidth`.
     - **Mobilní menu (e2e):**
-      - otevře se klávesou Enter i mezerníkem, Esc ho zavře,
-      - fokus je viditelný,
+      - otevře se klávesou Enter i mezerníkem (Esc a klik mimo testuje úkol 16),
+      - fokus na `summary` je viditelný (vypočtený `outline` nebo `box-shadow` není `none`),
       - s vypnutým JavaScriptem (`javaScriptEnabled: false`) jde otevřít a obsahuje všechny položky.
     - **Paleta (e2e):** na všech typech stránek je stejné vypočtené pozadí stránky, pozadí hlavičky, pozadí patičky a barva `.hspg-cta`.
-    - **Písma (e2e):** u viditelných textů jsou nejvýš 2 rodiny písma (bez `#hbot`).
+    - **Písma (e2e):** u viditelných textů jsou nejvýš 2 rodiny písma. Počítá se první rodina z vypočteného `font-family` (záložní rodiny z úkolu 07 se nepočítají), bez prvků H-BOT (`#hbot`, `#hbot-btn` a jejich potomci).
     - **Minimální písmo (e2e):** na 360 a 1280 px při načtení i po posunu na konec mají všechny viditelné texty vykreslenou velikost ≥ 12 px (SVG přes měřítko). `main p` a `main li` mají ≥ 14 px.
     - **Překryvy (e2e):** při načtení na 768 × 1024, 1004 × 700, 1280 × 720, 1366 × 768 a 1920 × 1080 se plovoucí prvky nepřekrývají s H1, prvním `main p` ani prvním odkazem na `/akce/` v úvodní části. Na konci stránky se nepřekrývají s patičkou.
-    - **Přístupnost (axe-core, `include: ['header', 'footer']`):** 0 porušení na 360 i 1280 px. Celkový počet závažných porušení na stránkách není vyšší než před úkolem (uveď čísla).
+    - **Přístupnost (axe-core, `include: ['header', 'footer']`):** 0 porušení na 360 i 1280 px. Celkový počet závažných porušení (`serious`/`critical`) na stránkách není vyšší než výchozí stav v `.artefakty/ukol-08/pred/mereni.json` (uveď čísla).
 19. **Snímky „po“ a porovnání:**
     - `node testy/vizualni.mjs --stav po`, pak `--porovnej` → `.artefakty/ukol-08/porovnani.html` (vedle sebe před / po / rozdíl, `pixelmatch` + `pngjs`, procento změněných pixelů u každé stránky a šířky).
     - Pak `--zaklad` uloží do repozitáře `testy/vizualni/zaklad/` jen `header` a `footer` na 360 a 1280 px a první obrazovku na 1280 px (celkem do ~3 MB).
