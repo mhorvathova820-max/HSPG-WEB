@@ -1,7 +1,7 @@
 // /api/kupon – dárkový kupon pro sousedy a známé (1 l impregnace H-STONE zdarma, content/planovac.json).
 //   GET ?kod=HS-XXXX-XXXX            veřejné ověření (plánovač, /kupon/) → { platny, platnostDo, zbyva, nabidka } | { platny:false, duvod, zprava }
 //                                    limit 20 ověření / hodinu na návštěvníka a 2 000 / den celkem (hádání kódů)
-//   GET ?seznam=1   (Bearer token)   seznam kuponů pro panel majitele
+//   GET (Bearer token)               seznam kuponů pro panel majitele + výchozí počet použití a platnost
 //   POST (Bearer token) { akce: "vytvorit", poznamka?, maxPouziti?, platnostDni? } → { kupon, odkaz }
 //   POST (Bearer token) { akce: "zrusit", kod }
 import cfgVychozi from "../../content/planovac.json" with { type: "json" };
@@ -37,7 +37,12 @@ export function vytvorKuponApi({ env = process.env, uloziste, ulozisteLimitu, te
       // Vše ostatní jen pro majitele.
       const a = await overPozadavek(req, env, t, dejLimity);
       if (!a.ok) return json({ chyba: a.duvod }, a.status);
-      if (req.method === "GET") return json({ kupony: (await seznamKuponu(await dejUloziste())).map((k) => ({ ...k, odkaz: odkazKuponu(k.kod) })) });
+      if (req.method === "GET") {
+        return json({
+          kupony: (await seznamKuponu(await dejUloziste())).map((k) => ({ ...k, odkaz: odkazKuponu(k.kod) })),
+          vychozi: { maxPouziti: cfg.kupon.maxPouziti, platnostDni: cfg.kupon.platnostDni, nabidka: cfg.kupon.nabidka },
+        });
+      }
       if (req.method !== "POST") return json({ chyba: "Použijte GET nebo POST." }, 405);
       if (!povolenyOrigin(req.headers.get("origin"), env)) return json({ chyba: "Nepovolený původ požadavku." }, 403);
       let telo;

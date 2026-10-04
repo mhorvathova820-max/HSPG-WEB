@@ -1,7 +1,7 @@
 // /api/pocasi-prace – H-WEATHER CONTROL pro majitele (Bearer token z /api/majitel).
 //   GET ?obec=Kolín[&okres=…][&typ=impregnace|cisteni|biocid] → vyhodnocení dnů v dosahu předpovědi (~9 dní)
 //   GET ?prehled=1   → zakázky z kalendáře + rezervace z plánovače s vyhodnocením počasí
-//   POST { akce: "odkaz" }      → tajný odkaz na kalendář s varováním (pro Google Kalendář → Přidat z URL)
+//   POST { akce: "odkaz" }      → tajný odkaz na kalendář s varováním (pro Google Kalendář → Z adresy URL)
 //   POST { akce: "novy-odkaz" } → nový odkaz, starý přestane fungovat
 import cfgVychozi from "../../content/planovac.json" with { type: "json" };
 import pravidlaVychozi from "../../content/pocasi-prace.json" with { type: "json" };
@@ -57,6 +57,7 @@ export function vytvorPocasiPrace({ env = process.env, uloziste, ulozistePlanova
         return json({
           kalendar: { nastaveno: k.nastaveno, chyba: Boolean(k.chyba), zastarale: Boolean(k.zastarale), preskoceno: k.preskoceno, stazeno: k.stazeno || null },
           horizont: dalsiDen(dnes, HORIZONT_POCASI_DNI),
+          typy: Object.fromEntries(Object.entries(pravidla.typy).map(([id, x]) => [id, x.nazev])),
           polozky: await vyhodnotPolozky(seznam, { pravidla, hledej, zdroj, ted: t }),
           rezervaceMimoHorizont: rezervace.filter((r) => r.termin > dalsiDen(dnes, HORIZONT_POCASI_DNI)).map(({ cislo, termin, nahradni, obec, sluzba, kupon, kuponOk }) => ({ cislo, termin, nahradni, obec, sluzba, kupon: Boolean(kupon), kuponOk })),
           zdroj: zdrojInfo,

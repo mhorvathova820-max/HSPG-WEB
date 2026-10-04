@@ -58,7 +58,7 @@ export async function vyhodnotPolozky(seznam, { pravidla, hledej, zdroj, ted }) 
   for (const p of seznam) {
     const typ = pravidla.typy[p.typ];
     const dotaz = obecZTextu(p.misto);
-    if (!dotaz) { vysledky.push({ ...p, chyba: "Chybí místo – doplňte do události obec (např. „Lipová 12, Kolín“)." }); continue; }
+    if (!dotaz) { vysledky.push({ ...p, typNazev: typ?.nazev, chyba: "Chybí místo – doplňte do události obec (např. „Lipová 12, Kolín“)." }); continue; }
     const klic = `${dotaz.obec}|${dotaz.okres || ""}`;
     if (!mista.has(klic)) {
       mista.set(klic, (async () => {
@@ -73,7 +73,7 @@ export async function vyhodnotPolozky(seznam, { pravidla, hledej, zdroj, ted }) 
       })());
     }
     const m = await mista.get(klic);
-    if (m.chyba) { vysledky.push({ ...p, ...(m.obec ? { obec: m.obec.obec, okres: m.obec.okres } : {}), chyba: m.chyba }); continue; }
+    if (m.chyba) { vysledky.push({ ...p, typNazev: typ?.nazev, ...(m.obec ? { obec: m.obec.obec, okres: m.obec.okres } : {}), chyba: m.chyba }); continue; }
     const v = vyhodnotDen(m.predpoved.rada, p.datum, typ, { okno: p.okno || pravidla.pracovniDoba, ted });
     vysledky.push({
       ...p, obec: m.obec.obec, okres: m.obec.okres, typNazev: typ.nazev, pravidlaPotvrzena: typ.potvrzeno === true,

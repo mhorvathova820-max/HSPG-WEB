@@ -1,6 +1,6 @@
 // Rezervace z plánovače (Netlify Forms „hspg-rezervace“ → submission-created). Do Blobs se ukládá jen to,
 // co potřebuje kalendář majitele (termín, obec, služba, kupon) – jméno, telefon a adresa zůstávají
-// v Netlify Forms a v e-mailu. Záznam se po termínu + 30 dnech maže (uklidRezervaci).
+// v Netlify Forms a v e-mailu. Záznam se 30 dní po (náhradním) termínu maže při čtení přehledu (rezervaceVObdobi).
 import { normalizujKod } from "./kupony.mjs";
 
 export const FORMULAR = "hspg-rezervace";
@@ -35,25 +35,36 @@ export function zPayloadu(payload) {
   };
 }
 
+// Klíč „rezervace/<poslední den>/<id>“ (poslední = pozdější z termínu a náhradního termínu): výběr období
+// i úklid starých záznamů se rozhodne podle klíče, bez čtení obsahu.
+const posledniDen = (r) => (r.nahradni && r.nahradni > r.termin ? r.nahradni : r.termin);
+export const klicRezervace = (r) => `${PREFIX}${posledniDen(r)}/${r.id}`;
+
 export async function ulozRezervaci(ul, r, kuponVysledek) {
   if (!r?.id || !r.termin) return false;
-  const z = await ul.setJSON(PREFIX + r.id, { ...r, kuponOk: kuponVysledek?.ok ?? null }, { onlyIfNew: true });
+  const z = await ul.setJSON(klicRezervace(r), { ...r, kuponOk: kuponVysledek?.ok ?? null }, { onlyIfNew: true });
   return z?.modified === true;
 }
 
-// Rezervace s termínem v [od, do] (RRRR-MM-DD); zároveň smaže záznamy starší než termín + 30 dní.
+// Rezervace s termínem nebo náhradním termínem v [od, do] (RRRR-MM-DD). Záznamy, jejichž poslední den je
+// starší než 30 dní, smaže (bez čtení). Čte nejvýš 300 záznamů – víc rezervací dopředu tým nezvládne.
 export async function rezervaceVObdobi(ul, od, do_, ted = Date.now()) {
   const { blobs = [] } = await ul.list({ prefix: PREFIX });
   const mez = new Date(ted - 30 * 864e5).toISOString().slice(0, 10);
-  const vysledek = [];
-  for (const b of blobs.slice(0, 1000)) {
-    const r = await ul.get(b.key, { type: "json" });
-    if (!r) continue;
-    const posledni = r.nahradni && r.nahradni > r.termin ? r.nahradni : r.termin;
-    if (posledni < mez) {
+  const kCteni = [];
+  for (const b of blobs) {
+    const den = b.key.slice(PREFIX.length, PREFIX.length + 10);
+    if (!DATUM_RE.test(den)) continue;
+    if (den < mez) {
       try { await ul.delete(b.key); } catch { /* smaže se při dalším čtení */ }
       continue;
     }
+    if (den >= od) kCteni.push(b.key);
+  }
+  const vysledek = [];
+  for (const k of kCteni.sort().slice(0, 300)) {
+    const r = await ul.get(k, { type: "json" });
+    if (!r) continue;
     if ((r.termin >= od && r.termin <= do_) || (r.nahradni && r.nahradni >= od && r.nahradni <= do_)) vysledek.push(r);
   }
   return vysledek.sort((a, b) => (a.termin < b.termin ? -1 : 1));

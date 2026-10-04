@@ -1,5 +1,5 @@
 // /api/pocasi-kalendar/<klíč>.ics – kalendář s varováním počasí (iCalendar) pro Google Kalendář majitele:
-// Google Kalendář → Další kalendáře → + → Přidat z URL → odkaz z panelu (H-WEATHER CONTROL → „Odkaz pro Google Kalendář“).
+// Google Kalendář → Další kalendáře → + → Z adresy URL → odkaz z panelu (H-WEATHER CONTROL → „Odkaz pro Google Kalendář“).
 // Obsah: ke každé zakázce z kalendáře a rezervaci z plánovače v dosahu předpovědi celodenní událost
 // „✅/⚠️/⛔ obec – důvod“; rezervace mimo dosah jako „🟡 Rezervace … (předpověď zatím není)“.
 // Google si odkaz stahuje sám zhruba několikrát denně (interval neovlivníme). Výsledek se drží 30 minut

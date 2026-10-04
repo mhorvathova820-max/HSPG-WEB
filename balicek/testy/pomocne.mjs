@@ -1,6 +1,6 @@
 // Společné pomůcky testů: falešné AI adaptéry (žádné skutečné volání, žádné peníze) a prostředí.
 import { pametoveUloziste, mesic } from "../web/netlify/lib/ai/limity.mjs";
-import { mistni } from "../web/netlify/lib/pocasi/ical.mjs";
+import { mistni, dalsiDen } from "../web/netlify/lib/pocasi/ical.mjs";
 
 export const HESLO = "testovaci-heslo-1234567";
 
@@ -101,7 +101,7 @@ export function falesnaPredpoved(ted = () => Date.now()) {
 // Falešný kalendář zakázek: zítra zakázka v Kolíně, pozítří v Lipové (nejednoznačná obec), za 3 dny dvě akce.
 export function falesnyKalendar(ted = () => Date.now()) {
   return async () => {
-    const d = (o) => new Date(ted() + o * 864e5).toISOString().slice(0, 10);
+    const d = (o) => dalsiDen(mistni(ted()).datum, o); // místní datum v Česku (ne UTC)
     return {
       nastaveno: true,
       udalosti: [
