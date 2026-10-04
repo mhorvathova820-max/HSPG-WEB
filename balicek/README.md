@@ -7,6 +7,7 @@
 | [ZADANI-CLAUDE-PRO.md](ZADANI-CLAUDE-PRO.md) | projekt a úkoly pro **Claude Pro** (claude.ai) – rozhodnutí majitele, texty, podklady pro právníka |
 | [KONTEXT.md](KONTEXT.md) | ověřená fakta, rozhodnutí majitele a nepřekročitelná pravidla |
 | [POSUDEK-MASTER-PLANU.md](POSUDEK-MASTER-PLANU.md) | co z e-mailu „Master plán“ převzít a co ne |
+| [PREDANI.md](PREDANI.md) | **začni zde** – co je hotové, kdo co dělá, úkoly majitele |
 | [ukoly/PORADI.md](ukoly/PORADI.md) | pořadí úkolů 00–20 |
 | `web/` | hotový kód – cesty odpovídají cílovým cestám ve webHSPGH |
 | `web/overeni/` | ověřovací soubory Seznamu a Bingu – patří do **kořene** publikované složky webu (úkol 20), kopírovat bajt po bajtu |
