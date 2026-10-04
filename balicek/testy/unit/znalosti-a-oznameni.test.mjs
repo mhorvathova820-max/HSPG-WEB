@@ -83,3 +83,9 @@ test("push s osobními údaji jen po výslovném povolení (OZNAMENI_S_UDAJI=1)"
   await vytvorOznameni({ env: { NTFY_TEMA: "t", OZNAMENI_S_UDAJI: "1" }, f })(pozadavek("/", { method: "POST", body: { payload: { form_name: "hspg-zavolejte", id: "q9", data: { Jméno: "Eva", Telefon: "777111222" } } } }));
   assert.match(volani[0].title, /Poptávka – Eva, 777111222 \(hspg-zavolejte\)/);
 });
+
+test("shrnutí: předmět nebere interní pole (form-name ani ip)", () => {
+  const s = shrnuti({ form_name: "hspg-akce", id: "x1", data: { "form-name": "hspg-akce", ip: "1.2.3.4", Telefon: "777123456" } });
+  assert.ok(!JSON.stringify(s).includes("1.2.3.4"));
+  assert.ok(!/hspg-akce,/.test(JSON.stringify(s)));
+});

@@ -39,11 +39,17 @@
     if (d.getElementById('hbot-styly')) return ok();
     var l = d.createElement('link'); l.id = 'hbot-styly'; l.rel = 'stylesheet'; l.href = '/assets/hbot.css';
     l.onload = ok; l.onerror = ok; d.head.appendChild(l);
+    // Pomalá síť nesmí panel zablokovat: po 3 s se otevře se základními styly z hbot.js.
+    setTimeout(ok, 3000);
   });
   var ZALOZNI = { firma: { telefon: TEL, telefon_zobrazeni: TEL_TEXT, pracovni_doba: DOBA }, rychle_otazky: [], otazky: [] };
-  var znalosti = fetch('/assets/hbot-znalosti.json', { cache: 'no-cache' })
+  var KB = null;
+  // Znalosti do 4 s, jinak záložní minimum (telefon, doba) – panel nikdy nečeká donekonečna.
+  var znalosti = sLimitem(4000, '/assets/hbot-znalosti.json', { cache: 'no-cache' })
     .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
-    .catch(function () { return ZALOZNI; });
+    .then(function (j) { return j && Array.isArray(j.otazky) ? j : ZALOZNI; })
+    .catch(function () { return ZALOZNI; })
+    .then(function (j) { KB = j; return j; });
   var stavAI = { ai: false, poskytovatele: [] };
   var stavNacten = sLimitem(3000, '/api/asistent', { headers: { accept: 'application/json' } })
     .then(function (r) { return r.ok ? r.json() : stavAI; })
@@ -93,15 +99,20 @@
   }
 
   // --- zákazník: FAQ bez AI ------------------------------------------------------------------------
-  var KB = null;
   // Bez diakritiky a velikosti písmen, aby „cenik“ i „CENÍK“ našly totéž.
   function bezDiakritiky(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
   function skoreFaq(text) {
     var t = ' ' + bezDiakritiky(text).replace(/[^a-z0-9-]+/g, ' ') + ' ', nej = null, skore = 0;
     (KB.otazky || []).forEach(function (e) {
-      var s = 0;
+      var s = 0, videne = {};
       // Klíč musí začínat na hranici slova (kmen „cen“ najde „cena“, ale ne „necenzurovaný“ uprostřed).
-      e.k.forEach(function (k) { if (t.indexOf(' ' + bezDiakritiky(k)) !== -1) s++; });
+      // Krátké klíče (do 3 znaků) jen jako celé slovo; stejný klíč se počítá jednou.
+      (e.k || []).forEach(function (k) {
+        var n = bezDiakritiky(k).trim();
+        if (!n || videne[n]) return;
+        videne[n] = 1;
+        if (t.indexOf(' ' + n + (n.length <= 3 ? ' ' : '')) !== -1) s++;
+      });
       if (bezDiakritiky(e.q) === bezDiakritiky(text).trim()) s += 5;
       if (s > skore) { skore = s; nej = e; }
     });
@@ -149,28 +160,33 @@
       if (!r.body || (r.headers.get('content-type') || '').indexOf('ndjson') === -1) {
         return r.json().catch(function () { return {}; }).then(function (j) { return { s: r.status, j: j }; });
       }
-      var ctecka = r.body.getReader(), dek = new TextDecoder(), zbytek = '', vysledek = {};
+      var ctecka = r.body.getReader(), dek = new TextDecoder(), zbytek = '', vysledek = null;
       function radek(t) {
         if (!t.trim()) return;
         var o; try { o = JSON.parse(t); } catch (e) { return; }
         if (o.krok && KROKY[o.krok]) piseText.textContent = o.ai + KROKY[o.krok];
-        if (o.rezim) vysledek = o;
+        if (o.rezim && !vysledek) vysledek = o;
       }
       function dalsi() {
         return ctecka.read().then(function (x) {
-          if (x.done) { radek(zbytek); return { s: r.status, j: vysledek }; }
+          if (x.done) { radek(zbytek); return { s: r.status, j: vysledek || {} }; }
           zbytek += dek.decode(x.value, { stream: true });
           var casti = zbytek.split('\n'); zbytek = casti.pop();
           casti.forEach(radek);
+          // Výsledek je venku → dál nečekáme (zbytek spojení se zavře).
+          if (vysledek) { try { ctecka.cancel(); } catch (e) {} return { s: r.status, j: vysledek }; }
           return dalsi();
         });
       }
       return dalsi();
     }
-    // Visící spojení nesmí nechat návštěvníka čekat: po 12 s odpoví FAQ.
-    sLimitem(12000, '/api/asistent', {
+    // Visící spojení nesmí nechat návštěvníka čekat: po 12 s (včetně čtení průběhu) odpoví FAQ.
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var limit = setTimeout(function () { if (ctrl) ctrl.abort(); }, 12000);
+    fetch('/api/asistent', {
       method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/x-ndjson, application/json' },
-      body: JSON.stringify({ zpravy: historie.slice(-8), stranka: location.pathname, _honey: honey.value })
+      body: JSON.stringify({ zpravy: historie.slice(-8), stranka: location.pathname, _honey: honey.value }),
+      signal: ctrl ? ctrl.signal : undefined
     })
       .then(prectiProud)
       .then(function (x) {
@@ -195,7 +211,7 @@
         faq(text);
       })
       .catch(function () { pise.remove(); historie.pop(); if (++aiChyby >= 2) aiVypnuto = true; faq(text); })
-      .then(function () { aiBezi = false; });
+      .then(function () { clearTimeout(limit); aiBezi = false; });
   }
 
   // --- zákazník: zavolání zpět (Netlify Forms) --------------------------------------------------
@@ -209,16 +225,21 @@
       '<label class="hb-skryte" for="' + id + 't">Telefon</label><input id="' + id + 't" type="tel" name="telefon" autocomplete="tel" inputmode="tel" placeholder="Telefon" required maxlength="20">' +
       '<label class="hb-souhlas"><input type="checkbox" name="souhlas" required> <span>Souhlasím se zpracováním jména a telefonu pro zpětné zavolání (<a href="/ochrana-osobnich-udaju.html">zásady</a>).</span></label>' +
       '<input type="text" name="_honey" tabindex="-1" autocomplete="off" class="hb-skryte" aria-hidden="true">' +
-      '<p class="hb-chyba" role="alert" hidden></p>' +
+      '<p class="hb-chyba" id="' + id + 'ch" role="alert" hidden></p>' +
       '<button class="hb-zlate" type="submit">Chci zavolat zpět</button>';
     log.appendChild(f); log.scrollTop = log.scrollHeight;
     var chyba = f.querySelector('.hb-chyba');
-    function ukaz(t, pole) { chyba.textContent = t; chyba.hidden = false; if (pole) { pole.setAttribute('aria-invalid', 'true'); pole.focus(); } }
+    function ukaz(t, pole) {
+      // Text se nastaví až po odkrytí, aby čtečka chybu ohlásila i podruhé.
+      chyba.textContent = ''; chyba.hidden = false;
+      setTimeout(function () { chyba.textContent = t; }, 30);
+      if (pole) { pole.setAttribute('aria-invalid', 'true'); pole.setAttribute('aria-describedby', id + 'ch'); pole.focus(); }
+    }
     f.addEventListener('submit', function (ev) {
       ev.preventDefault();
       chyba.hidden = true;
       var jm = f.elements.jmeno, tl = f.elements.telefon;
-      [jm, tl].forEach(function (p) { p.removeAttribute('aria-invalid'); });
+      [jm, tl, f.elements.souhlas].forEach(function (p) { p.removeAttribute('aria-invalid'); p.removeAttribute('aria-describedby'); });
       if (!jm.value.trim()) return ukaz('Vyplňte prosím jméno.', jm);
       var tel = tl.value.replace(/[\s\-().]/g, '');
       if (!/^\+?\d{9,15}$/.test(tel)) return ukaz('Zkontrolujte prosím telefonní číslo (9–15 číslic, může začínat +).', tl);
@@ -231,12 +252,14 @@
       fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() })
         .then(function (r) {
           if (!r.ok) throw new Error('http ' + r.status);
-          f.remove(); msg('Děkujeme. Ozveme se vám během pracovní doby (' + esc(DOBA) + ').');
+          f.remove();
+          var dik = msg('Děkujeme. Ozveme se vám během pracovní doby (' + esc(DOBA) + ').');
+          dik.tabIndex = -1; dik.focus({ preventScroll: true });
           udalost('generate_lead', { lead_type: 'callback_hbot' });
         })
         .catch(function () {
           b.disabled = false; b.textContent = 'Chci zavolat zpět';
-          ukaz('Odeslání se nepodařilo. Zavolejte prosím přímo: ' + TEL_TEXT + '.');
+          ukaz('Odeslání se nepodařilo. Zavolejte prosím přímo: ' + TEL_TEXT + '.', b);
         });
     });
     f.elements.jmeno.focus({ preventScroll: true });
@@ -290,7 +313,7 @@
     var f = d.createElement('form'); f.className = 'hb-msg hb-call hb-login';
     f.innerHTML = '<b style="color:#f4e4b8">Přihlášení majitele</b>' +
       '<label class="hb-skryte" for="hb-heslo">Heslo</label><input id="hb-heslo" type="password" autocomplete="current-password" placeholder="Heslo interního panelu" required minlength="16">' +
-      '<p class="hb-chyba" role="alert" hidden></p><button class="hb-zlate" type="submit">Přihlásit</button>';
+      '<p class="hb-chyba" id="hb-heslo-chyba" role="alert" hidden></p><button class="hb-zlate" type="submit">Přihlásit</button>';
     log.appendChild(f); log.scrollTop = log.scrollHeight;
     var pole = f.querySelector('input'), ch = f.querySelector('.hb-chyba'), b = f.querySelector('button');
     pole.focus();
@@ -301,9 +324,15 @@
         .then(function (j) {
           ss(TOKEN_KLIC, j.token); ss(PLATNOST_KLIC, String(j.platnost));
           zapamatujZarizeni();
-          f.remove(); zapniMajitele(true);
+          f.remove(); zapniMajitele(true); tabM.focus();
         })
-        .catch(function (e) { ch.textContent = e.message; ch.hidden = false; b.disabled = false; b.textContent = 'Přihlásit'; pole.select(); });
+        .catch(function (e) {
+          ch.textContent = ''; ch.hidden = false;
+          setTimeout(function () { ch.textContent = e.message; }, 30);
+          b.disabled = false; b.textContent = 'Přihlásit';
+          pole.setAttribute('aria-invalid', 'true'); pole.setAttribute('aria-describedby', 'hb-heslo-chyba');
+          pole.focus(); pole.select();
+        });
     });
   }
 
@@ -311,12 +340,15 @@
   var zacatek = false, otvirac = null;
   function uvitani() {
     zacatek = true;
-    Promise.all([znalosti, stavNacten]).then(function (v) {
-      KB = v[0];
+    znalosti.then(function () {
       msg('Dobrý den, jsem holub H-BOT. Vyberte otázku, nebo napište vlastní.');
-      if (stavAI.ai) {
-        msg('Na vlastní otázky odpovídají spolupracující AI (' + esc(stavAI.poskytovatele.join(', ')) + ') jen z ověřených informací HSPG; druhá AI odpověď kontroluje. Text otázky se zpracuje u poskytovatele AI (USA). Nepište sem prosím osobní údaje.', 'hb-info');
-      }
+      var poznamka = d.createElement('div'); log.appendChild(poznamka);
+      // Stav AI dorazí do 3 s; úvod a rychlé otázky na něj nečekají.
+      stavNacten.then(function () {
+        if (!stavAI.ai) return poznamka.remove();
+        poznamka.className = 'hb-msg hb-info';
+        poznamka.innerHTML = 'Na vlastní otázky odpovídají spolupracující AI (' + esc(stavAI.poskytovatele.join(', ')) + ') jen z ověřených informací HSPG; druhá AI odpověď kontroluje. Text otázky se zpracuje u poskytovatele AI (USA). Nepište sem prosím osobní údaje.';
+      });
       var w = d.createElement('div'); w.className = 'hb-chips';
       (KB.rychle_otazky || []).forEach(function (q) {
         var c = d.createElement('button'); c.type = 'button'; c.className = 'hb-chip'; c.textContent = q;
@@ -337,7 +369,9 @@
       else if (location.hash === '#majitel') prihlaseni();
       // Na dotyku by fokus do pole vysunul klávesnici dřív, než zákazník uvidí rychlé otázky.
       var dotyk = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+      var heslo = d.getElementById('hb-heslo');
       if (!viewM.hidden) (viewM.querySelector('textarea') || tabM).focus({ preventScroll: true });
+      else if (heslo) heslo.focus({ preventScroll: true });
       else if (dotyk) { box.setAttribute('tabindex', '-1'); box.focus({ preventScroll: true }); }
       else vstup.focus({ preventScroll: true });
       udalost('hbot_open', { majitel: !!token() });
@@ -357,13 +391,15 @@
     var m = tabZ.getAttribute('aria-selected') === 'true';
     vyberKartu(m); (m ? tabM : tabZ).focus(); e.preventDefault();
   });
-  d.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !box.hidden) { e.stopPropagation(); zavri(); } });
+  // Escape zavře jen panel, ve kterém je fokus – ostatní dialogy stránky (cookie lišta, menu) neovlivní.
+  box.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !box.hidden) zavri(); });
   box.querySelector('.hb-form').addEventListener('submit', function (e) {
     e.preventDefault();
     var v = vstup.value.trim();
-    if (!v || aiBezi || !KB) return;
+    if (!v || aiBezi) return;
     vstup.value = '';
-    vlastniOtazka(v);
+    // Otázka položená dřív, než dorazí znalosti, se nezahodí – zodpoví se hned po načtení.
+    if (KB) vlastniOtazka(v); else znalosti.then(function () { vlastniOtazka(v); });
   });
 
   window.HSPG_HBOT = {

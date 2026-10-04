@@ -11,7 +11,7 @@
 //   – ntfy.sh i Telegram jsou další příjemci osobních údajů a musí být uvedeni v zásadách.
 import firma from "../../content/firma.json" with { type: "json" };
 
-const INTERNI = new Set(["form-name", "_honey", "bot-field", "g-recaptcha-response", "souhlas-pravidla"]);
+const INTERNI = new Set(["form-name", "_honey", "bot-field", "g-recaptcha-response", "souhlas-pravidla", "ip", "user_agent", "referrer", "subject"]);
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export function shrnuti(payload) {
@@ -22,7 +22,7 @@ export function shrnuti(payload) {
     .map(([k, v]) => `${k}: ${String(v).slice(0, 500)}`);
   const cislo = String(payload?.id || "").slice(-6).toUpperCase() || "—";
   const email = Object.entries(data).find(([k, v]) => /mail/i.test(k) && EMAIL_RE.test(String(v || "").trim()))?.[1]?.trim() || null;
-  const pole1 = (re) => Object.entries(data).find(([k, v]) => re.test(k) && typeof v === "string" && v.trim())?.[1]?.trim().slice(0, 60);
+  const pole1 = (re) => Object.entries(data).find(([k, v]) => !INTERNI.has(k) && re.test(k) && typeof v === "string" && v.trim())?.[1]?.trim().slice(0, 60);
   // Předmět, který je vidět i v přeplněné schránce: kdo, telefon, odkud.
   const kdo = [pole1(/jm[eé]no|name/i), pole1(/telefon|phone|^tel/i)].filter(Boolean).join(", ");
   return {

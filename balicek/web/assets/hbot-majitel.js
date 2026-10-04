@@ -70,6 +70,7 @@
       });
       if (s.utrata) {
         stav.appendChild(el('span', { class: 'hbm-cip' }, 'Útrata AI měsíce ≈ ' + Math.round(s.utrata.celkemKc) + ' / ' + s.limitKc + ' Kč'));
+        if (s.verejnyLimitKc) stav.appendChild(el('span', { class: 'hbm-cip' }, 'z toho zákazníci ≈ ' + Math.round(s.utrata.verejneKc || 0) + ' / ' + Math.round(s.verejnyLimitKc) + ' Kč'));
       }
       if (s.gateway && s.kredity) {
         stav.appendChild(el('span', { class: 'hbm-cip', title: 'AI běží přes Netlify AI Gateway a platí se kredity Netlify. Po vyčerpání kreditů Netlify pozastaví celý web.' },

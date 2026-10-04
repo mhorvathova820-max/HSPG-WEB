@@ -217,3 +217,23 @@ test("pravidlo Netlify rateLimit je v konfiguraci funkce", async () => {
   assert.equal(config.path, "/api/asistent");
   assert.deepEqual(config.rateLimit.aggregateBy, ["ip", "domain"]);
 });
+
+test("prectiVerdikt: první úplný objekt, ne hladové spojení dvou", () => {
+  assert.deepEqual(prectiVerdikt('{"ok": false, "odpoved": "A {x}"} a ještě {"ok": true}'), { ok: false, odpoved: "A {x}" });
+  assert.deepEqual(prectiVerdikt('{"pozn": 1} {"ok": true, "odpoved": ""}'), { ok: true, odpoved: "" });
+});
+
+test("kontrolor odpoví nečitelně → predat (nic neověřeného ven)", async () => {
+  const { h } = sestav({ adaptery: { gemini: falesnyAdapter({ text: "Návrh obsahuje chybu v ceně." }) } });
+  assert.equal((await (await h(post())).json()).rezim, "predat");
+});
+
+test("veřejný asistent smí jen svůj podíl rozpočtu (AI_VEREJNY_LIMIT_KC)", async () => {
+  const ul = pametoveUloziste();
+  const mesic = new Date().toISOString().slice(0, 7);
+  await ul.setJSON(`utrata/${mesic}`, { celkemKc: 13, verejneKc: 13, ai: {} });
+  const { h } = sestav({ ul, e: { ...env(), AI_MESICNI_LIMIT_KC: "100", AI_VEREJNY_LIMIT_KC: "13" } });
+  const r = await h(post());
+  assert.equal(r.status, 503);
+  assert.equal((await r.json()).duvod, "rozpocet");
+});

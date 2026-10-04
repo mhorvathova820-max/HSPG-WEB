@@ -2,7 +2,7 @@
 //   GET  -> stav;  POST { verejnaAI: true|false } -> nouzový vypínač AI pro zákazníky (okamžitě, bez nasazení)
 import { POSKYTOVATELE, jeZapnuty } from "../lib/ai/poskytovatele.mjs";
 import { overPozadavek } from "../lib/ai/autorizace.mjs";
-import { vychoziUloziste, utrataMesice, mesicniLimitKc, kcNaKredity, nactiNastaveni, ulozNastaveni } from "../lib/ai/limity.mjs";
+import { vychoziUloziste, utrataMesice, mesicniLimitKc, verejnyLimitKc, kcNaKredity, nactiNastaveni, ulozNastaveni } from "../lib/ai/limity.mjs";
 import { pres_gateway, verejneEnv } from "../lib/ai/poskytovatele.mjs";
 
 const json = (data, status = 200) =>
@@ -47,6 +47,7 @@ export function vytvorStav({ env = process.env, uloziste, ted = () => Date.now()
       nastaveni,
       utrata,
       limitKc: mesicniLimitKc(env),
+      verejnyLimitKc: verejnyLimitKc(env),
       // Přes Netlify AI Gateway se platí kredity Netlify – jejich vyčerpání pozastaví celý web.
       gateway: pres_gateway(env),
       kredity: utrata ? { utraceno: kcNaKredity(utrata.celkemKc, env), limit: kcNaKredity(mesicniLimitKc(env), env) } : null,

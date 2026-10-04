@@ -18,13 +18,17 @@ import { fileURLToPath } from "node:url";
 export const PROJEKT = "e4dff53f-791b-4c8c-946c-a23d06421774"; // tourmaline-dasik-9de005 = hspg.cz
 export const KREDITY_ZA_PRODUKCI = 15;
 
-const den = (d) => new Date(d).toISOString().slice(0, 10);
+// Den podle českého času (nasazení v 0:30 patří k novému dni, ne k včerejšku v UTC).
+const den = (d) => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Prague" }).format(new Date(d));
 
 // Čistá logika (testovaná): smí se teď nasadit do produkce?
 export function muzeDoProdukce({ zaznamy, ted, limit = 1, schvaleno, nouzove, vetev, cisto }) {
-  if (!schvaleno || String(schvaleno).trim().length < 5) return { ok: false, duvod: "Chybí --schvaleno \"kdo a kdy schválil\" – produkci schvaluje jen majitel." };
+  if (typeof schvaleno !== "string" || schvaleno.trim().length < 5) return { ok: false, duvod: "Chybí --schvaleno \"kdo a kdy schválil\" – produkci schvaluje jen majitel." };
   if (vetev !== "main") return { ok: false, duvod: `Produkce jen z větve main (teď: ${vetev}). Nejdřív slouč ověřenou větev.` };
   if (!cisto) return { ok: false, duvod: "Pracovní strom není čistý – commitni nebo odlož změny, do produkce jde jen commitnutý stav." };
+  if (nouzove !== undefined && (typeof nouzove !== "string" || nouzove.trim().length < 10))
+    return { ok: false, duvod: "--nouzove vyžaduje popis výpadku (aspoň 10 znaků), např. --nouzove \"formuláře nefungují od 14:00\"." };
+  limit = Number.isInteger(limit) && limit >= 1 ? limit : 1;
   const dnes = zaznamy.filter((z) => den(z.cas) === den(ted)).length;
   if (dnes >= limit && !nouzove) return { ok: false, duvod: `Dnes už proběhlo ${dnes} produkční nasazení (limit ${limit}). Použij náhled, nebo při výpadku --nouzove "důvod".` };
   return { ok: true, dnesPoNasazeni: dnes + 1 };
@@ -75,7 +79,7 @@ function hlavni() {
   const ted = Date.now();
   const v = muzeDoProdukce({
     zaznamy, ted, vetev, cisto,
-    limit: Number(process.env.NASAZENI_DENNI_LIMIT || 1),
+    limit: Number(process.env.NASAZENI_DENNI_LIMIT || 1), // neplatná hodnota → 1
     schvaleno: arg("--schvaleno"),
     nouzove: arg("--nouzove"),
   });

@@ -84,8 +84,15 @@
   // Doporučené obsazení: GPT píše, Claude kontroluje pravdivost, Gemini spojí. Chybějící AI nahradí dostupné.
   function obsazeni(zapnute) {
     var ids = zapnute.map(function (a) { return a.id; });
-    function vyber(chci, jinak) { return ids.indexOf(chci) !== -1 ? chci : (ids[jinak] || ids[0]); }
-    return { autor: vyber('gpt', 0), kontrola: vyber('claude', 1), final: vyber('gemini', 2) };
+    // Každá role jinou AI, pokud jich je dost; opakuje se až ve chvíli, kdy zapnuté AI dojdou.
+    var pouzite = [];
+    function vyber(chci) {
+      var id = ids.indexOf(chci) !== -1 && pouzite.indexOf(chci) === -1 ? chci
+        : (ids.filter(function (x) { return pouzite.indexOf(x) === -1; })[0] || ids[pouzite.length % ids.length]);
+      pouzite.push(id);
+      return id;
+    }
+    return { autor: vyber('gpt'), kontrola: vyber('claude'), final: vyber('gemini') };
   }
 
   // Spolupráce: návrh → kontrola pravdivosti → finální verze. naKrok(index, nazev, aiId) vrací prvek pro text.

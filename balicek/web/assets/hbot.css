@@ -21,7 +21,7 @@
 #hbot .hb-tab[aria-selected=true]{color:var(--hb-zlata-svetla);border-bottom-color:var(--hb-zlata)}
 #hbot .hb-view{flex:1;min-height:0;display:flex;flex-direction:column}
 #hbot .hb-view[hidden]{display:none}
-#hbot .hb-log{flex:1;min-height:120px;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+#hbot .hb-log{flex:1;min-height:min(120px,22dvh);overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
 #hbot .hb-msg{max-width:94%;padding:10px 13px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);overflow-wrap:anywhere}
 #hbot .hb-me{align-self:flex-end;background:rgba(201,169,98,.18);border-color:rgba(201,169,98,.35)}
 #hbot .hb-info{font-size:12.5px;color:#c3cad3;background:rgba(34,211,238,.06);border-color:rgba(34,211,238,.2)}

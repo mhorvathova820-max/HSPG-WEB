@@ -163,3 +163,13 @@ test("pravidla Netlify v kódu: nejvýš 2 (tarif Personal) – /api/asistent a 
   assert.equal(pravidla.length, 2);
   assert.equal(e.config.path, "/media/*");
 });
+
+test("přihlášení: souběžné pokusy limit 5 neobejdou; bez úložiště 503", async () => {
+  const h = vytvorPrihlaseni({ env: env(), uloziste: pametoveUloziste(), zdrzeniMs: 0 });
+  const zkus = () => h(pozadavek("/api/majitel", { method: "POST", body: { heslo: "spatne-heslo-123456789" } }), { ip: "7.7.7.7" });
+  const kody = (await Promise.all(Array.from({ length: 12 }, zkus))).map((r) => r.status);
+  assert.equal(kody.filter((k) => k === 401).length, 5);
+  const rozbite = { get: async () => { throw new Error("x"); }, getWithMetadata: async () => { throw new Error("x"); }, setJSON: async () => { throw new Error("x"); } };
+  const h2 = vytvorPrihlaseni({ env: env(), uloziste: rozbite, zdrzeniMs: 0 });
+  assert.equal((await h2(pozadavek("/api/majitel", { method: "POST", body: { heslo: HESLO } }), { ip: "1.1.1.1" })).status, 503);
+});

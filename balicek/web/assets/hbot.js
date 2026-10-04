@@ -41,7 +41,9 @@
     'body.hero-cta-na-obrazovce #hspg-lista{transform:translateY(110%);visibility:hidden;transition:transform .3s ease,visibility 0s linear .3s}}' +
     '@media (max-width:360px){#hspg-lista a,#hspg-lista button{font-size:13px}}' +
     '@media (max-width:370px){#hspg-lista svg{display:none}}' +
-    '@media (prefers-reduced-motion:reduce){#hspg-lista{transition:none}}';
+    '@media (prefers-reduced-motion:reduce){#hspg-lista{transition:none}}' +
+    // Nouzové minimum pro panel, kdyby se hbot.css nenačetl (hbot.css ho pak přepíše).
+    '#hbot{position:fixed;left:18px;bottom:82px;z-index:95;display:flex;flex-direction:column;width:min(420px,calc(100vw - 32px));max-height:80dvh;overflow:hidden;background:#0d0f12;color:#e9edf3;border:1px solid #c9a227;border-radius:16px;font:15px/1.5 Inter,system-ui,sans-serif}#hbot[hidden],#hbot [hidden]{display:none}#hbot .hb-log{flex:1;overflow-y:auto;padding:12px}#hbot input{font-size:16px}';
   d.head.appendChild(css);
 
   var btn = d.createElement('button');
@@ -74,19 +76,45 @@
     nacitani = new Promise(function (ok, chyba) {
       var s = d.createElement('script');
       s.src = '/assets/hbot-panel.js'; s.async = true;
-      s.onload = function () { window.HSPG_HBOT ? ok(window.HSPG_HBOT) : chyba(new Error('panel')); };
+      s.onload = function () { if (window.HSPG_HBOT) ok(window.HSPG_HBOT); else { nacitani = null; chyba(new Error('panel')); } };
       s.onerror = function () { nacitani = null; chyba(new Error('panel')); };
       d.head.appendChild(s);
     });
     return nacitani;
   }
   function predem() { nactiPanel().catch(function () {}); }
+  // Když se panel nenačte (výpadek sítě), návštěvník dostane malé okno s telefonem a poptávkou –
+  // žádné přesměrování, rozepsaný formulář na stránce nezmizí.
+  function zalozni(zdroj) {
+    var b = d.getElementById('hbot-zaloha');
+    if (!b) {
+      b = d.createElement('div');
+      b.id = 'hbot-zaloha'; b.setAttribute('role', 'dialog'); b.setAttribute('aria-label', 'Kontakt'); b.tabIndex = -1;
+      b.style.cssText = 'position:fixed;left:16px;right:16px;bottom:84px;z-index:96;max-width:360px;padding:16px;border-radius:14px;border:1px solid #c9a227;background:#0d0f12;color:#f4e4b8;font:600 15px/1.45 Manrope,Inter,system-ui,sans-serif;box-shadow:0 18px 50px -12px rgba(0,0,0,.85)';
+      var a = 'display:block;margin-top:10px;padding:12px;border-radius:10px;text-align:center;font-weight:800;text-decoration:none;';
+      b.innerHTML = '<p style="margin:0">Pomocníka se teď nepodařilo načíst. Ozvěte se nám napřímo:</p>' +
+        '<a style="' + a + 'background:#c9a227;color:#16181c" href="tel:' + TEL + '">Zavolat ' + TEL + '</a>' +
+        '<a style="' + a + 'border:1px solid #c9a227;color:#f4e4b8" href="/akce/">Poptávka – cena do 24 h</a>' +
+        '<button type="button" data-znovu style="' + a + 'width:100%;border:0;background:transparent;color:#f4e4b8;cursor:pointer;font:inherit">Zkusit znovu</button>' +
+        '<button type="button" data-zavrit style="' + a + 'width:100%;border:0;background:transparent;color:#cbd5e1;cursor:pointer;font:inherit">Zavřít</button>';
+      b.addEventListener('click', function (e) {
+        var t = e.target.closest('button');
+        if (!t) return;
+        b.hidden = true;
+        if (t.hasAttribute('data-znovu')) otevri({ currentTarget: zdroj });
+        else if (zdroj && zdroj.focus) zdroj.focus();
+      });
+      b.addEventListener('keydown', function (e) { if (e.key === 'Escape') { b.hidden = true; if (zdroj && zdroj.focus) zdroj.focus(); } });
+      d.body.appendChild(b);
+    }
+    b.hidden = false;
+    b.focus();
+  }
   function otevri(e) {
     var zdroj = e && e.currentTarget;
     nactiPanel()
-      .then(function (h) { h.prepni(zdroj); })
-      // Když se panel nenačte (výpadek sítě), návštěvník skončí u poptávky, ne u mrtvého tlačítka.
-      .catch(function () { location.href = '/akce/'; });
+      .then(function (h) { var z = d.getElementById('hbot-zaloha'); if (z) z.hidden = true; h.prepni(zdroj); })
+      .catch(function () { zalozni(zdroj); });
   }
 
   var botLista = lista.querySelector('.hl-bot');

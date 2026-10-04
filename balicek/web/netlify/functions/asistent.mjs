@@ -32,16 +32,30 @@ export function poradi(env) {
   return chtene.filter((id) => POSKYTOVATELE[id] && jeZapnuty(id, env));
 }
 
-// Z odpovědi kontrolora vytáhne JSON i tehdy, když ho AI obalí textem nebo ```.
+// Z odpovědi kontrolora vytáhne první úplný objekt JSON i tehdy, když ho AI obalí textem nebo ```.
+// Vrací null, jen když v textu žádný platný verdikt není.
 export function prectiVerdikt(text) {
-  const m = String(text || "").match(/\{[\s\S]*\}/);
-  if (!m) return null;
-  try {
-    const v = JSON.parse(m[0]);
-    return typeof v.ok === "boolean" ? { ok: v.ok, odpoved: typeof v.odpoved === "string" ? v.odpoved.trim() : "" } : null;
-  } catch {
-    return null;
+  const t = String(text || "");
+  for (let od = t.indexOf("{"); od !== -1; od = t.indexOf("{", od + 1)) {
+    let hloubka = 0, vRetezci = false, unik = false;
+    for (let i = od; i < t.length; i++) {
+      const c = t[i];
+      if (vRetezci) {
+        if (unik) unik = false;
+        else if (c === "\\") unik = true;
+        else if (c === '"') vRetezci = false;
+      } else if (c === '"') vRetezci = true;
+      else if (c === "{") hloubka++;
+      else if (c === "}" && --hloubka === 0) {
+        try {
+          const v = JSON.parse(t.slice(od, i + 1));
+          if (v && typeof v.ok === "boolean") return { ok: v.ok, odpoved: typeof v.odpoved === "string" ? v.odpoved.trim() : "" };
+        } catch {}
+        break;
+      }
+    }
   }
+  return null;
 }
 
 // Telefon a e-mail z textu návštěvníka do AI neodchází (patří do formuláře, ne k poskytovateli AI).
@@ -74,7 +88,7 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
       let vycerpano = false;
       try {
         const ul0 = dejUloziste && (await dejUloziste());
-        vycerpano = dostupne.length > 0 && ((await nactiNastaveni(ul0)).verejnaAI === false || (await rozpocetVycerpan(ul0, env, ted())));
+        vycerpano = dostupne.length > 0 && ((await nactiNastaveni(ul0)).verejnaAI === false || (await rozpocetVycerpan(ul0, env, ted(), true)));
       } catch {
         vycerpano = true; // bez úložiště AI nevoláme (viz POST)
       }
@@ -102,7 +116,7 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
       store = await dejUloziste();
       // Nouzový vypínač majitele (platí okamžitě, bez nasazení).
       if ((await nactiNastaveni(store)).verejnaAI === false) return json({ rezim: "bez-ai", duvod: "vypnuto" }, 503);
-      if (await rozpocetVycerpan(store, env, start)) return json({ rezim: "bez-ai", duvod: "rozpocet" }, 503);
+      if (await rozpocetVycerpan(store, env, start, true)) return json({ rezim: "bez-ai", duvod: "rozpocet" }, 503);
       const klient = otiskKlienta(context.ip || req.headers.get("x-nf-client-connection-ip"), start);
       const povoleno = await povolVerejnyDotaz(store, klient, env, start);
       if (!povoleno.ok) return json({ rezim: "limit" }, 429);
@@ -116,7 +130,7 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
     const system = `${PRAVIDLA_PRAVDIVOSTI}\n\n${POKYN_ZAKAZNIK}\n\n${textZnalosti()}`;
     // Útrata se zapisuje souběžně s odpovědí; Netlify ji nechá doběhnout přes waitUntil.
     const zapisy = [];
-    const zapis = (id, stat, rezerva) => zapisy.push(zapisUtratu(store, id, stat, env, ted(), rezerva, model(id)).catch(() => {}));
+    const zapis = (id, stat, rezerva) => zapisy.push(zapisUtratu(store, id, stat, env, ted(), rezerva, model(id), true).catch(() => {}));
     const dokonci = () => {
       const hotovo = Promise.allSettled(zapisy);
       if (typeof context.waitUntil === "function") context.waitUntil(hotovo);
@@ -131,7 +145,7 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
       let autor = null;
       for (const id of dostupne) {
         if (zbyva() < casy.minNavrh) break;
-        const rezerva = await rezervuj(store, id, odhadTokenu(system + JSON.stringify(zpravy)), MAX_TOKENU, env, ted(), model(id));
+        const rezerva = await rezervuj(store, id, odhadTokenu(system + JSON.stringify(zpravy)), MAX_TOKENU, env, ted(), model(id), true);
         if (rezerva === false) return [{ rezim: "bez-ai", duvod: "rozpocet" }, 503];
         emit({ krok: "navrh", ai: POSKYTOVATELE[id].nazev });
         try {
@@ -159,10 +173,15 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
       const ai = [POSKYTOVATELE[autor].nazev];
       const systemKontrola = `${PRAVIDLA_PRAVDIVOSTI}\n\n${POKYN_KONTROLOR}\n\n${textZnalosti()}`;
       const zpravyKontrola = [{ role: "user", text: `OTÁZKA NÁVŠTĚVNÍKA:\n${zpravy.at(-1).text}\n\nNÁVRH ODPOVĚDI:\n${navrh}` }];
-      // Bez rezervy v rozpočtu se kontrola vynechá – návrh se vrátí neověřený.
-      const rezervaK = kontrolor && zbyva() >= casy.minKontrola
-        ? await rezervuj(store, kontrolor, odhadTokenu(systemKontrola + zpravyKontrola[0].text), MAX_TOKENU, env, ted(), model(kontrolor))
-        : false;
+      // Bez rezervy v rozpočtu (nebo při chybě úložiště) se kontrola vynechá – návrh se vrátí neověřený.
+      let rezervaK = false;
+      if (kontrolor && zbyva() >= casy.minKontrola) {
+        try {
+          rezervaK = await rezervuj(store, kontrolor, odhadTokenu(systemKontrola + zpravyKontrola[0].text), MAX_TOKENU, env, ted(), model(kontrolor), true);
+        } catch (e) {
+          console.warn("asistent: rezervace kontroly selhala", e?.message);
+        }
+      }
       if (rezervaK !== false) {
         emit({ krok: "kontrola", ai: POSKYTOVATELE[kontrolor].nazev });
         try {
@@ -171,6 +190,8 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
           );
           zapis(kontrolor, r.stat, rezervaK);
           const v = prectiVerdikt(r.text);
+          // Kontrolor odpověděl, ale verdikt nejde přečíst → nic neověřeného nepouštět, předat majiteli.
+          if (!v && r.text.trim()) return [{ rezim: "predat", ai: [...ai, POSKYTOVATELE[kontrolor].nazev] }, 200];
           if (v) {
             ai.push(POSKYTOVATELE[kontrolor].nazev);
             if (v.ok) overeno = true;
@@ -200,8 +221,9 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
             console.warn("asistent: neočekávaná chyba", e?.message);
             posli({ rezim: "chyba" });
           }
-          await dokonci();
+          // Odpověď jde ven hned; zápis útraty doběhne na pozadí (waitUntil).
           ctrl.close();
+          dokonci();
         },
       });
       return new Response(body, { headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" } });
