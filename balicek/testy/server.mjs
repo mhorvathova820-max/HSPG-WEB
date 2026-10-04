@@ -9,7 +9,12 @@ import { vytvorAsistenta } from "../web/netlify/functions/asistent.mjs";
 import { vytvorPrihlaseni } from "../web/netlify/functions/majitel.mjs";
 import { vytvorAI } from "../web/netlify/functions/ai.mjs";
 import { vytvorStav } from "../web/netlify/functions/ai-stav.mjs";
-import { env as testEnv, falesnyAdapter, pametoveUloziste, HESLO } from "./pomocne.mjs";
+import { vytvorPlanovac } from "../web/netlify/functions/planovac.mjs";
+import { vytvorPocasi } from "../web/netlify/functions/pocasi.mjs";
+import { vytvorKuponApi } from "../web/netlify/functions/kupon.mjs";
+import { vytvorPocasiPrace } from "../web/netlify/functions/pocasi-prace.mjs";
+import { vytvorKalendarPocasi } from "../web/netlify/functions/pocasi-kalendar.mjs";
+import { env as testEnv, falesnyAdapter, pametoveUloziste, HESLO, falesnaPredpoved, falesnyKalendar } from "./pomocne.mjs";
 
 const BALICEK = fileURLToPath(new URL("../web/", import.meta.url));
 const TYPY = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".json": "application/json", ".webp": "image/webp", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".webmanifest": "application/manifest+json" };
@@ -21,7 +26,8 @@ async function existuje(p) {
 // rezim: "ai" (spolupráce funguje) | "bez-ai" (žádné klíče) | "chyba" (AI padají)
 // zaseknout: { "METODA /cesta": [content-type, začátek těla] } – pošle hlavičky a začátek těla a dál nic
 // (simulace visícího spojení pro testy časových limitů v prohlížeči).
-export async function spustServer({ rezim = "ai", port = 0, mirror = process.env.HSPG_MIRROR, zaseknout = {} } = {}) {
+// kalendar: false = kalendář zakázek nenastaven (plánovač ukáže „termín potvrdíme“).
+export async function spustServer({ rezim = "ai", port = 0, mirror = process.env.HSPG_MIRROR, zaseknout = {}, kalendar = true } = {}) {
   if (!mirror) throw new Error("Nastav HSPG_MIRROR na složku s kopií webu (wget --mirror https://hspg.cz).");
   const e = rezim === "bez-ai" ? { HSPG_PANEL_HESLO: HESLO } : testEnv();
   const ul = pametoveUloziste();
@@ -47,6 +53,17 @@ export async function spustServer({ rezim = "ai", port = 0, mirror = process.env
     "/api/ai": vytvorAI({ env: e, adaptery, uloziste: ul }),
     "/api/ai-stav": vytvorStav({ env: e, uloziste: ul }),
   };
+  // Plánovač, počasí a kupony (úkol 21): falešná předpověď a kalendář, nic nejde ven.
+  const ulP = pametoveUloziste();
+  const predpoved = falesnaPredpoved();
+  const kal = kalendar ? falesnyKalendar() : async () => ({ nastaveno: false, udalosti: [], preskoceno: null });
+  Object.assign(api, {
+    "/api/planovac": vytvorPlanovac({ env: e, uloziste: ulP, predpoved, kalendar: kal }),
+    "/api/pocasi": vytvorPocasi({ env: e, predpoved }),
+    "/api/kupon": vytvorKuponApi({ env: e, uloziste: ulP, ulozisteLimitu: ul }),
+    "/api/pocasi-prace": vytvorPocasiPrace({ env: e, uloziste: ul, ulozistePlanovac: ulP, predpoved, kalendar: kal }),
+    "/api/pocasi-kalendar": vytvorKalendarPocasi({ env: e, uloziste: ul, ulozistePlanovac: ulP, predpoved, kalendar: kal }),
+  });
   const formulare = [];
 
   const server = http.createServer(async (req, res) => {
@@ -59,8 +76,9 @@ export async function spustServer({ rezim = "ai", port = 0, mirror = process.env
         res.write(zasek[1]);
         return; // spojení zůstane otevřené bez konce těla
       }
-      if (api[url.pathname]) {
-        const r = await api[url.pathname](new Request(url, { method: req.method, headers: req.headers, body: ["GET", "HEAD"].includes(req.method) ? undefined : telo }), { ip: "127.0.0.1" });
+      const cestaApi = url.pathname.startsWith("/api/pocasi-kalendar/") ? "/api/pocasi-kalendar" : url.pathname;
+      if (api[cestaApi]) {
+        const r = await api[cestaApi](new Request(url, { method: req.method, headers: req.headers, body: ["GET", "HEAD"].includes(req.method) ? undefined : telo }), { ip: "127.0.0.1" });
         res.writeHead(r.status, Object.fromEntries(r.headers));
         if (r.body) for await (const kus of r.body) res.write(kus);
         return res.end();
@@ -88,7 +106,7 @@ export async function spustServer({ rezim = "ai", port = 0, mirror = process.env
     }
   });
   await new Promise((ok) => server.listen(port, "127.0.0.1", ok));
-  return { url: `http://127.0.0.1:${server.address().port}`, formulare, zavri: () => new Promise((ok) => { server.close(ok); server.closeAllConnections?.(); }) };
+  return { url: `http://127.0.0.1:${server.address().port}`, formulare, ulozistePlanovac: ulP, predpoved, zavri: () => new Promise((ok) => { server.close(ok); server.closeAllConnections?.(); }) };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

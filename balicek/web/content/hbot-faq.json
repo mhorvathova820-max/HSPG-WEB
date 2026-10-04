@@ -1,45 +1,240 @@
 {
   "_poznamka": "Klíče „k“: hledají se od začátku slova (kmen „impregn“ najde „impregnace“); klíč do 3 znaků nebo s „=“ na začátku jen jako celé slovo (\"=panel\" nenajde „panelák“). Schválené odpovědi H-BOTa (převzaté z dosavadního /assets/hbot.js). Zdroj pro okamžité odpovědi bez AI i pro znalosti AI. {{zaruka}} a {{zaruka_podminka}} se doplní z content/firma.json; typ 'cena' se počítá z content/ceny.json. Po úpravě spusť: node scripts/build-hbot.mjs",
-  "rychle_otazky": ["Kolik to stojí?", "Potřebujete lešení?", "Jak dlouho vydrží impregnace H-STONE?", "Musím být doma?", "Kde působíte?", "Děláte i pro SVJ a bytové domy?"],
+  "rychle_otazky": [
+    "Kolik to stojí?",
+    "Jak si rezervovat termín?",
+    "Potřebujete lešení?",
+    "Jak dlouho vydrží impregnace H-STONE?",
+    "Kde působíte?",
+    "Děláte i pro SVJ a bytové domy?"
+  ],
   "otazky": [
-    { "k": ["cena", "cen", "ceny", "cenu", "ceně", "cenou", "cenov", "cenách", "kolik", "stoj", "platit", "cenik", "ceník", "kč"],
+    {
+      "k": [
+        "cena",
+        "cen",
+        "ceny",
+        "cenu",
+        "ceně",
+        "cenou",
+        "cenov",
+        "cenách",
+        "kolik",
+        "stoj",
+        "platit",
+        "cenik",
+        "ceník",
+        "kč"
+      ],
       "q": "Kolik to stojí?",
       "typ": "cena",
-      "link": ["/cenik.html", "Kompletní ceník"] },
-    { "k": ["poškod", "tlak", "zniči", "bezpečn", "křeh"],
+      "link": [
+        "/cenik.html",
+        "Kompletní ceník"
+      ]
+    },
+    {
+      "k": [
+        "poškod",
+        "tlak",
+        "zniči",
+        "bezpečn",
+        "křeh"
+      ],
       "q": "Nepoškodí tlaková voda střechu nebo fasádu?",
-      "a": "Ne. Tlak i trysky volíme podle materiálu — beton, pálená taška, omítka i zámková dlažba mají svůj vlastní postup. Křehké povrchy ošetřujeme šetrným biocidním postupem bez tlaku. Proto vždy začínáme obhlídkou z mapy a fotografií." },
-    { "k": ["h-stone", "hstone", "impregn", "vydrž", "záruk", "zaruk", "let"],
+      "a": "Ne. Tlak i trysky volíme podle materiálu — beton, pálená taška, omítka i zámková dlažba mají svůj vlastní postup. Křehké povrchy ošetřujeme šetrným biocidním postupem bez tlaku. Proto vždy začínáme obhlídkou z mapy a fotografií."
+    },
+    {
+      "k": [
+        "h-stone",
+        "hstone",
+        "impregn",
+        "vydrž",
+        "záruk",
+        "zaruk",
+        "let"
+      ],
       "q": "Jak dlouho vydrží impregnace H-STONE?",
-      "a": "{{zaruka}} Hydrofobní vrstva odpuzuje vodu, takže mech a řasy nemají z čeho žít. {{zaruka_podminka}}" },
-    { "k": ["doma", "přítom", "nepřítom", "klíč"],
+      "a": "{{zaruka}} Hydrofobní vrstva odpuzuje vodu, takže mech a řasy nemají z čeho žít. {{zaruka_podminka}}"
+    },
+    {
+      "k": [
+        "doma",
+        "přítom",
+        "nepřítom",
+        "klíč"
+      ],
       "q": "Musím být doma?",
-      "a": "Nemusíte. Potřebujeme jen přístup k vodě a elektřině a domluvený přístup na pozemek. Vše ostatní zvládne náš tým a technika — po dokončení dostanete fotodokumentaci před/po." },
-    { "k": ["lešen", "plošin", "výšk"],
+      "a": "Nemusíte. Potřebujeme jen přístup k vodě a elektřině a domluvený přístup na pozemek. Vše ostatní zvládne náš tým a technika — po dokončení dostanete fotodokumentaci před/po."
+    },
+    {
+      "k": [
+        "lešen",
+        "plošin",
+        "výšk"
+      ],
       "q": "Potřebujete lešení?",
-      "a": "Většinou ne — pracujeme vlastní technikou bez lešení. Přístup posoudíme předem; kdyby bylo lešení výjimečně nutné, uvedeme to v nabídce. Zaměříme na dálku z map a nezávaznou cenu pošleme do 24 hodin." },
-    { "k": ["měď", "med", "měděn", "hřeben"],
+      "a": "Většinou ne — pracujeme vlastní technikou bez lešení. Přístup posoudíme předem; kdyby bylo lešení výjimečně nutné, uvedeme to v nabídce. Zaměříme na dálku z map a nezávaznou cenu pošleme do 24 hodin."
+    },
+    {
+      "k": [
+        "měď",
+        "med",
+        "měděn",
+        "hřeben"
+      ],
       "q": "K čemu je měděný prvek na střeše?",
-      "a": "Měděné pásy a hřebenové prvky montujeme pod hřebenáče při ošetření střechy — bez lešení. Déšť z mědi uvolňuje stopové ionty a splavuje je po taškách, což pomáhá zpomalit návrat mechů a řas. Výsledek závisí na sklonu, zastínění a údržbě. Funguje jen s deštěm — bez elektřiny a údržby." },
-    { "k": ["prask", "tašk", "rozbij", "šlap"],
+      "a": "Měděné pásy a hřebenové prvky montujeme pod hřebenáče při ošetření střechy — bez lešení. Déšť z mědi uvolňuje stopové ionty a splavuje je po taškách, což pomáhá zpomalit návrat mechů a řas. Výsledek závisí na sklonu, zastínění a údržbě. Funguje jen s deštěm — bez elektřiny a údržby."
+    },
+    {
+      "k": [
+        "prask",
+        "tašk",
+        "rozbij",
+        "šlap"
+      ],
       "q": "Nepraskají při vaší práci na střeše tašky?",
-      "a": "Ne. Víme, kam šlápnout, a váhu rozkládáme. Kdyby přesto praskla zdravá taška, vyměníme ji na vlastní náklady. Platí to pro tašky, které nebyly poškozené nebo zkřehlé už před zahájením prací — to doloží úvodní fotodokumentace." },
-    { "k": ["péče", "péči", "pečuj", "pečov", "udržb", "kontrol", "servis"],
+      "a": "Ne. Víme, kam šlápnout, a váhu rozkládáme. Kdyby přesto praskla zdravá taška, vyměníme ji na vlastní náklady. Platí to pro tašky, které nebyly poškozené nebo zkřehlé už před zahájením prací — to doloží úvodní fotodokumentace."
+    },
+    {
+      "k": [
+        "péče",
+        "péči",
+        "pečuj",
+        "pečov",
+        "udržb",
+        "kontrol",
+        "servis"
+      ],
       "q": "Jak funguje trvalá péče?",
       "a": "Každý dům v záruce má tarif SENTINEL START zdarma — technickou kontrolu jednou za 24 měsíců a digitální pas domu. Tarify PLUS a PREMIUM přidávají servis dvakrát ročně, čištění okapů a lokální obnovu vrstvy.",
-      "link": ["/cenik.html#sentinel", "Tarify SENTINEL"] },
-    { "k": ["svj", "družstv", "bytov", "schůz", "výbor"],
+      "link": [
+        "/cenik.html#sentinel",
+        "Tarify SENTINEL"
+      ]
+    },
+    {
+      "k": [
+        "svj",
+        "družstv",
+        "bytov",
+        "schůz",
+        "výbor"
+      ],
       "q": "Děláte i pro SVJ a bytové domy?",
       "a": "Ano. Pro výbor připravíme podklady pro schůzi: rozsah, cenu podle zaměření, organizaci práce a předání. Bytové domy mají příplatek za zakrývání oken (MASK) — aktuální sazbu najdete v ceníku. Jak se ve vašem SVJ o zakázce hlasuje, určují vaše stanovy — podklady k tomu vám rádi připravíme.",
-      "link": ["/nabidka-svj.html", "Nabídka pro SVJ"] },
-    { "k": ["kde", "oblast", "region", "okres", "praha", "brno", "ostrav", "republik", "eu", "zahranič"],
+      "link": [
+        "/nabidka-svj.html",
+        "Nabídka pro SVJ"
+      ]
+    },
+    {
+      "k": [
+        "kde",
+        "oblast",
+        "region",
+        "okres",
+        "praha",
+        "brno",
+        "ostrav",
+        "republik",
+        "eu",
+        "zahranič"
+      ],
       "q": "Kde působíte?",
-      "a": "Po celé České republice, na vyžádání i v EU. Zaměříme na dálku z map, takže technik k vám kvůli ceně jezdit nemusí." },
-    { "k": ["fotovolt", "fve", "=panel", "panely", "panelů", "solár"],
+      "a": "Po celé České republice, na vyžádání i v EU. Zaměříme na dálku z map, takže technik k vám kvůli ceně jezdit nemusí."
+    },
+    {
+      "k": [
+        "fotovolt",
+        "fve",
+        "=panel",
+        "panely",
+        "panelů",
+        "solár"
+      ],
       "q": "Čistíte i fotovoltaiku?",
-      "a": "Ano. U fotovoltaiky posuzujeme přístup, povrch panelů a bezpečný způsob čištění. Vhodný postup potvrdíme podle objektu a dostupných podkladů." },
-    { "k": ["postup", "jak prob", "kroky", "průběh"],
+      "a": "Ano. U fotovoltaiky posuzujeme přístup, povrch panelů a bezpečný způsob čištění. Vhodný postup potvrdíme podle objektu a dostupných podkladů."
+    },
+    {
+      "k": [
+        "postup",
+        "jak prob",
+        "kroky",
+        "průběh"
+      ],
       "q": "Jaký je postup?",
-      "a": "Vždy celý postup: 01 Čištění — tlak i trysky podle materiálu, bez lešení. 02 Odmaštění — aby další vrstvy měly na čem držet. 03 Biocid H-BIO — likvidace spor v hloubce pórů. 04 Impregnace H-STONE — hydrofobní vrstva, neviditelná a prodyšná." }
+      "a": "Vždy celý postup: 01 Čištění — tlak i trysky podle materiálu, bez lešení. 02 Odmaštění — aby další vrstvy měly na čem držet. 03 Biocid H-BIO — likvidace spor v hloubce pórů. 04 Impregnace H-STONE — hydrofobní vrstva, neviditelná a prodyšná."
+    },
+    {
+      "k": [
+        "rezerv",
+        "termín",
+        "termin",
+        "termínu",
+        "terminu",
+        "volno",
+        "volný",
+        "volny",
+        "plánovač",
+        "planovac",
+        "kalendář",
+        "kalendar",
+        "kdy přijedete",
+        "kdy prijedete",
+        "objedn"
+      ],
+      "q": "Jak si rezervovat termín?",
+      "a": "Termín si zarezervujete online v plánovači: vyberete obec a den a uvidíte volné dny i předpověď počasí. Při rezervaci přes plánovač máte slevu 10 % podle podmínek akce. Termín vám potvrdíme telefonicky nebo e-mailem.",
+      "link": [
+        "/planovac/",
+        "Otevřít plánovač"
+      ]
+    },
+    {
+      "k": [
+        "kupon",
+        "kupón",
+        "soused",
+        "známé",
+        "zname",
+        "známý",
+        "znamy",
+        "dárek",
+        "darek",
+        "dárkový",
+        "darkovy",
+        "litr"
+      ],
+      "q": "Co je dárkový kupon pro sousedy?",
+      "a": "Naši zákazníci od nás mohou dostat dárkový kupon pro sousedy a známé. S kódem kuponu dostanete k objednané zakázce 1 litr impregnace H-STONE zdarma. Kód zadáte při rezervaci v plánovači.",
+      "link": [
+        "/kupon/",
+        "Ověřit kupon"
+      ]
+    },
+    {
+      "k": [
+        "prš",
+        "prs",
+        "déšť",
+        "dest",
+        "deště",
+        "deste",
+        "počas",
+        "pocas",
+        "mráz",
+        "mraz",
+        "vítr",
+        "vitr",
+        "zima"
+      ],
+      "q": "Co když bude pršet?",
+      "a": "Venkovní práce plánujeme podle předpovědi počasí. V plánovači vidíte u každého dne srážky a teploty. Když předpověď na domluvený den nevyjde, ozveme se vám a termín po dohodě posuneme.",
+      "link": [
+        "/planovac/",
+        "Plánovač s počasím"
+      ]
+    }
   ]
 }

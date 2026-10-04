@@ -44,6 +44,7 @@ Pořadí úkolů agenta: **00 → 20 → 01 → 02 → 17 → 03 → 04 → 05 �
 **Rozhodnutí (Claude Pro, úkol P1)**
 - [ ] Doba uchování poptávek, newsletter Holubí pošta, stav technologií HYDRA / MAST / RAIL / SCAN / SENTINEL, pojištění, doklady H-BIO, slib reakční doby, tvrzení z Facebooku („25 let zkušeností“, „Technologie z Velké Británie“).
 - [ ] Text obchodních a reklamačních podmínek od právníka (úkol 04).
+- [ ] Úkol 21 (plánovač s počasím): potvrdit podmínky **slevy 10 % za rychlou rezervaci** a **dárkového kuponu 1 l H-STONE zdarma** (`content/planovac.json` – místa `[DOPLNIT]`), kolik zakázek zvládnete za den, a poslat technický list H-STONE (pravidla počasí). Vytvořit kalendář „HSPG – zakázky“ a jeho **tajnou adresu iCal** vložit sám do Netlify jako `HSPG_KALENDAR_ICS_URL` (Claude v Chrome úloha C11). Kalendář s varováním přidat do Google z odkazu v AI centru. Vložený Google kalendář (iframe) zatím na web nedávat.
 
 **Nikdy**
 - Neměnit MX záznamy hspg.cz (pošta běží na Seznamu).

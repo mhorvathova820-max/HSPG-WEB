@@ -340,7 +340,8 @@ test("AI: dvě otázky před načtením znalostí → jedno POST /api/asistent, 
   p.on("request", (r) => { if (r.method() === "POST" && r.url().endsWith("/api/asistent")) posty.push(r.url()); });
   await p.click("#hbot-btn");
   await p.waitForSelector("#hbot:not([hidden])");
-  await zeptejSe(p, ["Máte volný termín v listopadu?", "A v prosinci?"]);
+  // Otázka mimo FAQ (dotaz na volný termín by teď správně odpověděl FAQ o plánovači – úkol 21).
+  await zeptejSe(p, ["Stihnete to ještě v listopadu?", "A v prosinci?"]);
   await p.waitForSelector("#hbot .hb-stitek", { timeout: 15000 });
   await p.waitForTimeout(500);
   assert.equal(posty.length, 1);

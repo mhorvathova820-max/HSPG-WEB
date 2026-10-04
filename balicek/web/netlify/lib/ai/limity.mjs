@@ -23,6 +23,8 @@ export function pametoveUloziste() {
       m.set(k, { v: JSON.stringify(v), etag });
       return { modified: true, etag };
     },
+    async list({ prefix = "" } = {}) { return { blobs: [...m.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key, etag: m.get(key).etag })) }; },
+    async delete(k) { m.delete(k); },
     _mapa: m,
   };
 }
@@ -66,7 +68,8 @@ async function cti(ul, k) {
 
 // Atomická změna: přečti s etagem, spočítej novou hodnotu, zapiš jen pokud se mezitím nezměnila.
 // zmena(stara) vrací { hodnota, vysledek } nebo null = nic nezapisovat (vysledek se vrátí jako null).
-async function aktualizuj(ul, klic, zmena, pokusu = 8) {
+// Exportováno pro plánovač a kupony (lib/planovac) – vlastní zápis do Blobs bez etagu nepiš.
+export async function aktualizuj(ul, klic, zmena, pokusu = 8) {
   for (let i = 0; i < pokusu; i++) {
     const r = ul.getWithMetadata ? await ul.getWithMetadata(klic, { type: "json" }) : null;
     const stara = r ? r.data : null;

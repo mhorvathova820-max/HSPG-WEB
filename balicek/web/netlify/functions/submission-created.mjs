@@ -10,6 +10,9 @@
 //   Push (ntfy/Telegram) nese jen typ a číslo poptávky. Jméno a telefon v pushi až s OZNAMENI_S_UDAJI=1
 //   – ntfy.sh i Telegram jsou další příjemci osobních údajů a musí být uvedeni v zásadách.
 import firma from "../../content/firma.json" with { type: "json" };
+import planovac from "../../content/planovac.json" with { type: "json" };
+import { zPayloadu, ulozRezervaci } from "../lib/planovac/rezervace.mjs";
+import { uplatniKupon, vychoziUlozistePlanovac, DUVODY } from "../lib/planovac/kupony.mjs";
 
 const INTERNI = new Set(["form-name", "_honey", "bot-field", "g-recaptcha-response", "souhlas-pravidla", "ip", "user_agent", "referrer", "subject"]);
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -92,7 +95,30 @@ export function potvrzeniPovoleno(formular, env, firmaData) {
     pz.formulare.includes(formular) && !JSON.stringify(pz).includes("[DOPLNIT");
 }
 
-export function vytvorOznameni({ env = process.env, f = fetch, transport, firmaData = firma } = {}) {
+// Rezervace z plánovače (úkol 21): uloží termín pro kalendář majitele, uplatní kupon (atomicky, jednou
+// na rezervaci) a doplní do oznámení slevu a stav kuponu. Výpadek úložiště oznámení nezastaví.
+export async function zpracujRezervaci(payload, { dejUloziste, ted = Date.now(), cfg = planovac } = {}) {
+  const r = zPayloadu(payload);
+  if (!r) return null;
+  const radky = ["", "— Plánovač (rychlá rezervace) —", `Termín: ${r.termin || "neuveden"}${r.nahradni ? ` · náhradní: ${r.nahradni}` : ""}`,
+    `Sleva: ${cfg.sleva.procent} % za rezervaci v plánovači – uplatnit podle podmínek akce${cfg.sleva.potvrzeno ? "" : " (podmínky zatím nepotvrzené)"}.`];
+  let kupon = null;
+  try {
+    const ul = await dejUloziste();
+    if (r.kupon) kupon = await uplatniKupon(ul, r.kupon, r.id, ted);
+    await ulozRezervaci(ul, r, kupon);
+  } catch {
+    radky.push("Pozor: rezervaci se nepodařilo uložit do kalendáře plánovače (úložiště nedostupné) – zapište ji ručně.");
+  }
+  if (r.kupon) {
+    radky.push(kupon?.ok
+      ? `Kupon ${kupon.kod}: PLATNÝ – ${cfg.kupon.nabidka} (zbývá použití: ${kupon.zbyva}).`
+      : `Kupon ${r.kupon}: NEPLATNÝ – ${DUVODY[kupon?.duvod] || "nešlo ověřit, zkontrolujte v panelu"}.`);
+  }
+  return { rezervace: r, kupon, text: radky.join("\n") };
+}
+
+export function vytvorOznameni({ env = process.env, f = fetch, transport, firmaData = firma, dejUlozistePlanovac = vychoziUlozistePlanovac, ted = () => Date.now() } = {}) {
   return async function handler(req) {
     let payload;
     try {
@@ -102,6 +128,12 @@ export function vytvorOznameni({ env = process.env, f = fetch, transport, firmaD
     }
     if (!payload) return new Response("bad request", { status: 400 });
     const s = shrnuti(payload);
+    const rez = await zpracujRezervaci(payload, { dejUloziste: dejUlozistePlanovac, ted: ted() });
+    if (rez) {
+      s.text += rez.text;
+      s.titulek = s.titulek.replace("🕊 Poptávka", `🗓 Rezervace ${rez.rezervace.termin || ""}`.trim());
+      s.kratce = `🗓 Nová rezervace z plánovače (${rez.rezervace.termin || "bez termínu"}) #${s.cislo}`;
+    }
     const ulohy = [];
     if (env.NTFY_TEMA) ulohy.push(["ntfy", () => ntfy(s, env, f)]);
     if (env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) ulohy.push(["telegram", () => telegram(s, env, f)]);

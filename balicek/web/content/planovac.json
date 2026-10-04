@@ -1,0 +1,44 @@
+{
+  "_poznamka": "Plánovač termínu pro zákazníky (/planovac/) a H-WEATHER CONTROL pro majitele. Jediný zdroj pro stránku, funkce, H-BOT a pravidla akce. Nabídky (sleva 10 % za rychlou rezervaci v plánovači a dárkový kupon 1 l H-STONE zdarma pro sousedy a známé) zadal majitel 4. 10. 2026; podmínky označené [DOPLNIT] potvrdí majitel před nasazením na produkci (potvrzeno=true). Dokud potvrzeno=false, stránka ukazuje upozornění „podmínky upřesníme v nabídce“ a do pravidel akce se podmínky nepíšou jako závazné.",
+  "horizontDni": 21,
+  "nejdriveZaDni": 1,
+  "pracovniDny": [1, 2, 3, 4, 5, 6],
+  "kapacitaZakazekNaDen": 1,
+  "_kapacita": "[DOPLNIT: kolik zakázek zvládne tým za den – výchozí 1. Den je obsazený, když je v kalendáři zakázek tolik událostí.]",
+  "kalendar": {
+    "_poznamka": "Obsazenost se čte z kalendáře zakázek majitele (proměnná HSPG_KALENDAR_ICS_URL v Netlify – tajná adresa iCal, nikdy do kódu ani do chatu). Zákazník vidí jen volno/obsazeno, nikdy názvy, místa ani lidi.",
+    "znacka": "",
+    "_znacka": "Prázdné = počítá se každá událost kalendáře zakázek. Jinak jen události, jejichž název obsahuje tento text (např. „[H]“).",
+    "vychoziTyp": "impregnace"
+  },
+  "sleva": {
+    "potvrzeno": false,
+    "procent": 10,
+    "nazev": "Sleva 10 % za rychlou rezervaci v plánovači",
+    "kratce": "Rezervujte termín online a získáte slevu 10 %.",
+    "podminky": [
+      "Sleva 10 % platí při rezervaci termínu přes online plánovač na hspg.cz.",
+      "Počítá se z ceny prací podle aktuálního ceníku. [DOPLNIT: zda i z dopravy a příplatků]",
+      "Platí, když zakázku po zaměření potvrdíte a provedeme ji v rezervovaném termínu. Přesun termínu kvůli počasí nebo z naší strany slevu neruší.",
+      "Se slevami z ceníku se nesčítá – uplatní se výhodnější. [DOPLNIT: potvrdit]",
+      "Minimální cena zakázky podle ceníku platí i po slevě. [DOPLNIT: potvrdit]"
+    ]
+  },
+  "kupon": {
+    "potvrzeno": false,
+    "nabidka": "1 litr impregnace H-STONE zdarma",
+    "pro": "sousedy a známé",
+    "nazev": "Dárkový kupon pro sousedy a známé",
+    "kratce": "Máte kupon od souseda? Zadejte jeho kód a k zakázce dostanete 1 litr impregnace H-STONE zdarma.",
+    "platnostDni": 180,
+    "maxPouziti": 5,
+    "_platnost": "[DOPLNIT: platnost kuponu (výchozí 180 dní) a kolik domácností může jeden kupon použít (výchozí 5)]",
+    "podminky": [
+      "Kupon dostávají naši zákazníci a mohou ho předat sousedům a známým.",
+      "S kódem kuponu dostanete k objednané zakázce 1 litr impregnace H-STONE zdarma. [DOPLNIT: forma – odečet materiálu v ceně zakázky, nebo předání balení]",
+      "Jedna domácnost (jedna zakázka) může kupon použít jednou. Jeden kód lze použít nejvýš tolikrát, kolik je uvedeno na kuponu.",
+      "Kupon platí do data uvedeného na kuponu a nelze ho vyměnit za peníze.",
+      "Kupon lze kombinovat se slevou za rezervaci v plánovači. [DOPLNIT: potvrdit]"
+    ]
+  }
+}

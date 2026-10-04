@@ -1,0 +1,82 @@
+{
+  "_poznamka": "H-WEATHER CONTROL – interní pravidla plánování venkovních prací podle předpovědi (MET Norway). Nejsou to technické parametry výrobku ani veřejné tvrzení. Výchozí hodnoty jsou běžné rozsahy z technických listů jiných výrobců hydrofobních impregnací a čisticích prostředků (zdroje v balicek/ukoly/21-planovac-pocasi.md). Majitel je porovná s technickým listem H-STONE / H-BIO / H-CLEAN a nastaví potvrzeno=true. Dokud potvrzeno=false, panel u každého vyhodnocení ukazuje upozornění a zákazníkům se ukazují jen fakta předpovědi (srážky, teplota, vítr), ne hodnocení vhodnosti.",
+  "pracovniDoba": {
+    "od": 7,
+    "do": 19
+  },
+  "typy": {
+    "impregnace": {
+      "nazev": "Impregnace (H-STONE)",
+      "potvrzeno": false,
+      "klicovaSlova": [
+        "impregn",
+        "h-stone",
+        "hstone",
+        "hydrofob",
+        "ochrana"
+      ],
+      "teplotaMin": 5,
+      "teplotaMax": 30,
+      "srazkyBehemMm": 0.2,
+      "suchoPredHodin": 24,
+      "suchoPredMm": 1,
+      "suchoPoHodin": 12,
+      "suchoPoMm": 0.5,
+      "mrazPoHodin": 24,
+      "mrazMin": 0,
+      "vitrMaxMs": 8,
+      "narazyMaxMs": 12,
+      "vlhkostMax": 85,
+      "pravdepodobnostRiziko": 40
+    },
+    "cisteni": {
+      "nazev": "Čištění a tlakové mytí",
+      "potvrzeno": false,
+      "klicovaSlova": [
+        "čištění",
+        "cisteni",
+        "mytí",
+        "myti",
+        "tlak",
+        "fve",
+        "solár",
+        "solar",
+        "okap"
+      ],
+      "teplotaMin": 3,
+      "srazkyBehemMm": 2,
+      "mrazPoHodin": 12,
+      "mrazMin": 0,
+      "vitrMaxMs": 12,
+      "narazyMaxMs": 15,
+      "pravdepodobnostRiziko": 60
+    },
+    "biocid": {
+      "nazev": "Biocidní ošetření (H-BIO)",
+      "potvrzeno": false,
+      "klicovaSlova": [
+        "h-bio",
+        "hbio",
+        "biocid",
+        "mech",
+        "řas",
+        "lišejn",
+        "lisejn"
+      ],
+      "teplotaMin": 5,
+      "teplotaMax": 30,
+      "srazkyBehemMm": 0.2,
+      "suchoPoHodin": 12,
+      "suchoPoMm": 0.5,
+      "mrazPoHodin": 24,
+      "mrazMin": 0,
+      "vitrMaxMs": 8,
+      "pravdepodobnostRiziko": 40
+    }
+  },
+  "verejne": {
+    "_poznamka": "Pro zákazníky (plánovač, /akce/): den „bez deště“ = srážky za celý den (místní čas) nejvýš suchoMm. Fakta z předpovědi, žádné hodnocení vhodnosti – to rozhoduje technik.",
+    "suchoMm": 0.5
+  },
+  "_zdroje": "Rozsahy z technických listů (Sika, Mapei, Den Braven, Soudal, Remmers, Lithofin, Weber) – seznam s odkazy v balicek/ukoly/21-planovac-pocasi.md. Vítr: žádný list neuvádí číslo – 8 m/s (nárazy 12) je volba majitele. Údaje o dešti po nanesení platí při +20 °C, v chladu déle. Impregnaci plánovat nejdřív 48 h po mytí nebo biocidu."
+}
