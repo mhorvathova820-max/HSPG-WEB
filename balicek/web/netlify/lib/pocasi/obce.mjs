@@ -99,4 +99,6 @@ export async function infoObci() {
   const d = dejData();
   return { pocet: d.pocet, zdroj: d.zdroj };
 }
-export const ZDROJ_OBCI = "Obce: ČÚZK – RÚIAN (CC BY 4.0)";
+// Uvedení zdroje podle podmínek ČÚZK: „ČÚZK, rok“ (rok = aktuálnost použitého souboru) a popis úpravy.
+const ROK_OBCI = String(vychoziData.zdroj || "").match(/ČÚZK, (\d{4})/)?.[1] || "";
+export const ZDROJ_OBCI = `Obce: ČÚZK${ROK_OBCI ? `, ${ROK_OBCI}` : ""} – RÚIAN (CC BY 4.0), upraveno: výběr obcí a přepočet souřadnic`;
