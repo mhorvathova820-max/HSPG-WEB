@@ -79,7 +79,7 @@ Další problémy:
 
    `scripts/build-kontakty.mjs` projde HTML v publikačním adresáři (kromě interních `rd-control-panel/` a `ai-centrum/`) a JS v `assets/` a provede:
    - u každého `<a … data-kontakt="ROLE" …>` nastaví `data-mail` na obrácenou adresu role. Chybí-li `data-subject`, doplní výchozí předmět podle jazyka stránky (`<html lang>`),
-   - v JS přepíše výraz za značkou `/*KONTAKT:ROLE*/` na `['mistni-cast','hspg.cz'].join('@')` (rozdělená podoba kvůli sběračům zůstává),
+   - v JS (soubory v `assets/` i inline skripty v HTML) přepíše výraz za značkou `/*KONTAKT:ROLE*/` na `['mistni-cast','hspg.cz'].join('@')` (rozdělená podoba kvůli sběračům zůstává),
    - `--kontrola`: nic nezapíše, vypíše soubory, které by se změnily, a skončí kódem 1, pokud nějaké jsou.
 
    Měň jen dotčené atributy a výrazy. Žádné přeformátování celého souboru. Napoj skript do build příkazu **za** `build-regions` (vedle `build-ceny`/`build-hbot`). Pokud se HTML commituje vygenerované (značky „Neupravovat ručně“ tomu nasvědčují), spusť ho a commitni výstup.
@@ -105,7 +105,7 @@ Další problémy:
    - v `assets/holub-let.js` nepoužitou konstantu `EMAIL` **smaž** (před smazáním ověř `grep -n EMAIL`, že se nikde nepoužívá).
 
    Spusť `node scripts/build-kontakty.mjs`.
-7. JSON-LD na `/` a `/en.html`: změň jen hodnotu `email` na `info@hspg.cz` (= `firma.email`). Strukturu neměň (úkol 11). Adresa `info@` bude v JSON-LD čitelná. Je to vědomý kompromis pro obecnou adresu a Seznam ji filtruje proti spamu.
+7. JSON-LD na `/` a `/en.html`: změň jen hodnotu `email` na `info@hspg.cz` (= `firma.email`). Strukturu neměň (úkol 11). Adresa `info@` bude v JSON-LD čitelná. Je to vědomý kompromis: jde o obecnou adresu a strukturovaná data ji potřebují ve skutečné podobě.
 8. FormSubmit pryč (`/akce/`, `/recenze/`):
    - odstraň `FORMSUBMIT`, `pressFormSubmit()`, příznak `odeslano` (slouží jen záloze) a zmínky o FormSubmit v komentářích. Nativní odeslání bez JS (`action='/akce/dekujeme/'`, `'/recenze/?odeslano=1'`) nech beze změny,
    - při `!r.ok` i při síťové chybě zůstaň na stránce:
@@ -170,7 +170,7 @@ Fáze A:
 Fáze B:
 - [ ] Každá stránka s `<footer>` (247 + 404) má v patičce právě jeden blok `KONTAKTY` s 5 odkazy na 5 různých adres v pořadí `poradi`. Každý odkaz má neprázdný popisek účelu a `/en.html` má anglické popisky (test).
 - [ ] Počet `data-mail` ve výstupu = 5 × počet stránek s patičkou + odkazy v textu. Stav 4. 10. dává 247 × 5 + 11 = 1 246 a stránka 404 dalších 5 (vypiš skutečná čísla).
-- [ ] Žádný `a[data-mail]` nemá `href="#"` a ve výstupu není „na Napsat e-mail“ ani „je na Napsat e-mail“ (test).
+- [ ] Žádný `a[data-mail]` nemá `href="#"`. V textovém obsahu stránek (po odstranění HTML značek) není „na Napsat e-mail“ (test).
 - [ ] Popisky v bloku dodržují nezlomitelnou mezeru po jednopísmenných předložkách a spojkách (test regexem).
 - [ ] E2E se zapnutým JS (`/`, `/cenik.html`, `/akce/`, `/en.html`, `/cisteni-strech/praha/`, 404; šířky 360 a 1280 px):
   - 5 odkazů v `#kontakty` ukazuje adresy `…@hspg.cz`,
@@ -180,7 +180,7 @@ Fáze B:
   - žádná chyba konzole.
 - [ ] E2E s `javaScriptEnabled: false`: blok ukazuje „poptavky (zavináč) hspg.cz“ a odkaz v textu vede na `#kontakty`.
 - [ ] Na `/akce/` je v patičce odkaz „Nastavení cookies“ uvnitř `<p>` (test: za `</p>` v patičce není `·` ani `<a`).
-- [ ] Lighthouse mobil `/` a `/cenik.html`: přístupnost a SEO 100 jako před úkolem, výkon nižší nanejvýš o šum měření (±2). Uveď čísla před a po.
+- [ ] Lighthouse mobil `/` a `/cenik.html`: přístupnost ani SEO neklesly oproti měření před úkolem (homepage 4. 10.: obojí 100), výkon nižší nanejvýš o šum měření (±2). Uveď čísla před a po.
 - [ ] `node scripts/build-hbot.mjs --kontrola` projde (pokud je úkol 01 převzatý) a všechny původní testy webu projdou.
 
 ## Ověření
