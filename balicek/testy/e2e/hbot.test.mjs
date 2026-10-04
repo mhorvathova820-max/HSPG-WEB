@@ -179,6 +179,14 @@ test("majitel: přihlášení přes #majitel, Vše ve tvých rukách – všechn
   await p.waitForSelector("#hbot .hbm-info >> text=Hotovo.");
   const kroky = await p.$$eval("#hbot .hbm-krok", (e) => e.map((x) => x.textContent));
   assert.deepEqual(kroky, ["1. Návrh – ChatGPT", "2. Kontrola pravdivosti – Claude", "3. Finální verze – Gemini"]);
+  // Panel se posunul k výsledku: finální krok je v zorném poli panelu.
+  const videt = await p.evaluate(() => {
+    const obal = document.querySelector("#hbot .hbm");
+    const posledni = [...document.querySelectorAll("#hbot .hbm-krok")].pop();
+    const o = obal.getBoundingClientRect(), k = posledni.getBoundingClientRect();
+    return obal.scrollTop > 0 && k.top >= o.top - 1 && k.top <= o.bottom;
+  });
+  assert.equal(videt, true, "finální verze musí být po dokončení vidět");
 
   await p.selectOption("#hbm-uloha", "stranka");
   await p.fill("#hbm-dotaz", "");

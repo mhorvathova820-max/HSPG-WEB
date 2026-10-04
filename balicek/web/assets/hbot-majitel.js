@@ -116,9 +116,18 @@
       return { k: k, text: text, st: st };
     }
 
-    var posunuto = false;
-    function ukazVysledky() { if (!posunuto && vysledky.firstChild) { posunuto = true; vysledky.firstChild.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }
-    function zacni() { posunuto = false; preruseni = new AbortController(); odeslat.disabled = true; zastavit.disabled = false; return preruseni.signal; }
+    // Panel sleduje přibývající výsledky, dokud majitel neposune sám (kolečko, dotyk, klávesy).
+    var rucne = false;
+    ['wheel', 'touchmove'].forEach(function (u) { obal.addEventListener(u, function () { rucne = true; }, { passive: true }); });
+    obal.addEventListener('keydown', function (e) { if (/^(PageUp|PageDown|ArrowUp|ArrowDown|Home|End| )$/.test(e.key) && e.target === obal) rucne = true; });
+    function ukazVysledky() {
+      if (rucne || !vysledky.firstChild) return;
+      if (rezim.value === 'spoluprace') { obal.scrollTop = obal.scrollHeight; return; }
+      // Všechny AI najednou: horní okraj výsledků nahoru, aby byly vidět všechny karty.
+      var posun = vysledky.getBoundingClientRect().top - obal.getBoundingClientRect().top - 8;
+      if (posun > 0) obal.scrollTop += posun;
+    }
+    function zacni() { rucne = false; preruseni = new AbortController(); odeslat.disabled = true; zastavit.disabled = false; return preruseni.signal; }
     function skonci(t) { odeslat.disabled = false; zastavit.disabled = true; preruseni = null; info.textContent = t || 'Hotovo.'; }
     zastavit.addEventListener('click', function () { if (preruseni) preruseni.abort(); });
 
@@ -154,6 +163,7 @@
         }
       }).then(function (k) {
         c.k.setAttribute('data-final', k.final);
+        ukazVysledky();
         c.st.textContent = 'Kopírovat zkopíruje jen finální verzi.';
         skonci();
       }).catch(function (e) {

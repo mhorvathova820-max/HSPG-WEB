@@ -2,7 +2,7 @@
 > Priorita P0 · Závisí na: 02, 03 (pokud jsou sloučené 04 a 13, navazuje i na ně) · Čeká na majitele: doba uchování poptávek (12 měsíců / 3 roky), zda existuje newsletter „Holubí pošta“, výběr AI pro veřejného asistenta a schválení textu zásad, případně právníkem (otázky O1–O11) · Rozsah: registr skutečného zpracování, serverové úpravy, bez kterých by zásady nebyly pravdivé, jedno nové znění zásad (česky + anglické shrnutí), správné právní tituly u formulářů a odkazy na zásady. Tři fáze: **A** zpracování a registr (hlášení), **B** text zásad a formuláře (náhled, hlášení, **nesloučit**), **C** doplnění po rozhodnutí majitele, schválení a sloučení.
 
 ## Proč (s důkazy)
-Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií shodné), GET na hspg.cz a kód balíčku `balicek/web`. Čísla řádků platí pro živý web, ve zdroji se mohou lišit.
+Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií shodné), GET na hspg.cz a kód balíčku `balicek/web`. Čísla řádků platí pro živý web, ve zdroji se mohou lišit. U souborů balíčku (`asistent.mjs`, `limity.mjs`, `hbot-panel.js` …) se odkazuje na funkce a texty, ne na řádky – balíček se průběžně mění, hledej je přes `grep`.
 
 | # | Zjištění | Důkaz | Audit |
 |---|---|---|---|
@@ -10,11 +10,11 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
 | 2 | „Holubí pošta“ (zasílání informací se souhlasem) existuje jen v textu zásad. Na webu není žádný formulář k přihlášení. | grep kopie webu „Holubí pošt“ → 1 výskyt (zásady ř. 94) | pravni #5b, formulare #10 |
 | 3 | Na webu jsou dvě odlišná znění. `/pravidla-akce/#gdpr` (ř. 68–74) má vlastní účely, příjemce (FormSubmit na prvním místě) a uchování („12 měsíců … účetní a daňové předpisy“, ř. 72). Zásady (ř. 95) uvádějí „po dobu záruky (10 let) a dále dle zákonných lhůt“. | | pravni #5d |
 | 4 | Zásady nepokrývají řadu účelů: uchazeče o práci (`kariera.html` ř. 180: telefon, e-mail, Facebook; slovo „uchazeč“ se v zásadách vyskytuje 0×), dodavatele (`spoluprace.html` ř. 93–95), WhatsApp (`index.html` ř. 2003, odkaz `wa.me`), pas domu a registr zakázek (`pas-domu.html` ř. 253–304, `/api/sentinel/validate`), reklamace (úkol 04), zdroj návštěvy, oznámení a potvrzení zákazníkovi (úkol 02) a úložiště v prohlížeči (Cache Storage service workeru, `hspg-svetly`). Chybí i informace podle čl. 13 odst. 2 písm. e a f GDPR (zda je poskytnutí údajů povinné, automatizované rozhodování) a datum revize. Stránka uvádí jen „Platné od 22. 8. 2026“ (ř. 89). | | pravni #5c, #5e, #5f, formulare #20 |
-| 5 | **AI:** sekce zásad `#hbot-ai` jmenuje jen Anthropic. Asistent z úkolu 01 posílá dotaz dvěma poskytovatelům (jeden píše, druhý kontroluje). Výchozí pořadí je `claude,gemini,gpt,grok` (`asistent.mjs` ř. 27) a Grok běží přes `OPENROUTER_API_KEY`, který do funkcí vkládá Netlify AI Gateway (`poskytovatele.mjs` ř. 18, KONTEXT §2). Interní `/api/ai` posílá text majitele bez maskování. Ukázkový text v AI centru zní „Paní Nováková z Kolína…“ (`ai-centrum/index.html` ř. 114, `hbot-majitel.js` ř. 41). | | ai #3, pravni #9 |
-| 6 | **„Souhlas“ tam, kde je titulem smlouva.** Na `/akce/` (ř. 156–157) je jediné povinné pole „Souhlasím se zpracováním osobních údajů pro přípravu cenové nabídky a se zásadami … a pravidly akce“ (payload `Souhlas se zpracováním osobních údajů=ano`). Průvodce na homepage má v kroku 6 (`index.html` ř. 2200, payload ř. 2244) povinné „Souhlasím se zpracováním osobních údajů pro přípravu cenové nabídky“. H-BOT má u zavolání zpět „Souhlasím se zpracováním jména a telefonu“ (`hbot-panel.js` ř. 205) a zásady `#hbot` uvádějí „na základě vašeho souhlasu“. Zásady přitom (ř. 94) uvádějí čl. 6 odst. 1 písm. b a pravidla (ř. 70) „jednání o smlouvě … a oprávněný zájem“. Souhlas podmíněný službou není svobodný (čl. 7 odst. 4 GDPR). Spojení s pravidly akce navíc brání dát ho odděleně. | | pravni #4, formulare #10 |
+| 5 | **AI:** sekce zásad `#hbot-ai` jmenuje jen Anthropic. Asistent z úkolu 01 posílá dotaz dvěma poskytovatelům (jeden píše, druhý kontroluje). Výchozí pořadí je `claude,gemini,gpt,grok` (`asistent.mjs` → `poradi()`) a Grok běží přes `OPENROUTER_API_KEY`, který do funkcí vkládá Netlify AI Gateway (`poskytovatele.mjs` → `POSKYTOVATELE.grok`, KONTEXT §2). Vlastní klíč nastavený v Netlify má přednost, pak AI nejde přes Gateway, ale přímo k poskytovateli. Interní `/api/ai` posílá text majitele bez maskování. Ukázkový text v AI centru zní „Paní Nováková z Kolína…“ (`placeholder` pole dotazu v `ai-centrum/index.html` a `hbot-majitel.js`). | | ai #3, pravni #9 |
+| 6 | **„Souhlas“ tam, kde je titulem smlouva.** Na `/akce/` (ř. 156–157) je jediné povinné pole „Souhlasím se zpracováním osobních údajů pro přípravu cenové nabídky a se zásadami … a pravidly akce“ (payload `Souhlas se zpracováním osobních údajů=ano`). Průvodce na homepage má v kroku 6 (`index.html` ř. 2200, payload ř. 2244) povinné „Souhlasím se zpracováním osobních údajů pro přípravu cenové nabídky“. H-BOT má u zavolání zpět „Souhlasím se zpracováním jména a telefonu“ (`hbot-panel.js`, pole `name="souhlas"`) a zásady `#hbot` uvádějí „na základě vašeho souhlasu“. Zásady přitom (ř. 94) uvádějí čl. 6 odst. 1 písm. b a pravidla (ř. 70) „jednání o smlouvě … a oprávněný zájem“. Souhlas podmíněný službou není svobodný (čl. 7 odst. 4 GDPR). Spojení s pravidly akce navíc brání dát ho odděleně. | | pravni #4, formulare #10 |
 | 7 | Payload formulářů nenese verzi zásad, takže nejde doložit, jaké znění zákazník viděl. | | formulare #10 |
-| 8 | **Úložiště limitů** (Netlify Blobs `hspg-ai`): klíče `limit/k10/<otisk>`, `limit/kden/<otisk>` a `limit/login/<otisk>` (`limity.mjs` ř. 49–64) se nikdy nemažou (knihovna nevolá `delete`). Otisk vzniká jako SHA-256 z data a IP (`otiskKlienta`, ř. 23). Sůl je tedy předvídatelná a jde o pseudonymizaci, ne o anonymizaci. Úkol 02 stejný postup použil pro otisk e-mailu (úložiště `hspg-oznameni`). Věta „otisk IP na 1 den“ by dnes nebyla pravdivá. | | nový nález v kódu balíčku |
-| 9 | **Odkazy:** 234 z 247 stránek (231 okresních, `/cisteni-dlazby/`, `/cisteni-fasad/`, `/cisteni-strech/`) má v patičce jen „Nastavení cookies“ (`#cookies`), odkaz na zásady chybí. Na `/en` vede „Privacy policy“ na českou stránku (`en.html` ř. 355). `og:description` a `twitter:description` zásad píšou „… společností HOLUB …“ (ř. 19, 27), provozovatelem je ale OSVČ. Upozornění o AI v H-BOT (`hbot-panel.js` ř. 312) na zásady neodkazuje. | | pravni #5, předávka z 13 |
+| 8 | **Úložiště limitů** (Netlify Blobs `hspg-ai`): klíče `limit/k10/<otisk>`, `limit/kden/<otisk>` a `limit/login/<otisk>` (`limity.mjs` → `povolVerejnyDotaz`, `povolPokusOPrihlaseni`) se nikdy nemažou (knihovna nevolá `delete`). Otisk (`otiskKlienta`) nepoužívá tajnou sůl, jde tedy o pseudonymizaci, ne o anonymizaci. Úkol 02 stejný postup použil pro otisk e-mailu (úložiště `hspg-oznameni`). Věta „otisk IP na 1 den“ ani komentář v záhlaví `limity.mjs` by dnes nebyly pravdivé. | | nový nález v kódu balíčku |
+| 9 | **Odkazy:** 234 z 247 stránek (231 okresních, `/cisteni-dlazby/`, `/cisteni-fasad/`, `/cisteni-strech/`) má v patičce jen „Nastavení cookies“ (`#cookies`), odkaz na zásady chybí. Na `/en` vede „Privacy policy“ na českou stránku (`en.html` ř. 355). `og:description` a `twitter:description` zásad píšou „… společností HOLUB …“ (ř. 19, 27), provozovatelem je ale OSVČ. Upozornění o AI v H-BOT (`hbot-panel.js`, zpráva „Na vlastní otázky odpovídají spolupracující AI …“) na zásady neodkazuje. | | pravni #5, předávka z 13 |
 | 10 | **Počasí:** `/akce/` posílá na `/api/pocasi` celý obsah pole adresy (ř. 188–189). GET `/api/pocasi?q=Náměstí 1, Kolín` vrací `"obec":"Kolín"`, obec tedy vybírá až server. Zásady (`#pocasi`) tvrdí, že Open-Meteo dostává jen obec. Ověř ve zdroji funkce `pocasi`. | GET 4. 10. | KONTEXT §2 |
 
 **V pořádku (zachovat):** údaje o správci odpovídají ARES (Dušan Holub, Pernerova 10/32, 186 00 Praha 8 – Karlín, neplátce DPH). Adresa ÚOOÚ je správně. Před souhlasem web neodešle žádný požadavek na cizí domény. Clarity maskuje formulářová pole. `/recenze/` má poctivý oddělený souhlas se zveřejněním. `hspg-fotky` na `/akce/dekujeme/` má místo zaškrtávacího pole informační větu („Fotky použijeme jen k posouzení povrchu a přípravě nabídky (zásady)“), která je **vzorem pro ostatní formuláře**. Kotvy `#fotky`, `#recenze`, `#hbot`, `#hbot-ai`, `#pocasi`, `#messenger` a `#cookies` (na `#cookies` vede 248 odkazů) se používají a musí zůstat.
@@ -34,11 +34,11 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
 ## Rozsah
 **ANO:**
 - inventura zpracování a podklady o příjemcích (`docs/zpracovani/`, mimo publikovaný adresář)
-- registr `content/zpracovani.json` a generátor `scripts/build-zasady.mjs`
+- registr `content/zpracovani.json` a generátor `scripts/build-zasady.mjs` včetně brány před produkcí (`preprodukce` a kontrola v `scripts/nasadit.mjs`)
 - serverové úpravy, bez kterých by zásady nebyly pravdivé:
   - povolení AI z registru (`asistent.mjs`, `ai.mjs`)
   - pojistka pushe (`submission-created.mjs`)
-  - tajná sůl a mazání otisků (`limity.mjs` a otisk e-mailu z úkolu 02)
+  - tajná sůl a mazání otisků (`limity.mjs`, otisk e-mailu z úkolu 02, plánovaný úklid)
   - pseudonymizace interní AI
   - počasí jen s obcí
   - logování bez obsahu dotazů
@@ -57,7 +57,7 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
 - Skript, který maže podání v Netlify Forms podle doby uchování, a záloha exportu → **úkol 19**. Tento úkol mu dodá doby v registru.
 - Přístup k pasu domu (náhodný token) a souhlasy v registru zakázek → **úkol 14**.
 - Sjednocení patiček → **úkol 08** (tady se přidává jen odkaz).
-- Odstranění FormSubmitu a e-mailové adresy → **úkol 03** (hotovo). Zakládání nových schránek (`gdpr@`): **nezakládat**, kontakt je `info@hspg.cz`.
+- Odstranění FormSubmitu a e-mailové adresy → **úkol 03** (musí být sloučený, ověř v kroku A1). Zakládání nových schránek (`gdpr@`): **nezakládat**, kontakt je `info@hspg.cz`.
 - Zavedení newsletteru (formulář, double opt-in) → jen návrh, pokud ho majitel v O2 chce.
 - Formuláře pro kariéru a spolupráci (formulare #20) → jen návrh a otázka O11. Tady jen sekce v zásadách a odkazy.
 - Text záruky a její délka → **úkol 05**. V zásadách se délka záruky nepíše natvrdo.
@@ -75,7 +75,7 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
    - `/akce/dekujeme/` s `assets/fotky-upload.js`, dále `/recenze/` a `/reklamace` (úkol 04)
    - `kariera.html`, `spoluprace.html`, `en.html` a šablonu patičky v `scripts/build-regions.mjs`
    - H-BOT (`assets/hbot-panel.js`, `assets/hbot-majitel.js`) a `ai-centrum/index.html`
-   - funkce (`netlify.toml` → `[functions]`): `asistent`, `ai`, `majitel`, `submission-created`, `pocasi`, `facebook-webhook`, `rd-stav`, `sentinel-validate`, `holub-ai`
+   - funkce (`netlify.toml` → `[functions]`): `asistent`, `ai`, `ai-stav`, `majitel`, `submission-created`, `pocasi`, `facebook-webhook`, `rd-stav`, `sentinel-validate`, `holub-ai`
    - knihovnu `netlify/lib/ai/`, `assets/souhlas.js` a `sw.js`
    - build: hlavička živého `sw.js` zmiňuje `scripts/build-site.mjs` a `dist/sw.js`, ověř to.
 
@@ -91,7 +91,7 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
      - `localStorage`: `hspg-souhlas`, `hspg-svetly` a `hspg-cookies-ok` (na homepage se zapisuje jen po kliknutí na `[data-action="prijmoutCookies"]` a prvek `#cookie-banner` v kopii webu chybí; ověř, jestli jde o mrtvý kód → návrh pro úkol 10)
      - `sessionStorage`: `hspg-holub-lead` (co obsahuje a kdy se maže) a tokeny majitele
      - Cache Storage (`sw.js` ukládá navštívené stránky)
-   - **Netlify** (jen pro čtení, v UI nebo přes `netlify api`): jsou zapnuté Netlify Analytics nebo Real User Monitoring? Kam chodí oznámení Forms (převezmi z hlášení úkolu 02)?
+   - **Netlify** (jen pro čtení, v UI nebo přes `netlify api`): jsou zapnuté Netlify Analytics nebo Real User Monitoring? Kam chodí oznámení Forms (převezmi z hlášení úkolu 02)? Které z proměnných `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY` a `XAI_API_KEY` jsou v Netlify nastavené jako vlastní klíč? Zapiš **jen názvy**, hodnoty nikdy nevypisuj ani neukládej. Vlastní klíč znamená, že daná AI nejde přes AI Gateway, ale přímo k poskytovateli (KONTEXT §2), a zásady to musí popsat.
 
    Každou nesrovnalost mezi kódem a dnešními zásadami nebo komentáři v kódu zapiš do hlášení.
 4. **Podklady o příjemcích** → `docs/zpracovani/smlouvy.md`. U každého příjemce uveď:
@@ -100,7 +100,7 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
    - záruku při předání mimo EHP: certifikaci v EU-US Data Privacy Framework ověř na dataprivacyframework.gov, jinak standardní smluvní doložky v DPA
    - odkaz na DPA nebo podmínky a dobu uchování u příjemce
    - u AI také, zda data využívá k trénování
-   - datum ověření
+   - řádek `Ověřeno: RRRR-MM-DD` (datum ověření), nebo `Ověřeno: neověřeno`
 
    Čti jen přes GET z oficiálních stránek. Povinně zpracuj:
    - **Netlify:** hosting, Forms, Functions, Blobs a AI Gateway. Z dokumentace AI Gateway zjisti, kdo je smluvní stranou vůči Anthropic, OpenAI, Google a OpenRouter a jak se nakládá s daty.
@@ -142,16 +142,20 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
    - Každý účel z inventury má záznam: poptávka, zavolání zpět, fotky, akce, zakázka a záruka, reklamace, pas domu a registr zakázek, hodnocení, reference, veřejný asistent AI, interní AI, počasí, zprávy (telefon, e-mail, Messenger, WhatsApp), uchazeči, dodavatelé, zdroj návštěvy, provoz a bezpečnost, cookies a úložiště. Newsletter jen při `newsletter.existuje === true`.
    - Co rozhoduje majitel, je `[DOPLNIT: … – Ox]` a `mesice: null`. Doby uchování jsou strojově čitelné (`mesice`), protože z nich bude číst mazací skript úkolu 19.
    - `ai.verejny_asistent` je výchozí návrh do rozhodnutí O4: bez Groku, aby měl veřejný asistent co nejméně příjemců. `ai.interni` zachovává majitelův požadavek „všechny AI“. Pokud v něm zůstane Grok, registr musí obsahovat i OpenRouter a xAI.
+
+   **Bod zastavení:** když sezení nestačí na celou fázi A, commitni a pushni větev po kroku 5 (dokumenty a registr, kód beze změny) s průběžným hlášením. Kroky 6–12 navážou ve stejné větvi v dalším sezení.
 6. **AI jen od poskytovatelů v registru.**
    - `asistent.mjs` → `poradi(env)`: k filtru `POSKYTOVATELE[id] && jeZapnuty(id, env)` přidej podmínku, že `id` je v `ai.verejny_asistent` (import `../../content/zpracovani.json` se stejnou konvencí jako `firma.json` v `submission-created.mjs`).
    - `ai.mjs` (interní): poskytovatel mimo `ai.interni` vrátí 400 „Tato AI není povolená v zásadách.“
    - `GET /api/asistent` pak hlásí jen povolené AI, takže upozornění v H-BOT a zásady jmenují stejné poskytovatele.
 7. **Push bez osobních údajů, dokud ho registr neuvádí.** V `submission-created.mjs` se osobní údaje v ntfy nebo Telegramu pošlou jen tehdy, když je `OZNAMENI_S_UDAJI=1` **a zároveň** má daný kanál v registru `osobni_udaje: true`. Do `INTERNI` přidej `Verze zásad` (do e-mailu majiteli nepatří).
 8. **Otisky v Netlify Blobs: tajná denní sůl a mazání.** V `netlify/lib/ai/limity.mjs`:
-   - Nahraď `otiskKlienta(ip, ted)` funkcí `otisk(ul, hodnota, ted)` = SHA-256(`sul|hodnota`), kde `sul` je 32 náhodných bajtů z `crypto.randomBytes` uložených pod `sul/<den>`. Vznikne při prvním použití v daný den. Podmíněný zápis (`onlyIfNew`) ověř v dokumentaci `@netlify/blobs`; pokud ho knihovna nemá, vzácný souběh je přijatelný.
+   - Nahraď `otiskKlienta(ip, ted)` funkcí `otisk(ul, hodnota, ted)` = SHA-256(`sul|hodnota`), kde `sul` je 32 náhodných bajtů z `crypto.randomBytes` uložených pod `sul/<den>`. Vznikne při prvním použití v daný den. Zapisuj ji podmíněně `setJSON(…, { onlyIfNew: true })` jako `aktualizuj()` v `limity.mjs`. Když zápis vrátí `modified: false`, sůl už mezitím zapsal souběžný požadavek, načti ji.
    - Klíče limitů přesuň pod den: `limit/<den>/k10/<otisk>`, `limit/<den>/kden/<otisk>`, `limit/<den>/login/<otisk>`. Úložiště `hspg-oznameni` z úkolu 02 (otisk e-mailu) převeď stejně.
-   - Úklid: nejvýš jednou za hodinu (značka `uklid/posledni`) smaž `list({ prefix })` + `delete` všechny klíče `limit/<den>/…` a `sul/<den>` starší než včerejšek. Celkovou útratu (`utrata/<měsíc>`) nech, osobní údaje neobsahuje.
+   - Úklid `uklid(ul, ted)`: nejvýš jednou za hodinu (značka `uklid/posledni`) smaž `list({ prefix })` + `delete` všechny klíče `limit/<den>/…` a `sul/<den>` starší než včerejšek. Celkovou útratu (`utrata/<měsíc>`) nech, osobní údaje neobsahuje.
+   - Úklid běží při volání funkcí a navíc v plánované funkci `netlify/functions/uklid-otisku.mjs` (`export const config = { schedule: "@daily" }`) pro obě úložiště (`hspg-ai` i `hspg-oznameni`). Bez ní by ve dnech bez návštěv staré otisky a soli zůstaly a věta o 2 dnech by neplatila. Plánované funkce běží jen na produkčním nasazení. Je to jedno volání denně, kredity to prakticky nezatíží.
    - Převeď všechna volání (`asistent.mjs`, `majitel.mjs`, `submission-created.mjs`). Pokud se ve webu používá `pametoveUloziste` pro testy, doplň do něj `list` a `delete`.
+   - Komentář v záhlaví `limity.mjs` přepiš tak, aby odpovídal skutečnosti (tajná denní sůl, mazání po 2 dnech).
    - Do zásad pak smí věta: „Na ochranu před zneužitím ukládáme nejdéle 2 dny otisk IP adresy vytvořený s denně měněným tajným klíčem. Po smazání klíče už otisk nejde přiřadit k IP adrese.“
 
    Do kódu, logu ani hlášení nepiš nic, co by usnadnilo zpětné dohledání otisků.
@@ -163,15 +167,16 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
        - u řádků se štítkem (`Jméno`, `Příjmení`, `Jméno a příjmení`, `Jméno ke zveřejnění`, `Kontakt…`, `E-mail`/`email`, `Telefon`, `Adresa…`) nahraď hodnotu `[ZÁKAZNÍK]`, `[KONTAKT]`, `[TELEFON]` nebo `[ADRESA]`; u adresy ponech jen část za poslední čárkou (obec)
        - ve volném textu nahraď vzor „ulice + číslo popisné“ za `[ADRESA]`
        - telefon a e-mail firmy z `firma.json` nemaskuj
-   - Volej ho v `ai.mjs` na každé zprávě před odesláním.
+   - Volej ho v `ai.mjs` na každé zprávě i na volitelném `pokyn` před odesláním.
    - V `ai-centrum/index.html` a `hbot-majitel.js` změň ukázkový text na „Např.: Poptávka z Kolína – čištění eternitové střechy 120 m²…“ a pod pole přidej poznámku: „Jména, adresy, telefony a e-maily se před odesláním AI nahrazují značkami. Jména ve volném textu nepoznáme spolehlivě, nepište je.“
    - Jména ve volném textu se spolehlivě rozpoznat nedají. Netvrď to v zásadách ani v testech.
 10. **Počasí jen s obcí.** Ve zdroji funkce `pocasi` ověř a testem (mock `fetch`) potvrď, že na Open-Meteo odchází jen obec. Na `/akce/` posílej na `/api/pocasi` jen část adresy za poslední čárkou (pokud čárka chybí, celé pole jako dnes). Server dál obec vybírá sám.
 11. **Testy fáze A** (`node --test`, bez nových závislostí):
     - `tests/soukromi.test.mjs`:
-      - `poradi` s klíči pro všechny AI vrátí jen ID z `ai.verejny_asistent`; `ai.mjs` odmítne AI mimo `ai.interni`
+      - `poradi` s falešnými klíči `TEST` pro všechny AI vrátí jen ID z `ai.verejny_asistent`; `ai.mjs` odmítne AI mimo `ai.interni`
+      - `GET` na handler z `vytvorAsistenta` (falešné klíče `TEST` pro všechny AI, `pametoveUloziste()`, žádné volání ven) vrátí v `poskytovatele` právě názvy (`POSKYTOVATELE[id].nazev`) z `ai.verejny_asistent`
       - push: s `OZNAMENI_S_UDAJI=1` a `osobni_udaje:false` v titulku ani textu není jméno, telefon, e-mail ani adresa
-      - otisk: stejná hodnota ve stejný den dá stejný otisk, jiný den jiný; otisk se nerovná SHA-256 z „den|hodnota“; po úklidu nezůstane klíč ani sůl starší než včerejšek
+      - otisk: stejná hodnota ve stejný den dá stejný otisk, jiný den jiný; se dvěma různými solemi pro stejný den a hodnotu vyjdou různé otisky; po úklidu nezůstane klíč ani sůl starší než včerejšek (pro `hspg-ai` i `hspg-oznameni`); `uklid-otisku.mjs` exportuje `config.schedule`
       - `pseudonymizuj`:
         - vstup „Jméno: Jan Novák\nTelefon: 777 123 456\nAdresa objektu: Lipová 12, Kolín“ → `[ZÁKAZNÍK]`, `[TELEFON]`, `[ADRESA], Kolín`
         - ve volném textu „volejte 777 123 456, Lipová 12, Kolín“ zmizí telefon i ulice
@@ -183,6 +188,7 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
       - každý `form-name` v `$PUB` (HTML i JS) má účel
       - každý hostitel `https://…` a `smtp.…` v `netlify/functions/**` a `netlify/lib/**` patří příjemci v registru
       - `ai.*` ⊆ klíče `POSKYTOVATELE` a ke každé AI existuje příjemce s `ai: id`; Grok bez `XAI_API_KEY` vyžaduje příjemce `openrouter`
+      - každý příjemce z registru má v `docs/zpracovani/smlouvy.md` sekci (kotva ze `zdroj`) s řádkem `Ověřeno: RRRR-MM-DD` nebo `Ověřeno: neověřeno`
 12. **Hlášení fáze A** (formát níže) a commit. Pokud sezení pokračuje, pokračuj fází B ve stejné větvi.
 
 ### Fáze B – jedno znění zásad, formuláře a odkazy (náhled, nesloučit)
@@ -197,20 +203,23 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
      - poptávka má číselné `mesice`
      - v registru ani ve vygenerovaných souborech není `[DOPLNIT`
      - jinak vypíše, co chybí, a skončí kódem 1
-   - Napoj generátor do build příkazu (za `build-kontakty`). Do `package.json` přidej `"preprodukce": "node scripts/build-zasady.mjs --brana"`; npm ho spustí automaticky před `npm run produkce`.
+   - Napoj generátor do build příkazu (za `build-kontakty`).
+   - **Brána před produkcí na dvou místech**, protože KONTEXT §4 bod 4 dovoluje i přímé `node scripts/nasadit.mjs --produkce` a to npm skript `preprodukce` obejde:
+     - Do `package.json` přidej `"preprodukce": "node scripts/build-zasady.mjs --brana"`. Pokud `preprodukce` už existuje, připoj bránu za stávající příkaz (`… && node scripts/build-zasady.mjs --brana`), nepřepisuj ho.
+     - V `scripts/nasadit.mjs` (kopie ve webHSPGH) spusť při `--produkce` před nasazením `node scripts/build-zasady.mjs --brana`, pokud soubor existuje. Kód ≠ 0 = produkce zamítnuta s výpisem brány. Náhled bránu nespouští. Ostatní logiku pojistky (schválení, větev `main`, čistý strom, denní limit) neměň. Diff do hlášení pro balíček.
 3. **`<head>` zásad:** v `og:description` a `twitter:description` nahraď „společností“ textem „Informace o zpracování osobních údajů – Dušan Holub, HOLUB – HSPG.“ Canonical a drobečky nech beze změny (jednotné adresy řeší úkol 06).
 4. **Text zásad.** Zachovej stávající `id` (`fotky`, `recenze`, `hbot`, `hbot-ai`, `pocasi`, `messenger`, `cookies`) a přidej nové. Piš srozumitelně, krátkými větami, bez superlativů a nových tvrzení. Na webu dodrž nezlomitelné mezery (KONTEXT §4 bod 9).
 
    | `id` | Obsah |
    |---|---|
-   | `spravce` | Dušan Holub, OSVČ, IČO 09291881, sídlo podle ARES a značka HOLUB – HSPG. Kontakt `info@hspg.cz` (odkaz `data-kontakt="info"` z úkolu 03) a telefon. Věta, že pověřenec pro ochranu osobních údajů není jmenován (posoudí právník, bod do hlášení). |
+   | `spravce` | Dušan Holub, OSVČ, IČO 09291881, sídlo podle ARES a značka HOLUB – HSPG. Kontakt `info@hspg.cz` (odkaz `data-kontakt="info"` z úkolu 03) a telefon. Pověřenec pro ochranu osobních údajů: `[DOPLNIT: je jmenován? – O3]`. Větu „není jmenován“ napiš až po potvrzení majitelem (posoudí i právník). |
    | `prehled` | Vygenerovaný přehled: účel → údaje → právní titul → doba → příjemci, s odkazem na sekci. |
    | `poptavky` | Poptávka z průvodce i z `/akce/` a číslo poptávky. Uložení v Netlify Forms včetně fotografií. Oznámení majiteli e-mailem (Seznam) a push bez osobních údajů. Potvrzení zákazníkovi jen pokud je zapnuté (úkol 02). Titul čl. 6 odst. 1 písm. b. |
    | `zdroj` | Pole `Předchozí stránka` a `Kampaň`: oprávněný zájem zjistit, odkud poptávky přicházejí. Pole `Reklamní kliknutí` jen se souhlasem s marketingem. Nic se kvůli tomu neukládá v prohlížeči (úkol 02). |
    | `fotky` | Současný text. Větu o odstranění údajů o poloze ponech jen tehdy, když ji potvrdí test z kroku B8. |
    | `akce` | Zařazení poptávky do akce a vyrozumění výherce. Titul čl. 6 odst. 1 písm. b (pravidla jsou smlouvou). Odkaz na `/pravidla-akce/`. |
    | `hbot` | Zavolání zpět na vaši žádost, titul čl. 6 odst. 1 písm. b (ne souhlas). Doba uchování stejná jako u poptávek. |
-   | `hbot-ai` | Veřejný asistent: posílá se jen text otázky (telefony a e-maily se maskují). Vygenerovaný seznam poskytovatelů z `ai.verejny_asistent` přes Netlify AI Gateway; jedna AI píše, druhá kontroluje. Co ukládáme a co ne (podle inventury). Doba uchování u poskytovatelů (ze `smlouvy.md`). Prosba nepsat osobní údaje. Odpovědi jsou orientační. Když je AI vypnutá, odpovídají ověřené FAQ. |
+   | `hbot-ai` | Veřejný asistent: posílá se jen text otázky (telefony a e-maily se maskují). Vygenerovaný seznam poskytovatelů z `ai.verejny_asistent` a cesta k nim podle inventury (přes Netlify AI Gateway, nebo přímo, pokud je v Netlify vlastní klíč); jedna AI píše, druhá kontroluje. Co ukládáme a co ne (podle inventury). Doba uchování u poskytovatelů (ze `smlouvy.md`). Prosba nepsat osobní údaje. Odpovědi jsou orientační. Když je AI vypnutá, odpovídají ověřené FAQ. |
    | `interni-ai` | Majitel používá AI k přípravě textů. Údaje zákazníků se předem pseudonymizují (krok A9). Poskytovatelé z `ai.interni`. |
    | `pocasi` | Jen obec (ověřeno v kroku A10). |
    | `zakazky` | Smlouva, doklady a záruční dokumentace. Délku záruky nepiš natvrdo, použij „po dobu záruky“ nebo ji převezmi z centrálního zdroje úkolu 05. Lhůty pro doklady `[DOPLNIT: podle účetní / daňového poradce – O7]`. Připomínka technické kontroly a její kanál `[DOPLNIT – O8]`. |
@@ -221,7 +230,7 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
    | `uchazeci` | Uchazeči o práci (telefon, e-mail, Facebook): titul čl. 6 odst. 1 písm. b, doba `[DOPLNIT: návrh 6 měsíců, déle jen se souhlasem – O6]`. |
    | `dodavatele` | Kontaktní osoby dodavatelů: oprávněný zájem, doba `[DOPLNIT – O6]`. |
    | `provoz` | Serverové záznamy u Netlify (doba podle `smlouvy.md`) a otisky pro limity (věta z kroku A8). |
-   | `cookies` | Vygenerovaný seznam úložišť v prohlížeči (`ZPRACOVANI:ULOZISTE`, včetně Cache Storage). Odstavce o Clarity a GTM převezmi beze změny (úkol 10). |
+   | `cookies` | Vygenerovaný seznam úložišť v prohlížeči (`ZPRACOVANI:ULOZISTE`, včetně Cache Storage). Odstavce o Clarity a GTM převezmi beze změny a obal je značkami `<!-- COOKIES:START -->` / `<!-- COOKIES:END -->`, které pak přepisuje generátor úkolu 10. Generátor zásad obsah mezi nimi nemění. |
    | `prijemci`, `predavani` | Vygenerované. Uveď jen ověřené záruky, zbytek je `neověřeno` → do hlášení, ne na web. |
    | `doby` | Vygenerovaná tabulka dob uchování. |
    | `prava` | Přístup, oprava, výmaz, omezení, přenositelnost, námitka proti oprávněnému zájmu a odvolání souhlasu. Vyřízení nejpozději do 1 měsíce (čl. 12 odst. 3). Stížnost u ÚOOÚ s adresou ověřenou na uoou.gov.cz. Kontakt `info@hspg.cz` nebo telefon. |
@@ -238,6 +247,8 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
    - doby uchování
    - práva a ÚOOÚ
    - věta „The Czech version prevails.“
+
+   **Bod zastavení:** když sezení nestačí na celou fázi B, commitni a pushni větev po kroku 5 (generátor a text zásad) s průběžným hlášením. Kroky 6–11 navážou ve stejné větvi.
 6. **Formuláře** (statický registrační formulář i JS payload; 02 kontroluje testem, že každý klíč payloadu je v registraci):
 
    | Formulář | Změna |
@@ -256,10 +267,10 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
    - Body 1–7 neměň (úkol 13).
    - Pokud existuje návrh `docs/tvrzeni/pravidla-akce-v2-navrh.md`, ověř, že v bodě o osobních údajích jen odkazuje na zásady.
 8. **H-BOT, odkazy a fotky:**
-   - **H-BOT:** na konec upozornění o AI v `hbot-panel.js` (ř. 312) přidej „[Jak s dotazy nakládáme](/ochrana-osobnich-udaju#hbot-ai)“. Text „spolupracující AI (…)“ ponech kvůli e2e testu balíčku.
+   - **H-BOT:** na konec upozornění o AI v `hbot-panel.js` (zpráva „Na vlastní otázky odpovídají spolupracující AI …“) přidej „[Jak s dotazy nakládáme](/ochrana-osobnich-udaju#hbot-ai)“. Text „spolupracující AI (…)“ ponech kvůli e2e testu balíčku.
    - **Kariéra a spolupráce:** pod výzvu na `/kariera` přidej „Jak nakládáme s údaji uchazečů: [Zásady](/ochrana-osobnich-udaju#uchazeci).“ a na `/spoluprace` obdobně `#dodavatele`.
-   - **`/en`:** „Privacy policy“ veď na `/ochrana-osobnich-udaju#english` a označení „(in Czech)“ z úkolu 13 odstraň.
-   - **Patička generovaných stránek:** v šabloně `build-regions.mjs` a na `/cisteni-fasad/` a `/cisteni-strech/` přidej před „Nastavení cookies“ odkaz „Ochrana osobních údajů“ ve stejné podobě adresy, jakou má většina webu (dnes `/ochrana-osobnich-udaju`). Pak stránky přegeneruj. Jde jen o odkaz, sjednocení patiček řeší úkol 08.
+   - **`/en`:** „Privacy policy“ veď na `/ochrana-osobnich-udaju#english` a označení „(in Czech)“ z úkolu 13 odstraň **jen u tohoto odkazu**. U „Cookie settings“ ho nech, sekce `#cookies` zůstává česky. Tím je hotový i odkaz z kroku 21 úkolu 13.
+   - **Patička generovaných stránek:** v šabloně `build-regions.mjs` (generuje 231 okresních stránek a `/cisteni-dlazby/`) a ručně na `/cisteni-fasad/` a `/cisteni-strech/` přidej před „Nastavení cookies“ odkaz „Ochrana osobních údajů“ ve stejné podobě adresy, jakou má většina webu (dnes `/ochrana-osobnich-udaju`). Pak stránky přegeneruj. Jde jen o odkaz, sjednocení patiček řeší úkol 08.
    - **Fotky:** e2e testem ověř, že fotka zmenšená na `/akce/` a v `fotky-upload.js` (canvas → JPEG) neobsahuje EXIF ani GPS. Testovací JPEG s GPS vytvoř v testu. Když test neprojde, věta o odstranění polohy ze zásad zmizí a zapíše se do hlášení.
 9. **Postup pro majitele** → `docs/zpracovani/zadosti-a-mazani.md` (mimo `$PUB`). Obsah:
    - jak vyřídit žádost o přístup nebo výmaz: Netlify → Forms, schránky Seznam včetně `profiserv@seznam.cz`, registr zakázek, Messenger
@@ -269,13 +280,14 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
 10. **Testy fáze B:**
     - **`tests/zasady.test.mjs` (část B):**
       - `build-zasady.mjs --kontrola` skončí kódem 0
-      - zásady obsahují všechna `id` z tabulky B4 a v `$PUB` existuje každá kotva, na kterou vede odkaz (HTML i JS)
+      - zásady obsahují všechna `id` z tabulky B4 (podmíněná `reklamace` jen při existenci `hspg-reklamace`, `newsletter` jen při `newsletter.existuje === true`) a v `$PUB` existuje každá kotva, na kterou vede odkaz (HTML i JS)
       - v zásadách ani v pravidlech akce není `FormSubmit`
       - „Holubí pošt“ je jen při `newsletter.existuje === true`
       - „Souhlasím se zpracováním“ se nevyskytuje v `$PUB` ani v `assets/`
       - každý registrační formulář má `Verze zásad` = `verze` z registru
       - sekce `#english` má `lang="en"`
       - `/pravidla-akce/` nemá vlastní doby uchování (regex `měsíc|let` v sekci `#gdpr` → 0)
+      - `package.json` → `scripts.preprodukce` obsahuje `build-zasady.mjs --brana` a `scripts/nasadit.mjs` ji při `--produkce` volá
     - **`tests/e2e/souhlasy.e2e.test.mjs`** (Playwright, lokální server jako u úkolu 02, všechny POST zachycené přes `page.route`, nic neodchází ven):
       - `/akce/`: chybí pole se slovem „zpracováním“, je tam jedno pole `Účast v akci` s odkazem na pravidla, payload má `Verze zásad` a nemá `Souhlas se zpracováním osobních údajů`
       - homepage průvodce: krok 6 nemá povinné zaškrtávací pole a payload má `Verze zásad`
@@ -312,7 +324,7 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
 ### Otázky pro majitele (do hlášení fáze B)
 - **O1** Doba uchování poptávek, ze kterých nevznikla zakázka: 12 měsíců, nebo 3 roky? 12 měsíců znamená méně uložených dat, 3 roky odpovídají obecné promlčecí lhůtě (§ 629 OZ). Rozhodnutí posoudí právník.
 - **O2** Existuje „Holubí pošta“: kde se lidé přihlašují, kdo ji odebírá a čím se posílá? Pokud ne, ze zásad zmizí.
-- **O3** Kdo text schválí a do kdy? Chcete před zveřejněním revizi právníkem?
+- **O3** Kdo text schválí a do kdy? Chcete před zveřejněním revizi právníkem? Máte jmenovaného pověřence pro ochranu osobních údajů (u OSVČ obvykle ne, potvrďte)?
 - **O4** Veřejný asistent: souhlasíte s Claude a Gemini, případně ChatGPT jako zálohou? Grok jen v interním panelu, nebo vůbec?
 - **O5** Upozornění do mobilu zůstanou bez osobních údajů (doporučeno)?
 - **O6** Jak dlouho uchovávat údaje uchazečů o práci (návrh 6 měsíců, déle jen se souhlasem) a kontakty dodavatelů?
@@ -326,22 +338,25 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
 Fáze A:
 - [ ] `node --test tests/soukromi.test.mjs` – vše prošlo (uveď počet a názvy testů z kroku A11).
 - [ ] `node --test tests/zasady.test.mjs` (část A) prošel: každý `form-name`, každý externí hostitel ve funkcích a každá povolená AI má záznam v registru.
-- [ ] `GET /api/asistent` lokálně (`netlify dev`) s klíči všech AI vrací jen poskytovatele z `ai.verejny_asistent`.
-- [ ] `git grep -nE 'limit/(k10|kden|login)/\$\{' netlify/` nic nenajde (klíče jsou pod dnem) a `git grep -n "otiskKlienta"` také nic.
-- [ ] `docs/zpracovani/inventura.md` a `smlouvy.md` existují mimo `$PUB` a každý příjemce má datum ověření nebo stav `neověřeno`.
+- [ ] Test `GET` z `tests/soukromi.test.mjs` (falešné klíče `TEST` pro všechny AI, paměťové úložiště) prošel: `poskytovatele` obsahuje jen názvy z `ai.verejny_asistent`. Skutečné klíče se k tomu nepoužívají ani nezakládají.
+- [ ] `git grep -nE 'limit/(k10|kden|login)/\$\{' netlify/` nic nenajde (klíče jsou pod dnem), `git grep -n "otiskKlienta"` také nic a `git grep -n "createHash" netlify/ | grep -v "lib/ai/limity.mjs"` nenajde nic, co počítá otisk IP nebo e-mailu (otisk e-mailu z úkolu 02 jde přes `otisk()`; jiné výskyty, např. ve `sentinel-validate`, vysvětli v hlášení).
+- [ ] `git grep -n "schedule" netlify/functions/uklid-otisku.mjs` → 1 výskyt a test úklidu prošel pro obě úložiště.
+- [ ] `docs/zpracovani/inventura.md` a `smlouvy.md` existují mimo publikovaný obsah (ve fázi B to potvrdí 404 na náhledu) a test `zasady.test.mjs` (část A) ověří, že každý příjemce z registru má v `smlouvy.md` sekci s řádkem `Ověřeno: RRRR-MM-DD` nebo `Ověřeno: neověřeno`.
 
 Fáze B:
 - [ ] `node scripts/build-zasady.mjs --kontrola` → kód 0. `--brana` → kód 1 a vypíše zbývající `[DOPLNIT]` a chybějící schválení.
+- [ ] `node -p "require('./package.json').scripts.preprodukce"` obsahuje `build-zasady.mjs --brana` a `grep -c "build-zasady" scripts/nasadit.mjs` → ≥ 1.
 - [ ] `grep -rIn "Souhlasím se zpracováním" "$PUB"` → nic. `grep -rIil "formsubmit" "$PUB"/ochrana-osobnich-udaju* "$PUB"/pravidla-akce/` → nic.
 - [ ] `node --test tests/zasady.test.mjs` a `CHROMIUM=… node --test --test-concurrency=1 tests/e2e/souhlasy.e2e.test.mjs` – vše prošlo a žádný požadavek neodešel mimo lokální server.
 - [ ] Testy úkolů 02 a 03 a testy balíčku (`npm test`, `npm run test:e2e` proti webu) dál prochází (uveď počty).
-- [ ] V `$PUB` je odkaz na zásady na všech stránkách s patičkou: počet stránek bez odkazu je 0 (dnes 234).
+- [ ] V `$PUB` je odkaz na zásady na všech stránkách s patičkou: příkaz s patičkou z části Ověření vrátí 0 (dnes 234). Případné další stránky bez patičky vypiš v hlášení s důvodem.
 - [ ] Lighthouse (mobil) `/ochrana-osobnich-udaju`: přístupnost ani SEO neklesly (uveď čísla před a po).
-- [ ] Náhled: `curl -s <náhled>/ochrana-osobnich-udaju | grep -c 'id="uchazeci"'` → 1, `… | grep -c 'id="english"'` → 1, `… | grep -ci "společností"` → 0.
+- [ ] Náhled: `curl -s <náhled>/ochrana-osobnich-udaju | grep -c 'id="uchazeci"'` → 1, `… | grep -c 'id="english"'` → 1, `… | grep -o '<meta[^>]*description[^>]*>' | grep -c "společností"` → 0.
+- [ ] Náhled: `curl -s -o /dev/null -w "%{http_code}" <náhled>/docs/zpracovani/inventura.md` → 404 a totéž pro `/content/zpracovani.json`.
 
 Fáze C:
 - [ ] `--brana` → kód 0 a registr obsahuje `schvaleno.kdo`, `schvaleno.datum` a `platne_od`.
-- [ ] Na živém webu po nasazení: `curl -s https://hspg.cz/ochrana-osobnich-udaju | grep -ci "formsubmit\|holubí pošt"` → 0 (Holubí pošta jen při O2 = existuje) a verze na stránce = `verze` v registru.
+- [ ] Na živém webu po nasazení: `curl -s https://hspg.cz/ochrana-osobnich-udaju | grep -ci "formsubmit\|holubí pošt"` → 0 (Holubí pošta jen při O2 = existuje) a `curl -s https://hspg.cz/ochrana-osobnich-udaju | grep -c "$(node -p "require('./content/zpracovani.json').verze")"` → ≥ 1.
 
 ## Ověření
 ```bash
@@ -352,12 +367,14 @@ node --test tests/soukromi.test.mjs tests/zasady.test.mjs                   # pa
 CHROMIUM=<cesta> node --test --test-concurrency=1 tests/e2e/*.e2e.test.mjs  # vč. 02, 03 a souhlasy
 grep -rIn "Souhlasím se zpracováním" "$PUB"                                  # nic
 grep -rIc "Holubí pošt" "$PUB" | grep -v ":0$"                               # nic (pokud O2 = neexistuje)
-grep -rLE "href=['\"]/ochrana-osobnich-udaju(\.html)?['\"]" --include=*.html "$PUB" | wc -l   # 0 (kromě stránek bez patičky – vypiš je)
+grep -rLE "href=['\"]/ochrana-osobnich-udaju(\.html)?['\"]" --include=*.html "$PUB" | grep -vE '/(ai-centrum|rd-control-panel|offline)/' | wc -l   # 0 (interní stránky bez patičky jsou vyňaté jako v úkolu 08)
+git grep -n "createHash" netlify/ | grep -v "lib/ai/limity.mjs"            # žádný otisk IP ani e-mailu mimo limity.mjs
 git grep -nE "(api[_-]?key|token|secret|heslo)\s*[:=]\s*['\"][^'\"]{8,}" -- netlify scripts content   # nic
-cd ../hspg-balicek && npm test && HSPG_MIRROR=$(pwd)/../webHSPGH CHROMIUM=<cesta> npm run test:e2e
+PUBABS=$(cd "$PUB" && pwd)
+cd ../hspg-balicek && npm test && HSPG_MIRROR="$PUBABS" CHROMIUM=<cesta> npm run test:e2e   # stejně jako v úkolu 02
 ```
 Testy, které agent přidá:
-- `tests/soukromi.test.mjs`: povolení AI, pojistka pushe, otisky a úklid, pseudonymizace, počasí, logy
+- `tests/soukromi.test.mjs`: povolení AI (včetně `GET` asistenta s falešnými klíči), pojistka pushe, otisky a úklid (i plánovaný), pseudonymizace, počasí, logy
 - `tests/zasady.test.mjs`: registr ↔ kód, generátor, kotvy, zakázané výrazy, verze ve formulářích
 - `tests/e2e/souhlasy.e2e.test.mjs`: texty a payloady formulářů, H-BOT, 360 px, EXIF
 
@@ -368,12 +385,12 @@ Zásady i formuláře fungují stejně bez AI. Upozornění o AI se v H-BOT uká
 
 ## Nepřekročitelná pravidla
 Viz `balicek/KONTEXT.md` §4. Pro tento úkol navíc:
-- **Nezveřejňovat bez schválení:** větev se do `main` slučuje až ve fázi C po písemném schválení majitele. `[DOPLNIT]` se nikdy nedostane na produkci, hlídá to `--brana` jako `preprodukce`.
+- **Nezveřejňovat bez schválení:** větev se do `main` slučuje až ve fázi C po písemném schválení majitele. `[DOPLNIT]` se nikdy nedostane na produkci, hlídá to `--brana` v `preprodukce` i v `scripts/nasadit.mjs --produkce`.
 - **Pravdivost:** zásady popisují jen ověřené zpracování. Příjemce, záruka předání nebo smlouva bez doložení se na web nepíše jako fakt. Žádná nová tvrzení o firmě, technologiích, recenzích ani pojištění. Délku záruky nepiš natvrdo (úkol 05).
 - **Žádná data zákazníků** v repozitáři, testech, hlášení ani v logu. Testovací data jsou smyšlená a označená `TEST`. Otisky a soli se nikam nevypisují.
 - **Formuláře:** nic neodesílat do produkčních ani náhledových formulářů. Nezakládat nové schránky (`gdpr@`), kontakt je `info@hspg.cz`. **MX ani DNS neměnit.**
 - **AI:** nezakládat klíče Gemini, xAI ani jiné (KONTEXT §2). Měnit jen seznam povolených AI v registru.
-- **Soubory z balíčku** (`asistent.mjs`, `ai.mjs`, `limity.mjs`, `submission-created.mjs`, `hbot-panel.js`, `hbot-majitel.js`, `ai-centrum/index.html`) měň jen ve webHSPGH. Balíček `HSPG-WEB` neměň, diff uveď v hlášení.
+- **Soubory z balíčku** (`asistent.mjs`, `ai.mjs`, `majitel.mjs`, `limity.mjs`, `submission-created.mjs`, `hbot-panel.js`, `hbot-majitel.js`, `ai-centrum/index.html`, `scripts/nasadit.mjs`) měň jen ve webHSPGH. Balíček `HSPG-WEB` neměň, diff uveď v hlášení.
 - Produkce jen po schválení majitelem, v dávce a přes `scripts/nasadit.mjs`.
 
 ## Hlášení po dokončení
@@ -382,6 +399,7 @@ Formát z `KONTEXT.md` §5, zvlášť po fázi A, B a C, a navíc:
   - publikační adresář a nalezené soubory
   - shrnutí inventury (tabulka) a nesrovnalosti kód ↔ zásady
   - stav příjemců ze `smlouvy.md` (ověřeno / neověřeno)
+  - které AI jdou přes AI Gateway a které přímo přes vlastní klíč (jen názvy proměnných, žádné hodnoty)
   - výsledky testů (počty)
   - opravené logy
   - diff souborů převzatých z balíčku, aby se promítly zpět do balíčku
@@ -396,11 +414,13 @@ Formát z `KONTEXT.md` §5, zvlášť po fázi A, B a C, a navíc:
   - seznam změněných souborů
 - **Fáze C:** kdo a kdy schválil, `verze` a `platne_od`, odkaz na nasazení a výsledky kontrol na živém webu.
 - **Předávky:**
-  - **10:** seznam úložišť v prohlížeči, otázka, zda Cache Storage service workeru potřebuje souhlas, mrtvý kód `hspg-cookies-ok` a odkaz „Details“ v liště na `/en` (`#english`)
-  - **14:** přístup k pasu domu a pole „poznámka“ v registru zakázek; zásady se po změně aktualizují z registru
+  - **10:** seznam úložišť v prohlížeči (`uloziste_prohlizece` v registru – úkol 10 je převezme do `content/mereni.json`, nebo je z registru čte, aby nebyla evidovaná dvakrát), značky `COOKIES:START/END` v sekci `#cookies`, otázka, zda Cache Storage service workeru potřebuje souhlas, mrtvý kód `hspg-cookies-ok` a odkaz „Details“ v liště na `/en` (`#english`). Anglické shrnutí zásad už existuje (`#english`), poznámka „anglické zásady → úkol 18“ v zadání 10 tím odpadá.
+  - **14:** přístup k pasu domu a pole „poznámka“ v registru zakázek; zásady se po změně aktualizují z registru. `otiskKlienta()` už neexistuje: omezení pokusů v úkolu 14 použije `otisk(ul, ip, ted)` a klíče `limit/<den>/…`, aby je mazal úklid.
+  - **07:** `preprodukce` už obsahuje bránu zásad. Pokud úkol 07 přidává `npm run build`, připojí ho před ni a bránu zachová.
+  - **13:** odkaz „Privacy policy“ na `/en` (krok 21 úkolu 13) je hotový.
   - **18:** pole `Účast v akci` je oddělené; dobrovolnost a neutrální poptávka spolu s pravidly v2 (13); nové formuláře převezmou informační větu a `Verze zásad`
   - **19:** doby uchování v `content/zpracovani.json` (`ucely[].uchovani.mesice`) pro mazací skript; do postupu patří i schránka `profiserv@seznam.cz`
-  - **02:** pravidlo pro `OZNAMENI_S_UDAJI`; převod otisku e-mailu na tajnou sůl
+  - **02:** pravidlo pro `OZNAMENI_S_UDAJI`; převod otisku e-mailu na tajnou sůl a plánovaný úklid `uklid-otisku`
   - **08:** odkaz na zásady v patičkách generovaných stránek
   - **13:** text automatické odpovědi Messengeru, pokud obsahuje nedoložená tvrzení
 - **Návrhy mimo rozsah:**

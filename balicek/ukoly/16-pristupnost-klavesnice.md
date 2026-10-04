@@ -1,10 +1,10 @@
 # Úkol 16: Přístupnost a ovládání klávesnicí
-> Priorita P1 · Závisí na: 08 (sdílená hlavička, patička, `<head>` a CSS); v pořadí z `PORADI.md` běží až po 17 (kotvy a `content-visibility`) a 07 (výkon) · Čeká na majitele: – (jen schválení produkčního nasazení) · Rozsah: fokus a pořadí Tabu, překryvy a dialogy, přepínač pohybu, ARIA a landmarky, kontrast prvků, dotykové cíle, nadpisy, 320 px a telefon na šířku. Do repozitáře přibude test průchodu klávesnicí (Playwright) a axe-core. Dvě fáze (A, B), po fázi A podej hlášení.
+> Priorita P1 · Závisí na: 08 (sdílená hlavička, patička, `<head>` a CSS); v pořadí z `PORADI.md` běží až po 17 (kotvy a `content-visibility`) a 07 (výkon) · Čeká na majitele: – (jen schválení produkčního nasazení) · Rozsah: fokus a pořadí Tabu, překryvy a dialogy, přepínač pohybu, ARIA a landmarky, kontrast prvků, dotykové cíle, nadpisy, 320 px a telefon na šířku. Do repozitáře přibude test průchodu klávesnicí (Playwright) a axe-core. Dvě fáze (A, B), po fázi A podej hlášení a zastav se (fáze B je další sezení).
 
 ## Proč (s důkazy)
 Lighthouse dává homepage za přístupnost 100 (KONTEXT §2). Měří ale jen to, co jde zkontrolovat automaticky. Audit přístupnosti a funkčnosti (Playwright, axe-core 4.13, 8 typů stránek, 320–1920 px) našel chyby v ovládání klávesnicí, které Lighthouse nezachytí. Hlavní body jsem **4. 10. 2026 znovu ověřil** skriptem nad lokální kopií živého webu (Playwright Chromium, axe-core 4.13; ven nešlo nic, nic se neodesílalo). Citované soubory (`assets/souhlas.js`, `svj-podklad.js`, `holub-let.js`, `brand.css`, `hbot.js`) jsou na živém webu shodné s kopií. `index.html` se liší jen odstraněným odznakem Netlify.
 
-Čísla řádků platí pro živý web. Po úkolech 07, 08 a 17 se kód mohl změnit, proto hledej podle selektoru, ne podle čísla řádku.
+Čísla řádků platí pro živý web. Po úkolech 07, 08 a 17 se kód mohl změnit, proto hledej podle selektoru, ne podle čísla řádku. Zvlášť: inline JS homepage (zde „inline `/` ř. …“) přesouvá úkol 07 ve fázi B do `assets/domov.js`, hlavičku `/` (`#nav-odkazy`, `#mobile-menu`, CTA ř. 1151) nahrazuje úkol 08 sdílenou komponentou a handler kotev (ř. 2391) přepsal úkol 17 na `dojedNaCil`.
 
 **A – Klávesnice, fokus a překryvy (fáze A)**
 
@@ -31,7 +31,7 @@ Lighthouse dává homepage za přístupnost 100 (KONTEXT §2). Měří ale jen t
 | B4 (#18) | Chybné nebo neúplné ARIA. | Ověřeno 4. 10. (axe incomplete): `aria-prohibited-attr` = `aria-label` na `div` bez role (`#hero-rychla-poptavka` ř. 1218, `.spot-meta` ř. 1269, `.pas` ř. 1379, `.dove-steps` ř. 1400; na `/kalkulacka-svj.html` `.odklad` ř. 275 s `aria-labelledby`). `aria-allowed-attr` = `aria-pressed` na `path/rect.damage-hotspot` uvnitř `<svg role="img">` (JS `index.html` ř. 2127, `assets/en-sections.js` ř. 26). Handler `keydown` na hotspotech (ř. 2143) je mrtvý, hotspoty nejsou fokusovatelné. Záložky `.dg-tabs` (ř. 1571–1575, `en.html` ř. 245–249) nemají `aria-controls` ani `role="tabpanel"` a nereagují na šipky. | 4.1.2 |
 | B5 (#21) | Při 320 px (= zoom 400 %) je tlačítko „Menu“ z větší části mimo obrazovku. | Ověřeno 4. 10.: summary leží na 290–355 px při šířce 320 px. Příčina je podnázev `font-size:8.5px;letter-spacing:3.2px;white-space:nowrap` (ř. 1141). | 1.4.10 |
 | B6 (#22) | Telefon na šířku (740×360): na obsah zbývá málo místa a cookie lišta zakrývá „Menu“. | Ověřeno 4. 10.: sticky hlavička zabírá 0–109 px, `#hspg-lista` 293–360 px, na obsah zbývá 184 z 360 px. Cookie lišta (61–272 px) zakrývá „Menu“. | 1.4.10 |
-| B7 (#25) | Netextový kontrast pod 3 : 1. | `/recenze/` nevybraná hvězdička `rgba(201,169,98,.32)` (ř. 54) ≈ 1,9 : 1, okraj polí `rgba(201,169,98,.35)` (ř. 45) ≈ 2,0 : 1. `/akce/` okraj polí `brand.css` ř. 158–159 `rgba(201,162,39,.3)` ≈ 1,7 : 1. `/pas-domu.html` `#sentinel-code-input` ≈ 2,6 : 1 (výpočet auditu). Hodnoty pro tmavé pozadí `rgb(12,18,30)` jsem 4. 10. přepočítal se stejným výsledkem. | 1.4.11 |
+| B7 (#25) | Netextový kontrast pod 3 : 1. | `/recenze/` nevybraná hvězdička `rgba(201,169,98,.32)` (ř. 54) ≈ 1,9 : 1, okraj polí `rgba(201,169,98,.35)` (ř. 45) ≈ 2,0 : 1. `/akce/` okraj polí `brand.css` ř. 159–160 `rgba(201,162,39,.3)` ≈ 1,7 : 1. `/pas-domu.html` `#sentinel-code-input` ≈ 2,6 : 1 (výpočet auditu). Hodnoty pro tmavé pozadí `rgb(12,18,30)` jsem 4. 10. přepočítal se stejným výsledkem. | 1.4.11 |
 | B8 (#27) | Hraniční kontrast textu. | `#spot p` „Spot je bez zvukové stopy…“ `#9aa2ac` 13 px na `#1E3A5F` = 4,46 : 1 (ř. 1279). | 1.4.3 |
 | B9 (#26) | Dotykové cíle pod 44 px (AA 24 px je splněno, cíl majitele je špička). | Audit: FAQ `summary` 22 px (`/` ≥ 768 px), kontakty v hero 26 px (mobil), odkazy patičky 28 px, posuvníky 34 px, `/en` „CZ“ 33×32. Ověřeno 4. 10.: souhlasové checkboxy 24×24 (`brand.css` ř. 167, `/akce/` ř. 63). | 2.5.8 (AA), 2.5.5 (AAA) |
 | B10 (#28) | Kalkulačka SVJ a Pas domu mají jen jeden nadpis. | Ověřeno 4. 10.: `/kalkulacka-svj.html` má jen H1 (ř. 227). Výsledkové části jsou `div.result-title` (ř. 252, 260) a `div.saving-title` (ř. 271, 276). `/pas-domu.html` má jen H1 (ř. 179) a „HISTORIE OŠETŘENÍ“ je `div.history-title`. | 1.3.1, 2.4.6 |
@@ -72,7 +72,9 @@ WCAG 2.2 AA na všech typech stránek, ovládání klávesnicí bez slepých mí
 - `assets/souhlas.js`: jen umístění v DOM, fokus, Escape a `scroll-padding`,
 - `assets/svj-podklad.js` (dialog),
 - `assets/holub-let.js` a `.css` (fokus po doletu, respektování přepínače),
-- `assets/hstone-rain.js`, `assets/video-autoplay.js`, `assets/en-sections.js` a inline skripty `/` (respektování přepínače, `behavior` posunu, záložky a hotspoty),
+- `assets/hstone-rain.js`, `assets/video-autoplay.js`, `assets/en-sections.js` a inline skripty `/`, po fázi B úkolu 07 `assets/domov.js` (respektování přepínače, `behavior` posunu, záložky a hotspoty),
+- `tests/vykon/staticke.test.mjs` z úkolu 07: jen jedna výjimka pro inline řádek volby pohybu v `<head>` (krok 4),
+- pravidlo `scroll-margin-top` a měření `--hlavicka` z úkolu 17 (jen sjednocení se `scroll-padding`, krok 7),
 - `en.html`: skip link a `id` na `<main>`,
 - `target="_blank"` na `/`,
 - ARIA atributy a role u uvedených prvků,
@@ -89,7 +91,7 @@ WCAG 2.2 AA na všech typech stránek, ovládání klávesnicí bez slepých mí
 - První obrazovka na mobilu na výšku (lišty ≤ 15 %), obsah `/en`, cesta k poptávce, přestavba průvodce → **úkol 18**.
 - Výkon a rozpočty Lighthouse (`content-visibility` jako optimalizace) → **úkol 07**. CSP a hash inline skriptu → **úkol 15**. Spouštění testů v CI → **úkol 19**.
 - Texty na kalkulačce a pasu domu (lešení, záruka) → **úkoly 13 a 05**. Měníš jen typ prvku na nadpis.
-- Chybové stavy formulářů a průvodce jako `<form>` (audit-formulare #7, #16) a `aria-pressed` u výběru služby v průvodci (#17) → jen návrh do hlášení, pokud je nevyřešily úkoly 17 a 18.
+- Chybové stavy formulářů a průvodce jako `<form>` (audit-formulare #7, #16) a `aria-pressed` u výběru služby v průvodci (#17) → jen návrh do hlášení, pokud je nevyřešil úkol 17. Úkol 18 (přestavba průvodce) běží až po tomto úkolu, proto je předej jemu.
 - **Žádné přístupnostní „overlay“ widgety třetích stran** (lišty typu „zvětšit písmo / kontrast“ z cizích skriptů).
 
 ## Postup
@@ -103,7 +105,10 @@ WCAG 2.2 AA na všech typech stránek, ovládání klávesnicí bez slepých mí
    - sdílenou hlavičku, patičku, `<head>` a sdílené CSS z úkolu 08 (partial nebo build skript). Dnes `assets/brand.css` načítá 239 stránek a nenačítá `/`, `cenik`, `kalkulacka-svj`, `kariera`, `ochrana-osobnich-udaju`, `pas-domu`, `nabidka-svj` a `en`. Po 08 má být všude, ověř to,
    - `scripts/build-regions.mjs` (232 stránek s `data-gen="build-regions"`) a ručně psané stránky včetně 404 a `akce/dekujeme/`,
    - skripty `assets/souhlas.js` (na všech 247 stránkách), `svj-podklad.js`, `holub-let.js` + `.css`, `video-autoplay.js`, `hstone-rain.js` a `en-sections.js`,
-   - inline skripty v `index.html` (spot, vizualizace poškození, kotvy, videa),
+   - inline skripty v `index.html` (spot, vizualizace poškození, kotvy, videa), po fázi B úkolu 07 v `assets/domov.js`,
+   - mechanismus otisků z úkolu 07 (`scripts/build-otisky.mjs`, manifest `otisky.json`, složka `/o/`) a jeho statický test `tests/vykon/staticke.test.mjs`,
+   - kde úkol 17 nastavuje `--hlavicka` a pravidlo `scroll-margin-top` (dnes jen homepage),
+   - offline stránku `offline/index.html` z úkolu 17 (samostatná, bez externích souborů),
    - existující testy a statický server (úkoly 03 a 17).
 
    Pak spusť `git grep -nE "prefers-reduced-motion|scroll-behavior|behavior: ?'smooth'|target=\"_blank\"|aria-pressed|content-visibility|:focus-visible"` (mimo `node_modules`) a výsledek ulož do hlášení jako inventuru.
@@ -118,13 +123,15 @@ WCAG 2.2 AA na všech typech stránek, ovládání klávesnicí bez slepých mí
        - `rect` vůči viewportu,
        - `zakryti`: největší podíl plochy prvku překrytý viditelným prvkem s `position: fixed|sticky`, který prvek neobsahuje, nemá `pointer-events:none` ani `aria-hidden="true"`,
        - indikátor: computed `outline-style/width/color`, `box-shadow`.
-   - `tests/e2e/pristupnost.e2e.test.mjs`: kontroly z akceptačních kritérií. Typy stránek (podoba adres podle úkolu 06): `/`, `/cenik`, `/akce/`, `/akce/dekujeme/`, `/cisteni-strech/`, `/cisteni-strech/kolin/`, `/cisteni-fasad/kolin/`, `/cisteni-dlazby/kolin/`, `/kalkulacka-svj`, `/pas-domu`, `/nabidka-svj`, `/kariera`, `/spoluprace`, `/reference`, `/recenze/`, `/ochrana-osobnich-udaju`, `/pravidla-akce/`, `/en` a 404. Seznam doplň o stránky, které mezitím přibyly (úkoly 04 a 11, např. `/reklamace`, `/kontakt`). Šířky 390×844 a 1280×800. Proměnná `A11Y_RYCHLE=1` omezí běh na `/`, `/akce/`, `/cisteni-strech/kolin/`, `/kalkulacka-svj` a `/en` (pro CI, úkol 19).
+   - `tests/e2e/pristupnost.e2e.test.mjs`: kontroly z akceptačních kritérií. Typy stránek (podoba adres podle úkolu 06): `/`, `/cenik`, `/akce/`, `/akce/dekujeme/`, `/cisteni-strech/`, `/cisteni-strech/kolin/`, `/cisteni-fasad/kolin/`, `/cisteni-dlazby/kolin/`, `/kalkulacka-svj`, `/pas-domu`, `/nabidka-svj`, `/kariera`, `/spoluprace`, `/reference`, `/recenze/`, `/ochrana-osobnich-udaju`, `/pravidla-akce/`, `/en` a 404. Seznam doplň o stránky, které mezitím přibyly (např. `/reklamace` z úkolu 04). Seznam drž jako jednu konstantu v `a11y-pomocne.mjs`, aby ho pozdější úkoly (11, 18) mohly rozšířit. `/offline/` (úkol 17) do průchodů nepatří. Šířky 390×844 a 1280×800. Proměnná `A11Y_RYCHLE=1` omezí běh na `/`, `/akce/`, `/cisteni-strech/kolin/`, `/kalkulacka-svj` a `/en` (pro CI, úkol 19).
    - `tests/pristupnost-staticke.test.mjs` (Node, bez prohlížeče): průchod HTML v `$PUB` podle akceptačních kritérií.
    - Kontroly fáze B označ ve fázi A `{ todo: "fáze B" }`.
    - Spusť testy **před změnami** a čísla (zastávky, mimo viewport, zakryté, výchozí indikátor, pozice cookie lišty, axe) ulož do hlášení jako „před“. Testy budou červené, to je výchozí stav.
 4. **`assets/pristupnost.js`** (bez závislostí, ES5 kompatibilní jako ostatní `assets/*.js`, `defer`) a jeho načtení:
-   - `<script src="/assets/pristupnost.js" defer>` přidej do sdíleného `<head>` z úkolu 08. Pokud 08 `<head>` nesdílí, přidej ho do šablony v `build-regions.mjs`, do ručně psaných stránek a do 404. Statický test ověří, že ho každá HTML (kromě `rd-control-panel/` a `ai-centrum/`) načítá právě 1×.
-   - Do stejného `<head>` dej jednořádkový inline skript, aby volba pohybu platila před prvním vykreslením: `<script>try{if(localStorage.getItem('hspg-pohyb')==='omezeny')document.documentElement.setAttribute('data-pohyb','omezeny')}catch(e){}</script>`. CSP je zatím Report-Only s `'unsafe-inline'`. Pro vynucenou CSP předej hash úkolu 15.
+   - `<script src="/assets/pristupnost.js" defer>` přidej do sdíleného `<head>` z úkolu 08. Pokud 08 `<head>` nesdílí, přidej ho do šablony v `build-regions.mjs`, do ručně psaných stránek a do 404. Statický test ověří, že ho každá HTML (kromě `rd-control-panel/`, `ai-centrum/` a `offline/`) načítá právě 1×.
+   - Otisky (úkol 07): ve zdroji odkazuj `/assets/pristupnost.js`, build ho přepíše na `/o/pristupnost.<hash>.js`. Soubor do výjimek otisků nedávej. Statický test nad `$PUB` proto hledá `pristupnost(\.[0-9a-f]+)?\.js`, nebo cestu přeloží přes `otisky.json`.
+   - Do stejného `<head>` dej jednořádkový inline skript, aby volba pohybu platila před prvním vykreslením: `<script>try{if(localStorage.getItem('hspg-pohyb')==='omezeny')document.documentElement.setAttribute('data-pohyb','omezeny')}catch(e){}</script>`. CSP je zatím Report-Only s `'unsafe-inline'`. Pro vynucenou CSP předej hash úkolu 15 (ten s jedním hashem pro tento řádek počítá).
+     - Statický test úkolu 07 (`tests/vykon/staticke.test.mjs`, fáze B) vyžaduje 0 inline skriptů s kódem na homepage. Přidej do něj **jedinou** výjimku: přesná shoda obsahu s tímto řádkem (porovnej SHA-256), s komentářem a odkazem na úkol 16. Jiný inline kód nepřidávej. Test 07 musí dál projít.
    - API `window.HSPGA11y`. Kostra:
      ```js
      // zásobník překryvů: jeden Escape zavře jen vrchní překryv
@@ -154,7 +161,8 @@ WCAG 2.2 AA na všech typech stránek, ovládání klávesnicí bez slepých mí
    - Totéž platí pro odkaz v cookie liště (`#souhlas-lista a`).
    - V režimu `forced-colors` zůstane `outline` (box-shadow zmizí), takže nic dalšího není potřeba.
 6. **Cookie lišta (A1)** v `assets/souhlas.js`. Texty, kategorie ani logiku souhlasu neměň (úkol 10).
-   - Lištu vlož hned **za skip link**: `var skip = document.querySelector('body > a.skip, body > a.skip-link, body > a.hspg-skip'); skip ? skip.after(box) : document.body.prepend(box);`. Vizuálně zůstane `fixed` dole.
+   - Lištu vlož hned **za skip link**: `var skip = document.querySelector('a.hspg-skip, a.skip, a.skip-link'); skip ? skip.after(box) : document.body.prepend(box);` (první odkaz pro přeskočení v pořadí dokumentu; úkol 08 používá `a.hspg-skip`). Vizuálně zůstane `fixed` dole.
+   - Zachovej změny úkolu 17 v `souhlas.js`: během scény holuba se lišta nezobrazí (události `hspg:scena-otevrena` / `hspg:scena-zavrena`) a ukáže se po jejím zavření.
    - Dokud je lišta vidět, nastav na `<html>` třídu `souhlas-otevrena` a proměnnou `--souhlas-spodek` = `innerHeight − box.getBoundingClientRect().top + 12` px (přepočet přes `ResizeObserver` a `resize`). Proměnnou použije `scroll-padding-bottom` z kroku 7. Po zavření třídu a proměnnou odeber.
    - Escape: registruj lištu přes `HSPGA11y.prekryv(box, {jenUvnitr: true, …})`.
      - **První zobrazení** (volba ještě neuložena): Escape = „Jen nezbytné“, tj. uloží `nezbytne` a nenačte žádný nástroj.
@@ -164,11 +172,12 @@ WCAG 2.2 AA na všech typech stránek, ovládání klávesnicí bez slepých mí
 7. **Překryvy u horního a spodního okraje (A2, A3).**
    - Do sdíleného CSS přidej:
      ```css
-     html { scroll-padding-top: calc(var(--hspg-hlavicka, 0px) + 8px);
+     html { scroll-padding-top: calc(var(--hlavicka, 0px) + 8px);
             scroll-padding-bottom: calc(max(var(--hspg-spodek, 0px), var(--souhlas-spodek, 0px)) + 12px); }
      ```
+   - `scroll-padding-top` a `scroll-margin-top` se při posunu na cíl **sčítají**. Pravidlo úkolu 17 `main [id]{scroll-margin-top:calc(var(--hlavicka) + 8px)}` proto odstraň (zarovnání pod hlavičku teď zajistí `scroll-padding-top`), jinak kotvy přistanou o výšku hlavičky níž. Logiku `dojedNaCil` (výjimka `#holub-sekce`, dorovnání) neměň.
    - V `pristupnost.js` měř a zapisuj do těchto proměnných:
-     - `--hspg-hlavicka` = výška sticky hlavičky z úkolu 08. Do partialu přidej háček `data-hspg-hlavicka`. Pokud hlavička není sticky, hodnota je 0.
+     - `--hlavicka` = výška sticky hlavičky. Proměnnou zavedl úkol 17 a úkol 08 ji napojil na novou hlavičku. **Druhou proměnnou nezakládej.** Pokud ji dnes měří jen skript homepage, přesuň měření do `pristupnost.js` pro všechny stránky (háček `data-hspg-hlavicka` na kořen hlavičky v partialu) a skript homepage ji jen čte. Pokud hlavička není sticky, hodnota je 0.
      - `--hspg-spodek` = největší `innerHeight − rect.top` z viditelných prvků `#hspg-lista`, `#hbot-btn` a `#cta-stack` (seznam jako konstanta v souboru).
      - Přepočet: `ResizeObserver`, `resize` a `MutationObserver` na třídu `body` (`hero-cta-na-obrazovce` lištu schovává). `hbot.js` neměň.
    - **Pojistka fokusu** (A3 závisí na časování, proto ji přidej vždy). Na `focusin`, pokud `e.target.matches(':focus-visible')` a není otevřený modální překryv:
@@ -205,10 +214,12 @@ WCAG 2.2 AA na všech typech stránek, ovládání klávesnicí bez slepých mí
     - Šipky posouvají nativně. Indikátor fokusu je z kroku 5.
 12. **`/en` a nové karty (A9, A10).**
     - `/en`: první prvek `<body>` je `<a class="skip" href="#main">Skip to content</a>` a `<main id="main">`. Pokud úkol 08 dal `/en` sdílenou hlavičku s menu, jen to ověř testem. Jinak doplň stejné menu (anglické popisky) místo skrývání odkazů pod 900 px (ř. 98–99).
-    - `/`: odstraň `target="_blank"` u 4 odkazů na `/akce/` (ř. 1151, 1345, 1635, 1866).
-    - U odkazu na zásady v průvodci (ř. 2200) novou kartu ponech (návštěvník neztratí rozepsaný formulář). Doplň vizuálně skrytý text „(otevře se v&nbsp;novém okně)“ s třídou pro skrytý text ze sdíleného CSS (dnes `.sr` v `brand.css`) a ikonu `↗` s `aria-hidden="true"`.
-    - Statický test: žádný interní `a[target=_blank]` bez textu „v novém okně“ / „new window“ v přístupném názvu.
-13. Spusť testy fáze A, testy úkolů 03 a 17 a Lighthouse mobil (`/`, `/cenik`, `/akce/`, `/cisteni-strech/kolin/`, `/kalkulacka-svj`, lokálně nebo na náhledu stejně jako v úkolu 07). Podej **hlášení fáze A** (KONTEXT §5) a commitni. Ve fázi B pokračuj ve stejné větvi.
+    - `/`: odstraň `target="_blank"` u odkazů na `/akce/` (dnes 4: ř. 1345, 1635, 1866 a CTA v hlavičce ř. 1151, které už měl odstranit úkol 08; pokud tam zůstalo, odstraň ho v partialu a nahlas to úkolu 08).
+    - U odkazu na zásady v průvodci (ř. 2200, odkaz vzniká v JS přes `innerHTML`) novou kartu ponech (návštěvník neztratí rozepsaný formulář). Doplň vizuálně skrytý text „(otevře se v&nbsp;novém okně)“ s třídou pro skrytý text ze sdíleného CSS (`.sr-only` z úkolu 08, dnes `.sr` v `brand.css`) a ikonu `↗` s `aria-hidden="true"`.
+    - Statický test: žádný interní `a[target=_blank]` bez textu „v novém okně“ / „new window“ v přístupném názvu. Kontroluje HTML i řetězce s HTML v JS (inline skripty, `assets/*.js`, např. průvodce).
+13. Spusť testy fáze A, testy úkolů 03, 07 (`tests/vykon/staticke.test.mjs`) a 17 a Lighthouse mobil (`/`, `/cenik`, `/akce/`, `/cisteni-strech/kolin/`, `/kalkulacka-svj`, lokálně nebo na náhledu stejně jako v úkolu 07). Podej **hlášení fáze A** (KONTEXT §5), commitni a **zastav se**. Fáze B je další sezení ve stejné větvi (`ukol-16-pristupnost-klavesnice`; pokud mezitím přibyly změny v `main`, nejdřív `git merge main`).
+
+> Pokud fázi A v jednom sezení nestihneš, rozděl ji: **A1** = kroky 1–7 (testy, `pristupnost.js`, indikátor fokusu, cookie lišta, `scroll-padding` a pojistka fokusu), pak commit a hlášení „ÚKOL 16 – A1 částečně“ s čísly „před“ a stop. **A2** = kroky 8–13 v dalším sezení na téže větvi. Stejně fázi B: **B1** = kroky 14–15 (pohyb), **B2** = kroky 16–22. Do `main` se slučuje až po hlášení celé fáze a ověření na náhledu (KONTEXT §4 bod 3).
 
 ### Fáze B – pohyb, sémantika, kontrast a zobrazení
 14. **Přepínač pohybu (B1).**
@@ -235,7 +246,8 @@ WCAG 2.2 AA na všech typech stránek, ovládání klávesnicí bez slepých mí
     - **Bez přepínače (třpytky):** `.btn-gold::after` (`brand.css`) a `.btn-lux::after` (`/`) poběží celkem nejvýš 5 s (počet průběhů × délka ≤ 5 s, např. 1 průběh) a znovu při `:hover`/`:focus-visible`. Spot na `/akce/` (`video.spotvid`) dostane trvale `controls`.
 15. **Omezený pohyb (B2).**
     - `scroll-behavior:smooth` (`brand.css` ř. 23, `index.html` ř. 50 pro `html, body`, `en.html` ř. 39) přesuň do `@media (prefers-reduced-motion: no-preference) { html:not([data-pohyb="omezeny"]) { scroll-behavior: smooth } }`.
-    - Všechna volání `behavior:'smooth'` (`/` ř. 2008, 2033, 2391, `pas-domu` ř. 311, `recenze/` ř. 239) nahraď `behavior: HSPGA11y.chovaniPosunu()` se zálohou.
+    - Všechna volání `behavior:'smooth'` (`/` ř. 2008, `pas-domu` ř. 311, `recenze/` ř. 239) nahraď `behavior: HSPGA11y.chovaniPosunu()` se zálohou.
+    - Handler kotev (ř. 2391) a odkaz na přepis spotu (ř. 2033) už obsluhuje `dojedNaCil` z úkolu 17. Funkci nepřepisuj, jen její volbu pohybu („`smooth` jen bez `prefers-reduced-motion`“) nahraď `HSPGA11y.chovaniPosunu()` se zálohou na `matchMedia`. Testy kotev úkolu 17 musí projít.
     - Nápověda „☂ klikněte kamkoliv — …“ (`/` ř. 1215) bude výchozí `hidden` a zobrazí ji až `hstone-rain.js`, když efekt opravdu běží. Při `hspg:pohyb` ji zase skryje. Text neměň.
 16. **Landmarky (B3).**
     - Ověř axe `region` na všech typech stránek.
@@ -272,14 +284,14 @@ WCAG 2.2 AA na všech typech stránek, ovládání klávesnicí bez slepých mí
 21. **320 px a na šířku (B5, B6)** ve sdílené hlavičce z úkolu 08:
     - **320×640:** tlačítko menu `flex-shrink:0`. Pokud se nevejde, pod 380 px skryj podnázev značky nebo povol zalomení (podnázev je i v `alt` loga).
     - **`@media (max-height: 500px) and (orientation: landscape)`:**
-      - hlavička není sticky (`--hspg-hlavicka` = 0),
+      - hlavička není sticky (`--hlavicka` = 0),
       - promo pruh jen nahoře stránky,
       - cookie lišta je v toku dokumentu nahoře (`position: static; max-width: none; margin: 8px`). Díky kroku 6 je v DOM hned za skip linkem, takže nic nezakrývá.
     - Ověř, že tím nevzniká CLS v Lighthouse (měří na výšku).
 22. Celkové ověření:
     - axe ve všech stavech, úplný průchod Tabem (bez `A11Y_RYCHLE`), Lighthouse před a po,
     - `node scripts/build-hbot.mjs --kontrola` a ostatní `--kontrola` skripty z předchozích úkolů, všechny testy webu,
-    - náhled `npm run nahled` (0 kreditů) a na něm průchod Tabem na `/`, `/akce/`, `/kalkulacka-svj`,
+    - náhled `npm run nahled` (= `node scripts/nasadit.mjs` bez parametrů, 0 kreditů) a na něm průchod Tabem na `/`, `/akce/`, `/kalkulacka-svj`,
     - **hlášení fáze B**.
 
     Produkce jen po schválení majitelem, v dávce s dalšími úkoly (KONTEXT §4 bod 4).
@@ -287,9 +299,10 @@ WCAG 2.2 AA na všech typech stránek, ovládání klávesnicí bez slepých mí
 ## Akceptační kritéria
 Fáze A:
 - [ ] `node --test tests/pristupnost-staticke.test.mjs` projde. Kontroluje:
-  - každá HTML v `$PUB` (kromě `rd-control-panel/`, `ai-centrum/`) načítá `/assets/pristupnost.js` právě 1× a sdílené CSS s pravidlem `:focus-visible`,
-  - první prvek `<body>` je skip link na existující `id` (včetně `/en`),
-  - žádný interní `a[target=_blank]` není bez textu „v novém okně“ / „new window“.
+  - každá HTML v `$PUB` (kromě `rd-control-panel/`, `ai-centrum/` a `offline/`) načítá `pristupnost.js` (i s otiskem z úkolu 07) právě 1× a sdílené CSS s pravidlem `:focus-visible`,
+  - první prvek `<body>` je skip link na existující `id` (včetně `/en`; mimo stejné výjimky),
+  - žádný interní `a[target=_blank]` (v HTML ani v řetězcích HTML v JS) není bez textu „v novém okně“ / „new window“,
+  - v `<head>` je nejvýš jeden inline skript s kódem z tohoto úkolu (řádek volby pohybu) a `tests/vykon/staticke.test.mjs` (úkol 07) projde.
 - [ ] Průchod Tabem (všechny typy stránek z kroku 3, 390×844 i 1280×800, `reducedMotion: 'no-preference'`, cookie volba uložena), obě měření u každé zastávky:
   - 0 zastávek mimo viewport,
   - 0 zastávek se `zakryti ≥ 0,5`,
@@ -314,10 +327,10 @@ Fáze A:
 - [ ] Spot a H-BOT (regrese): Escape zavře a fokus je zpět na spouštěči. S otevřeným menu a cookie lištou zavře jeden Escape jen vrchní překryv.
 - [ ] axe `/` 390 px: 0 `scrollable-region-focusable`. `.povrchy__row` má po Tab + ArrowRight větší `scrollLeft`. Při 1280 px není v Tab pořadí.
 - [ ] `/en`: 1. zastávka je skip link a Enter přesune fokus do `<main>`. Při 390 px jsou odkazy na sekce dostupné přes menu.
-- [ ] Testy úkolů 03 a 17 (včetně kotev) projdou beze změny. Test zaznamená 0 požadavků jiných než GET/HEAD.
+- [ ] Testy úkolů 03 a 17 (včetně kotev) projdou beze změny. `git grep -nE "scroll-margin-top: ?calc\(var\(--hlavicka" -- '*.html' '*.css' '*.js' '*.mjs'` → nic (odsazení pod hlavičku nese jen `scroll-padding-top`) a `git grep -n -e "--hspg-hlavicka"` → nic. Test zaznamená 0 požadavků jiných než GET/HEAD.
 
 Fáze B:
-- [ ] Přepínač pohybu na každé stránce:
+- [ ] Přepínač pohybu na každé stránce (kromě `rd-control-panel/`, `ai-centrum/` a `offline/`):
   - `button[data-pohyb-prepinac]` s `aria-pressed` je v patičce, na `/` navíc v hero a v pořadí Tabu před prvním prvkem `#spot`,
   - po zapnutí do 1 s `document.getAnimations().filter(a => a.playState === 'running').length === 0`, všechna `video` mají `paused === true` a plátno deště neexistuje,
   - po obnovení stránky platí `aria-pressed="true"` a `data-pohyb="omezeny"`,
@@ -335,17 +348,18 @@ Fáze B:
 - [ ] 320×640 (všechny typy): `scrollWidth <= innerWidth`, tlačítko menu má `right <= 320`.
 - [ ] 740×360 (`/`, `/akce/`): po volbě cookies zabírají fixní a sticky prvky ≤ 90 px. S otevřenou cookie lištou je tlačítko menu nezakryté (`elementFromPoint` ve středu tlačítka vrací tlačítko nebo jeho potomka).
 - [ ] Lighthouse mobil (`/`, `/cenik`, `/akce/`, `/cisteni-strech/kolin/`, `/kalkulacka-svj`): přístupnost 100 a výkon nanejvýš −2 oproti stavu před úkolem. Uveď čísla před a po. Pokud některá stránka 100 nedosáhne, hlášení uvede konkrétní audit Lighthouse a důvod.
-- [ ] Všechny testy webu a `--kontrola` skripty projdou. `git diff main --stat` neukazuje změny v `assets/hbot*.js`/`hbot.css` ani v textech zásad a podmínek.
+- [ ] Všechny testy webu a `--kontrola` skripty projdou. `git diff main --stat -- 'assets/hbot*'` je prázdný. Viditelný text `<main>` stránek `/ochrana-osobnich-udaju` a podmínek a reklamací z úkolu 04 je shodný s `main` (statický test porovná `textContent` se soubory z `git show main:…`; přidaný `<script>`, skip link ani tlačítko pohybu v patičce se nepočítají).
 
 ## Ověření
 ```bash
 PUB=<publikační adresář z netlify.toml>
 # build podle netlify.toml (generátory z předchozích úkolů), pak:
-node --test tests/pristupnost-staticke.test.mjs                                   # → vše prošlo (uveď počet)
+PUB=$PUB node --test tests/pristupnost-staticke.test.mjs                          # → vše prošlo (uveď počet)
+node --test tests/vykon/staticke.test.mjs                                         # → projde (úkol 07, výjimka jen pro řádek pohybu)
 A11Y_RYCHLE=1 PUB=$PUB CHROMIUM=<cesta k Chromiu> node --test --test-concurrency=1 tests/e2e/pristupnost.e2e.test.mjs
 PUB=$PUB CHROMIUM=<cesta k Chromiu> node --test --test-concurrency=1 tests/e2e/pristupnost.e2e.test.mjs   # úplný běh (~10–15 min)
 git grep -nE "behavior: ?'smooth'" -- '*.html' 'assets/*.js' ':!assets/pristupnost.js'   # → nic
-git grep -n 'target="_blank"' -- '*.html'                                         # → jen odkazy s upozorněním nebo externí
+git grep -n 'target="_blank"' -- '*.html' 'assets/*.js'                           # → jen odkazy s upozorněním nebo externí
 node scripts/build-hbot.mjs --kontrola                                            # → kód 0 (úkol 01)
 ```
 Do `package.json` webu přidej `"test:a11y": "node --test --test-concurrency=1 tests/e2e/pristupnost.e2e.test.mjs"` a `"test:a11y:rychle"` s `A11Y_RYCHLE=1`.
@@ -355,7 +369,7 @@ Testy, které přidáš:
 - `tests/e2e/pristupnost.e2e.test.mjs`: vše z akceptačních kritérií. Cookie lišta se testuje v novém kontextu bez `localStorage`. Ostatní průchody mají předem uloženou volbu: `ctx.addInitScript(() => localStorage.setItem('hspg-souhlas', 'nezbytne'))` (klíč a hodnoty jsou v `souhlas.js` ř. 13, pokud je úkol 10 nezměnil). Mezi kroky nic neodesílej. Scénu holuba spouštěj přes `HSPGHolub.play({sky:false})`, podklad SVJ přes Enter na `#tisk-kalkulace`, spot přes `[data-action="otevriSpot"]` a H-BOT přes jeho tlačítko (1280 px) nebo položku „Zeptat se“ v liště (390 px).
 - `tests/pristupnost-staticke.test.mjs`: načtení skriptu a CSS, skip linky, `target=_blank`, literály `behavior:'smooth'`, `scroll-behavior:smooth` jen uvnitř `prefers-reduced-motion: no-preference`.
 
-Na náhledu (GET, nic neodesílat): `curl -s <náhled>/ | grep -c 'assets/pristupnost.js'` → 1. `curl -s <náhled>/ | grep -c 'href="/akce/" target="_blank"'` → 0. Průchod Tabem ručně na `/`, `/akce/` a `/kalkulacka-svj` (360 a 1280 px) se snímky do hlášení. Čtečku obrazovky agent neověří, viz hlášení.
+Na náhledu (GET, nic neodesílat): `curl -s <náhled>/ | grep -cE 'pristupnost(\.[0-9a-f]+)?\.js'` → 1. `curl -s <náhled>/ | grep -c 'href="/akce/" target="_blank"'` → 0. Průchod Tabem ručně na `/`, `/akce/` a `/kalkulacka-svj` (360 a 1280 px) se snímky do hlášení. Čtečku obrazovky agent neověří, viz hlášení.
 
 ## Bez AI / s AI
 Úkol AI nepoužívá a vše funguje bez AI i bez externích služeb. H-BOT (úkol 01) je v testu jen jako regresní kontrola Escape a návratu fokusu. Odpověď z FAQ k tomu stačí a `/api/*` test nevolá.
@@ -378,14 +392,14 @@ Po **fázi A** i **fázi B** formát z `KONTEXT.md` §5 a k tomu:
 - Lighthouse mobil před a po (přístupnost, výkon, CLS) pro 5 stránek z kroku 13,
 - seznam změněných souborů, počty testů, inventuru z kroku 2 a odkaz na náhled se snímky průchodu Tabem.
 - Předávky:
-  - **07:** změny `content-visibility` a jejich vliv na výkon,
+  - **07:** změny `content-visibility` a jejich vliv na výkon, výjimka pro inline řádek pohybu v `tests/vykon/staticke.test.mjs` a nový soubor s otiskem `pristupnost.js`,
   - **08:** případy `todo` kvůli plovoucím prvkům nebo hlavičce,
   - **09:** úložiště `hspg-pohyb`,
   - **10:** nové umístění cookie lišty, Escape = „Jen nezbytné“ a test, který musí dál projít,
   - **15:** hash inline řádku v `<head>` pro vynucenou CSP,
-  - **17:** `scroll-padding` a kotvy,
+  - **17:** `scroll-padding` a kotvy (odstraněné `scroll-margin-top`, měření `--hlavicka` v `pristupnost.js`, volba pohybu v `dojedNaCil`),
   - **18:** odstraněné `target=_blank` u CTA na `/akce/`,
   - **19:** `npm run test:a11y:rychle` do CI na každý PR,
   - **01:** `.hb-close` a `.hb-chip` mají 40 px (< 44 px).
 - Neověřeno: čtečky obrazovky (NVDA, VoiceOver, TalkBack), Safari a Firefox, skutečná zařízení. Navrhni majiteli (nebo Claude v Chrome) desetiminutovou ruční kontrolu na náhledu: Tab přes `/` a `/akce/`, otevřít a zavřít menu, cookie lištu a podklad SVJ, zapnout přepínač pohybu.
-- Návrhy mimo rozsah: audit-formulare #7 (průvodce jako `<form>`, Enter), #16 (inline chyby s `aria-invalid`/`aria-describedby` a souhrn chyb), #17 (`aria-pressed` u výběru služby), pokud je nevyřešily úkoly 17 a 18. Dál režim `forced-colors` (ruční kontrola).
+- Návrhy mimo rozsah: audit-formulare #7 (průvodce jako `<form>`, Enter), #16 (inline chyby s `aria-invalid`/`aria-describedby` a souhrn chyb), #17 (`aria-pressed` u výběru služby), pokud je nevyřešil úkol 17 (úkol 18 běží až po tomto úkolu, předej mu je). Dál režim `forced-colors` (ruční kontrola).

@@ -1,5 +1,5 @@
 # Úkol 06: Jedna adresa pro každou stránku (301)
-> Priorita P1 · Závisí na: 00 (podle `PORADI.md` jsou před tímto úkolem sloučené i 01, 04 a 05, které mění dotčené soubory; jejich stav ověř v kroku 1) · Čeká na majitele: jen krok 17 (pravidlo pro `tourmaline-dasik-9de005.netlify.app`): kam míří callback URL webhooku Facebooku a zda tuto adresu volá jiná služba; produkční nasazení jen po schválení v dávce · Rozsah: **fáze A** = jedna podoba adres (canonical, og:url, hreflang, JSON-LD, odkazy, sitemap), 301 ze starých podob, kontrolní skripty a testy, vše ověřené na náhledu; **fáze B** = generátor sitemap s pravdivým `lastmod`, zařazení do buildu a pravidlo pro netlify.app (jen po potvrzení majitele). Po fázi A podej hlášení. Texty, vzhled a adresy okresních stránek se nemění.
+> Priorita P1 · Závisí na: 00 (podle `PORADI.md` jsou před tímto úkolem sloučené i 01, 02, 17, 03, 04, 05, 13 a 09; dotčené soubory mění hlavně 01 (H-BOT), 04 (`/reklamace/`), 05 (`/zaruka`), 09 (zásady a souhlasy) a 17 (`/offline/`, `sw.js`); jejich stav ověř v kroku 1) · Čeká na majitele: jen krok 17 (pravidlo pro `tourmaline-dasik-9de005.netlify.app`): kam míří callback URL webhooku Facebooku a zda tuto adresu volá jiná služba; produkční nasazení jen po schválení v dávce · Rozsah: **fáze A** = jedna podoba adres (canonical, og:url, hreflang, JSON-LD, odkazy, sitemap), 301 ze starých podob, kontrolní skripty a testy, vše ověřené na náhledu; **fáze B** = generátor sitemap s pravdivým `lastmod`, zařazení do buildu a pravidlo pro netlify.app (jen po potvrzení majitele). Po fázi A podej hlášení. Texty, vzhled a adresy okresních stránek se nemění.
 
 ## Proč (s důkazy)
 Zdroje: ověřené nálezy `audit-seo` #4, #5, #14 a `audit-nasazeni_provoz` #11, #19. Dále kopie živého webu (mirror ze 4. 10. 2026), dotazy GET na https://hspg.cz a https://tourmaline-dasik-9de005.netlify.app ze 4. 10. 2026 odpoledne a dokumentace Netlify. Čísla řádků platí pro živý web, ve zdroji se mohou lišit.
@@ -42,7 +42,8 @@ CDN Netlify je ukládá jako dvě položky: ve stejnou chvíli měla `/cenik.htm
 | `assets/souhlas.js` | ř. 94, lišta cookies, načítá ji všech 247 stránek (audit tento výskyt nezachytil) | `/ochrana-osobnich-udaju.html#cookies` |
 | `assets/hbot.js` | starý H-BOT, ř. 23, 45, 49, 209. Úkol 01 ho nahrazuje | `/cenik.html`, `/cenik.html#sentinel`, `/nabidka-svj.html`, `/ochrana-osobnich-udaju.html` |
 | `content/hbot-faq.json` | z balíčku úkolu 01, ř. 8, 30, 34 | `/cenik.html`, `/cenik.html#sentinel`, `/nabidka-svj.html` |
-| `assets/hbot-panel.js` | z balíčku úkolu 01, ř. 205 (souhlas u „Zavolejte mi“) | `/ochrana-osobnich-udaju.html` |
+| `assets/hbot-panel.js` | z balíčku úkolu 01, ř. 210 (souhlas u „Zavolejte mi“) | `/ochrana-osobnich-udaju.html` |
+| `sw.js` | kořen webu, ř. 12 a 54 (předukládání a offline záloha) | `/404.html` – **výjimka**, `404.html` se nepřesměrovává (krok 8), odkaz zůstává |
 | `netlify/lib/ai/pravidla.mjs` | z balíčku úkolu 01, ř. 19 (pokyn pro AI) | „odkazy jako hspg.cz/cenik.html“ |
 
 Google si kanonickou adresu v takové situaci může zvolit sám a v Search Console se objeví „Duplicitní, Google zvolil jinou kanonickou stránku“. Seznam bere canonical jen jako doporučení.
@@ -68,10 +69,11 @@ Google si kanonickou adresu v takové situaci může zvolit sám a v Search Cons
 Odpovídá to výchozímu chování Netlify podle [support guide k lomítkům a Pretty URLs](https://answers.netlify.com/t/support-guide-how-can-i-alter-trailing-slash-behaviour-in-my-urls-will-enabling-pretty-urls-help/31191) (revize 7/2025): soubor `/blog.html` se vrací na `/blog` i `/blog.html` a `/blog/` přesměruje na `/blog`. Adresář `/blog/index.html` se vrací na `/blog/`. Volba Pretty URLs má podle průvodce přesměrovat `/blog.html` → `/blog`. Živý web to nedělá a vlákno na fóru Netlify z 8/2026 („Pretty URLs config option doesn't redirect .html“) hlásí, že volba to nedělá. Na Pretty URLs proto nespoléháme. Pracovník Netlify na fóru (vlákno 13063) upozornil, že pravidlo `/article.html /article 301!` může skončit nekonečným přesměrováním. Ověřený audit má toto chování v seznamu neověřeného („Nutno otestovat na draft deployi“), proto je test na náhledu povinný (krok 9).
 
 **5. `lastmod` v sitemap neodpovídá změnám** (audit-seo #5, nasazeni #19).
-- Rozložení `lastmod`: 232× 2026-09-29, 10× 2026-09-12, 2× 2026-09-27, 1× 2026-10-03 (`/spoluprace`). `/` má 2026-09-12.
+- Rozložení `lastmod`: 232× 2026-09-29, 10× 2026-09-12, 2× 2026-09-27, 1× 2026-10-03 (`/spoluprace.html`). `/` má 2026-09-12.
 - `index.html` přitom obsahuje `"uploadDate":"2026-09-15"` (ř. 47) a „Real job confirmed by the owner on 2026-09-27“ (ř. 1461, v `en.html` ř. 174).
 - Všech 245 záznamů má `changefreq` a `priority`.
 - Sitemap se podle auditu udržuje ručně (ověř ve zdroji).
+- **Build:** komentář v živém `sw.js` (ř. 7–8) říká, že verzi service workeru razítkuje `scripts/build-site.mjs` do `dist/sw.js`. Publikovaný adresář tedy nejspíš není kořen repozitáře, ale sestavený `dist/` (ověř v kroku 2; počítají s tím i úkoly 07, 09, 10, 11 a 17).
 - [Google](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap): „ignores `<priority>` and `<changefreq>`“. `lastmod` používá, jen když je „consistently and verifiably accurate“. Má odrážet poslední významnou změnu (hlavní obsah, strukturovaná data, odkazy), ne např. rok v copyrightu.
 
 ## Cíl (měřitelný)
@@ -92,6 +94,7 @@ Odpovídá to výchozímu chování Netlify podle [support guide k lomítkům a 
 - generovaný blok pravidel 301 v `_redirects`,
 - knihovna `scripts/lib/adresy.mjs`, skripty `scripts/kontrola-adres.mjs`, `scripts/build-presmerovani.mjs`, `scripts/build-sitemap.mjs` a `scripts/over-adresy.mjs`,
 - testy, zařazení generátorů do build příkazu a sekce v `CLAUDE.md`,
+- pokud se `PUB` sestavuje (`build-site.mjs` → `dist/`) a build nekopíruje `_redirects` nebo `sitemap.xml`: jen doplnění tohoto kopírování (krok 2),
 - pravidlo pro hostitele netlify.app, jen po potvrzení majitele (krok 17).
 
 **NE (patří jinam):**
@@ -113,28 +116,32 @@ Odpovídá to výchozímu chování Netlify podle [support guide k lomítkům a 
 
 ### Fáze A – jedna podoba adres a 301 (ověřeno na náhledu)
 1. **Větev `ukol-06-jedna-adresa` z aktuální `main`:** `git fetch`, `git switch main`, `git pull --ff-only`, `git switch -c ukol-06-jedna-adresa`. Pak `git -C ../hspg-balicek pull`.
-   - Do hlášení zapiš, které úkoly jsou v `main` (`git log --oneline -30`), zvlášť 01 (existuje `assets/hbot-panel.js`), 04 (`reklamace/index.html`), 05 (`zaruka.html`), 09, 11, 12 a 13.
+   - Do hlášení zapiš, které úkoly jsou v `main` (`git log --oneline -30`), zvlášť 01 (existuje `assets/hbot-panel.js`), 04 (`reklamace/index.html`), 05 (`zaruka.html`), 17 (`offline/index.html`, změny `sw.js`), 09, 11, 12 a 13.
    - Pokud je sloučená fáze B úkolu 12 (301 okresních stránek na huby), **zastav se a nahlas to**, protože pořadí neodpovídá `PORADI.md`.
 
 2. **Najdi v repozitáři soubory, které generují:**
    - publikovaný adresář a build příkaz (`netlify.toml` → `[build] publish` a `command`, `package.json` → `scripts`) a způsob nasazení (`scripts/nasadit.mjs` nasazuje adresář přes `--dir` bez buildu na Netlify),
+   - **zdroj × výstup:** existuje `scripts/build-site.mjs` a publikuje se sestavený `dist/` (viz Proč, bod 5)? Je `dist/` v `.gitignore`? Kopíruje build `_redirects`, `_headers`, `sitemap.xml` a `robots.txt` ze zdroje do výstupu, nebo je vytváří? Dál v zadání platí:
+     - `SRC` = verzovaný zdroj stránek (dnes nejspíš kořen repozitáře). Generátory z tohoto úkolu čtou stránky ze `SRC` a zapisují **verzované** soubory ve `SRC` (`_redirects`, `sitemap.xml`, `content/lastmod.json`). `git log` se ptá na zdrojový soubor. Do `dist/` nic ručně nepiš.
+     - `PUB` = publikovaný adresář z `netlify.toml`. Pokud je `PUB` = `SRC` (publish `.`), obojí splývá.
+     - Pokud se `PUB` sestavuje, generátory zařaď do build příkazu **před** kopírování do `PUB` a ověř, že build `_redirects` a `sitemap.xml` do `PUB` zkopíruje beze změny (jinak kopírování doplň v `build-site.mjs`, nic jiného v něm neměň). Pokud některé stránky vznikají až v `PUB` a ve zdroji nejsou, zapiš je do hlášení a generátory nad nimi spusť stejně (stránka mimo Git dostane při prvním běhu dnešní datum, krok 13),
    - canonical, `og:url`, hreflang a JSON-LD:
      - ručně psané stránky (`*.html` v kořeni, `akce/`, `pravidla-akce/`, `recenze/`, `reel/` …),
      - šablona `scripts/build-regions.mjs` (232 stránek s `data-gen="build-regions"`),
      - `scripts/build-zaruka.mjs` (úkol 05) a stránky z úkolu 04 (`reklamace/`),
    - `sitemap.xml` (ručně, nebo generátor?) a `robots.txt`,
-   - pravidla přesměrování a hlaviček: `_redirects` a `_headers` v publikovaném adresáři, `netlify.toml` (`[[redirects]]`, `[[headers]]`). Zjisti, jak je směrováno `/api/*`: pravidlem, nebo `config.path` ve funkcích,
+   - pravidla přesměrování a hlaviček: `_redirects` a `_headers` ve zdroji i v publikovaném adresáři, `netlify.toml` (`[[redirects]]`, `[[headers]]`). Zjisti, jak je směrováno `/api/*`: pravidlem, nebo `config.path` ve funkcích. Zapiš i cesty, kterým pravidla hlaviček posílají `X-Robots-Tag: noindex` (krok 3, `jeIndexovatelna`),
    - cíle formulářů a `fetch` (v mirroru: `fetch('/')`, `fetch(location.pathname)` na `/akce/`, `action='/akce/dekujeme/'`, `action='/recenze/?odeslano=1'`),
    - všechny výskyty adres s `.html` mimo komentáře:
      ```bash
      git grep -nE "hspg\.cz/[A-Za-z0-9/_-]+(\.html|/index\.html)" -- . ':!node_modules' ':!*.md'
-     git grep -nE "[\"'(=]/[A-Za-z0-9/_-]+(\.html|/index\.html)" -- '*.html' 'assets/' 'content/' 'netlify/' ':!node_modules'
+     git grep -nE "[\"'(=]/[A-Za-z0-9/_-]+(\.html|/index\.html)" -- '*.html' 'assets/' 'content/' 'netlify/' 'sw.js' '*.webmanifest' ':!node_modules'
      git grep -n "netlify\.app" -- . ':!node_modules'
      ```
-     Výsledek porovnej s tabulkami v části Proč a rozdíly zapiš do hlášení (nálezy navíc i výskyty, které už neexistují). Komentáře s názvem souboru nejsou odkazy, např. `assets/svj-podklad.js` ř. 1 „…on kalkulacka-svj.html“ nebo komentáře v `assets/en-sections.*`.
+     Výsledek porovnej s tabulkami v části Proč a rozdíly zapiš do hlášení (nálezy navíc i výskyty, které už neexistují). Komentáře s názvem souboru nejsou odkazy, např. `assets/svj-podklad.js` ř. 1 „…on kalkulacka-svj.html“ nebo komentáře v `assets/en-sections.*`. Odkazy na `/404.html` (`sw.js`) jsou povolená výjimka.
    - testovací infrastrukturu (`tests/`, `npm test`) a HTML parser v `package.json` (např. `cheerio`, `node-html-parser`).
 
-3. **Pravidlo adres.** Zapiš ho do `CLAUDE.md` (krok 18) a do knihovny:
+3. **Pravidlo adres.** Zapiš ho do `CLAUDE.md` (už ve fázi A, krok 12; fáze B sekci doplní v kroku 18) a do knihovny:
 
    | Soubor v publikovaném adresáři | Kanonická adresa | Stará podoba → 301 |
    |---|---|---|
@@ -152,8 +159,8 @@ Odpovídá to výchozímu chování Netlify podle [support guide k lomítkům a 
    **Knihovna `scripts/lib/adresy.mjs`** (bez závislostí na síti):
    - `ZAKLAD = "https://hspg.cz"`,
    - `cestaZeSouboru(rel)` → `/`, `/cenik`, `/akce/`, `/cisteni-strech/kolin/`,
-   - `nactiStranky(pub)` vrátí pole `{ soubor, cesta, url, robots, canonical, ogUrl, hreflang[], jsonLdUrl[] }` pro všechna `*.html` v publikovaném adresáři. Přeskočí `node_modules/`, `assets/`, `media/`, skryté složky (`.netlify/`, `.nahled/` z úkolu 12) a další složky, které nejsou stránky (ověř),
-   - `jeIndexovatelna(stranka)` vrátí `false` při `noindex` v meta robots, u `404.html` a u interních cest `/ai-centrum/` a `/rd-control-panel/`. Seznam interních cest je pojistka pro případ, že by z nich meta zmizela.
+   - `nactiStranky(adresar = SRC)` vrátí pole `{ soubor, cesta, url, robots, canonical, ogUrl, hreflang[], jsonLdUrl[] }` pro všechna `*.html` v zadaném adresáři (zdroj, nebo po buildu `PUB`). Přeskočí `node_modules/`, `assets/`, `media/`, `dist/` (při čtení zdroje), `tests/`, `docs/`, `scripts/`, skryté složky (`.netlify/`, `.nahled/` z úkolu 12) a další složky, které nejsou stránky (ověř),
+   - `jeIndexovatelna(stranka)` vrátí `false` při `noindex` v meta robots, při `X-Robots-Tag: noindex` z pravidel hlaviček (krok 2), u `404.html` a u interních cest `/ai-centrum/` a `/rd-control-panel/`. Seznam interních cest je pojistka pro případ, že by z nich meta zmizela.
 
 4. **Oprava stránek.** Nahraď absolutní adresy s `.html` podle pravidla. Měň jen hodnotu adresy, nic jiného na řádku:
    - canonical a `og:url` na 9 stránkách, na `zaruka.html` a na dalších `x.html` z kroku 2,
@@ -181,19 +188,19 @@ Odpovídá to výchozímu chování Netlify podle [support guide k lomítkům a 
    - nahraď 8× `<loc>` s `.html` a 2× `xhtml:link hreflang="en"` (`/en.html` → `/en`),
    - `lastmod` ve fázi A neměň,
    - pokud existují `/zaruka` (05) a `/reklamace/` (04), musí být v sitemap právě jednou a v kanonické podobě,
-   - pokud sitemap generuje skript (krok 2), oprav zdroj a přegeneruj.
+   - pokud sitemap generuje skript (krok 2), oprav zdroj a přegeneruj. Opravuj verzovaný `sitemap.xml` ve `SRC`, ne kopii v `dist/`.
 
-7. **Kontrola offline `scripts/kontrola-adres.mjs [pub]`.** Při nálezu skončí kódem 1 a vypíše `soubor:řádek – co`. Kontroluje:
+7. **Kontrola offline `scripts/kontrola-adres.mjs [adresář]`** (výchozí `SRC`; po buildu ji jde spustit i nad `PUB`). Při nálezu skončí kódem 1 a vypíše `soubor:řádek – co`. Na konci vždy vypíše souhrn `stránek N, indexovatelných M, nálezů K, varování V` (M používají akceptační kritéria). Kontroluje:
    - každá stránka s canonical: canonical = `ZAKLAD + cestaZeSouboru(soubor)`. Indexovatelná stránka canonical mít musí,
    - `og:url` = canonical, kde `og:url` je,
    - hreflang a adresy v JSON-LD (`url`, `item`, `@id` bez fragmentu), které míří na hspg.cz, jsou kanonické adresy existujících stránek. Tedy žádné `.html`, žádné `/index.html` a u adresáře koncové lomítko,
    - hreflang je vzájemný (cs ↔ en, x-default),
-   - interní odkazy (`href`, `action` v HTML) a řetězce začínající `/` v `assets/*.js`, `content/*.json` a `netlify/**/*.mjs`: žádný nemíří na `.html` ani `/index.html`. Odkaz na stránku vede na existující kanonickou adresu (`/assets/`, `/media/` a `/api/` přeskoč),
+   - interní odkazy (`href`, `action` v HTML) a řetězce začínající `/` v `assets/*.js`, `sw.js`, `content/*.json` a `netlify/**/*.mjs`: žádný nemíří na `.html` ani `/index.html`, jedinou výjimkou je `/404.html`. Odkaz na stránku vede na existující kanonickou adresu (`/assets/`, `/media/` a `/api/` přeskoč),
    - kotva v odkazu na jinou stránku existuje jako `id` na cílové stránce. Jen varování, kotvu může vytvářet JS,
    - sitemap: množina `<loc>` = kanonické URL indexovatelných stránek, bez duplicit a bez stránek s noindex. `xhtml:link` odpovídá hreflang na stránkách,
    - komentáře (`<!-- -->`, `/* */`, `//`) se nekontrolují.
 
-8. **Přesměrování – generovaný blok v `_redirects`.** `scripts/build-presmerovani.mjs` zapíše blok mezi značky do `_redirects` v publikovaném adresáři. Pokud soubor neexistuje, vytvoří ho. Pravidla v `_redirects` Netlify zpracuje před `netlify.toml` a vyhrává první shoda ([dokumentace](https://docs.netlify.com/manage/routing/redirects/overview/#rule-processing-order)). Ruční pravidla, která web má v `netlify.toml`, nech tam.
+8. **Přesměrování – generovaný blok v `_redirects`.** `scripts/build-presmerovani.mjs` zapíše blok mezi značky do verzovaného `_redirects` ve `SRC`, který build kopíruje do `PUB` (krok 2; při `PUB` = `SRC` je to tentýž soubor). Pokud soubor neexistuje, vytvoří ho. Seznam stránek bere ze `SRC` a ze stránek, které vznikají až v buildu (krok 2). Pravidla v `_redirects` Netlify zpracuje před `netlify.toml` a vyhrává první shoda ([dokumentace](https://docs.netlify.com/manage/routing/redirects/overview/#rule-processing-order)). Ruční pravidla, která web má v `netlify.toml`, nech tam.
    ```
    # >>> adresy – generuje scripts/build-presmerovani.mjs (úkol 06), needitovat ručně
    /cenik.html              /cenik              301!
@@ -256,9 +263,11 @@ Odpovídá to výchozímu chování Netlify podle [support guide k lomítkům a 
       - druhý běh nic nezmění,
       - po přidání stránky skončí `--kontrola` kódem 1,
     - cíle formulářů a `fetch` ve zdroji nejsou přesměrovávané podoby,
-    - celý web: `kontrola-adres.mjs` nad publikovaným adresářem → 0 nálezů.
+    - celý web: `kontrola-adres.mjs` nad `SRC` (a po buildu nad `PUB`, pokud se liší) → 0 nálezů.
 
-12. **Hlášení fáze A** (viz Hlášení). Fáze B nečeká na majitele (kromě kroku 17), začni ji po hlášení.
+12. **`CLAUDE.md` a hlášení fáze A.** Zapiš sekci „Adresy (úkol 06)“ s body z kroku 18, které platí už po fázi A (pravidlo adres, zákaz `.html` a `/index.html`, umístění ručních pravidel, příkazy `kontrola-adres.mjs` a `over-adresy.mjs`). Pak hlášení (viz Hlášení). Fáze B nečeká na majitele (kromě kroku 17), začni ji po hlášení.
+
+> Pokud celou fázi A v jednom sezení nestihneš, rozděl ji: **A1** = kroky 1–7, z kroku 11 testy knihovny a kontroly a sekce v `CLAUDE.md` (jen soubory, žádná nová pravidla přesměrování, dá se sloučit samostatně). **A2** = kroky 8–10 a zbylé testy z kroku 11 (přesměrování a test na náhledu). Po A1 podej hlášení s výsledkem kontroly a pushni větev.
 
 ### Fáze B – generovaná sitemap s pravdivým `lastmod`, netlify.app
 13. **`content/lastmod.json` a otisk obsahu.** Pro každou indexovatelnou stránku se ukládá `{ "otisk": "sha256:…", "datum": "RRRR-MM-DD" }`. Klíčem je cesta, klíče jsou seřazené.
@@ -269,7 +278,7 @@ Odpovídá to výchozímu chování Netlify podle [support guide k lomítkům a 
       - seznam `href` odkazů v `<body>` (podle Googlu jsou odkazy významná změna).
     - Do otisku nepatří CSS (inline ani soubory), skripty, atributy `class` a `style` ani pořadí atributů.
     - **Datum:**
-      - stránka bez záznamu (první běh nebo nová stránka) → `git log -1 --format=%cs -- <soubor>`. Pokud soubor není v Gitu nebo má necommitnuté změny → dnešní datum (Europe/Prague),
+      - stránka bez záznamu (první běh nebo nová stránka) → `git log -1 --format=%cs -- <zdrojový soubor ve SRC>`. Pokud soubor není v Gitu nebo má necommitnuté změny → dnešní datum (Europe/Prague),
       - změněný otisk → dnešní datum,
       - stejný otisk → datum zůstává.
     - Pro testy umožni podstrčit „dnes“ proměnnou (např. `SITEMAP_DNES=2026-10-10`).
@@ -281,7 +290,8 @@ Odpovídá to výchozímu chování Netlify podle [support guide k lomítkům a 
     - `changefreq` a `priority` vynech (Google je ignoruje),
     - pořadí: `/` první, pak abecedně. Výstup je deterministický,
     - `--kontrola`: nic nezapíše a skončí kódem 1, pokud by se změnil `sitemap.xml` nebo `content/lastmod.json`,
-    - zařaď ho na konec build příkazu (za `build-presmerovani`). `robots.txt` (řádek `Sitemap:`) neměň,
+    - zapisuje verzovaný `sitemap.xml` ve `SRC` (build ho zkopíruje do `PUB`, krok 2),
+    - zařaď ho do build příkazu jako poslední generátor, za `build-presmerovani` (za nimi smí být už jen kopírování do `PUB`). `robots.txt` (řádek `Sitemap:`) neměň,
     - úkol 12 bude sitemap měnit jen přes tento generátor. Stránky s noindex nebo bez souboru v sitemap nebudou.
 
 15. **Testy fáze B:**
@@ -307,9 +317,10 @@ Odpovídá to výchozímu chování Netlify podle [support guide k lomítkům a 
     - **Vrácení:** smazat řádek, náhled, schválené nasazení.
     - **Bez potvrzení** pravidlo nepřidávej a v hlášení uveď „čeká na majitele“. Kontrolu v CI po nasazení přidá úkol 19.
 
-18. **`CLAUDE.md` – sekce „Adresy (úkol 06)“:**
+18. **`CLAUDE.md` – sekce „Adresy (úkol 06)“** (založená v kroku 12, tady ji doplň o body fáze B):
     - pravidlo adres (tabulka z kroku 3),
-    - zákaz `.html` a `/index.html` v odkazech, meta a JSON-LD,
+    - zákaz `.html` a `/index.html` v odkazech, meta a JSON-LD (výjimka `/404.html` v `sw.js`),
+    - ruční pravidla přesměrování (přesun nebo zrušení stránky, návrhy z úkolů 15 a 18) patří do `_redirects` **nad** generovaný blok. U přesunuté stránky přidej i její staré podoby (`/x.html`, `/x/index.html`), aby vedly jedním skokem na nový cíl,
     - nová stránka = soubor podle pravidla a build (`build-presmerovani`, `build-sitemap`),
     - `lastmod` se ručně nepíše,
     - před commitem `node scripts/kontrola-adres.mjs`, na náhledu `node scripts/over-adresy.mjs <náhled>`,
@@ -319,43 +330,54 @@ Odpovídá to výchozímu chování Netlify podle [support guide k lomítkům a 
 
 ## Akceptační kritéria
 **Fáze A:**
-- [ ] `node scripts/kontrola-adres.mjs` → kód 0, 0 nálezů. Varování o kotvách jsou vypsaná v hlášení.
-- [ ] Oba `git grep` z Ověření (absolutní a relativní adresy s `.html` nebo `/index.html`) → nic.
-- [ ] `sitemap.xml`: 0× `.html`. Počet `<loc>` = počet indexovatelných stránek podle `kontrola-adres.mjs` (uveď).
-- [ ] `node scripts/build-presmerovani.mjs --kontrola` → kód 0. Blok má právě jedno pravidlo pro každý `x.html` (počet = počet `x.html` stránek) a žádné pro `404.html`.
+- [ ] `node scripts/kontrola-adres.mjs` (zdroj) i `node scripts/kontrola-adres.mjs "$PUB"` (po buildu) → kód 0, `nálezů 0`. Souhrn (`stránek N, indexovatelných M`) a varování o kotvách jsou v hlášení.
+- [ ] Oba `git grep` z Ověření (absolutní a relativní adresy s `.html` nebo `/index.html`, kromě `/404.html`) → nic.
+- [ ] `sitemap.xml`: `grep -c '\.html'` → 0. `grep -o '<loc>' | wc -l` = M ze souhrnu `kontrola-adres.mjs` (uveď).
+- [ ] `node scripts/build-presmerovani.mjs --kontrola` → kód 0. Blok má právě jedno pravidlo pro každý `x.html` (příkaz `awk` z Ověření = počet `x.html` stránek bez vynechaných, seznam vynechaných v hlášení) a žádné pro `404.html` (`grep -c` → 0).
+- [ ] Pokud se `PUB` sestavuje: `cmp` z Ověření → `_redirects` a `sitemap.xml` jsou v `PUB` shodné se zdrojem.
 - [ ] Na náhledu `node scripts/over-adresy.mjs "$N"` → 0 chyb (počty podle typu v hlášení). Jinak výjimka typu pravidla se smyčkou, doložená výstupem `curl`.
 - [ ] Na náhledu `curl -sL --max-redirs 3 … "$N/cenik.html"` → `200 1`. `/`, `/akce/`, `/recenze/`, `/akce/dekujeme/`, `/cenik` a `/en` → 200 bez `location`.
-- [ ] Diff HTML obsahuje jen změny adres: oba `git diff --word-diff` z Ověření → 0.
-- [ ] `node scripts/build-hbot.mjs --kontrola` → aktuální. Pokud je sloučený 01: balíček `npm test` a `npm run test:e2e` proti webHSPGH prochází.
+- [ ] Diff HTML obsahuje jen změny adres: oba `git diff --word-diff` z Ověření (proti `git merge-base main HEAD`) → 0.
+- [ ] `node scripts/build-hbot.mjs --kontrola` → aktuální. Pokud je sloučený 01: příkaz s `../hspg-balicek` z Ověření (`npm test` a `npm run test:e2e` proti webHSPGH) → vše prošlo.
 - [ ] Testy úkolu i `npm test` webu prochází (uveď počty).
+- [ ] `grep -n "Adresy (úkol 06)" CLAUDE.md` → 1 řádek (sekce z kroku 12).
 
 **Fáze B:**
-- [ ] `node scripts/build-sitemap.mjs --kontrola` → kód 0. `sitemap.xml` nemá `changefreq` ani `priority`, nemá `.html` ani stránku s noindex. `<loc>` odpovídá indexovatelným stránkám (počet).
-- [ ] Testy: změna jen CSS nezmění `lastmod`. Změna textu, ceny, JSON-LD nebo odkazu ho nastaví na dnešek. Generátor je idempotentní.
-- [ ] `/` má `lastmod` ≥ 2026-10-04 a žádné datum není v budoucnosti.
-- [ ] Build příkaz končí `build-presmerovani` a `build-sitemap`. Po buildu je `git status --porcelain` prázdný (výstup je commitnutý a aktuální).
-- [ ] Na náhledu `over-adresy.mjs` → 0 chyb. `curl -s "$N/sitemap.xml" | grep -c '<loc>'` = počet z generátoru.
-- [ ] netlify.app: buď je potvrzení majitele citované v hlášení, pravidlo je první řádek `_redirects` a po produkčním nasazení `curl` ukazuje 301. Nebo je v hlášení „čeká na majitele“ a pravidlo v souboru není.
-- [ ] `CLAUDE.md` obsahuje sekci „Adresy (úkol 06)“.
+- [ ] `node scripts/build-sitemap.mjs --kontrola` → kód 0. `sitemap.xml` nemá `changefreq` ani `priority` (`grep -cE` → 0), nemá `.html` ani stránku s noindex (kontrola z fáze A → 0 nálezů). `grep -o '<loc>' | wc -l` = M (uveď).
+- [ ] `node --test tests/sitemap.test.mjs` → fail 0. Testy pokrývají: změna jen CSS nezmění `lastmod`, změna textu, ceny, JSON-LD nebo odkazu ho nastaví na dnešek, generátor je idempotentní.
+- [ ] Příkaz `node -e` z Ověření → `true true` (`/` má `lastmod` ≥ 2026-10-04 a žádné datum není v budoucnosti).
+- [ ] `build-presmerovani` a `build-sitemap` jsou v build příkazu poslední generátory (za nimi jen kopírování do `PUB`; výpis příkazu z Ověření). Po buildu je `git status --porcelain` prázdný (výstup je commitnutý a aktuální; ignorovaný `dist/` se nepočítá).
+- [ ] Na náhledu `over-adresy.mjs` → 0 chyb. `curl -s "$N/sitemap.xml" | grep -o '<loc>' | wc -l` = M.
+- [ ] netlify.app: buď je potvrzení majitele citované v hlášení, pravidlo je první pravidlo v `_redirects` (`head -2 _redirects | grep -c netlify.app` → 1) a po produkčním nasazení `curl` ukazuje 301. Nebo je v hlášení „čeká na majitele“ a `grep -c "netlify\.app" _redirects` → 0.
+- [ ] Sekce „Adresy (úkol 06)“ v `CLAUDE.md` obsahuje i body fáze B z kroku 18 (`lastmod`, `build-sitemap`, netlify.app).
 
 ## Ověření
 ```bash
-PUB=<publikační adresář z netlify.toml>
+PUB=<publikační adresář z netlify.toml>                 # např. dist; při publish "." je PUB=.
 npm run build                                          # nebo build příkaz z netlify.toml → bez chyby
-node scripts/kontrola-adres.mjs "$PUB"                 # → „0 nálezů“, kód 0
+node scripts/kontrola-adres.mjs                        # zdroj → „nálezů 0“, kód 0; souhrn „stránek N, indexovatelných M“ do hlášení
+node scripts/kontrola-adres.mjs "$PUB"                 # výstup buildu → „nálezů 0“, kód 0
 node scripts/build-presmerovani.mjs --kontrola         # → kód 0
 node scripts/build-hbot.mjs --kontrola                 # (úkol 01) → aktuální
 node --test tests/adresy.test.mjs                      # → pass N, fail 0
 npm test                                               # → testy webu prošly (počty)
+(cd ../hspg-balicek && npm test && HSPG_MIRROR=$(pwd)/../webHSPGH CHROMIUM=<cesta k Chromiu> npm run test:e2e)   # (úkol 01) → vše prošlo
 
 # absolutní adresy s .html (včetně šablon ve scripts/) → nic
 git grep -nE "hspg\.cz/[A-Za-z0-9/_-]+(\.html|/index\.html)" -- . ':!node_modules' ':!tests' ':!*.md' ':!scripts/*adres*' ':!scripts/build-presmerovani.mjs'
-# relativní odkazy s .html v publikovaných souborech a funkcích → nic
-git grep -nE "[\"'(=]/[A-Za-z0-9/_-]+(\.html|/index\.html)" -- '*.html' 'assets/' 'content/' 'netlify/' ':!node_modules'
-grep -c "<loc>" "$PUB/sitemap.xml"; grep -cE "\.html" "$PUB/sitemap.xml"          # → N; 0
+# relativní odkazy s .html v publikovaných souborech a funkcích → nic (/404.html je povolená výjimka)
+git grep -nE "[\"'(=]/[A-Za-z0-9/_-]+(\.html|/index\.html)" -- '*.html' 'assets/' 'content/' 'netlify/' 'sw.js' '*.webmanifest' ':!node_modules' ':!tests' | grep -v '/404\.html'
+grep -o "<loc>" sitemap.xml | wc -l; grep -c "\.html" sitemap.xml               # → M (ze souhrnu kontroly); 0
+# blok přesměrování: počet pravidel x.html, žádné pro 404.html
+sed -n '/^# >>> adresy/,/^# <<< adresy/p' _redirects | awk '$1 ~ /\.html$/ && $1 !~ /index\.html$/' | wc -l   # → počet x.html stránek bez vynechaných
+sed -n '/^# >>> adresy/,/^# <<< adresy/p' _redirects | grep -c '^/404\.html'     # → 0
+# jen pokud se PUB sestavuje (PUB ≠ .): build kopíruje generované soubory beze změny
+cmp _redirects "$PUB/_redirects" && cmp sitemap.xml "$PUB/sitemap.xml"           # → bez výstupu
 # diff HTML jen v adresách: každé odebrané slovo obsahovalo .html, žádné přidané .html neobsahuje
-git diff main --word-diff=porcelain -- '*.html' | grep -E '^-[^-]' | grep -vc '\.html'   # → 0
-git diff main --word-diff=porcelain -- '*.html' | grep -E '^\+[^+]' | grep -c '\.html'   # → 0
+Z=$(git merge-base main HEAD)                          # jen změny této větve, i když se main mezitím posunula
+git diff "$Z" --word-diff=porcelain -- '*.html' ':!tests' | grep -E '^-[^-]' | grep -vc '\.html'   # → 0
+git diff "$Z" --word-diff=porcelain -- '*.html' ':!tests' | grep -E '^\+[^+]' | grep -c '\.html'   # → 0
+grep -n "Adresy (úkol 06)" CLAUDE.md                   # → 1 řádek
 
 N=<adresa náhledu z npm run nahled>
 node scripts/over-adresy.mjs "$N"                      # → 0 chyb, počty podle typu
@@ -371,9 +393,14 @@ curl -s "$N/sitemap.xml" | grep -c '\.html'                                     
 # fáze B
 node scripts/build-sitemap.mjs --kontrola              # → kód 0
 node --test tests/sitemap.test.mjs                     # → pass N, fail 0
-grep -cE "<changefreq>|<priority>" "$PUB/sitemap.xml"  # → 0
-grep -oE "<lastmod>[^<]+" "$PUB/sitemap.xml" | sort | uniq -c    # → rozložení dat do hlášení
+grep -cE "<changefreq>|<priority>" sitemap.xml         # → 0
+grep -o "<loc>" sitemap.xml | wc -l                    # → M (ze souhrnu kontrola-adres.mjs)
+grep -oE "<lastmod>[^<]+" sitemap.xml | sort | uniq -c # → rozložení dat do hlášení
+node -e 'const d=JSON.parse(require("fs").readFileSync("content/lastmod.json","utf8"));const dnes=new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Prague"}).format(new Date());console.log(d["/"].datum>="2026-10-04",Object.values(d).every(z=>z.datum<=dnes))'   # → true true
+grep -nE '^\s*command' netlify.toml; npm pkg get scripts.build   # → build-presmerovani a build-sitemap jsou poslední generátory
 npm run build && git status --porcelain                # → prázdné
+grep -c "netlify\.app" _redirects                      # → 0 bez potvrzení majitele; s potvrzením: head -2 _redirects | grep -c netlify.app → 1
+curl -s "$N/sitemap.xml" | grep -o '<loc>' | wc -l     # → M (na novém náhledu z kroku 16)
 
 # až po schváleném produkčním nasazení (GET, jednou)
 node scripts/over-adresy.mjs https://hspg.cz           # → 0 chyb
@@ -389,7 +416,7 @@ Testy, které agent přidá:
   - `kontrola-adres.mjs` nad fixturami,
   - `build-presmerovani.mjs` (blok, ruční pravidla, idempotence, `--kontrola`),
   - cíle formulářů a `fetch`,
-  - kontrola celého publikovaného adresáře.
+  - kontrola celého zdroje (`SRC`) a po buildu i `PUB`.
 - **`tests/sitemap.test.mjs`** (fáze B): otisk, datum, výběr stránek, `--kontrola`, idempotence.
 - Skripty `scripts/kontrola-adres.mjs` a `scripts/over-adresy.mjs` jsou samostatně spustitelné, aby je mohlo volat CI (úkol 19) a monitoring (úkol 15).
 - **Na náhledu i produkci jen GET**, souběh nejvýš 3, žádné odeslání formuláře.
@@ -416,6 +443,7 @@ Viz `balicek/KONTEXT.md` §4. Pro tento úkol navíc:
 Po **fázi A** i **fázi B** formát z `KONTEXT.md` §5 a k tomu:
 - **výsledek kroku 2:**
   - kde jsou pravidla (`_redirects` / `netlify.toml`), build příkaz a publikovaný adresář,
+  - `SRC` × `PUB`: zda existuje `scripts/build-site.mjs` a `dist/`, zda je `dist/` v `.gitignore`, co build kopíruje a které stránky vznikají až ve výstupu,
   - zda se sitemap generovala,
   - jak je směrováno `/api/*`,
   - výsledek `git grep netlify.app`,
@@ -440,7 +468,7 @@ Po **fázi A** i **fázi B** formát z `KONTEXT.md` §5 a k tomu:
     - po nasazení `over-adresy.mjs https://hspg.cz` a kontrola 301 z netlify.app,
     - checkout s celou historií (`fetch-depth: 0`) kvůli `git log` v generátoru.
   - **15:** monitoring může volat `over-adresy.mjs`.
-  - **Balíček:** `balicek/web` má stále odkazy s `.html` v `content/hbot-faq.json` (ř. 8, 30, 34), `assets/hbot-panel.js` (ř. 205) a `netlify/lib/ai/pravidla.mjs` (ř. 19). Navrhni opravu, aby se při dalším převzetí nevrátily.
+  - **Balíček:** `balicek/web` má stále odkazy s `.html` v `content/hbot-faq.json` (ř. 8, 30, 34), `assets/hbot-panel.js` (ř. 210) a `netlify/lib/ai/pravidla.mjs` (ř. 19). Navrhni opravu, aby se při dalším převzetí nevrátily. Testy balíčku `balicek/testy/e2e/hbot.test.mjs` (ř. 23, 156, 219) otevírají `/cenik.html` a `/en.html`. Server balíčku přesměrování nezná, takže fungují dál, ale navrhni sjednocení na `/cenik` a `/en`.
 - **checklist pro majitele** (po schváleném produkčním nasazení; může provést Claude v Chrome v rámci C7):
   - [ ] Search Console: znovu odeslat `https://hspg.cz/sitemap.xml` a v kontrole URL u `/cenik` ověřit, kterou kanonickou adresu zvolil Google.
   - [ ] Po 2–4 týdnech: Search Console → Stránky, zda ubylo „Duplicitní, Google zvolil jinou kanonickou stránku“.
