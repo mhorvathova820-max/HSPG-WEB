@@ -142,12 +142,26 @@
 
       if (rezim.value === 'vsechny') {
         info.textContent = 'Ptám se ' + zapnute.length + ' AI…';
+        // Dotaz, který narazí na rozpočet (402), se zkusí znovu po doběhnutí ostatních – jejich rezervace
+        // se mezitím vyrovnají na skutečnou útratu a místo v rozpočtu se uvolní.
+        var odlozene = [];
+        var zeptej = function (a, c) {
+          return AI.zavolej({ ai: a.id, zpravy: [{ role: 'user', text: zadani }], pokyn: pokyn, token: o.token, signal: signal, naText: function (t) { c.text.textContent = t; c.text.classList.remove('hb-chyba'); ukazVysledky(); } })
+            .then(function (r) { c.st.textContent = r.stat.vstup + ' + ' + r.stat.vystup + ' tokenů' + (r.stat.kc ? ' · ≈ ' + r.stat.kc.toFixed(2) + ' Kč' : ''); });
+        };
+        var chybaKarty = function (c, e) { if (!odhlasPriChybe(e)) { c.text.textContent = e.name === 'AbortError' ? 'Zastaveno.' : e.message; c.text.classList.add('hb-chyba'); } };
         Promise.all(zapnute.map(function (a) {
           var c = karta(a.nazev, AI.BARVY[a.id] || '#c9a962', a.model);
-          return AI.zavolej({ ai: a.id, zpravy: [{ role: 'user', text: zadani }], pokyn: pokyn, token: o.token, signal: signal, naText: function (t) { c.text.textContent = t; ukazVysledky(); } })
-            .then(function (r) { c.st.textContent = r.stat.vstup + ' + ' + r.stat.vystup + ' tokenů' + (r.stat.kc ? ' · ≈ ' + r.stat.kc.toFixed(2) + ' Kč' : ''); })
-            .catch(function (e) { if (!odhlasPriChybe(e)) { c.text.textContent = e.name === 'AbortError' ? 'Zastaveno.' : e.message; c.text.classList.add('hb-chyba'); } });
-        })).then(function () { skonci(); });
+          return zeptej(a, c).catch(function (e) {
+            if (e.status === 402) { odlozene.push([a, c]); c.text.textContent = 'Čeká na místo v rozpočtu – zkusím po ostatních…'; return; }
+            chybaKarty(c, e);
+          });
+        })).then(function () {
+          // Odložené po jednom; druhé 402 už je skutečně vyčerpaný rozpočet.
+          return odlozene.reduce(function (p, x) {
+            return p.then(function () { if (signal.aborted) return; return zeptej(x[0], x[1]).catch(function (e) { chybaKarty(x[1], e); }); });
+          }, Promise.resolve());
+        }).then(function () { skonci(); });
         return;
       }
 

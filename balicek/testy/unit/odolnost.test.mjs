@@ -149,7 +149,7 @@ test("období rozpočtu = období kreditů Netlify (výchozí 11.–10.), AI_OBD
 });
 
 test("ceny: Grok a alias Haiku známé, CENA_* u známého modelu cenu jen zvýší, neznámý model draze", () => {
-  assert.ok(odhadKc("grok", 1e6, 0, {}, "x-ai/grok-4") < odhadKc("grok", 1e6, 0, {}, "neznamy-model"));
+  assert.ok(odhadKc("grok", 1e6, 0, {}, "x-ai/grok-4.5") < odhadKc("grok", 1e6, 0, {}, "neznamy-model"));
   assert.equal(odhadKc("claude", 1e6, 0, {}, "claude-haiku-4-5-20251001"), odhadKc("claude", 1e6, 0, {}, "claude-haiku-4-5"));
   assert.equal(odhadKc("claude", 1e6, 0, { CENA_CLAUDE_VSTUP: "1" }, "claude-opus-5-5"), odhadKc("claude", 1e6, 0, {}, "claude-opus-5-5"), "levnější proměnná Opus nepodhodnotí");
   assert.ok(odhadKc("claude", 1e6, 0, { CENA_CLAUDE_VSTUP: "100" }, "claude-opus-5-5") > odhadKc("claude", 1e6, 0, {}, "claude-opus-5-5"));
@@ -190,4 +190,112 @@ test("tajemství tokenu: dvě instance při souběžném prvním přihlášení 
   const stav = (u, t) => vytvorStav({ env: e, uloziste: u })(pozadavek("/api/ai-stav", { headers: { authorization: `Bearer ${t}` } })).then((r) => r.status);
   assert.equal(await stav(B, ta.token), 200);
   assert.equal(await stav(A, tb.token), 200);
+});
+
+test("rezervace textu klienta v bajtech: 600 znaků U+A000 se rezervuje jako ≥ 1 800 tokenů", async () => {
+  const { odhadTokenu } = await import("../../web/netlify/lib/ai/limity.mjs");
+  const ul = pametoveUloziste();
+  let prvniRezerva = null;
+  const setJSON = ul.setJSON.bind(ul);
+  ul.setJSON = async (k, v, o) => { if (k.startsWith("utrata/") && prvniRezerva === null) prvniRezerva = v.celkemKc; return setJSON(k, v, o); };
+  const e = env({ GEMINI_API_KEY: "", OPENAI_API_KEY: "" });
+  const { h } = sestav({ e, ul, adaptery: { claude: { async dotaz() { throw Object.assign(new Error("x"), { status: 504 }); } } } });
+  await h(post({ zpravy: [{ role: "user", text: "ꀀ".repeat(600) }] }));
+  const model = "claude-sonnet-5-5";
+  assert.ok(prvniRezerva >= odhadKc("claude", 1800, 1500, e, model), `rezerva ${prvniRezerva}`);
+  assert.ok(typeof odhadTokenu("x") === "number");
+});
+
+test("období AI_OBDOBI_DEN=20: rezervace, vyrovnání i stav používají jeden klíč období", async () => {
+  const e = env({ AI_OBDOBI_DEN: "20" });
+  const t = Date.parse("2026-10-15T10:00:00Z");
+  const ul = pametoveUloziste();
+  const { h } = sestav({ e, ul });
+  const hh = vytvorAsistenta({ env: e, adaptery: { claude: falesnyAdapter({ text: "Střecha od 99 Kč/m²." }), gemini: falesnyAdapter({ text: '{"ok": true, "odpoved": ""}' }) }, uloziste: ul, znalosti: ZNALOSTI, ted: () => t });
+  assert.equal((await (await hh(post())).json()).rezim, "ai");
+  const klice = [...ul._mapa.keys()].filter((k) => k.startsWith("utrata/"));
+  assert.deepEqual(klice, ["utrata/2026-09"]);
+  const u = await ul.get("utrata/2026-09");
+  const skutecne = Object.values(u.ai).reduce((s, a) => s + a.kc, 0);
+  assert.ok(Math.abs(u.celkemKc - skutecne) < 1e-9);
+  const stav = await (await vytvorStav({ env: e, uloziste: ul, ted: () => t })(pozadavek("/api/ai-stav", { headers: { authorization: `Bearer ${vydejToken(e, t).token}` } }))).json();
+  assert.equal(stav.obdobi, "2026-09");
+  assert.ok(Math.abs(stav.utrata.celkemKc - skutecne) < 1e-9);
+  assert.ok(h);
+});
+
+test("vracení rezervace jen při odmítnutí: 504/422 a chyba po odeslaném textu rezervaci nechají", async () => {
+  for (const status of [504, 422]) {
+    const ul = pametoveUloziste();
+    const { h } = sestav({ ul, adaptery: { claude: { async dotaz() { throw Object.assign(new Error("x"), { status }); } }, gemini: falesnyAdapter({ text: "Střecha od 99 Kč/m²." }) } });
+    await h(post());
+    const u = await ul.get(`utrata/${obdobi()}`);
+    const skutecne = Object.values(u.ai).reduce((s, a) => s + a.kc, 0);
+    assert.ok(u.celkemKc > skutecne + 0.01, `status ${status}: rezervace musí zůstat`);
+  }
+  // Kontrolor odmítnut (404) → jeho rezervace se vrátí.
+  const ul2 = pametoveUloziste();
+  const { h: h2 } = sestav({ ul: ul2, adaptery: { gemini: falesnyAdapter({ chyba: "x" }), gpt: falesnyAdapter({ chyba: "x" }) } });
+  await h2(post());
+  const u2 = await ul2.get(`utrata/${obdobi()}`);
+  assert.ok(Math.abs(u2.celkemKc - Object.values(u2.ai).reduce((s, a) => s + a.kc, 0)) < 1e-9);
+  assert.equal(u2.ai.gemini, undefined);
+  // /api/ai: text odešel, pak chyba → rezervace zůstane; 504/422 před textem → také zůstane.
+  const e = env();
+  const auth = { authorization: `Bearer ${vydejToken(e).token}` };
+  const pripady = [
+    { async *stream() { yield { text: "Ahoj" }; throw Object.assign(new Error("x"), { status: 500 }); } },
+    { async *stream() { throw Object.assign(new Error("x"), { status: 504 }); } },
+    { async *stream() { throw Object.assign(new Error("x"), { status: 422 }); } },
+  ];
+  for (const adapter of pripady) {
+    const ul3 = pametoveUloziste();
+    const r = await vytvorAI({ env: e, adaptery: { claude: adapter }, uloziste: ul3 })(pozadavek("/api/ai", { method: "POST", headers: auth, body: { ai: "claude", zpravy: [{ role: "user", text: "x" }] } }));
+    await r.text();
+    assert.ok((await ul3.get(`utrata/${obdobi()}`)).celkemKc > 0);
+  }
+});
+
+test("ai (majitel): maxTokenu ze zadání zmenší rezervaci (strop serveru 8 000)", async () => {
+  const e = env();
+  const auth = { authorization: `Bearer ${vydejToken(e).token}` };
+  const rezerva = async (maxTokenu) => {
+    const ul = pametoveUloziste();
+    let r0 = null;
+    const setJSON = ul.setJSON.bind(ul);
+    ul.setJSON = async (k, v, o) => { if (k.startsWith("utrata/") && r0 === null) r0 = v.celkemKc; return setJSON(k, v, o); };
+    const pomale = { async *stream() { yield { text: "a" }; yield { stat: { vstup: 1, vystup: 1 } }; } };
+    await (await vytvorAI({ env: e, adaptery: { claude: pomale }, uloziste: ul })(pozadavek("/api/ai", { method: "POST", headers: auth, body: { ai: "claude", zpravy: [{ role: "user", text: "x" }], maxTokenu } }))).text();
+    return r0;
+  };
+  const plna = await rezerva(undefined), mala = await rezerva(1000), pres = await rezerva(99999);
+  assert.ok(mala < plna);
+  assert.equal(pres, plna);
+});
+
+test("NDJSON: chyba návrhu a odchod klienta → kontrola se nespustí", async () => {
+  const { h, ad } = sestav({ adaptery: { claude: falesnyAdapter({ zpozdeni: 30, chyba: "500" }) } });
+  const r = await h(post(OTAZKA, { accept: "application/x-ndjson" }), { waitUntil: () => {} });
+  const ctecka = r.body.getReader();
+  await ctecka.read();
+  await ctecka.cancel();
+  await new Promise((ok) => setTimeout(ok, 150));
+  assert.equal(ad.gemini.volani.length, 0);
+});
+
+test("známé zařízení majitele: cizí pokusy naplní globální strop, majitel se přesto přihlásí; čítače po úspěchu na nule", async () => {
+  const ul = pametoveUloziste();
+  const h = vytvorPrihlaseni({ env: env(), uloziste: ul });
+  const prihlas = (body, ip) => h(pozadavek("/api/majitel", { method: "POST", body }), { ip });
+  const prvni = await (await prihlas({ heslo: HESLO }, "203.0.113.7")).json();
+  assert.ok(prvni.zarizeni, "server vydá příznak zařízení");
+  const klient = otiskKlienta("203.0.113.7", Date.now());
+  assert.equal((await ul.get(`limit/login/${klient}`)).n, 0);
+  assert.equal((await ul.get("limit/login-vse")).n, 0);
+  for (let i = 0; i < 100; i++) await prihlas({ heslo: "spatne-heslo-123456789" }, `2001:db8:${i}::1`);
+  const bez = await prihlas({ heslo: HESLO }, "198.51.100.9");
+  assert.equal(bez.status, 429);
+  assert.match((await bez.json()).chyba, /za hodinu/);
+  assert.equal((await prihlas({ heslo: HESLO, zarizeni: prvni.zarizeni }, "198.51.100.10")).status, 200);
+  assert.equal((await prihlas({ heslo: HESLO, zarizeni: "1." + "x".repeat(43) }, "198.51.100.11")).status, 429, "podvržený příznak neplatí");
 });

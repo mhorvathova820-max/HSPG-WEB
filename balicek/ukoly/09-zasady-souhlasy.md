@@ -89,7 +89,7 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
    - **`holub-ai`** (dokud běží): zda loguje nebo ukládá obsah rozhovoru (zásady dnes tvrdí „Obsah rozhovoru sami neukládáme“).
    - **Prohlížeč:**
      - `localStorage`: `hspg-souhlas`, `hspg-svetly` a `hspg-cookies-ok` (na homepage se zapisuje jen po kliknutí na `[data-action="prijmoutCookies"]` a prvek `#cookie-banner` v kopii webu chybí; ověř, jestli jde o mrtvý kód → návrh pro úkol 10)
-     - `sessionStorage`: `hspg-holub-lead` (co obsahuje a kdy se maže), tokeny majitele (`hspg-majitel-token`, `hspg-majitel-platnost`) a `hspgHistorie` (historie AI centra – nepseudonymizovaná zadání a odpovědi, maže se odhlášením v AI centru a zavřením karty); v `localStorage` navíc `hspg-majitel-zarizeni` (jen na zařízení majitele, příznak bez údajů)
+     - `sessionStorage`: `hspg-holub-lead` (co obsahuje a kdy se maže), tokeny majitele (`hspg-majitel-token`, `hspg-majitel-platnost`) a `hspgHistorie` (historie AI centra – nepseudonymizovaná zadání a odpovědi, maže se odhlášením v AI centru a zavřením karty); v `localStorage` navíc `hspg-majitel-zarizeni` (jen na zařízení majitele: podepsaný příznak zařízení na 90 dní, výjimka z celkového zámku přihlášení; bez osobních údajů)
      - Cache Storage (`sw.js` ukládá navštívené stránky)
    - **Netlify** (jen pro čtení, v UI nebo přes `netlify api`): jsou zapnuté Netlify Analytics nebo Real User Monitoring? Kam chodí oznámení Forms (převezmi z hlášení úkolu 02)? Které z proměnných `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY` a `XAI_API_KEY` jsou v Netlify nastavené jako vlastní klíč? Zapiš **jen názvy**, hodnoty nikdy nevypisuj ani neukládej. Vlastní klíč znamená, že daná AI nejde přes AI Gateway, ale přímo k poskytovateli (KONTEXT §2), a zásady to musí popsat.
 
@@ -104,7 +104,7 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
 
    Čti jen přes GET z oficiálních stránek. Povinně zpracuj:
    - **Netlify:** hosting, Forms, Functions, Blobs a AI Gateway. Z dokumentace AI Gateway zjisti, kdo je smluvní stranou vůči Anthropic, OpenAI, Google a OpenRouter a jak se nakládá s daty.
-   - **AI:** Anthropic, OpenAI, Google (u Gemini ověř, že nejde o bezplatnou úroveň s trénováním na datech), OpenRouter a xAI (jen pokud zůstane Grok).
+   - **AI:** Anthropic, OpenAI, Google (u Gemini ověř, že nejde o bezplatnou úroveň s trénováním na datech) a OpenRouter s poskytovateli modelů pro majitele: xAI (Grok), Mistral AI, DeepSeek (provozovatelé modelu u OpenRouteru se mění – Netlify posílá jen k poskytovatelům s nulovým uchováváním dat, ZDR), Meta (Llama, přes provozovatele ZDR) a Perplexity (hledá na webu). Seznam ověř proti `POSKYTOVATELE` v `netlify/lib/ai/poskytovatele.mjs`.
    - **Seznam.cz:** Email Profi a zvlášť bezplatná schránka `profiserv@seznam.cz`, kam jde záložní kopie oznámení (ověř, jaké podmínky zpracování pro ni platí).
    - **Open-Meteo** a **Meta** (Messenger, WhatsApp, Facebook – samostatný správce).
    - **Microsoft (Clarity) a Google (GTM/GA):** jen převezmi z dnešního textu, mění je úkol 10.
@@ -141,7 +141,7 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
    Pravidla registru:
    - Každý účel z inventury má záznam: poptávka, zavolání zpět, fotky, akce, zakázka a záruka, reklamace, pas domu a registr zakázek, hodnocení, reference, veřejný asistent AI, interní AI, počasí, zprávy (telefon, e-mail, Messenger, WhatsApp), uchazeči, dodavatelé, zdroj návštěvy, provoz a bezpečnost, cookies a úložiště. Newsletter jen při `newsletter.existuje === true`.
    - Co rozhoduje majitel, je `[DOPLNIT: … – Ox]` a `mesice: null`. Doby uchování jsou strojově čitelné (`mesice`), protože z nich bude číst mazací skript úkolu 19.
-   - `ai.verejny_asistent` je výchozí návrh do rozhodnutí O4: bez Groku, aby měl veřejný asistent co nejméně příjemců. `ai.interni` zachovává majitelův požadavek „všechny AI“. Pokud v něm zůstane Grok, registr musí obsahovat i OpenRouter a xAI.
+   - `ai.verejny_asistent` je výchozí návrh do rozhodnutí O4: bez Groku, aby měl veřejný asistent co nejméně příjemců. `ai.interni` zachovává majitelův požadavek „všechny AI“ (4. 10. potvrzeno: přidat i další – dnes `claude, gpt, gemini, grok, mistral, deepseek, llama, perplexity`). Pokud v něm zůstane Grok, registr musí obsahovat i OpenRouter a xAI.
 
    **Bod zastavení:** když sezení nestačí na celou fázi A, commitni a pushni větev po kroku 5 (dokumenty a registr, kód beze změny) s průběžným hlášením. Kroky 6–12 navážou ve stejné větvi v dalším sezení.
 6. **AI jen od poskytovatelů v registru.**
@@ -150,11 +150,11 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
    - `GET /api/asistent` pak hlásí jen povolené AI, takže upozornění v H-BOT a zásady jmenují stejné poskytovatele.
 7. **Push bez osobních údajů, dokud ho registr neuvádí.** V `submission-created.mjs` se osobní údaje v ntfy nebo Telegramu pošlou jen tehdy, když je `OZNAMENI_S_UDAJI=1` **a zároveň** má daný kanál v registru `osobni_udaje: true`. Do `INTERNI` přidej `Verze zásad` (do e-mailu majiteli nepatří).
 8. **Otisky v Netlify Blobs: tajná denní sůl a mazání.** V `netlify/lib/ai/limity.mjs`:
-   - Nahraď `otiskKlienta(ip, ted)` funkcí `otisk(ul, hodnota, ted)` = SHA-256(`sul|hodnota`), kde `sul` je 32 náhodných bajtů z `crypto.randomBytes` uložených pod `sul/<den>`. Vznikne při prvním použití v daný den. Zapisuj ji podmíněně `setJSON(…, { onlyIfNew: true })` jako `aktualizuj()` v `limity.mjs`. Když zápis vrátí `modified: false`, sůl už mezitím zapsal souběžný požadavek, načti ji.
+   - Nahraď `otiskKlienta(ip, ted)` funkcí `otisk(ul, hodnota, ted)` = SHA-256(`sul|hodnota`), kde `sul` je 32 náhodných bajtů z `crypto.randomBytes` uložených pod `sul/<den>`. Vznikne při prvním použití v daný den. Zapisuj ji podmíněně `setJSON(…, { onlyIfNew: true })` jako `aktualizuj()` v `limity.mjs`. Výsledek vyhodnoť jako `tajemstviServeru()` v `autorizace.mjs`: úspěch je jen `modified: true` s neprázdným `etag`; při `modified: false` sůl mezitím zapsal souběžný požadavek, načti ji; jinak vyhoď výjimku a sůl do mezipaměti neukládej (volající vrátí 503 nebo režim bez AI). Test: `pametoveUloziste` se `setJSON`, který vrací `{modified:true, etag:""}` → `otisk()` vyhodí výjimku.
    - Klíče limitů přesuň pod den: `limit/<den>/k10/<otisk>`, `limit/<den>/kden/<otisk>`, `limit/<den>/login/<otisk>`. Úložiště `hspg-oznameni` z úkolu 02 (otisk e-mailu) převeď stejně.
    - Úklid `uklid(ul, ted)`: nejvýš jednou za hodinu (značka `uklid/posledni`) smaž `list({ prefix })` + `delete` všechny klíče `limit/<den>/…` a `sul/<den>` starší než včerejšek. Celkovou útratu (`utrata/<měsíc>`) nech, osobní údaje neobsahuje.
    - Úklid běží při volání funkcí a navíc v plánované funkci `netlify/functions/uklid-otisku.mjs` (`export const config = { schedule: "@daily" }`) pro obě úložiště (`hspg-ai` i `hspg-oznameni`). Bez ní by ve dnech bez návštěv staré otisky a soli zůstaly a věta o 2 dnech by neplatila. Plánované funkce běží jen na produkčním nasazení. Je to jedno volání denně, kredity to prakticky nezatíží.
-   - Převeď všechna volání (`asistent.mjs`, `majitel.mjs`, `submission-created.mjs`). Pokud se ve webu používá `pametoveUloziste` pro testy, doplň do něj `list` a `delete`.
+   - Převeď všechna volání (`asistent.mjs`, `majitel.mjs`, `submission-created.mjs`). Argument zachovej: `otiskKlienta(sitKlienta(ip), ted)` → `await otisk(ul, sitKlienta(ip), ted)` (IPv6 po sítích /64). `vratPokusOPrihlaseni(ul, klient, …)` musí vracet pokus do stejného klíče `limit/<den>/login/<otisk>` jako `povolPokusOPrihlaseni` (v `majitel.mjs` se čas počítá jednou: `const t = ted()`); `limit/login-vse` ponech. Čítače dál jen přes `pricti` / `vrat` z `limity.mjs`. Pokud se ve webu používá `pametoveUloziste` pro testy, doplň do něj `list` a `delete`.
    - Komentář v záhlaví `limity.mjs` přepiš tak, aby odpovídal skutečnosti (tajná denní sůl, mazání po 2 dnech).
    - Do zásad pak smí věta: „Na ochranu před zneužitím ukládáme nejdéle 2 dny otisk IP adresy vytvořený s denně měněným tajným klíčem. Po smazání klíče už otisk nejde přiřadit k IP adrese.“
 
@@ -415,7 +415,7 @@ Formát z `KONTEXT.md` §5, zvlášť po fázi A, B a C, a navíc:
 - **Fáze C:** kdo a kdy schválil, `verze` a `platne_od`, odkaz na nasazení a výsledky kontrol na živém webu.
 - **Předávky:**
   - **10:** seznam úložišť v prohlížeči (`uloziste_prohlizece` v registru – úkol 10 je převezme do `content/mereni.json`, nebo je z registru čte, aby nebyla evidovaná dvakrát), značky `COOKIES:START/END` v sekci `#cookies`, otázka, zda Cache Storage service workeru potřebuje souhlas, mrtvý kód `hspg-cookies-ok` a odkaz „Details“ v liště na `/en` (`#english`). Anglické shrnutí zásad už existuje (`#english`), poznámka „anglické zásady → úkol 18“ v zadání 10 tím odpadá.
-  - **14:** přístup k pasu domu a pole „poznámka“ v registru zakázek; zásady se po změně aktualizují z registru. `otiskKlienta()` už neexistuje: omezení pokusů v úkolu 14 použije `otisk(ul, ip, ted)` a klíče `limit/<den>/…`, aby je mazal úklid.
+  - **14:** přístup k pasu domu a pole „poznámka“ v registru zakázek; zásady se po změně aktualizují z registru. `otiskKlienta()` už neexistuje: omezení pokusů v úkolu 14 použije `otisk(ul, sitKlienta(ip), ted)` a klíče `limit/<den>/…`, aby je mazal úklid.
   - **07:** `preprodukce` už obsahuje bránu zásad. Pokud úkol 07 přidává `npm run build`, připojí ho před ni a bránu zachová.
   - **13:** odkaz „Privacy policy“ na `/en` (krok 21 úkolu 13) je hotový.
   - **18:** pole `Účast v akci` je oddělené; dobrovolnost a neutrální poptávka spolu s pravidly v2 (13); nové formuláře převezmou informační větu a `Verze zásad`

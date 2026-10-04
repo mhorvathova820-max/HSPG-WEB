@@ -1,5 +1,6 @@
 // Přihlášení majitele: heslo HSPG_PANEL_HESLO se ověří jednou a výměnou se vydá podepsaný token.
-// Heslo tak nezůstává v prohlížeči; token platí 12 hodin a jde zneplatnit změnou hesla.
+// Heslo tak nezůstává v prohlížeči; token platí 12 hodin a jde zneplatnit změnou hesla a novým nasazením
+// (proměnná prostředí se ve funkcích projeví až po nasazení).
 // Podpisový klíč = náhodné tajemství serveru + heslo. Tajemství vznikne samo při prvním přihlášení
 // (Netlify Blobs, úložiště „hspg-ai“), majitel nic dalšího nenastavuje. Z uniklého tokenu tak nejde
 // heslo hádat offline – bez tajemství serveru je podpis k ničemu.
@@ -78,6 +79,21 @@ export function overToken(token, env = process.env, ted = Date.now(), tajemstvi)
   if (!/^\d{1,15}$/.test(platnost || "") || !sig) return false;
   if (Number(platnost) < ted) return false;
   return stejne(sig, podpis(platnost, klic));
+}
+
+// Příznak známého zařízení majitele (90 dní): po úspěšném přihlášení ho prohlížeč uloží a posílá s heslem.
+// Není to přihlášení – jen výjimka z globálního stropu pokusů, aby cizí pokusy nezamkly majitele.
+const PLATNOST_ZARIZENI_MS = 90 * 24 * 60 * 60 * 1000;
+const klicZarizeni = (tajemstvi) => createHmac("sha256", tajemstvi).update("hspg-zarizeni").digest();
+export function vydejZarizeni(ted = Date.now(), tajemstvi) {
+  const platnost = ted + PLATNOST_ZARIZENI_MS;
+  return `${platnost}.${podpis(`zarizeni|${platnost}`, klicZarizeni(tajemstvi))}`;
+}
+export function overZarizeni(znacka, ted = Date.now(), tajemstvi) {
+  if (typeof znacka !== "string" || znacka.length > 100 || !tajemstvi) return false;
+  const [platnost, sig] = znacka.split(".");
+  if (!/^\d{1,15}$/.test(platnost || "") || !sig || Number(platnost) < ted) return false;
+  return stejne(sig, podpis(`zarizeni|${platnost}`, klicZarizeni(tajemstvi)));
 }
 
 // Interní endpointy přijmou jen token (Authorization: Bearer …). Heslo se ověřuje výhradně v /api/majitel,

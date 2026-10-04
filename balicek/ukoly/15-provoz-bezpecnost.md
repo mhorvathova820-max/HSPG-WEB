@@ -166,7 +166,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
      - chyba poskytovatele 401/403/402/404
      - podíl záložních odpovědí > 20 % při ≥ 10 dotazech za den
      - útrata AI ≥ 80 % a ≥ 100 % `AI_MESICNI_LIMIT_KC` (`utrata.celkemKc`) **a zvlášť** útrata zákazníků `utrata.verejneKc` ≥ 80 % a ≥ 100 % `AI_VEREJNY_LIMIT_KC` (výchozí polovina měsíčního limitu; při 100 % H-BOT odpovídá z FAQ). Text: `[HSPG] AI pro zákazníky: rozpočet vyčerpán (X / Y Kč). H-BOT odpovídá z FAQ.`
-     - přenos dat (bandwidth) z Usage & billing / Netlify API > 2 GB za den nebo nečekaný skok proti minulému týdnu (videa `/media/*` – pravidlo 100 požadavků / min brzdí jen rychlé smyčky, ne pomalé stahování)
+     - přenos dat se z funkcí nehlídá (funkce nemají přístup k Usage & billing a token Netlify API do proměnných funkcí nepatří) – hlídá ho týdenní kontrola v kroku 13
    - Každý typ nejvýš 1× denně. Deduplikace je v klíči `upozorneni/<den>`. Timeout je 5 s a selhání nesmí ovlivnit odpověď návštěvníkovi.
    - Text zprávy: `[HSPG] AI: Claude – vyčerpaný kredit (402). H-BOT odpovídá z FAQ.` Žádný text dotazu ani osobní údaj. Bez nastaveného kanálu jen `console.warn`.
 7. **Počítadla formulářů** v `submission-created.mjs`: oblast `formulare`, položky `<form_name>.prijato` a `<form_name>.<kanál>_ok` / `<kanál>_selhalo`. Nic z obsahu podání. Chování z úkolu 02 se nemění (200 i při chybě, kopie, směrování).
@@ -224,10 +224,10 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
     - Žádné `Policy`, `Acknowledgments` ani tvrzení o certifikacích či odměnách.
     - Ověř na náhledu, že Netlify CLI soubor ve složce `.well-known` nasadí (složky začínající tečkou se při nasazení můžou vynechávat).
 12. **Pojistka kreditů v `scripts/nasadit.mjs`** (rozšíření úkolu 00, čistá testovaná funkce):
-    - `obdobi(ted, denObnovy)` vrátí aktuální období. Výchozí den obnovy je 11 (`KREDITY_OBDOBI_DEN`). Aktuální datum obnovy ověř v Usage & billing.
+    - `obdobi()` postav na `mesic(ted, env)` / `zacatekObdobi(ted, env)` z `limity.mjs`. Den obnovy čti z `AI_OBDOBI_DEN` (výchozí 11) – `KREDITY_OBDOBI_DEN` nezaváděj. Aktuální datum obnovy ověř v Usage & billing.
     - `muzeDoProdukce` navíc spočítá produkční nasazení v období z `.nasazeni-produkce.json`. Při dosažení `NASAZENI_ZA_OBDOBI_LIMIT` (výchozí 10) produkci zamítne s hláškou „PRODUKCE ZAMÍTNUTA: rozpočet období vyčerpán“, výjimkou je `--nouzove`.
     - Před každou produkcí vypiš: „Období 11. 9.–10. 10.: N nasazení = N×15 kreditů z rozpočtu 150. Zkontroluj zbývající kredity v Usage & billing.“ (data spočítá `obdobi()`, rozpočet = limit × 15).
-    - Zdůvodnění výchozí hodnoty: ostatní položky minulého období dělaly ~94 kreditů, strop AI je ~190 kreditů za měsíc (úkol 01) a monitoring ≤ 6. Dohromady s 10 nasazeními ~440 z 1 000. Číslo potvrdí majitel.
+    - Zdůvodnění výchozí hodnoty: ostatní položky minulého období dělaly ~94 kreditů, strop AI je ~190 kreditů za období kreditů (úkol 01) a monitoring ≤ 6. Dohromady s 10 nasazeními ~440 z 1 000. Číslo potvrdí majitel.
 13. **Týdenní kontrola `scripts/provoz-tyden.mjs`** (jen čtení: GET, DNS, TLS, čtení Netlify API a Blobs; **nikdy POST**). Výstup je Markdown na stdout se stavem `OK / POZOR / KRITICKÉ`. Návratový kód 0 / 1 / 2. Očekávané hodnoty jsou v `scripts/provoz-ocekavani.json`.
 
     | Oblast | Kontrola |
@@ -238,7 +238,7 @@ Počasí odpovídá ze zdroje Open-Meteo, takže klíč OpenWeatherMap zřejmě 
     | TLS | platnost certifikátu ≥ 21 dní (jinak POZOR, < 7 dní KRITICKÉ) a vydavatel |
     | DNS | MX = hosty Seznamu (**změna = KRITICKÉ**), SPF obsahuje `include:spf.seznam.cz`, DMARC odpovídá očekávanému kroku, CAA (pokud je) obsahuje `letsencrypt.org`, `www` je CNAME na Netlify |
     | funkce | očekávané stavy GET z tabulky v části Proč (`/api/asistent` GET 200), těla bez stack trace. `/api/holub-ai` očekává 404. Pokud vrací 405, výsledek je POZOR s textem „úkol 01 ještě není na produkci“ |
-    | kredity | nasazení v období z `.nasazeni-produkce.json`. `--zbyva N` (číslo z Usage & billing) přepočte na % s krokem podle prahu. Zjisti (`npx netlify api --list`, dokumentace), zda Netlify API čerpání kreditů vrací – pokud ano, čti ho automaticky. AI v kreditech čti z Blobs `hspg-ai` (`utrata/RRRR-MM` podle období kreditů, viz `mesic()`; `celkemKc` i `verejneKc`). Přenos dat za období a za posledních 7 dní (GB) vypiš zvlášť |
+    | kredity | nasazení v období z `.nasazeni-produkce.json`. `--zbyva N` (číslo z Usage & billing) přepočte na % s krokem podle prahu. Zjisti (`npx netlify api --list`, dokumentace), zda Netlify API čerpání kreditů vrací – pokud ano, čti ho automaticky. AI v kreditech čti z Blobs `hspg-ai` (`utrata/RRRR-MM` podle období kreditů, viz `mesic()`; `celkemKc` i `verejneKc`). Přenos dat za období a za posledních 7 dní (GB) čti přes přihlášené CLI (metodu ověř `npx netlify api --list`). Průměr > 2 GB/den za 7 dní nebo +100 % proti minulému týdnu = POZOR „prověř /media/* (pravidlo 100/min brzdí jen rychlé smyčky)“. Když API přenos nevrací, přidej ruční bod „Usage & billing → Bandwidth“ |
     | AI | souhrn 7 dní a semafor (Blobs `hspg-provoz`) |
     | formuláře | ověřená odeslání za 7 dní po formulářích z Netlify API proti `formulare.*.prijato` a `*_ok`. Data podání zpracuj jen v paměti, vypiš **jen počty** |
     | 404 a CSP | top 10 za 7 dní (návrhy přesměrování pro úkol 06) |

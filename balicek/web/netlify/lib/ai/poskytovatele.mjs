@@ -15,8 +15,17 @@ export const POSKYTOVATELE = {
   gpt: { nazev: "ChatGPT", klic: "OPENAI_API_KEY", model: (env) => env.OPENAI_MODEL || "gpt-5" },
   gemini: { nazev: "Gemini", klic: "GEMINI_API_KEY", model: (env) => env.GEMINI_MODEL || "gemini-2.5-pro" },
   // Grok: vlastní klíč xAI, jinak přes OpenRouter (Netlify AI Gateway ho nabízí jen u poskytovatelů se ZDR).
-  grok: { nazev: "Grok", klic: "XAI_API_KEY", jinyKlic: "OPENROUTER_API_KEY", model: (env) => env.XAI_MODEL || (env.XAI_API_KEY ? "grok-4" : "x-ai/grok-4") },
+  grok: { nazev: "Grok", klic: "XAI_API_KEY", jinyKlic: "OPENROUTER_API_KEY", model: (env) => env.XAI_MODEL || (env.XAI_API_KEY ? "grok-4" : "x-ai/grok-4.5") },
+  // Další AI jen pro majitele (panel a AI centrum), přes OpenRouter v Netlify AI Gateway – jen modely
+  // s nulovým uchováváním dat (ZDR, ověřeno 4. 10. na openrouter.ai/api/v1/endpoints/zdr). Veřejný asistent
+  // je nepoužívá (ASISTENT_PORADI). Klíč OPENROUTER_API_KEY dodává Gateway; model jde přepsat proměnnou.
+  mistral: { nazev: "Mistral", klic: "OPENROUTER_API_KEY", model: (env) => env.MISTRAL_MODEL || "mistralai/mistral-large-2512" },
+  deepseek: { nazev: "DeepSeek", klic: "OPENROUTER_API_KEY", model: (env) => env.DEEPSEEK_MODEL || "deepseek/deepseek-v4-flash" },
+  llama: { nazev: "Llama", klic: "OPENROUTER_API_KEY", model: (env) => env.LLAMA_MODEL || "meta-llama/llama-4-maverick" },
+  // Perplexity hledá na webu – fakta z webu nejsou schválené znalosti HSPG, výsledky ber jako podklad k ověření.
+  perplexity: { nazev: "Perplexity", klic: "OPENROUTER_API_KEY", model: (env) => env.PERPLEXITY_MODEL || "perplexity/sonar-pro" },
 };
+const OPENROUTER_URL = (env) => env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1";
 
 const ZKRACENO = "\n\n[Odpověď byla zkrácena – dosažen limit délky.]";
 
@@ -83,7 +92,7 @@ const claude = (env) => ({
   },
 });
 
-// --- ChatGPT a Grok (stejné rozhraní, Grok má jinou adresu) ---
+// --- ChatGPT, Grok a AI přes OpenRouter (stejné rozhraní OpenAI, jiná adresa) ---
 const openaiKompatibilni = (env, id, apiKey, baseURL) => {
   const klient = () => new OpenAI({ apiKey, baseURL, maxRetries: 0 });
   // Uvažující modely (gpt-5…, o3…) počítají tokeny uvažování do max_completion_tokens – pro rychlé
@@ -151,8 +160,12 @@ export function vytvorAdaptery(env = process.env) {
     gpt: openaiKompatibilni(env, "gpt", env.OPENAI_API_KEY, env.OPENAI_BASE_URL || undefined),
     grok: env.XAI_API_KEY
       ? openaiKompatibilni(env, "grok", env.XAI_API_KEY, "https://api.x.ai/v1")
-      : openaiKompatibilni(env, "grok", env.OPENROUTER_API_KEY, env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1"),
+      : openaiKompatibilni(env, "grok", env.OPENROUTER_API_KEY, OPENROUTER_URL(env)),
     gemini: gemini(env),
+    mistral: openaiKompatibilni(env, "mistral", env.OPENROUTER_API_KEY, OPENROUTER_URL(env)),
+    deepseek: openaiKompatibilni(env, "deepseek", env.OPENROUTER_API_KEY, OPENROUTER_URL(env)),
+    llama: openaiKompatibilni(env, "llama", env.OPENROUTER_API_KEY, OPENROUTER_URL(env)),
+    perplexity: openaiKompatibilni(env, "perplexity", env.OPENROUTER_API_KEY, OPENROUTER_URL(env)),
   };
 }
 

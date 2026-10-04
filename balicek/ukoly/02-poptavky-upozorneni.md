@@ -86,7 +86,7 @@
      - formulář je v `potvrzeni_zakaznikovi.formulare`
      - e-mail zákazníka je platný
 
-     Text nesmí obsahovat nic, co zákazník napsal (jen číslo a údaje z `firma.json`). Limit: nejvýš **3 potvrzení na stejnou adresu za 24 h** a **30 za den celkem**. Ukládej do Netlify Blobs (úložiště `hspg-oznameni`) jen otisk adresy (SHA-256 adresy a dne, jako `otiskKlienta` v `netlify/lib/ai/limity.mjs`), nikdy adresu samotnou. Po překročení limitu potvrzení tiše vynech a zapiš do logu.
+     Text nesmí obsahovat nic, co zákazník napsal (jen číslo a údaje z `firma.json`). Limit: nejvýš **3 potvrzení na stejnou adresu za 24 h** a **30 za den celkem**. Ukládej do Netlify Blobs (úložiště `hspg-oznameni`) jen otisk adresy (SHA-256 adresy a dne, jako `otiskKlienta` v `netlify/lib/ai/limity.mjs`), nikdy adresu samotnou. Po překročení limitu potvrzení tiše vynech a zapiš do logu. Čítače počítej funkcí `pricti(ul, klic, limit, oknoMs, ted)` z `netlify/lib/ai/limity.mjs` (3 / 86 400 000 ms na otisk adresy, 30 / 86 400 000 ms na den); vlastní zápis do Blobs nepiš. Při výjimce úložiště potvrzení neodešli a zapiš `console.warn`; ostatní kanály a odpověď 200 se nemění.
    - Zachovej stávající chování:
      - 200 i při chybě kanálu (Netlify by jinak opakoval)
      - `cc` na `emaily.zaloha`

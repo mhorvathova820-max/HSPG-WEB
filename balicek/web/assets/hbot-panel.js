@@ -93,8 +93,10 @@
   var majitelBtn = box.querySelector('[data-majitel]');
   // Návštěvníci odkaz nevidí. Majitel otevře panel přes hspg.cz/#majitel; zařízení si to pak pamatuje.
   var ZARIZENI_KLIC = 'hspg-majitel-zarizeni';
-  function zarizeniMajitele() { try { return localStorage.getItem(ZARIZENI_KLIC) === '1'; } catch (e) { return false; } }
-  function zapamatujZarizeni() { try { localStorage.setItem(ZARIZENI_KLIC, '1'); } catch (e) {} }
+  // Hodnota = podepsaný příznak zařízení ze serveru (výjimka z globálního stropu pokusů o přihlášení).
+  function znackaZarizeni() { try { return localStorage.getItem(ZARIZENI_KLIC) || ''; } catch (e) { return ''; } }
+  function zarizeniMajitele() { return !!znackaZarizeni(); }
+  function zapamatujZarizeni(z) { try { localStorage.setItem(ZARIZENI_KLIC, z || '1'); } catch (e) {} }
   function ukazOdkazMajitele() { majitelBtn.hidden = !(token() || zarizeniMajitele() || location.hash === '#majitel'); }
 
   function msg(html, trida) {
@@ -326,11 +328,11 @@
     pole.focus();
     f.addEventListener('submit', function (ev) {
       ev.preventDefault(); ch.hidden = true; b.disabled = true; b.textContent = 'Ověřuji…';
-      fetch('/api/majitel', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ heslo: pole.value }) })
+      fetch('/api/majitel', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ heslo: pole.value, zarizeni: znackaZarizeni() }) })
         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok || !j.token) throw new Error(j.chyba || 'Přihlášení selhalo.'); return j; }); })
         .then(function (j) {
           ss(TOKEN_KLIC, j.token); ss(PLATNOST_KLIC, String(j.platnost));
-          zapamatujZarizeni();
+          zapamatujZarizeni(j.zarizeni);
           f.remove(); zapniMajitele(true); tabM.focus();
         })
         .catch(function (e) {

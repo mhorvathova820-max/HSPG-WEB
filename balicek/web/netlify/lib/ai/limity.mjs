@@ -40,6 +40,9 @@ export const mesic = (ted, env = {}) => {
   return `${rok}-${String(m + 1).padStart(2, "0")}`;
 };
 
+// Datum začátku období (RRRR-MM-DD) pro zobrazení „od 11. 9.“ v panelu majitele.
+export const zacatekObdobi = (ted, env = {}) => `${mesic(ted, env)}-${String(Math.min(28, Math.max(1, Math.trunc(cislo(env.AI_OBDOBI_DEN, 11))))).padStart(2, "0")}`;
+
 // IPv6: celá síť /64 (jedna domácnost nebo server jich má tisíce), IPv4 celá adresa.
 export function sitKlienta(ip) {
   const s = String(ip || "").trim().toLowerCase();
@@ -69,7 +72,9 @@ async function aktualizuj(ul, klic, zmena, pokusu = 8) {
     const stara = r ? r.data : null;
     const krok = zmena(stara);
     if (!krok) return null;
-    const podminka = r && r.etag ? { onlyIfMatch: r.etag } : { onlyIfNew: true };
+    // Lokální `netlify dev`: BlobsServer u čtení nevrací ETag – existující klíč se tam zapíše bez podmínky
+    // (souběh se lokálně nehlídá; zámek a rozpočet ověřují testy a náhled). V produkci proměnná chybí.
+    const podminka = r?.etag ? { onlyIfMatch: r.etag } : r && process.env.NETLIFY_DEV === "true" ? {} : { onlyIfNew: true };
     const z = await ul.setJSON(klic, krok.hodnota, podminka);
     // @netlify/blobs vrací {modified:false} jen při konfliktu (412); jiná chyba zápisu (403, 5xx po opakování)
     // vrátí {modified:true, etag:""} bez výjimky. Úspěch je proto jen zápis s etagem – jinak výjimka (fail-closed).
@@ -80,8 +85,9 @@ async function aktualizuj(ul, klic, zmena, pokusu = 8) {
   throw new Error(`Úložiště: souběžné zápisy na ${klic} – vzdávám po ${pokusu} pokusech`);
 }
 
-// Okénkový čítač: vrací true, když se požadavek do limitu vejde (a započítá ho).
-async function pricti(ul, klic, limit, oknoMs, ted) {
+// Okénkový čítač: vrací true, když se požadavek do limitu vejde (a započítá ho). Atomický a fail-closed
+// (výjimka při chybě úložiště) – použij ho pro každý nový limit, vlastní zápis do Blobs nepiš.
+export async function pricti(ul, klic, limit, oknoMs, ted) {
   const v = await aktualizuj(ul, klic, (z) => {
     const platny = z && ted - z.od < oknoMs ? { ...z } : { n: 0, od: ted };
     if (platny.n >= limit) return null;
@@ -107,17 +113,22 @@ export async function povolVerejnyDotaz(ul, klient, env, ted) {
 // Hádání hesla: 5 pokusů / 15 min na klienta (IPv6 po sítích /64, viz sitKlienta) a 100 / hodinu celkem.
 // Pokus se započítá atomicky PŘED ověřením hesla, takže ani souběžné požadavky nezkusí víc hesel.
 // Po úspěšném přihlášení se pokus vrátí (vratPokusOPrihlaseni) – do zámku se počítají jen neúspěchy.
+// Známé zařízení majitele (podepsaný příznak z dřívějšího přihlášení) globální strop obchází, aby cizí
+// pokusy nemohly majitele zamknout. Vrací true | "klient" (5/15 min) | "vse" (100/h celkem).
 const LOGIN_CELKEM = "limit/login-vse";
-export async function povolPokusOPrihlaseni(ul, klient, ted) {
-  if (!(await pricti(ul, `limit/login/${klient}`, 5, 15 * 60_000, ted))) return false;
-  return pricti(ul, LOGIN_CELKEM, 100, 3_600_000, ted);
+export async function povolPokusOPrihlaseni(ul, klient, ted, znameZarizeni = false) {
+  if (!(await pricti(ul, `limit/login/${klient}`, 5, 15 * 60_000, ted))) return "klient";
+  if (znameZarizeni || (await pricti(ul, LOGIN_CELKEM, 100, 3_600_000, ted))) return true;
+  await vrat(ul, `limit/login/${klient}`);
+  return "vse";
 }
-async function vrat(ul, klic) {
+// Vrácení jednoho započítaného pokusu (atomicky).
+export async function vrat(ul, klic) {
   await aktualizuj(ul, klic, (z) => (z && z.n > 0 ? { hodnota: { ...z, n: z.n - 1 }, vysledek: true } : null));
 }
-export async function vratPokusOPrihlaseni(ul, klient) {
+export async function vratPokusOPrihlaseni(ul, klient, { celkem = true } = {}) {
   await vrat(ul, `limit/login/${klient}`);
-  await vrat(ul, LOGIN_CELKEM);
+  if (celkem) await vrat(ul, LOGIN_CELKEM);
 }
 
 // ODHAD ceny v Kč (ne faktura – přesnou útratu ukazuje Netlify / poskytovatel). Ceny v USD za milion
@@ -133,8 +144,13 @@ const CENY_MODELU_USD = {
   "gemini-2.5-pro": [2.5, 15],
   "gpt-5-mini": [0.5, 4],
   "gpt-5": [2.5, 15],
-  "grok-4": [5, 20], // ceník xAI 3/15 USD – záměrně nadsazeno
-  "x-ai/grok-4": [5, 20], // přes OpenRouter (Netlify AI Gateway)
+  "grok-4": [5, 20], // vlastní klíč xAI (ceník 3/15 USD) – záměrně nadsazeno
+  // Přes OpenRouter (Netlify AI Gateway, jen ZDR). Nadsazeno nad nejdražšího ZDR poskytovatele k 4. 10.:
+  "x-ai/grok-4.5": [5, 15], // ZDR 2–4 / 6–12 USD
+  "mistralai/mistral-large-2512": [1, 3], // ZDR 0,5–0,55 / 1,5–1,65 USD
+  "deepseek/deepseek-v4-flash": [0.5, 2], // ZDR 0,02–0,21 / 0,56–1,66 USD
+  "meta-llama/llama-4-maverick": [0.5, 1.5], // ZDR 0,19–0,35 / 0,65–1,15 USD
+  "perplexity/sonar-pro": [6, 20], // 3/15 USD + poplatek za vyhledávání na webu
 };
 const NEZNAMY_MODEL_USD = [15, 75];
 export function odhadKc(id, vstup, vystup, env, model) {

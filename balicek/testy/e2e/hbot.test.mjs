@@ -120,7 +120,8 @@ test("mobil 390 px: lišta Zavolat · Zeptat se · Cena, panel jako spodní list
   const box = await p.locator("#hbot").boundingBox();
   assert.ok(box.x <= 1 && Math.round(box.width) >= 389, "panel přes celou šířku");
   const zavrit = await p.locator("#hbot .hb-close").boundingBox();
-  assert.ok(zavrit.y >= 0 && zavrit.height >= 40, "zavírací tlačítko je vidět a má ≥ 40 px");
+  // Během animace vjezdu vrací boundingBox i 39,99998 → zaokrouhlit.
+  assert.ok(zavrit.y >= 0 && Math.round(zavrit.height) >= 40, "zavírací tlačítko je vidět a má ≥ 40 px");
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   assert.ok(await p.evaluate(() => document.getElementById("hbot").getBoundingClientRect().width <= innerWidth), "panel není širší než obrazovka");
   // Na mobilu je panel modální: zbytek stránky je inert, po zavření se vše vrátí.

@@ -18,7 +18,7 @@
     preklad: { nazev: 'Překlad do angličtiny',
       pokyn: 'Přelož text ze zadání do přirozené angličtiny. Zachovej význam, nic nepřidávej. Odbornou terminologii (čištění, impregnace, střecha, fasáda) přelož správně.' }
   };
-  var BARVY = { claude: '#e08a4f', gpt: '#2dbfa8', gemini: '#6aa0f5', grok: '#c9ced6' };
+  var BARVY = { claude: '#e08a4f', gpt: '#2dbfa8', gemini: '#6aa0f5', grok: '#c9ced6', mistral: '#ff8f3f', deepseek: '#6f8cff', llama: '#4aa3ff', perplexity: '#34c3d6' };
   var ODDELOVAC = '\n\u0000STAT';
   var CHYBA = '\n\u0000CHYBA';
 
@@ -51,7 +51,7 @@
     return fetch('/api/ai', {
       method: 'POST', signal: o.signal,
       headers: hlavicky(o.token, { 'content-type': 'application/json' }),
-      body: JSON.stringify({ ai: o.ai, zpravy: o.zpravy, pokyn: o.pokyn || '' })
+      body: JSON.stringify({ ai: o.ai, zpravy: o.zpravy, pokyn: o.pokyn || '', maxTokenu: o.maxTokenu || undefined })
     }).then(function (r) {
       if (!r.ok) return r.json().catch(function () { return {}; }).then(function (d) { throw chyba(r, d); });
       var ctecka = r.body.getReader(), dek = new TextDecoder(), vse = '';
@@ -98,9 +98,9 @@
   // Spolupráce: návrh → kontrola pravdivosti → finální verze. naKrok(index, nazev, aiId) vrací prvek pro text.
   function spolupracuj(o) {
     var kroky = {};
-    function krok(i, nazev, ai, zpravy, pokyn) {
+    function krok(i, nazev, ai, zpravy, pokyn, maxTokenu) {
       var cil = o.naKrok(i, nazev, ai);
-      return zavolej({ ai: ai, zpravy: zpravy, pokyn: pokyn, token: o.token, signal: o.signal, naText: function (t) { cil(t); } })
+      return zavolej({ ai: ai, zpravy: zpravy, pokyn: pokyn, token: o.token, signal: o.signal, maxTokenu: maxTokenu, naText: function (t) { cil(t); } })
         .then(function (r) { return r.text; });
     }
     return krok(1, 'Návrh', o.autor, [{ role: 'user', text: o.dotaz }], o.pokyn)
@@ -109,7 +109,7 @@
         return krok(2, 'Kontrola pravdivosti', o.kontrola, [{ role: 'user', text:
           'ZADÁNÍ (jediný zdroj faktů):\n' + o.dotaz + '\n\nNÁVRH:\n' + t +
           '\n\nZkontroluj návrh proti zadání a pravidlům pravdivosti. Vypiš body: co je vymyšlené nebo nepodložené, co chybí, co přepsat. Nepiš novou verzi.' }],
-          'Jsi přísný kontrolor pravdivosti a srozumitelnosti.');
+          'Jsi přísný kontrolor pravdivosti a srozumitelnosti.', 3000); // seznam připomínek – menší rezervace rozpočtu
       })
       .then(function (t) {
         kroky.kontrola = t;

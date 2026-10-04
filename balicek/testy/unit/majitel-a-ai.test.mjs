@@ -43,7 +43,7 @@ test("ai-stav: bez přihlášení 401, s tokenem vrátí AI bez klíčů a útra
   const r = await h(pozadavek("/api/ai-stav", { headers: { authorization: `Bearer ${token}` } }));
   const j = await r.json();
   assert.equal(r.status, 200);
-  assert.deepEqual(j.ai.map((a) => [a.id, a.zapnuto]), [["claude", true], ["gpt", true], ["gemini", true], ["grok", false]]);
+  assert.deepEqual(j.ai.map((a) => [a.id, a.zapnuto]), [["claude", true], ["gpt", true], ["gemini", true], ["grok", false], ["mistral", false], ["deepseek", false], ["llama", false], ["perplexity", false]]);
   assert.ok(!JSON.stringify(j).includes("test"), "hodnota klíče se nesmí vrátit");
   assert.equal(j.limitKc, 25);
 });
@@ -101,7 +101,13 @@ test("Netlify AI Gateway: bez beta parametrů (hlavičky neprojdou), Grok přes 
   assert.equal(pres_gateway(prime), false);
   assert.equal(claudeParametry(p, prime).fallbacks, "default");
   assert.equal(jeZapnuty("grok", { OPENROUTER_API_KEY: "k" }), true);
-  assert.equal(POSKYTOVATELE.grok.model({ OPENROUTER_API_KEY: "k" }), "x-ai/grok-4");
+  assert.equal(POSKYTOVATELE.grok.model({ OPENROUTER_API_KEY: "k" }), "x-ai/grok-4.5");
+  // Další AI přes OpenRouter: zapnou se s klíčem Gateway, všechny mají cenu v tabulce (ne nouzovou 15/75 USD).
+  const { odhadKc } = await import("../../web/netlify/lib/ai/limity.mjs");
+  for (const id of ["grok", "mistral", "deepseek", "llama", "perplexity"]) {
+    assert.equal(jeZapnuty(id, { OPENROUTER_API_KEY: "k" }), true, id);
+    assert.ok(odhadKc(id, 1e6, 0, { KURZ_USD_CZK: "1" }, POSKYTOVATELE[id].model({ OPENROUTER_API_KEY: "k" })) < 15, id);
+  }
   assert.equal(POSKYTOVATELE.grok.model({ XAI_API_KEY: "k" }), "grok-4");
 });
 

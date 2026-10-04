@@ -1,5 +1,7 @@
 // /api/ai – interní: jeden dotaz na jednu AI pro majitele, odpověď se streamuje jako prostý text.
-// Tělo: { ai: "claude"|"gpt"|"gemini"|"grok", zpravy: [{ role, text }], pokyn?: string }
+// Tělo: { ai: id z POSKYTOVATELE, zpravy: [{ role, text }], pokyn?: string, maxTokenu?: číslo }
+// maxTokenu (256–8000, výchozí 8000) = strop délky odpovědi; podle něj se rezervuje rozpočet, takže krátké
+// kroky (připomínky v poradě, kontrola) neblokují rozpočet celou osmitisícovou rezervou.
 // Na konci streamu přijde řádek "\n\u0000STAT" + JSON s počtem tokenů a odhadem ceny.
 // Chyba poskytovatele přijde jako "\n\u0000CHYBA" + JSON { zprava } – klient ji nesmí brát jako odpověď.
 import { POSKYTOVATELE, jeZapnuty, vytvorAdaptery } from "../lib/ai/poskytovatele.mjs";
@@ -29,6 +31,7 @@ export function vytvorAI({ env = process.env, adaptery, uloziste, ted = () => Da
       return json({ chyba: "Neplatný JSON." }, 400);
     }
     const { ai, zpravy, pokyn } = telo || {};
+    const maxTokenu = Math.min(MAX_TOKENU, Math.max(256, Math.floor(Number(telo?.maxTokenu)) || MAX_TOKENU));
     if (!POSKYTOVATELE[ai]) return json({ chyba: "Neznámá AI." }, 400);
     if (!jeZapnuty(ai, env)) return json({ chyba: `Chybí klíč ${POSKYTOVATELE[ai].klic} v Netlify.` }, 400);
     const platne =
@@ -49,7 +52,7 @@ export function vytvorAI({ env = process.env, adaptery, uloziste, ted = () => Da
     const t0 = ted(); // rezervace i vyrovnání patří do stejného období rozpočtu
     try {
       store = await dejUloziste();
-      rezerva = await rezervuj(store, ai, odhadTokenu(PRAVIDLA_PRAVDIVOSTI) + odhadTokenuKlienta(JSON.stringify(zpravy) + String(pokyn || "")), MAX_TOKENU, env, t0, model);
+      rezerva = await rezervuj(store, ai, odhadTokenu(PRAVIDLA_PRAVDIVOSTI) + odhadTokenuKlienta(JSON.stringify(zpravy) + String(pokyn || "")), maxTokenu, env, t0, model);
     } catch {
       return json({ chyba: "Rozpočet AI teď nejde ověřit (úložiště je nedostupné). Zkuste to za chvíli." }, 503);
     }
@@ -62,7 +65,7 @@ export function vytvorAI({ env = process.env, adaptery, uloziste, ted = () => Da
         let stat = null;
         let odeslano = false;
         try {
-          for await (const kus of adapter.stream({ system, zpravy, maxTokenu: MAX_TOKENU, signal: req.signal })) {
+          for await (const kus of adapter.stream({ system, zpravy, maxTokenu, signal: req.signal })) {
             if (kus.text) { odeslano = true; posli(kus.text); }
             // Usage může přijít ve více kusech (kumulativně) – vyrovná se jednou, po skončení streamu.
             if (kus.stat) stat = { vstup: Math.max(stat?.vstup || 0, kus.stat.vstup || 0), vystup: Math.max(stat?.vystup || 0, kus.stat.vystup || 0) };

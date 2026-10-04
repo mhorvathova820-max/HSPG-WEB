@@ -125,7 +125,7 @@ td,th{padding:4px 12px 4px 0;text-align:left}
   <details class="karta">
     <summary>Historie a spotřeba</summary>
     <table id="spotreba"></table>
-    <p class="prazdne" style="font-size:13px">Útrata je odhad serveru podle tokenů (všichni uživatelé, celý měsíc). Přesnou částku ukazuje účet u každého poskytovatele – tam nastavte i tvrdý měsíční limit.</p>
+    <p class="prazdne" style="font-size:13px">Útrata je odhad serveru podle tokenů (všichni uživatelé, celé období kreditů 11.–10.). Přesnou částku ukazuje účet u každého poskytovatele – tam nastavte i tvrdý měsíční limit.</p>
     <ul class="historie" id="historie"></ul>
   </details>
 </main>
@@ -181,10 +181,14 @@ $("formPrihlaseni").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("prihlaseniChyba").textContent = "Ověřuji…";
   try {
-    const r = await fetch("/api/majitel", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ heslo: $("heslo").value }) });
+    let zarizeni = "";
+    try { zarizeni = localStorage.getItem("hspg-majitel-zarizeni") || ""; } catch {}
+    const r = await fetch("/api/majitel", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ heslo: $("heslo").value, zarizeni }) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.token) throw new Error(j.chyba || "Přihlášení selhalo.");
     relace.uloz(j.token, j.platnost); token = j.token;
+    // Známé zařízení majitele: výjimka z globálního stropu pokusů (cizí pokusy ho nezamknou).
+    try { if (j.zarizeni) localStorage.setItem("hspg-majitel-zarizeni", j.zarizeni); } catch {}
     $("heslo").value = ""; $("prihlaseniChyba").textContent = "";
     await nactiAplikaci();
   } catch (err) { $("prihlaseniChyba").textContent = err.message; }

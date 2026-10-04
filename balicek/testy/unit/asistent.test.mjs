@@ -287,3 +287,23 @@ test("neověřená odpověď s číslovkou slovy u záruky → predat", async ()
   const { h } = sestav({ e: env({ GEMINI_API_KEY: "", OPENAI_API_KEY: "" }), adaptery: { claude: falesnyAdapter({ text: "Záruka je pět let." }) } });
   assert.equal((await (await h(post())).json()).rezim, "predat");
 });
+
+test("verdikt se skutečným koncem řádku v odpovědi se přečte (žádné zbytečné předání)", () => {
+  assert.deepEqual(prectiVerdikt('{"ok": false, "odpoved": "A 30 %.\n\nB."}'.replace(/\\n/g, "\n")), { ok: false, odpoved: "A 30 %.\n\nB." });
+  assert.equal(prectiVerdikt('{"pozn":1,"x":{"ok":true}}'), null);
+});
+
+test("číselná pojistka 2: složeniny, eura, km, číslovky slovy; správné tvary bez poplachu; lineární čas", () => {
+  const z = "střecha od 99 Kč/m², záruka 10 let, splatnost 14 dní, doprava prvních 30 km zdarma, dál 12 Kč/km, záloha nad 100 000 Kč, 2 základny.";
+  for (const t of ["Střecha od 99 Kč/m2.", "Základny máme ve 2 městech.", "14denní splatnost", "2x denně", "Dron přiletí.", "Doprava zdarma do 30 km.", "Do 100 tisíc Kč bez zálohy."]) {
+    assert.deepEqual(cislaMimoZnalosti(t, z), [], t);
+    assert.equal(cislovkaSlovy(t), false, t);
+  }
+  assert.deepEqual(cislaMimoZnalosti("Splatnost je 30denní.", z), ["30 dny"]);
+  assert.deepEqual(cislaMimoZnalosti("Cena 7 euro/m².", z), ["7 eur"]);
+  assert.deepEqual(cislaMimoZnalosti("Doprava zdarma do 50 km.", z), ["50 km"]);
+  for (const t of ["záruku dva roky", "Splatnost je tři dny.", "čtyři procenta", "patnáctiletou záruku"]) assert.ok(cislovkaSlovy(t), t);
+  const t0 = Date.now();
+  cislaMimoZnalosti("Cena 99" + " ".repeat(48000) + ".", z);
+  assert.ok(Date.now() - t0 < 500);
+});

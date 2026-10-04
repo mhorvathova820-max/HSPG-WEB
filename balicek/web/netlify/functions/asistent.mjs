@@ -34,25 +34,30 @@ export function poradi(env) {
 
 // Z odpovědi kontrolora vytáhne verdikt i tehdy, když ho AI obalí textem nebo ```. Prochází celé objekty
 // nejvyšší úrovně (po každém pokračuje až ZA ním – vnořený {"ok":true} uvnitř rozbitého objektu se nebere).
+// Skutečné konce řádků uvnitř řetězců (častá chyba AI) se před JSON.parse escapují.
 // Rozporné verdikty → null (dotaz se předá týmu); jinak platí poslední. Bez platného verdiktu → null.
+const ESCAPE_RIDICI = { "\n": "\\n", "\r": "\\r", "\t": "\\t" };
 export function prectiVerdikt(text) {
   const t = String(text || "");
   const verdikty = [];
   for (let od = t.indexOf("{"); od !== -1; ) {
-    let hloubka = 0, vRetezci = false, unik = false, konec = -1;
+    let hloubka = 0, vRetezci = false, unik = false, konec = -1, kopie = "";
     for (let i = od; i < t.length && konec === -1; i++) {
       const c = t[i];
       if (vRetezci) {
         if (unik) unik = false;
         else if (c === "\\") unik = true;
+        else if (ESCAPE_RIDICI[c]) { kopie += ESCAPE_RIDICI[c]; continue; }
         else if (c === '"') vRetezci = false;
       } else if (c === '"') vRetezci = true;
       else if (c === "{") hloubka++;
       else if (c === "}" && --hloubka === 0) konec = i + 1;
+      kopie += c;
     }
+    // Neuzavřený objekt: dál nehledat – uvnitř by šlo najít jen vnořený (podvržený) verdikt.
     if (konec === -1) break;
     try {
-      const v = JSON.parse(t.slice(od, konec));
+      const v = JSON.parse(kopie);
       if (v && typeof v.ok === "boolean") verdikty.push({ ok: v.ok, odpoved: typeof v.odpoved === "string" ? v.odpoved.trim() : "" });
     } catch {}
     od = t.indexOf("{", konec);
@@ -61,20 +66,22 @@ export function prectiVerdikt(text) {
   return verdikty.at(-1);
 }
 
-// Pojistka proti vymyšleným (nebo návštěvníkem podstrčeným) číslům: každé číslo u ceny, procent, lhůty
-// nebo záruky musí být ve schválených znalostech se stejnou jednotkou („30 let“ neprojde jen proto, že ve
-// znalostech je „30 dní“). Porovnává se bez diakritiky, rozsahy („49–89 Kč“, „od 49 do 89 Kč“) obě meze,
-// „tisíc/tis.“ ×1000, až dvě slova mezi číslem a jednotkou („3 pracovních dnů“). Telefony a časy (7:00)
-// se neposuzují. Jinak se odpověď předá týmu.
+// Pojistka proti vymyšleným (nebo návštěvníkem podstrčeným) číslům: každé číslo u ceny, procent, lhůty,
+// záruky nebo vzdálenosti musí být ve schválených znalostech se stejnou jednotkou („30 let“ neprojde jen
+// proto, že ve znalostech je „30 dní“). Porovnává se bez diakritiky, rozsahy („49–89 Kč“, „od 49 do 89 Kč“)
+// obě meze, „tisíc/tis.“ ×1000, až dvě slova mezi číslem a jednotkou („3 pracovních dnů“), složeniny
+// („15letou“, „30denní“). Telefony a časy (7:00) se neposuzují. Číslovky slovy hlídá cislovkaSlovy().
+// Známé číslo v chybné souvislosti („záruka 10 let i na samotné čištění“) zachytí jen kontrolor.
 const bezDiakritiky = (t) => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "")
   .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0)).toLowerCase();
 const normujCisla = (t) => bezDiakritiky(t)
+  .replace(/\s+/gu, " ") // dlouhé běhy bílých znaků (lineární čas regexu níže)
   .replace(/(?:\+|00)?\d[\d  ]{7,}\d/g, (m) => (m.replace(/\D/g, "").length >= 9 ? " " : m)) // telefony
   .replace(/\b\d{1,2}:\d{2}\b/g, " ") // časy (pracovní doba) nejsou ceny ani lhůty
   .replace(/(\d)[\s  .](?=\d{3}(?!\d))/g, "$1");
-const JEDNOTKA = "(kc(?![a-z])|czk|korun[a-z]*|,-|eur(?![a-z])|€|%|procent[a-z]*|let[a-z]*|rok[a-z]*|mes[a-z]*|hod(?:in[a-z]*)?(?![a-z])|h(?![a-z])|min(?:ut[a-z]*)?(?![a-z])|dn[a-z]*|den(?![a-z])|tyd[a-z]*)";
-const CITLIVE = new RegExp(`(\\d+(?:[.,]\\d+)?)(?:\\s*(?:-|–|—|az|do)\\s*(\\d+(?:[.,]\\d+)?))?\\s*(tis\\.?|tisic[a-z]*)?\\s*(?:[a-z]+\\.?\\s+){0,2}?${JEDNOTKA}`, "gu");
-const TRIDA = [[/^(kc|czk|korun|,-)/, "kc"], [/^(eur|€)/, "eur"], [/^(%|procent)/, "pct"], [/^(let|rok)/, "roky"], [/^mes/, "mesice"], [/^h/, "hodiny"], [/^min/, "minuty"], [/^(dn|den)/, "dny"], [/^tyd/, "tydny"]];
+const JEDNOTKA = "(kc(?![a-z])|czk|korun[a-z]*|,-|eur(?:o|a|u|ech)?(?![a-z])|€|%|procent[a-z]*|let(?:a|e|y|u|um|ech|ou|eho|emu|em|ych|ym|ymi)?(?![a-z])|rok[a-z]*|mes(?:ic[a-z]*)?(?![a-z])|hod(?:in[a-z]*)?(?![a-z])|h(?![a-z-])|min(?:ut[a-z]*)?(?![a-z])|denn(?!e(?![a-z]))[a-z]*|dn[a-z]*|den(?![a-z])|tyd[a-z]*|km(?![a-z]))";
+const CITLIVE = new RegExp(`(?<![\\p{L}\\d])(\\d+(?:[.,]\\d+)?)(?: ?(?:-|–|—|az|do) ?(\\d+(?:[.,]\\d+)?))? ?(tis\\.?|tisic[a-z]*)? ?(?:[a-z]+\\.? ){0,2}?${JEDNOTKA}`, "gu");
+const TRIDA = [[/^(kc|czk|korun|,-)/, "kc"], [/^(eur|€)/, "eur"], [/^(%|procent)/, "pct"], [/^(let|rok)/, "roky"], [/^mes/, "mesice"], [/^h/, "hodiny"], [/^min/, "minuty"], [/^(dn|den)/, "dny"], [/^tyd/, "tydny"], [/^km/, "km"]];
 const citlivaCisla = (t) => [...normujCisla(t).matchAll(CITLIVE)].flatMap((m) => {
   const trida = (TRIDA.find(([re]) => re.test(m[4])) || [, m[4]])[1];
   const n = (x) => `${Number(x.replace(",", ".")) * (m[3] ? 1000 : 1)} ${trida}`;
@@ -84,10 +91,11 @@ export function cislaMimoZnalosti(odpoved, znalosti) {
   const zname = new Set(citlivaCisla(znalosti));
   return citlivaCisla(odpoved).filter((c) => !zname.has(c));
 }
-// Číslovky slovy u ceny, lhůty nebo záruky („pět let“, „dvacet procent“) se proti znalostem porovnat
-// nedají – u neověřené odpovědi proto vedou na předání týmu.
-const CISLOVKA_SLOVY = /\b(pet|peti|sest|sesti|sedm|sedmi|osm|osmi|devet|deviti|deset|deseti|[a-z]{2,}nact[a-z]*|dvacet[a-z]*|tricet[a-z]*|ctyricet[a-z]*|padesat[a-z]*|sto|tisic[a-z]*)\s+(?:[a-z]+\s+)?(kc|korun[a-z]*|procent[a-z]*|let[a-z]*|rok[a-z]*|mesic[a-z]*|dn[a-z]*|den|tyd[a-z]*|hodin[a-z]*)\b/;
-export const cislovkaSlovy = (t) => CISLOVKA_SLOVY.test(bezDiakritiky(t));
+// Číslovky slovy u ceny, lhůty nebo záruky („pět let“, „dva roky“, „patnáctiletou“) se proti znalostem
+// porovnat nedají – u neověřené odpovědi proto vedou na předání týmu.
+const CISLOVKA_SLOVY = /\b(dva|dve|dvou|tri|trech|ctyri|ctyr|pet|peti|sest|sesti|sedm|sedmi|osm|osmi|devet|deviti|deset|deseti|[a-z]{2,}nact[a-z]*|dvacet[a-z]*|tricet[a-z]*|ctyricet[a-z]*|padesat[a-z]*|sto|(?<!\d ?)tisic[a-z]*)\s+(?:[a-z]+\s+)?(kc|korun[a-z]*|procent[a-z]*|let[a-z]*|rok[a-z]*|mesic[a-z]*|dn[a-z]*|den|tyd[a-z]*|hodin[a-z]*)\b/;
+const SLOZENINA = /\b(?:dvou|tri|ctyr|peti|sesti|sedmi|osmi|deviti|deseti|[a-z]+nacti|[a-z]*ceti|padesati|tisici)let[a-z]*/;
+export const cislovkaSlovy = (t) => { const x = bezDiakritiky(t); return CISLOVKA_SLOVY.test(x) || SLOZENINA.test(x); };
 
 // Telefon a e-mail z textu návštěvníka do AI neodchází (patří do formuláře, ne k poskytovateli AI).
 export function maskujKontakty(t) {
