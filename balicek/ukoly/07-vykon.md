@@ -1,5 +1,5 @@
 # Úkol 07: Výkon a Core Web Vitals
-> Priorita P1 · Závisí na: 06 · Čeká na majitele: – (jen schválení produkčního nasazení v dávce) · Rozsah: rychlost načítání a stabilita rozvržení (LCP, TBT, CLS) bez změny obsahu, cen, adres a vzhledu. Dvě fáze: A = měření a rychlé opravy, B = otisky souborů, cache a hlavní vlákno. Po fázi A hlášení. Stav zadání: v1, po auditu výkonu se může zpřesnit.
+> Priorita P1 · Závisí na: 06 · Čeká na majitele: – (jen schválení produkčního nasazení v dávce) · Rozsah: rychlost načítání a stabilita rozvržení (LCP, TBT, CLS) bez změny obsahu, cen, adres a vzhledu. Dvě fáze: A = měření a rychlé opravy, B = otisky souborů, cache a hlavní vlákno. Každá fáze je samostatné sezení, po fázi A hlášení a zastavení. Stav zadání: v1, po auditu výkonu se může zpřesnit.
 
 ## Proč (s důkazy)
 Zdroje: Lighthouse 13.5 z 4. 10. 2026 dopoledne (`lh-home-mobile.json`, `lh-home-desktop.json`, simulované omezení), kontrolní běh Lighthouse 13 téhož dne odpoledne (headless Chromium, už bez odznaku Netlify), kopie živého webu a GET dotazy na https://hspg.cz. Řádky v HTML platí pro živý web, ve zdroji se mohou lišit.

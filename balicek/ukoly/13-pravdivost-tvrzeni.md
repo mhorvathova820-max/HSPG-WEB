@@ -243,25 +243,32 @@ Pravidlo `KONTEXT.md` §4.1: žádná nedoložená tvrzení, technologie ve výv
 
 ## Ověření
 ```bash
-P=‹publikovaný adresář z netlify.toml›
+P=‹publikovaný adresář z netlify.toml›   # pokud se publikuje sestavený adresář (např. dist/), nejdřív build
+node -e "const r=require('./content/tvrzeni.json'),ids=r.tvrzeni.map(t=>t.id);for(let i=1;i<=24;i++){const id='T'+String(i).padStart(2,'0');if(!ids.includes(id))throw id}for(let i=1;i<=8;i++)if(!r.schvalene_formulace['F'+i])throw 'F'+i;const bad=r.tvrzeni.filter(t=>!t.stav||(t.stav==='ceka'&&!t.otazka));if(bad.length)throw bad.map(t=>t.id);console.log('registr OK')"   # registr OK
 node scripts/inventura-tvrzeni.mjs && node scripts/inventura-tvrzeni.mjs --kontrola   # exit 0, souhrn počtů
 node --test ‹testy›/tvrzeni.test.mjs                                                   # vše prošlo
+‹příkaz e2e testů› tests/e2e/tvrzeni-leseni.e2e.test.mjs                               # prošlo (skrytí srovnání s lešením)
 npm run kontrola:tvrzeni && git status --porcelain                                     # prázdný výstup
+git diff --name-only origin/main...HEAD | grep -iE '\.(pdf|docx?|xlsx?|jpe?g|png|heic)$'   # prázdné (žádné doklady)
 # registr, CSV, testy a skripty obsahují vzory záměrně, proto je vyluč:
 X=(--include='*.html' --include='*.js' --include='*.json' --exclude=tvrzeni.json \
    --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=docs --exclude-dir=‹testy› --exclude-dir=scripts)
 grep -rlE "vlastní receptur|nakupované náhražky|do kořene|[Ll]ikvidace spor|šetrným biocid" $P assets content "${X[@]}" | wc -l   # 0
 grep -roE "H-BIO" $P assets content "${X[@]}" | wc -l                                  # 0 (do doložení O5)
 grep -rlE "Systém RAIL|HYDRA|SCAN ?5|štítk[a-zů]* Sentinel|indikátor zelený" $P assets content "${X[@]}" | wc -l   # 0
+grep -rlE "lešení neplatíte|ZA LEŠENÍ — VLASTNÍ TECHNIKA|[Nn]o scaffolding charge" $P assets content "${X[@]}" | wc -l   # 0 (i v <head>)
 grep -c '"JobPosting"' $P/kariera.html; grep -c 'href="/akce/' $P/en.html                # 0 a 0
 grep -o 'class="citac"[^>]*>[^<]*' $P/index.html                                        # „24 h“, „0 Kč“, „2×“
+grep -c "ZA LEŠENÍ, KDYŽ STAČÍ VLASTNÍ TECHNIKA" $P/index.html                          # 1
 git diff origin/main...HEAD -U0 -- . ':!docs' ':!content/tvrzeni.json' ':!‹testy›' ':!scripts/inventura-tvrzeni.mjs' \
   | grep -E '^\+' | grep -E '[0-9]'                                                     # každý řádek doložit v hlášení
-netlify deploy                                                                          # náhled, NE --prod
+node scripts/nasadit.mjs                                                                # náhled zdarma (0 kreditů); nikdy netlify deploy ani --produkce
 curl -s -o /dev/null -w "%{http_code}\n" ‹náhled›/content/tvrzeni.json                  # 404
+curl -s -o /dev/null -w "%{http_code}\n" ‹náhled›/‹cesta k inventura.csv›               # 404
 curl -s ‹náhled›/ | grep -o 'class="citac"[^>]*>[^<]*'                                  # cílové hodnoty bez JS
+gh run list --workflow kontrola-tvrzeni.yml --branch ukol-13-pravdivost-tvrzeni --limit 1   # completed success
 ```
-- **Testy, které agent přidá:** `tvrzeni.test.mjs` s pravidly a–k z kroku 5, včetně negativního testu. Pro skrytí srovnání s lešením přidej test v prohlížeči, pokud je ve webu Playwright. Jinak ověř ručně na náhledu se snímky `/kalkulacka-svj`, `/cenik` a `/` a výsledek uveď v hlášení.
+- **Testy, které agent přidá:** `tvrzeni.test.mjs` s pravidly a–k z kroku 5, včetně negativního testu, a `tests/e2e/tvrzeni-leseni.e2e.test.mjs` (skrytí srovnání s lešením na `/`, `/en`, `/cenik` a `/kalkulacka-svj`, i se zablokovaným `ceny.js`). Pokud Playwright ve webu není, ověř to ručně na náhledu se snímky a výsledek uveď v hlášení.
 - **Ruční kontrola:**
   - `/kariera`, `/en`, `/pas-domu` a jedna okresní stránka střech i fasád na náhledu při 375 px a 1280 px: žádný rozbitý layout ani prázdné karty.
   - Přepis spotu odpovídá videu.
@@ -276,7 +283,7 @@ Platí `balicek/KONTEXT.md` §4, zvlášť:
 - Doklady, faktury a údaje třetích osob nepatří do repozitáře. Žádná hesla ani tokeny, ani v CI. Workflow žádná tajemství nepotřebuje.
 - **Nemazat:** stránky, URL ani okresní stránky nemaž. Měň jen věty s tvrzeními a vygenerované stránky upravuj přes šablonu.
 - **Formuláře:** do žádného formuláře nic neodesílej (ani na `/akce/`).
-- **Nasazení:** jen náhled. Produkce až po schválení majitelem a v dávce s dalšími úkoly (každé nasazení stojí 15 kreditů).
+- **Nasazení:** jen náhled přes `node scripts/nasadit.mjs`, nikdy přímé `netlify deploy`. Produkce až po schválení majitelem a v dávce s dalšími úkoly (každé nasazení stojí 15 kreditů).
 - Vlastní větev a žádný force-push. Balíček `HSPG-WEB` neměň, potřebné opravy v něm jen nahlas.
 
 ## Hlášení po dokončení

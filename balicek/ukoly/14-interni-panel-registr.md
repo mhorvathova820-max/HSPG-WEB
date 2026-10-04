@@ -1,19 +1,17 @@
 # Úkol 14: Interní panel: AI centrum, registr čistých domů, recenze
-> Priorita P2 · Závisí na: 01 (navazuje na 05 – centrální text záruky a 06 – podoba URL; export registru čte úkol 12; SMTP z úkolu 02 je volitelné) · Čeká na majitele: odkaz na recenze z **existujícího** Firemního profilu Google, schválení textu souhlasu majitele domu a textu žádosti o hodnocení, předání nových přístupových kódů ke stávajícím pasům (pokud nějaké jsou), doklad o pojištění (do té doby se pojištění nikde neuvádí), doba uchování kontaktů (úkol 09), přihlášení na náhledu (heslo zná jen majitel) · Rozsah: čtyři fáze – **A** panel: jedno přihlášení, stav a útrata AI, vypínač AI, cesta do AI centra; **B1** registr zakázek a bezpečný pas domu; **B2** zadání zakázky v panelu do 2 minut; **C** výstupy z registru: export realizací, žádost o hodnocení, šablony odpovědí, podklad pro SVJ. Po každé fázi hlášení.
+> Priorita P2 · Závisí na: 01 (navazuje na 05 – centrální text záruky a 06 – podoba URL; export registru čte úkol 12; SMTP z úkolu 02 je volitelné) · Čeká na majitele: odkaz na recenze z **existujícího** Firemního profilu Google, schválení textu souhlasu majitele domu a textu žádosti o hodnocení, předání nových přístupových kódů ke stávajícím pasům (pokud nějaké jsou), doklad o pojištění (do té doby se pojištění nikde neuvádí), doba uchování kontaktů (úkol 09), přihlášení na náhledu (heslo zná jen majitel) · Rozsah: čtyři fáze – **A** panel: jedno přihlášení, stav a útrata AI, vypínač AI, cesta do AI centra; **B1** registr zakázek a bezpečný pas domu; **B2** zadání zakázky v panelu do 2 minut; **C** výstupy z registru: export realizací, žádost o hodnocení, šablony odpovědí, podklad pro SVJ. **Jedna fáze = jedno sezení**; po každé fázi hlášení a stop, další fázi začni až na pokyn majitele. Podle `PORADI.md` běží tento úkol po všech ostatních kromě 12. Co zavedly dřívější úkoly (02 SMTP, 05 zdroj záruky, 06 podoba URL, 09 registr zpracování, 15 `zdravi` a `/api/provoz-stav`, 17 e2e testy), převezmi. Když něco chybí, nahlas to a pokračuj záložní cestou ze zadání.
 
 ## Proč (s důkazy)
 Ověřeno 4. 10. 2026 na živém webu (jen GET) a v kopii webu. Čísla nálezů odpovídají pořadí v souborech auditu.
 
-1. **Dvě různá přihlášení.** Interní panel `https://hspg.cz/rd-control-panel/` posílá heslo v těle `POST /api/rd-stav` (zdroj stránky ř. 88). Heslo drží v proměnné stránky, aby ho při „Zkontrolovat znovu“ poslal znovu (ř. 83, 92, 112). Ověřuje se na serveru (GET `/api/rd-stav` → 405, audit to potvrzuje), ale jinak než u plovoucího panelu a AI centra z úkolu 01. Ty používají `POST /api/majitel` → podepsaný token na 12 h a zámek 5 chybných pokusů / 15 min (`netlify/lib/ai/autorizace.mjs`, `netlify/functions/majitel.mjs`). Jak `rd-stav` heslo porovnává a jestli omezuje pokusy, z webu vidět není. **Ověř ve zdroji.**
-2. **Balíčková autorizace má ještě starou cestu.** `overPozadavek()` v `netlify/lib/ai/autorizace.mjs` přijímá kromě tokenu i heslo v hlavičce `x-panel-heslo` (pozůstatek staršího AI centra, commit 84d8e90). Na tuto cestu se zámek pokusů nevztahuje (audit-ai_integrace.json #19).
+1. **Dvě různá přihlášení.** Interní panel `https://hspg.cz/rd-control-panel/` posílá heslo v těle `POST /api/rd-stav` (zdroj stránky ř. 88). Heslo drží v proměnné stránky, aby ho při „Zkontrolovat znovu“ poslal znovu (ř. 83, 92, 112). Ověřuje se na serveru, ale jinak než u plovoucího panelu a AI centra z úkolu 01. Ty používají `POST /api/majitel` → podepsaný token na 12 h a zámek 5 chybných pokusů / 15 min (`netlify/lib/ai/autorizace.mjs`, `netlify/functions/majitel.mjs`). Jak `rd-stav` heslo ověřuje, zjisti ve zdroji (krok A2).
+2. **Balíčková autorizace má ještě starou cestu.** `overPozadavek()` v `netlify/lib/ai/autorizace.mjs` přijímá kromě tokenu i heslo v hlavičce `x-panel-heslo` (pozůstatek staršího AI centra, commit 84d8e90). Cílem je jediná cesta k heslu: `/api/majitel` se zámkem pokusů (audit-ai_integrace.json #19).
 3. **Panel neukazuje AI ani útratu a nevede do AI centra** (audit-ai_integrace.json #12). Jediné prvky související s AI jsou věta „… nastavení AI …“ (ř. 47) a odkaz „Konzole Claude (útrata AI)“ na `platform.claude.com` (ř. 72). AI ale běží přes Netlify AI Gateway a platí se kredity Netlify (KONTEXT §2), takže odkaz vede jinam, než kde se platí. Na produkci dnes `/ai-centrum/`, `/api/ai-stav`, `/api/majitel` i `/api/asistent` vrací 404 (úkol 01 ještě není nasazený). `ai.hspg.cz` neexistuje (DNS NXDOMAIN).
 4. **Hlavičky panelu** (`curl -I`): `x-frame-options: SAMEORIGIN`, CSP (jen Report-Only) `frame-ancestors 'self'`, `x-robots-tag: noindex, nofollow`, `cache-control: no-store`. Interní stránka nemá jít vložit do rámu vůbec. AI centrum má z úkolu 01 `DENY`. Řádek `Disallow: /rd-control-panel/` v `robots.txt` řeší úkol 11 (audit-seo.json #19), tady ne.
-5. **Pas domu má jako jediný klíč předvídatelný kód** (audit-pravni_pravdivost.json #20).
-   - `pas-domu.html` přijme kód `^HS-\d{4}-\d{4}$` (ř. 234). Je to rok + pořadové číslo, tedy 10 000 kódů za rok.
-   - Pošle `POST /api/sentinel/validate {sentinel_code}` (ř. 304) a vykreslí obec, povrchy, plochu, datum, materiály, šarži, **volnou poznámku**, stav záruky a příští kontrolu (ř. 259–286).
-   - `/recenze/` volá stejný endpoint už při psaní kódu a ukáže „✓ Zakázka nalezena: <povrchy>, <obec>.“ (ř. 251–263).
-   - Endpoint přijímá i GET (bez kódu vrací 400 s českou hláškou) a odpovídá s `cache-control: private,max-age=300`.
-   - Jestli server omezuje počet dotazů, z webu ověřit nejde, protože POST testy jsou zakázané. Ověř to ve zdroji funkce `sentinel-validate`.
+5. **Pas domu se otevírá jen kódem pasu** (audit-pravni_pravdivost.json #20).
+   - `pas-domu.html` přijme kód `^HS-\d{4}-\d{4}$` (ř. 234), pošle ho na `POST /api/sentinel/validate {sentinel_code}` (ř. 304) a vykreslí údaje zakázky včetně volné poznámky (ř. 259–286, poznámka ř. 285).
+   - `/recenze/` volá stejný endpoint už při psaní kódu (ř. 251–263).
+   - Jak `sentinel-validate` zachází s metodami, cache a počtem dotazů, zjisti ve zdroji (krok A2).
 6. **Chybí cesta od zakázky na web.**
    - `/reference.html` uvádí „Sbíráme první ověřené reference.“ Blok generuje `scripts/build-references.mjs` z `content/reference.json`.
    - Blok `REALIZACE-PAS` na homepage je prázdný. U jediné skutečné fotky před/po je v HTML komentář „Town and month pending“ (index.html ř. 1461).
@@ -63,13 +61,15 @@ ANO:
 - formulář „Nová zakázka“ s fotkami a souhlasy, certifikát k tisku,
 - veřejný export realizací pro reference a krajské huby, žádost o hodnocení, šablony odpovědí na recenze,
 - datové pole a test-pojistka pro pojištění, odkazy na podklady pro SVJ v panelu,
+- záznam nového zpracování do registru zpracování z úkolu 09 (`content/zpracovani.json`), pokud existuje,
+- úprava e2e testů z úkolu 17, které pracují s pasem domu,
 - testy všeho výše.
 
 NE (patří jinam):
 - `robots.txt` a interní cesty v HTML (úkol 11),
 - skutečný health-check AI, monitoring fallbacků, celková spotřeba kreditů a CSP (úkol 15). Panel zobrazí, co `/api/ai-stav` vrací, a co úkol 15 přidá, jen převezme,
 - text záruky (úkol 05; tady jen převzít z centrálního zdroje), e-mailové adresy a FormSubmit na `/recenze/` a v `svj-podklad.js` (úkol 03), podoba URL `/x` × `/x.html` (úkol 06),
-- generování krajských hubů (úkol 12 jen čte export), tvrzení o SENTINEL, štítcích a technologiích na `pas-domu` (úkol 13), zásady a doba uchování (úkol 09 – jen podklad), cookie lišta a Clarity obecně (úkol 10),
+- generování krajských hubů a zavedení `content/kraje.json` (úkol 12 jen čte export), tvrzení o SENTINEL, štítcích a technologiích na `pas-domu` (úkol 13), znění zásad a doba uchování (úkol 09; tady jen záznam do jeho registru zpracování), cookie lišta a Clarity obecně (úkol 10),
 - přechod tokenu ze `sessionStorage` na HttpOnly cookie, seznam poptávek z Netlify Forms API v panelu (potřebuje nový token), SMS brána, mapa realizací, nový podklad SVJ s realizacemi – jen jako návrhy do hlášení,
 - `AggregateRating`/`Review`, hvězdičky, pojistné částky a „satelitní analýza“ – **nikdy**.
 
