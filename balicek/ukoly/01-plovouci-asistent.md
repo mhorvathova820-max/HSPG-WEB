@@ -3,7 +3,7 @@
 
 ## Proč
 Majitel chce na webu plovoucí tlačítko, ve kterém AI spolupracují – pro zákazníka jinak a pro majitele jinak –
-a web přitom musí být špičkový i **bez AI**. Kód je hotový a otestovaný (46 jednotkových testů, 13 testů
+a web přitom musí být špičkový i **bez AI**. Kód je hotový a otestovaný (49 jednotkových testů, 13 testů
 v Chromiu nad kopií živého webu). Nahrazuje dosavadní H-BOT (`/assets/hbot.js` je vložený na 243 stránkách
 s `defer`, takže **HTML stránek se měnit nemusí**).
 
@@ -40,7 +40,7 @@ s `defer`, takže **HTML stránek se měnit nemusí**).
 8. Zkontroluj CSP (`Content-Security-Policy-Report-Only`): `connect-src 'self'` stačí (vše jde přes vlastní `/api/*`).
 8b. **Pravidla Netlify pro omezení požadavků:** `asistent.mjs` a `majitel.mjs` mají v `config.rateLimit` po jednom pravidle. Tarif Personal povoluje **2 pravidla v kódu na projekt** – `git grep -n "rateLimit"` ve webu: pokud už jiná funkce pravidlo má, nahlas to (nepřekročit 2) a navrhni, které ponechat. Funkce navíc odmítají požadavky z cizích webů (hlavička Origin) – povolené jsou hspg.cz, www.hspg.cz, `tourmaline-dasik-9de005.netlify.app` a jeho náhledy; další adresy přes `ASISTENT_POVOLENE_ORIGINY`.
 9. Starý `/api/holub-ai` **odstraň v tomto úkolu** (bezpečnostní audit: veřejný placený endpoint bez ověřitelné ochrany útraty – kdokoli ho může volat a čerpat kredity Netlify, jejichž vyčerpání pozastaví web). Nejdřív `git grep -n "holub-ai"` – kromě starého `assets/hbot.js` (nahrazen) ho nesmí nic volat; pak smaž soubor funkce a případné přesměrování. Nové tlačítko používá `/api/asistent` s limity a rozpočtem; bez AI odpoví FAQ.
-10. Proměnné v Netlify (nastaví majitel, ty je jen vypiš do hlášení): `HSPG_PANEL_HESLO` (povinné pro majitele). Volitelné: `AI_ZAPNUTO=0` (vypne AI pro zákazníky), `AI_MESICNI_LIMIT_KC` (výchozí 25 Kč ≈ 190 kreditů – přes AI Gateway se platí kredity Netlify a jejich vyčerpání pozastaví celý web), `ASISTENT_DENNI_LIMIT` (výchozí 40 dotazů/den), `ASISTENT_PORADI` (výchozí `claude,gemini,gpt,grok`), `CLAUDE_MODEL` / `OPENAI_MODEL` / `GEMINI_MODEL` / `XAI_MODEL`. **API klíče nezakládej** – dodává je Netlify AI Gateway.
+10. Proměnné v Netlify (nastaví majitel, ty je jen vypiš do hlášení): `HSPG_PANEL_HESLO` (povinné pro majitele). Volitelné: `AI_ZAPNUTO=0` (vypne AI pro zákazníky), `AI_MESICNI_LIMIT_KC` (výchozí 25 Kč ≈ 190 kreditů – přes AI Gateway se platí kredity Netlify a jejich vyčerpání pozastaví celý web), `ASISTENT_DENNI_LIMIT` (výchozí 40 dotazů/den), `ASISTENT_PORADI` (výchozí `claude,gemini,gpt,grok`), `CLAUDE_MODEL` / `OPENAI_MODEL` / `GEMINI_MODEL` / `XAI_MODEL` (modely pro majitele; výchozí Opus 5.5 / GPT-5 / Gemini 2.5 Pro), `ASISTENT_CLAUDE_MODEL` / `ASISTENT_OPENAI_MODEL` / `ASISTENT_GEMINI_MODEL` (modely pro zákazníky – rozhodnutí R8: výchozí Sonnet 5.5 / GPT-5 mini / Gemini 2.5 Flash). **API klíče nezakládej** – dodává je Netlify AI Gateway.
 11. Lokální ověření: `netlify dev` ve webHSPGH (Gateway lokálně nemusí být – asistent pak správně jede bez AI). Testy balíčku proti webu: v `../hspg-balicek` `npm install` a `HSPG_MIRROR=$(pwd)/../webHSPGH CHROMIUM=<cesta k Chromiu> npm run test:e2e` (server balíčku servíruje web + nové soubory + falešné AI; nic neodesílá ven).
 12. Náhledové nasazení (ne produkce): ověř `GET /api/asistent` → `{"ai":true,"poskytovatele":[…]}`, jednu zákaznickou otázku, přihlášení majitele, „Všechny AI najednou“ s krátkým dotazem. Sleduj kredity (krátké dotazy).
 13. Produkční nasazení až po schválení majitelem a v dávce s dalšími úkoly.

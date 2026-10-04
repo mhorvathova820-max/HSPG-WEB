@@ -66,7 +66,7 @@
       stav.innerHTML = '';
       zapnute = s.ai.filter(function (a) { return a.zapnuto; });
       s.ai.forEach(function (a) {
-        stav.appendChild(el('span', { class: 'hbm-cip' + (a.zapnuto ? ' on' : ''), title: a.zapnuto ? a.model : 'Vložte ' + a.klic + ' do Netlify' }, a.zapnuto ? a.nazev + ' ✓' : a.nazev + ': chybí klíč'));
+        stav.appendChild(el('span', { class: 'hbm-cip' + (a.zapnuto ? ' on' : ''), title: a.zapnuto ? 'vy: ' + a.model + ' · zákazníci: ' + (a.modelZakaznik || a.model) : 'Klíč dodává Netlify AI Gateway, nebo vložte ' + a.klic + ' do Netlify' }, a.zapnuto ? a.nazev + ' ✓' : a.nazev + ': není k dispozici'));
       });
       if (s.utrata) {
         stav.appendChild(el('span', { class: 'hbm-cip' }, 'Útrata AI měsíce ≈ ' + Math.round(s.utrata.celkemKc) + ' / ' + s.limitKc + ' Kč'));

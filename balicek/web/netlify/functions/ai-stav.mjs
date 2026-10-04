@@ -2,7 +2,7 @@
 import { POSKYTOVATELE, jeZapnuty } from "../lib/ai/poskytovatele.mjs";
 import { overPozadavek } from "../lib/ai/autorizace.mjs";
 import { vychoziUloziste, utrataMesice, mesicniLimitKc, kcNaKredity } from "../lib/ai/limity.mjs";
-import { pres_gateway } from "../lib/ai/poskytovatele.mjs";
+import { pres_gateway, verejneEnv } from "../lib/ai/poskytovatele.mjs";
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
@@ -24,7 +24,7 @@ export function vytvorStav({ env = process.env, uloziste, ted = () => Date.now()
       // Úložiště nedostupné – stav AI ukážeme i bez útraty.
     }
     return json({
-      ai: Object.entries(POSKYTOVATELE).map(([id, p]) => ({ id, nazev: p.nazev, zapnuto: jeZapnuty(id, env), model: p.model(env), klic: p.klic })),
+      ai: Object.entries(POSKYTOVATELE).map(([id, p]) => ({ id, nazev: p.nazev, zapnuto: jeZapnuty(id, env), model: p.model(env), modelZakaznik: p.model(verejneEnv(env)), klic: p.klic })),
       verejnyAsistent: env.AI_ZAPNUTO !== "0",
       utrata,
       limitKc: mesicniLimitKc(env),

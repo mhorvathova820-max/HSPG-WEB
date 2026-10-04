@@ -130,7 +130,7 @@ NE:
 1. Větev `ukol-08-jednotny-design` z aktuální `main`. Předtím `git -C ../hspg-balicek pull`.
    - Testy patří do adresáře a konvence, které na webu zavedly předchozí úkoly (`tests/`, e2e v `tests/e2e/`). Cesty `tests/…` níže tomu odpovídají; pokud web používá jinou konvenci, drž se jí a uveď to v hlášení.
    - Ověř, že je sloučený úkol 03: v patičkách je kontaktní blok s 5 adresami @hspg.cz. Kontrola: na 3 namátkových stránkách má `<footer>` 5 prvků `a[data-mail]` s různými hodnotami a obráceně čtené končí na `@hspg.cz`. Pokud ne, **zastav se a nahlas to**.
-   - Zjisti a zapiš do hlášení, zda je sloučený úkol 01 (`assets/hbot.js` obsahuje „H-SPG CORE“), 04 (existuje stránka reklamací) a 06 (jednotná podoba URL).
+   - Zjisti a zapiš do hlášení, zda je sloučený úkol 01 (`assets/hbot.js` obsahuje „H-SPG CORE“), 04 (existuje stránka reklamací), 05 (`firma.json` → `zaruka` a `scripts/build-zaruka.mjs`), 06 (jednotná podoba URL), 07 (otisky souborů, `tests/vykon/`), 09 (`/en` odkazuje na `#english`), 13 (cíl „Request a quote“ na `/en`) a 17 (`offline/index.html`, `tests/e2e/kotvy.e2e.test.mjs`).
 2. **Najdi v repozitáři soubory, které generují hlavičky, patičky a styly stránek:**
    - `scripts/build-regions.mjs`: kde je šablona `header.head` / `nav.rnav`, `footer.foot` a `:root` s barvami a jak se spouští,
    - skript, který vkládá blok `:root{--lux-…}` do všech stránek (`git grep -n "lux-ink" -- scripts`), a ostatní generátory se značkami (`SENTINEL`, `REFERENCE`, `RECENZE`, `build-ceny.mjs`, `build-references.mjs`, `build-hbot.mjs`),
@@ -219,7 +219,7 @@ NE:
 
    - `#C9A227` zůstává jen u AI tlačítka (R4). Antracit a cyan zůstávají jen u AI tlačítka a interního panelu (R7).
    - Paleta je výchozí návrh sestavený z hodnot, které už na webu jsou. Pokud ji majitel po snímcích změní, mění se jen tento soubor.
-   - Soubor obsahuje tokeny, základ typografie, komponenty hlavičky a patičky, viditelný fokus, odkaz pro přeskočení na obsah a třídu `.sr-only`.
+   - Soubor obsahuje tokeny, základ typografie, komponenty hlavičky a patičky, odkaz pro přeskočení na obsah a třídu `.sr-only`. Fokus v hlavičce a patičce musí zůstat viditelný (aspoň jako dnes); jednotný indikátor fokusu do tohoto souboru doplní úkol 16.
    - Velikost nejvýš 15 KB. Žádné nové soubory písem, žádné inline skripty ani `on…=` atributy (CSP, úkol 15).
    - Do `<head>` všech stránek ho vkládá skript z kroku 6 jako `<link rel="stylesheet">` s otiskem verze (`?v=` prvních 8 znaků SHA-256 obsahu). Pokud úkol 07 už zavedl jiný mechanismus otisků, použij jeho.
 6. **Komponenta a generátor.**
@@ -332,72 +332,81 @@ NE:
     - **Překryvy (e2e):** při načtení na 768 × 1024, 1004 × 700, 1280 × 720, 1366 × 768 a 1920 × 1080 se plovoucí prvky nepřekrývají s H1, prvním `main p` ani prvním odkazem na `/akce/` v úvodní části. Na konci stránky se nepřekrývají s patičkou.
     - **Přístupnost (axe-core, `include: ['header', 'footer']`):** 0 porušení na 360 i 1280 px. Celkový počet závažných porušení (`serious`/`critical`) na stránkách není vyšší než výchozí stav v `.artefakty/ukol-08/pred/mereni.json` (uveď čísla).
 19. **Snímky „po“ a porovnání:**
-    - `node testy/vizualni.mjs --stav po`, pak `--porovnej` → `.artefakty/ukol-08/porovnani.html` (vedle sebe před / po / rozdíl, `pixelmatch` + `pngjs`, procento změněných pixelů u každé stránky a šířky).
-    - Pak `--zaklad` uloží do repozitáře `testy/vizualni/zaklad/` jen `header` a `footer` na 360 a 1280 px a první obrazovku na 1280 px (celkem do ~3 MB).
+    - `node tests/vizualni.mjs --stav po`, pak `--porovnej` → `.artefakty/ukol-08/porovnani.html` (vedle sebe před / po / rozdíl, `pixelmatch` + `pngjs`, procento změněných pixelů u každé stránky a šířky).
+    - Pak `--zaklad` uloží do repozitáře `tests/vizualni/zaklad/` jen `header` a `footer` na 360 a 1280 px a první obrazovku na 1280 px (celkem do ~3 MB).
     - `--kontrola` porovná aktuální stav se základem s tolerancí 0,5 % pixelů. Pozdější úkoly tak uvidí, když vzhled rozbijí.
+    - Vizuální test úkolu 07 (`tests/vykon/vzhled.test.mjs`, tolerance 1 % proti výchozímu stavu) po redesignu nutně selže. Jeho výchozí snímky přegeneruj jeho vlastním postupem až po schválení vzhledu majitelem (krok 21) a uveď to v hlášení; do té doby ho v hlášení veď jako „očekávaná změna, čeká na schválení“.
 20. **Lighthouse** (mobil) na náhledu před a po:
     - stránky: `/`, `/cenik`, `/cisteni-fasad/kolin/`, `/akce/`, `/en`,
     - náhled „před“ = náhled z `main`, náhled „po“ = náhled větve. Oba přes `node scripts/nasadit.mjs`, zdarma,
-    - přístupnost zůstane 100, výkon neklesne o víc než 2 body, CLS se nezvýší.
+    - přístupnost neklesne (kde byla 100, zůstane 100; 100 je ověřené jen u homepage), výkon neklesne o víc než 2 body, CLS se nezvýší.
 21. Náhled pošli majiteli s odkazem na `porovnani.html`, aby vzhled schválil. Kontrolu náhledu v prohlížeči může udělat i Claude v Chrome. Produkce až po schválení majitelem a v dávce s dalšími úkoly.
 
 ## Akceptační kritéria
 Fáze A:
-- [ ] Hlášení obsahuje inventuru (typ stránky → soubor nebo generátor → hlavička → patička) a stav úkolů 01, 03, 04 a 06.
-- [ ] `ls .artefakty/ukol-08/pred/*.png | wc -l` = 3 × 5 × počet typů stránek (celá stránka, hlavička, patička) a existuje `mereni.json`. Snímky vznikly z commitu před první změnou (uveď jeho hash).
+- [ ] Hlášení obsahuje inventuru (typ stránky → soubor nebo generátor → hlavička → patička) a stav úkolů 01, 03, 04, 05, 06, 07, 09, 13 a 17 (krok 1).
+- [ ] `ls .artefakty/ukol-08/pred/*.png | wc -l` = 3 × 5 × počet typů stránek z `tests/typy-stranek.json` (celá stránka, hlavička, patička) a existuje `mereni.json` včetně výchozích počtů axe. Snímky vznikly z commitu před první změnou HTML, CSS, JS nebo `content/` webu (nové soubory testů se nepočítají; uveď hash).
 - [ ] `content/firma.json` obsahuje `obchodni_oznaceni`, `sidlo` a `zapis`. `node scripts/build-hbot.mjs --kontrola` → OK.
-- [ ] `node scripts/build-layout.mjs --kontrola` → 0 rozdílů. `git grep -l "HSPG:PATICKA:START" -- '*.html' | wc -l` = počet veřejných stránek.
-- [ ] `node --test testy/layout.test.mjs`: patička na N/N stránkách splňuje všechny body z kroku 9 (uveď N).
+- [ ] `node scripts/build-layout.mjs --kontrola` → 0 rozdílů. `git grep -l "HSPG:PATICKA:START" -- '*.html' | wc -l` = N, kde N = počet řádků výstupu příkazu z kroku 2 (`git ls-files '*.html' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' ':!tests/*' ':!node_modules/*'` minus vyřazené soubory uvedené v hlášení).
+- [ ] `node scripts/build-kontakty.mjs --kontrola` → kód 0 (a `node scripts/build-zaruka.mjs --kontrola` → kód 0, je-li sloučený úkol 05).
+- [ ] `node --test tests/layout.test.mjs`: patička na N/N stránkách splňuje všechny body z kroku 9 (uveď N).
 - [ ] `git grep -n "\[DOPLNIT" -- '*.html'` → prázdné.
 - [ ] e2e: na 320 px bez vodorovného posunu. Na konci stránky není žádný odkaz patičky zakrytý (360 i 1280 px, všechny typy stránek).
 - [ ] `html-validate` na `komponenty.html` → 0 chyb.
-- [ ] Náhled: GET `/`, `/cisteni-strech/`, `/en` → patička s IČO, sídlem, zápisem v RŽP a odkazem na zásady (URL náhledu v hlášení).
+- [ ] Dosavadní testy webu: `npm test` → 0 selhání a e2e testy úkolů 02–07, 09, 13, 17 → 0 selhání. Každá úprava cizího testu je v hlášení se zdůvodněním. Jedinou povolenou výjimkou je vizuální test úkolu 07, pokud snímá i patičku (viz krok 19).
+- [ ] Náhled: příkaz z kroku 10 vrátí pro `/`, `/cisteni-strech/` i `/en` hodnotu 4 (IČO, sídlo, zápis v RŽP, odkaz na zásady); URL náhledu v hlášení.
 
 Fáze B:
 - [ ] Nejvýš 3 podoby hlavičky a 2 podoby patičky (test). `build-regions.mjs` nemá vlastní kopii hlavičky ani patičky: `git grep -n "<footer\|<header" -- scripts/build-regions.mjs` → prázdné, značkování vytváří jen `scripts/lib/layout.mjs`.
 - [ ] Menu se na žádné šířce 320–1920 px (krok 10 px) nezalomí, hlavička je ≤ 96 px a stránka nemá vodorovný posun. Uveď počet otestovaných kombinací stránka × šířka.
-- [ ] Mobilní menu funguje klávesnicí i s vypnutým JavaScriptem (test).
-- [ ] Definice barevných proměnných s pevnou hodnotou mimo tokeny: `git grep -hoE -e "--(ink|navy[-a-z0-9]*|gold[-a-z0-9]*|lux-(gold[-a-z]*|navy|ink|sapphire)|copper[-a-z]*|cream|paper|mist|panel|line|muted[-a-z]*)[[:space:]]*:[[:space:]]*(#|rgb)" -- '*.html' '*.css' 'scripts/*.mjs' ':!assets/zaklad.css' ':!assets/hbot*' ':!ai-centrum/*' ':!rd-control-panel/*' | wc -l` → 0 (výchozí stav v kopii webu: 2 922 výskytů).
+- [ ] Mobilní menu se otevře klávesou Enter i mezerníkem a funguje s vypnutým JavaScriptem (test).
+- [ ] Testy kotev úkolu 17 a testy patiček úkolů 03, 04 a 09 projdou s novou hlavičkou a patičkou (případné změny očekávaných počtů zdůvodněné v hlášení).
+- [ ] Definice barevných proměnných s pevnou hodnotou mimo tokeny: `git grep -hoE -e "--(ink|navy[-a-z0-9]*|gold[-a-z0-9]*|lux-(gold[-a-z]*|navy|ink|sapphire)|copper[-a-z]*|cream|paper|mist|panel|line|muted[-a-z]*)[[:space:]]*:[[:space:]]*(#|rgb)" -- '*.html' '*.css' 'scripts/*.mjs' ':!assets/zaklad.css' ':!assets/hbot*' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' | wc -l` → 0 (výchozí stav v kopii webu: 2 922 výskytů).
 - [ ] Na všech typech stránek je stejné pozadí stránky, hlavičky a patičky a stejná barva výzvy k akci. U textu jsou nejvýš 2 rodiny písma (test).
 - [ ] Písmo pod 12 px ve zdrojích:
-  - `git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?([0-9]|1[01])(\.[0-9]+)?px" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' | wc -l` → 0. Výchozí stav v kopii webu je 73 výskytů v 10 souborech a k tomu 4 v souborech úkolu 01.
-  - `git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?0?\.([0-6][0-9]*|7|7[0-4][0-9]*)r?em" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' | wc -l` → 0. Výchozí stav: 6 (`brand.css` 4×, `akce/index.html` 2×).
+  - `git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?([0-9]|1[01])(\.[0-9]+)?px" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' | wc -l` → 0. Výchozí stav v kopii webu je 73 výskytů v 10 souborech a k tomu 4 v souborech úkolu 01. (Atributy SVG `font-size="…"` tento příkaz nezachytí, hlídá je e2e test níže.)
+  - `git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?0?\.([0-6][0-9]*|7|7[0-4][0-9]*)r?em" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' | wc -l` → 0. Výchozí stav: 6 (`brand.css` 4×, `akce/index.html` 2×).
 - [ ] e2e: 0 viditelných textů pod 12 px (včetně SVG) a `main p`/`main li` ≥ 14 px.
 - [ ] Plovoucí prvky nezakrývají H1, úvodní odstavec, hlavní výzvu ani patičku (test na všech typech stránek a uvedených rozměrech).
-- [ ] axe: 0 porušení v hlavičce a patičce. Celkový počet závažných porušení není vyšší než před úkolem.
-- [ ] Lighthouse mobil (5 stránek): přístupnost 100, výkon nejvýš −2 body, CLS nezvýšené (tabulka před/po).
-- [ ] `porovnani.html` existuje a hlášení uvádí stránky a šířky s největší změnou. Základ je v `testy/vizualni/zaklad/` a `node testy/vizualni.mjs --kontrola` → 0 odchylek.
+- [ ] axe: 0 porušení v hlavičce a patičce. Celkový počet závažných porušení není vyšší než výchozí stav v `.artefakty/ukol-08/pred/mereni.json` (čísla před/po v hlášení).
+- [ ] Lighthouse mobil (5 stránek): přístupnost neklesla (kde byla 100, je 100), výkon nejvýš −2 body, CLS nezvýšené (tabulka před/po).
+- [ ] `porovnani.html` existuje a hlášení uvádí stránky a šířky s největší změnou. Základ je v `tests/vizualni/zaklad/` a `node tests/vizualni.mjs --kontrola` → 0 odchylek.
+- [ ] `npm test` a e2e testy webu → 0 selhání. Jedinou povolenou výjimkou do schválení vzhledu je vizuální test úkolu 07 (`tests/vykon/vzhled.test.mjs`); po schválení je jeho základ přegenerovaný a test prochází.
 - [ ] Balíček funguje dál: v `../hspg-balicek` `HSPG_MIRROR=<cesta k webHSPGH> CHROMIUM=… npm run test:e2e` → vše prošlo (asistent i bez AI).
 
 ## Ověření
 ```bash
 # Fáze A
 node scripts/build-layout.mjs --kontrola                # → OK: N stránek, 0 rozdílů
-node --test testy/layout.test.mjs                       # → fail 0
+node scripts/build-kontakty.mjs --kontrola              # → kód 0 (blok KONTAKTY z úkolu 03 beze změny)
+node --test tests/layout.test.mjs                       # → fail 0
 node scripts/build-hbot.mjs --kontrola                  # → OK
+git ls-files '*.html' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' ':!tests/*' ':!node_modules/*' | wc -l   # → N (minus vyřazené soubory z hlášení)
 git grep -l "HSPG:PATICKA:START" -- '*.html' | wc -l    # → N (všechny veřejné stránky)
-git grep -L "09291881" -- '*.html' ':!ai-centrum/*' ':!rd-control-panel/*'                  # → prázdné
-git grep -L "Ochrana osobních údajů\|Privacy policy" -- '*.html' ':!ai-centrum/*' ':!rd-control-panel/*'  # → prázdné
+git grep -L "09291881" -- '*.html' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*'                  # → prázdné
+git grep -L "Ochrana osobních údajů\|Privacy policy" -- '*.html' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*'  # → prázdné
 git grep -n "\[DOPLNIT" -- '*.html'                     # → prázdné
 node scripts/build-layout.mjs --ukazka > .artefakty/ukol-08/komponenty.html && npx -y html-validate .artefakty/ukol-08/komponenty.html   # → 0 chyb
-CHROMIUM=<cesta k Chromiu> node --test --test-concurrency=1 testy/layout.e2e.test.mjs   # → fail 0
+CHROMIUM=<cesta k Chromiu> node --test --test-concurrency=1 tests/e2e/layout.e2e.test.mjs   # → fail 0
+npm test                                                # → 0 selhání (dosavadní testy webu)
 node scripts/nasadit.mjs                                # → URL náhledu (zdarma)
 
 # Fáze B (navíc)
-git grep -hoE -e "--(ink|navy[-a-z0-9]*|gold[-a-z0-9]*|lux-(gold[-a-z]*|navy|ink|sapphire)|copper[-a-z]*|cream|paper|mist|panel|line|muted[-a-z]*)[[:space:]]*:[[:space:]]*(#|rgb)" -- '*.html' '*.css' 'scripts/*.mjs' ':!assets/zaklad.css' ':!assets/hbot*' ':!ai-centrum/*' ':!rd-control-panel/*' | wc -l   # → 0 (předtím 2 922)
-git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?([0-9]|1[01])(\.[0-9]+)?px" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' | wc -l   # → 0 (předtím 73 + 4 z úkolu 01)
-git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?0?\.([0-6][0-9]*|7|7[0-4][0-9]*)r?em" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' | wc -l   # → 0 (předtím 6)
-node testy/vizualni.mjs --stav po && node testy/vizualni.mjs --porovnej   # → .artefakty/ukol-08/porovnani.html
-node testy/vizualni.mjs --zaklad && node testy/vizualni.mjs --kontrola    # → 0 odchylek nad 0,5 %
+git grep -hoE -e "--(ink|navy[-a-z0-9]*|gold[-a-z0-9]*|lux-(gold[-a-z]*|navy|ink|sapphire)|copper[-a-z]*|cream|paper|mist|panel|line|muted[-a-z]*)[[:space:]]*:[[:space:]]*(#|rgb)" -- '*.html' '*.css' 'scripts/*.mjs' ':!assets/zaklad.css' ':!assets/hbot*' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' | wc -l   # → 0 (předtím 2 922)
+git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?([0-9]|1[01])(\.[0-9]+)?px" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' | wc -l   # → 0 (předtím 73 + 4 z úkolu 01)
+git grep -hoE "font(-size)?:[[:space:]]*([0-9]{3}[[:space:]]+)?0?\.([0-6][0-9]*|7|7[0-4][0-9]*)r?em" -- '*.html' '*.css' '*.js' ':!ai-centrum/*' ':!rd-control-panel/*' ':!offline/*' | wc -l   # → 0 (předtím 6)
+node tests/vizualni.mjs --stav po && node tests/vizualni.mjs --porovnej   # → .artefakty/ukol-08/porovnani.html
+node tests/vizualni.mjs --zaklad && node tests/vizualni.mjs --kontrola    # → 0 odchylek nad 0,5 %
 npx -y lighthouse <náhled>/cenik --only-categories=performance,accessibility --form-factor=mobile --quiet --chrome-flags="--headless" --output=json --output-path=.artefakty/ukol-08/lh-cenik-po.json
 (cd ../hspg-balicek && HSPG_MIRROR=<cesta k webHSPGH> CHROMIUM=<cesta> npm run test:e2e)   # → vše prošlo
 ```
 Testy, které agent přidá:
-- `testy/layout.test.mjs` (statické),
-- `testy/layout.e2e.test.mjs` (Playwright, včetně axe-core),
-- `testy/mereni-layout.mjs` (sdílené měření),
-- `testy/vizualni.mjs` (snímky, porovnání, základ, kontrola),
-- `testy/server-staticky.mjs`.
+- `tests/layout.test.mjs` (statické),
+- `tests/e2e/layout.e2e.test.mjs` (Playwright, včetně axe-core),
+- `tests/mereni-layout.mjs` (sdílené měření),
+- `tests/vizualni.mjs` (snímky, porovnání, základ, kontrola),
+- `tests/typy-stranek.json` (typy stránek a selektory hlavičky),
+- `tests/server-staticky.mjs` jen tehdy, když web ještě nemá statický server z předchozích úkolů.
 
 Nové devDependencies: `playwright`, `axe-core`, `pixelmatch`, `pngjs` (kromě těch, které web už má). Testy nesmí volat produkční `/api/*` ani odesílat formuláře.
 
@@ -420,7 +429,8 @@ Viz `balicek/KONTEXT.md` §4 (pravdivost, tajemství, Git a dva agenti, kredity 
 - **Žádné nové inline skripty, `on…=` atributy ani externí zdroje** (CSP, úkol 15). Písma zůstávají na vlastní doméně.
 - **Selektory, na které se váže JavaScript, musí fungovat dál:** `souhlas.js` (`data-souhlas-nastaveni`), `kontakt.js` (`data-mail`), `hbot.js` (`#hspg-lista`), skripty homepage. Ověř testem nebo ručním klikem na náhledu a výsledek uveď.
 - **Nasazování** jen přes `node scripts/nasadit.mjs`: náhled zdarma, produkce jen po schválení majitelem a v dávce.
-- **Velké snímky necommituj.** `.artefakty/` patří do `.gitignore` a v repozitáři zůstává jen malý základ v `testy/vizualni/zaklad/`.
+- **Velké snímky necommituj.** `.artefakty/` patří do `.gitignore` a v repozitáři zůstává jen malý základ v `tests/vizualni/zaklad/`.
+- **Nevracej práci předchozích úkolů:** blok `KONTAKTY` (03), odkaz „Reklamace“ (04), prvky `data-zaruka` mimo patičku (05), odkazy na zásady a `/en` (09, 13) a kotvy (17) zůstávají funkční; jejich testy musí projít.
 
 ## Hlášení po dokončení
 Formát z `KONTEXT.md` §5 (po fázi A i po fázi B) a k tomu:
@@ -440,4 +450,5 @@ Formát z `KONTEXT.md` §5 (po fázi A i po fázi B) a k tomu:
 - URL náhledu,
 - **čeká na majitele:** schválení vzhledu, potvrzení evidujícího úřadu RŽP (nebo `[DOPLNIT]`, pokud se nepodařilo ověřit), případné změny položek menu v `content/navigace.json`,
 - změny v souborech úkolu 01 (velikosti písma v `hbot.js` a `hbot.css`) k převzetí do balíčku,
+- upravené testy jiných úkolů (soubor, co a proč) a stav vizuálního testu úkolu 07; že z patičky homepage zmizela věta o záruce (krok 7),
 - návrhy mimo rozsah (např. obsah proužku akce, kanonický odkaz na Facebook → úkol 11, e-mail bez JS → úkol 03).

@@ -103,3 +103,34 @@ test("Netlify AI Gateway: bez beta parametrů (hlavičky neprojdou), Grok přes 
   assert.equal(POSKYTOVATELE.grok.model({ OPENROUTER_API_KEY: "k" }), "x-ai/grok-4");
   assert.equal(POSKYTOVATELE.grok.model({ XAI_API_KEY: "k" }), "grok-4");
 });
+
+test("varianta B: zákazníci levnější modely, majitel nejlepší; Haiku bez adaptivního uvažování", async () => {
+  const { verejneEnv, POSKYTOVATELE, claudeParametry } = await import("../../web/netlify/lib/ai/poskytovatele.mjs");
+  const e = env();
+  assert.equal(POSKYTOVATELE.claude.model(e), "claude-opus-5-5");
+  assert.equal(POSKYTOVATELE.claude.model(verejneEnv(e)), "claude-sonnet-5-5");
+  assert.equal(POSKYTOVATELE.gemini.model(verejneEnv(e)), "gemini-2.5-flash");
+  assert.equal(POSKYTOVATELE.gpt.model(verejneEnv(e)), "gpt-5-mini");
+  assert.equal(POSKYTOVATELE.claude.model(verejneEnv(env({ ASISTENT_CLAUDE_MODEL: "claude-haiku-4-5" }))), "claude-haiku-4-5");
+  const p = { system: "s", zpravy: [{ role: "user", text: "x" }], maxTokenu: 10, rychle: true };
+  const h = claudeParametry(p, { CLAUDE_MODEL: "claude-haiku-4-5" });
+  assert.equal(h.thinking, undefined);
+  assert.equal(h.output_config, undefined);
+  assert.equal(claudeParametry(p, {}).thinking.type, "adaptive");
+});
+
+test("odhad ceny podle modelu: Sonnet je poloviční proti Opus", async () => {
+  const { odhadKc } = await import("../../web/netlify/lib/ai/limity.mjs");
+  const opus = odhadKc("claude", 1000, 500, {}, "claude-opus-5-5");
+  const sonnet = odhadKc("claude", 1000, 500, {}, "claude-sonnet-5-5");
+  assert.ok(Math.abs(sonnet * 2 - opus) < 1e-9);
+  assert.ok(odhadKc("claude", 1000, 500, { CENA_CLAUDE_VSTUP: "100" }, "claude-sonnet-5-5") > sonnet, "proměnná CENA_* má přednost");
+});
+
+test("ai-stav ukazuje model pro majitele i pro zákazníky", async () => {
+  const h = vytvorStav({ env: env(), uloziste: pametoveUloziste() });
+  const j = await (await h(pozadavek("/api/ai-stav", { headers: { authorization: `Bearer ${vydejToken(env()).token}` } }))).json();
+  const c = j.ai.find((a) => a.id === "claude");
+  assert.equal(c.model, "claude-opus-5-5");
+  assert.equal(c.modelZakaznik, "claude-sonnet-5-5");
+});

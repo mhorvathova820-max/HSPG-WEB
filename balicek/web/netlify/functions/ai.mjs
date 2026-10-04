@@ -49,7 +49,7 @@ export function vytvorAI({ env = process.env, adaptery, uloziste, ted = () => Da
     let store = null;
     try {
       store = await dejUloziste();
-      rezerva = await rezervuj(store, ai, odhadTokenu(system + JSON.stringify(zpravy)), MAX_TOKENU, env, ted());
+      rezerva = await rezervuj(store, ai, odhadTokenu(system + JSON.stringify(zpravy)), MAX_TOKENU, env, ted(), POSKYTOVATELE[ai].model(env));
     } catch {
       store = null; // úložiště nedostupné: přihlášený majitel smí pokračovat (nízký objem)
     }
@@ -62,10 +62,10 @@ export function vytvorAI({ env = process.env, adaptery, uloziste, ted = () => Da
           for await (const kus of adapter.stream({ system, zpravy, maxTokenu: MAX_TOKENU, signal: req.signal })) {
             if (kus.text) ctrl.enqueue(enc.encode(kus.text));
             if (kus.stat) {
-              const kc = odhadKc(ai, kus.stat.vstup || 0, kus.stat.vystup || 0, env);
+              const kc = odhadKc(ai, kus.stat.vstup || 0, kus.stat.vystup || 0, env, POSKYTOVATELE[ai].model(env));
               ctrl.enqueue(enc.encode("\n\u0000STAT" + JSON.stringify({ ...kus.stat, kc: Math.round(kc * 100) / 100 })));
               try {
-                if (store) await zapisUtratu(store, ai, kus.stat, env, ted(), rezerva);
+                if (store) await zapisUtratu(store, ai, kus.stat, env, ted(), rezerva, POSKYTOVATELE[ai].model(env));
               } catch {
                 // Útrata se nezapíše, odpověď ale doběhne.
               }

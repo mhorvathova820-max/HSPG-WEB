@@ -95,8 +95,19 @@ const VYCHOZI_CENY_USD = {
   gemini: [5, 20], // odhad, ověř ceník Google pro zvolený model
   grok: [5, 20], // odhad
 };
-export function odhadKc(id, vstup, vystup, env) {
-  const [cv, cy] = VYCHOZI_CENY_USD[id] || [5, 20];
+// Ceny podle modelu. Claude podle ceníku Anthropic; ostatní jsou ZÁMĚRNĚ nadsazené odhady
+// (raději dřív vypnout AI než vyčerpat kredity) – přesné ceny ověř u poskytovatele.
+const CENY_MODELU_USD = {
+  "claude-opus-5-5": [4, 20],
+  "claude-sonnet-5-5": [2, 10],
+  "claude-haiku-4-5": [1, 5],
+  "gemini-2.5-flash": [0.5, 4],
+  "gemini-2.5-pro": [2.5, 15],
+  "gpt-5-mini": [0.5, 4],
+  "gpt-5": [2.5, 15],
+};
+export function odhadKc(id, vstup, vystup, env, model) {
+  const [cv, cy] = CENY_MODELU_USD[model] || VYCHOZI_CENY_USD[id] || [5, 20];
   const v = cislo(env[`CENA_${id.toUpperCase()}_VSTUP`], cv);
   const y = cislo(env[`CENA_${id.toUpperCase()}_VYSTUP`], cy);
   const kurz = cislo(env.KURZ_USD_CZK, 24);
@@ -116,8 +127,8 @@ export const kcNaKredity = (kc, env) => Math.round((kc / cislo(env.KURZ_USD_CZK,
 
 // Rezervace PŘED voláním AI: připočte nejvyšší možnou cenu volání (vstup + plný strop výstupu).
 // Když by se rozpočet překročil, vrátí false a AI se nevolá. Souběžné požadavky tak strop nepřetečou.
-export async function rezervuj(ul, id, vstupTokenu, maxVystup, env, ted) {
-  const kc = odhadKc(id, vstupTokenu, maxVystup, env);
+export async function rezervuj(ul, id, vstupTokenu, maxVystup, env, ted, model) {
+  const kc = odhadKc(id, vstupTokenu, maxVystup, env, model);
   const limit = mesicniLimitKc(env);
   const v = await aktualizuj(ul, `utrata/${mesic(ted)}`, (z) => {
     const u = z ? { ...z, ai: { ...z.ai } } : { celkemKc: 0, ai: {} };
@@ -130,9 +141,9 @@ export async function rezervuj(ul, id, vstupTokenu, maxVystup, env, ted) {
 
 // Zápis skutečné útraty; rezervaKc = dříve rezervovaná částka, která se tím vyrovná.
 // Selhané volání se nevyrovnává (rezervace zůstane – tokeny mohly být účtovány).
-export async function zapisUtratu(ul, id, stat, env, ted, rezervaKc = 0) {
+export async function zapisUtratu(ul, id, stat, env, ted, rezervaKc = 0, model) {
   if (!stat) return;
-  const kc = odhadKc(id, stat.vstup || 0, stat.vystup || 0, env);
+  const kc = odhadKc(id, stat.vstup || 0, stat.vystup || 0, env, model);
   await aktualizuj(ul, `utrata/${mesic(ted)}`, (z) => {
     const u = z ? { ...z, ai: { ...z.ai } } : { celkemKc: 0, ai: {} };
     u.celkemKc = Math.max(0, u.celkemKc + kc - rezervaKc);

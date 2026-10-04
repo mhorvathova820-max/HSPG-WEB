@@ -20,6 +20,19 @@ export const POSKYTOVATELE = {
 
 const ZKRACENO = "\n\n[Odpověď byla zkrácena – dosažen limit délky.]";
 
+// Rozhodnutí majitele (4. 10., varianta B): zákazníkům odpovídají levnější rychlé modely, majitel
+// má v panelu ty nejlepší. Přepsat jde proměnnými ASISTENT_CLAUDE_MODEL / ASISTENT_GEMINI_MODEL /
+// ASISTENT_OPENAI_MODEL / ASISTENT_XAI_MODEL. Všechny výchozí modely nabízí Netlify AI Gateway.
+export function verejneEnv(env = process.env) {
+  return {
+    ...env,
+    CLAUDE_MODEL: env.ASISTENT_CLAUDE_MODEL || "claude-sonnet-5-5",
+    GEMINI_MODEL: env.ASISTENT_GEMINI_MODEL || "gemini-2.5-flash",
+    OPENAI_MODEL: env.ASISTENT_OPENAI_MODEL || "gpt-5-mini",
+    ...(env.ASISTENT_XAI_MODEL ? { XAI_MODEL: env.ASISTENT_XAI_MODEL } : {}),
+  };
+}
+
 export const jeZapnuty = (id, env = process.env) => {
   const p = POSKYTOVATELE[id];
   return Boolean(p && (env[p.klic] || (p.jinyKlic && env[p.jinyKlic])));
@@ -30,12 +43,17 @@ export const pres_gateway = (env) => Boolean(env.ANTHROPIC_BASE_URL && !/^https:
 
 // --- Claude ---
 export function claudeParametry({ system, zpravy, maxTokenu, rychle }, env) {
+  const model = POSKYTOVATELE.claude.model(env);
+  // Haiku 4.5 nepodporuje adaptivní uvažování ani effort – jede bez nich.
+  const haiku = /^claude-haiku/.test(model);
   const zaklad = {
-    model: POSKYTOVATELE.claude.model(env),
+    model,
     max_tokens: maxTokenu,
-    thinking: { type: "adaptive" },
-    // Veřejné odpovědi musí být rychlé; interní úlohy smí přemýšlet víc.
-    output_config: { effort: rychle ? "low" : "medium" },
+    ...(haiku ? {} : {
+      thinking: { type: "adaptive" },
+      // Veřejné odpovědi musí být rychlé; interní úlohy smí přemýšlet víc.
+      output_config: { effort: rychle ? "low" : "medium" },
+    }),
     system,
     messages: zpravy.map((z) => ({ role: z.role, content: z.text })),
   };

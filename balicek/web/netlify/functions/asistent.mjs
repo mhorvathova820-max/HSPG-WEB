@@ -5,7 +5,7 @@
 //   POST { zpravy: [{ role, text }], stranka?, _honey? } -> { rezim: "ai", odpoved, overeno, ai: [...] }
 //        nebo { rezim: "bez-ai" | "limit" | "predat" | "chyba" } (prohlížeč pak použije FAQ / zavolání zpět)
 //        S hlavičkou Accept: application/x-ndjson přijde nejdřív živý průběh spolupráce, pak výsledek.
-import { POSKYTOVATELE, jeZapnuty, vytvorAdaptery, sLimitem } from "../lib/ai/poskytovatele.mjs";
+import { POSKYTOVATELE, jeZapnuty, vytvorAdaptery, sLimitem, verejneEnv } from "../lib/ai/poskytovatele.mjs";
 import { PRAVIDLA_PRAVDIVOSTI, POKYN_ZAKAZNIK, POKYN_KONTROLOR } from "../lib/ai/pravidla.mjs";
 import { povolenyOrigin } from "../lib/ai/autorizace.mjs";
 import { znalostiProAI } from "../lib/ai/znalosti.mjs";
@@ -61,7 +61,10 @@ function platneZpravy(zpravy) {
 export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = () => Date.now(), znalosti, casy = CASY } = {}) {
   let ul = uloziste;
   const dejUloziste = async () => (ul ||= await vychoziUloziste());
-  const dejAdaptery = () => adaptery || vytvorAdaptery(env);
+  // Zákazníci: levnější rychlé modely (verejneEnv); majitel v /api/ai používá výchozí nejlepší.
+  const envV = verejneEnv(env);
+  const model = (id) => POSKYTOVATELE[id].model(envV);
+  const dejAdaptery = () => adaptery || vytvorAdaptery(envV);
   const textZnalosti = () => znalosti ?? znalostiProAI();
 
   return async function handler(req, context = {}) {
@@ -110,7 +113,7 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
     const system = `${PRAVIDLA_PRAVDIVOSTI}\n\n${POKYN_ZAKAZNIK}\n\n${textZnalosti()}`;
     // Útrata se zapisuje souběžně s odpovědí; Netlify ji nechá doběhnout přes waitUntil.
     const zapisy = [];
-    const zapis = (id, stat, rezerva) => zapisy.push(zapisUtratu(store, id, stat, env, ted(), rezerva).catch(() => {}));
+    const zapis = (id, stat, rezerva) => zapisy.push(zapisUtratu(store, id, stat, env, ted(), rezerva, model(id)).catch(() => {}));
     const dokonci = () => {
       const hotovo = Promise.allSettled(zapisy);
       if (typeof context.waitUntil === "function") context.waitUntil(hotovo);
@@ -125,7 +128,7 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
       let autor = null;
       for (const id of dostupne) {
         if (zbyva() < casy.minNavrh) break;
-        const rezerva = await rezervuj(store, id, odhadTokenu(system + JSON.stringify(zpravy)), MAX_TOKENU, env, ted());
+        const rezerva = await rezervuj(store, id, odhadTokenu(system + JSON.stringify(zpravy)), MAX_TOKENU, env, ted(), model(id));
         if (rezerva === false) return [{ rezim: "bez-ai", duvod: "rozpocet" }, 503];
         emit({ krok: "navrh", ai: POSKYTOVATELE[id].nazev });
         try {
@@ -155,7 +158,7 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
       const zpravyKontrola = [{ role: "user", text: `OTÁZKA NÁVŠTĚVNÍKA:\n${zpravy.at(-1).text}\n\nNÁVRH ODPOVĚDI:\n${navrh}` }];
       // Bez rezervy v rozpočtu se kontrola vynechá – návrh se vrátí neověřený.
       const rezervaK = kontrolor && zbyva() >= casy.minKontrola
-        ? await rezervuj(store, kontrolor, odhadTokenu(systemKontrola + zpravyKontrola[0].text), MAX_TOKENU, env, ted())
+        ? await rezervuj(store, kontrolor, odhadTokenu(systemKontrola + zpravyKontrola[0].text), MAX_TOKENU, env, ted(), model(kontrolor))
         : false;
       if (rezervaK !== false) {
         emit({ krok: "kontrola", ai: POSKYTOVATELE[kontrolor].nazev });

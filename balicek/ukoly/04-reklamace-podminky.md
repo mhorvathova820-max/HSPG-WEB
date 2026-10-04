@@ -1,5 +1,5 @@
 # Úkol 04: Reklamace a spotřebitelské informace
-> Priorita P0 · Závisí na: 03 (fáze A2 navíc 02; v pořadí `PORADI.md` oba úkoly předcházejí) · Čeká na majitele: text obchodních podmínek a reklamačního řádu od právníka (fáze B), schválení textu potvrzení reklamace (A2), souhlas s jedním odesláním `TEST` na náhledu (A2), zda lze reklamaci podat i osobně v sídle · Rozsah: **fáze A1** = stránka `/reklamace/` s formulářem `hspg-reklamace`, odkaz v patičce všech stránek a nepublikovaná šablona podmínek; **fáze A2** = lhůta a potvrzení v oznámeních a koncový test na náhledu; **fáze B** = obchodní podmínky a reklamační řád po dodání textu od právníka. Po každé fázi podej hlášení a počkej na „pokračuj“.
+> Priorita P0 · Závisí na: 03 včetně jeho fáze B (fáze A2 navíc 02; v pořadí `PORADI.md` oba úkoly předcházejí, stejně jako 17, jehož `assets/spolecne.js` formulář použije) · Čeká na majitele: text obchodních podmínek a reklamačního řádu od právníka (fáze B), schválení textu potvrzení reklamace (A2), souhlas s jedním odesláním `TEST` na náhledu (A2), zda lze reklamaci podat i osobně v sídle · Rozsah: **fáze A1** = stránka `/reklamace/` s formulářem `hspg-reklamace`, odkaz v patičce všech stránek a nepublikovaná šablona podmínek; **fáze A2** = lhůta a potvrzení v oznámeních a koncový test na náhledu; **fáze B** = obchodní podmínky a reklamační řád po dodání textu od právníka. Po každé fázi podej hlášení a počkej na „pokračuj“.
 
 ## Proč (s důkazy)
 - **Na webu o reklamacích nic není.** V 247 HTML stránkách kopie živého webu je 0 výskytů výrazů „reklamac“, „obchodní podmínk“, „odstoup“, „mimosoudn“ i „coi.cz“ (grep 4. 10. 2026). GET 4. 10. 2026 vrací 404 pro `/reklamace.html`, `/reklamace`, `/reklamace/`, `/obchodni-podminky`, `/obchodni-podminky.html` i `/reklamacni-rad`. Žádná patička na reklamaci neodkazuje (audit-formulare #2 a #4, audit-pravni_pravdivost #2).
@@ -36,20 +36,20 @@
     - 1× `footer.sheet-foot` (`/nabidka-svj`),
     - 1× patička s inline stylem (`/`),
     - 2× holý `<footer>` (`/akce/`, `/en.html`).
-  - **Fotky:** `/akce/` i `assets/fotky-upload.js` zmenšují nejvýš 3 fotky na 1 600 px (JPEG 0,82). Obrázek dekódují přes `URL.createObjectURL` (adresa `blob:`). CSP, zatím jen Report-Only, má `img-src 'self' data:`. Po vynucení CSP (úkol 15) by `blob:` neprošel.
+  - **Fotky:** `/akce/` i `assets/fotky-upload.js` zmenšují nejvýš 3 fotky na 1 600 px (JPEG 0,82). Obrázek dekódují přes `URL.createObjectURL` (adresa `blob:`). CSP, zatím jen Report-Only, měla 4. 10. v `img-src` `'self' data:` a hostitele Clarity, ale ne `blob:`. `blob:` přidává až fáze B úkolu 17. Nový skript proto `blob:` adresy nepoužívá, aby na tom nezávisel.
   - **Netlify Forms** (dokumentace Forms setup, aktualizovaná 16. 9. 2026):
     - na jedno pole jen 1 soubor,
     - požadavek nejvýš 8 MB,
     - nahrávání souborů vyprší po 30 s,
     - honeypot se zapíná atributem `netlify-honeypot`,
     - nahrané soubory jsou dostupné odkazem v oznámení, CSV i API. U souborů s osobními údaji Netlify doporučuje integraci Very Good Security.
-  - **Clarity:** `assets/souhlas.js` označí pro maskování jen prvky, které existují při načtení stránky (`form, input, textarea, select, [data-lead]`). Obsah vložený skriptem později maskovaný není.
-  - **Kód pasu domu:** `/recenze/` ho ověřuje voláním `/api/sentinel/validate`. Kód je dnes jediným klíčem k údajům zakázky (audit-pravni #20, řeší úkol 14).
+  - **Clarity:** `assets/souhlas.js` (funkce `mask()`) označí pro maskování jen prvky, které existují v okamžiku spuštění Clarity po souhlasu (`form, input, textarea, select, [data-lead], [contenteditable]`). Obsah vložený skriptem později maskovaný není.
+  - **Kód pasu domu:** `/recenze/` ho ověřuje voláním `/api/sentinel/validate`. Ochranu kódu a tohoto rozhraní řeší úkol 14. Reklamační formulář kód jen přenáší jako text a nic neověřuje.
 
 ## Cíl (měřitelný)
 1. `/reklamace/` vrací 200 a dá se indexovat. `/reklamace` a `/reklamace.html` vrací 301 na `/reklamace/`. Stránka obsahuje informace podle § 13, 14 a 19 ZOS (test hledá povinné věty, odkazy a údaje z `firma.json`).
 2. Formulář `hspg-reklamace` je zaregistrovaný v Netlify Forms a funguje s JavaScriptem i bez něj. S JS po odeslání ukáže potvrzení s číslem `R-RRMMDD-XXXX`, časem odeslání a obsahem reklamace. E2E testy: 0 požadavků mimo localhost, axe-core 0 porušení. Lighthouse mobil `/reklamace/`: přístupnost 100.
-3. Odkaz „Reklamace“ je v patičce **100 %** stránek s `<footer>`. Stav k 4. 10.: 247 stránek + 404 + 2 nové stránky = 250.
+3. Odkaz „Reklamace“ je v patičce **100 %** veřejných stránek s `<footer>` (bez interních `rd-control-panel/` a `ai-centrum/`). Stav k 4. 10.: 247 stránek + 404 + 2 nové stránky = 250, plus stránky přidané mezitím (např. `/offline/` z úkolu 17). Rozhoduje rovnost počtů v testu.
 4. (A2) O každé reklamaci přijde push do 60 s a e-mail na `reklamace@` do 2 min, s datem „vyřídit do“. Potvrzení zákazníkovi chodí automaticky až po schválení textu, do té doby ho majitel posílá ručně podle šablony.
 5. (B) Obchodní podmínky a reklamační řád se zveřejní až s písemným schválením majitele. Do té doby je šablona mimo web (na náhledu vrací 404).
 6. Na webu není žádné `[DOPLNIT` a žádné nové nedoložené tvrzení.
@@ -76,7 +76,8 @@
 - text zásad ochrany osobních údajů → **úkol 09** (na `/reklamace/` patří jen krátká informace u formuláře),
 - události měření a GA4 → **úkol 10** (žádné nové `dataLayer.push`),
 - JSON-LD a drobečková navigace → **úkol 11** (na nové stránky JSON-LD nedávej),
-- anglická verze → **úkoly 13 a 09**,
+- sdílené pomocné funkce validace a masky kódu (`assets/spolecne.js`) a `blob:` v CSP → **úkol 17** (funkce jen použij, soubor ani CSP neměň),
+- anglická informace o reklamaci → **úkol 18** (na `/en` sem patří jen odkaz z kroku 10),
 - ochrana kódu pasu domu a registr zakázek → **úkol 14**,
 - CSP a monitoring → **úkol 15**,
 - sjednocení validace a zmenšování fotek v ostatních formulářích → jen návrh do hlášení,
@@ -86,13 +87,13 @@
 
 ### Fáze A1 – stránka, formulář a patičky (lokálně, nic se neodesílá)
 1. **Větev `ukol-04-reklamace` z aktuální `main`.** Nejdřív `git -C ../hspg-balicek pull`.
-   - Ověř, že je sloučený úkol 03: v `content/firma.json` existuje `emaily_na_webu` a existuje `scripts/build-kontakty.mjs`. **Pokud ne, zastav se a nahlas.**
-   - Zapiš, zda je sloučený úkol 02 (`nazvy_formularu` ve `firma.json`), 05 a 06.
+   - Ověř, že je sloučený úkol 03 **včetně fáze B** (úkol 03 smí sloučit fázi A samostatně): v `content/firma.json` existuje `emaily_na_webu`, existuje `scripts/build-kontakty.mjs`, `scripts/lib/kontakty.mjs` exportuje `blokKontaktu` a patička stránky 404 obsahuje značku `<!-- KONTAKTY:START -->`. Stránka potřebuje blok KONTAKTY, kotvu `#kontakty` a `data-reveal="load"` z fáze B. **Pokud cokoli chybí, zastav se a nahlas.**
+   - Zapiš, zda je sloučený úkol 02 (`nazvy_formularu` ve `firma.json`), 17 (`assets/spolecne.js`), 05 a 06.
 2. **Najdi v repozitáři soubory, které generují:**
    - dokumentové stránky (vzor: `/pravidla-akce/index.html` s `header.site-head` a `footer.site-foot`), stránku 404 a 5 variant patičky (viz Proč), u 232 stránek šablonu v `scripts/build-regions.mjs`,
    - `sitemap.xml` (ručně, nebo skriptem z úkolu 06), pravidla přesměrování (`_redirects` nebo `netlify.toml` → `[[redirects]]`), `netlify.toml` → `[build] publish` a `command`,
    - `content/firma.json`, `content/hbot-faq.json`, `scripts/build-hbot.mjs`, `scripts/lib/kontakty.mjs` (funkce `nbsp()` z úkolu 03), adresář funkcí a stávající testy,
-   - **rozpracovanou reklamaci:** `git log --all --oneline -- '*reklamac*'` a `git grep -il reklamac $(git for-each-ref --format='%(refname)' refs/heads)`. Pokud najdeš rozpracovaný soubor, převezmi z něj použitelné části. Každé tvrzení v něm ověř proti `KONTEXT.md` a vše nedoložené vynech.
+   - **rozpracovanou reklamaci:** `git log --all --oneline -- '*reklamac*'` a `git grep -il reklamac $(git for-each-ref --format='%(refname)' refs/heads refs/remotes)`. Pokud najdeš rozpracovaný soubor, převezmi z něj použitelné části. Každé tvrzení v něm ověř proti `KONTEXT.md` a vše nedoložené vynech.
 
    Pokud se HTML generuje skriptem, uprav generátor, ne výstup.
 3. **Ověř právní předpisy v den práce.** Na e-Sbírce (`https://e-sbirka.gov.cz/sb/1992/634`, `/sb/2012/89`, `/sb/2023/29`) ověř znění citovaných ustanovení (tabulka v Proč), zvlášť § 13, 14 a 19 ZOS. Do hlášení zapiš verzi a datum účinnosti, které jsi viděl. Pokud se znění liší od tabulky, příslušnou část nepublikuj a nahlas ji. Ověř také `curl -sIL https://coi.gov.cz/informace-o-adr/` (výsledek 200).
@@ -117,8 +118,8 @@
      - `description` do 160 znaků, např. „Jak reklamovat práci HOLUB – HSPG: formulář s fotkami, e-mail nebo dopis. Reklamaci vyřídíme do 30 dnů. Mimosoudní řešení sporů: ČOI.“,
      - `canonical`, `og:url`, `og:title` a `og:description` jako na ostatních dokumentových stránkách,
      - **bez** `noindex` a bez JSON-LD.
-   - **Patička** stejná jako ostatní `site-foot` stránky po úkolu 03, včetně bloku KONTAKTY a odkazu „Reklamace“ s `aria-current="page"`. Skripty `kontakt.js`, `souhlas.js` a `hbot.js` načti jako jinde, navíc `/assets/reklamace.js` s `defer`.
-   - **Text** – drž se tohoto návrhu. Údaje ber z `firma.json`. Nezlomitelné mezery podle KONTEXT §4 bod 9 dodá `nbsp()` z úkolu 03 (čísla a jednotky, „§ 19“, „30 dnů“).
+   - **Patička** stejná jako ostatní `site-foot` stránky po úkolu 03, včetně bloku KONTAKTY a odkazu „Reklamace“ s `aria-current="page"`. Skripty `kontakt.js`, `souhlas.js` a `hbot.js` načti s `defer` jako na `/cenik.html` (vzorová `/pravidla-akce/` `hbot.js` nenačítá, na `/reklamace/` ho přidej, potřebuje ho test H-BOT). Navíc `/assets/spolecne.js` (úkol 17, pokud existuje) a za ním `/assets/reklamace.js`, oba s `defer`, aby se zachovalo pořadí.
+   - **Text** – drž se tohoto návrhu. Stránku piš jako statické HTML, nový generátor nepřidávej. Údaje přepiš z `firma.json`, jejich shodu s daty hlídá test z kroku 13. Nezlomitelné mezery (KONTEXT §4 bod 9) vlož jako `&nbsp;`. Za jednopísmenné předložky a spojky je umí doplnit `nbsp()` z úkolu 03. Ta ale neřeší mezeru mezi číslem a jednotkou („30&nbsp;dnů“, „8&nbsp;MB“) ani za „§“ („§&nbsp;19“), ty vlož ručně.
      ```text
      H1  Reklamace
      Perex  Pokud s naší prací něco není v pořádku, dejte nám vědět. Uplatnění reklamace vám písemně
@@ -161,7 +162,7 @@
 
      H2  Reklamační formulář   (krok 6)
      ```
-   - **Záruka:** větu ber **doslova** z `firma.zaruka.veta` a `firma.zaruka.podminka`, nepřeformulovávej (§ 2113 odst. 2 OZ: text záruky z reklamy zavazuje). Pokud je sloučený úkol 05, použij jeho jediný zdroj. Věta „Záruka je navíc…“ vychází z § 2113 odst. 1 OZ.
+   - **Záruka:** větu ber **doslova** z `firma.zaruka.veta` a `firma.zaruka.podminka` (lišit se smí jen nezlomitelnými mezerami), nepřeformulovávej (§ 2113 odst. 2 OZ: text záruky z reklamy zavazuje). Pokud je sloučený úkol 05, použij jeho jediný zdroj. Věta „Záruka je navíc…“ vychází z § 2113 odst. 1 OZ.
    - **Nepiš:** pojištění ani pojistnou částku, hodnocení a hvězdičky, lhůtu prohlídky nebo odpovědi („do 2 hodin“, „do 48 h“), slovo „garance“, odkazy na ODR ani nic o rozsahu záruky (to přijde až ve fázi B).
 6. **Formulář `hspg-reklamace`** – statické HTML ve stránce, tím se v Netlify zaregistruje (samostatný skrytý registrační formulář není potřeba). Pokud generátor formulář vykresluje JavaScriptem, přidej statický registrační formulář jako v `index.html` u `hspg-poptavka`. **Každé pole, které posílá JS, musí být i ve statickém HTML** (hlídá to test).
    `<form id="reklamace-form" name="hspg-reklamace" method="POST" action="/reklamace/dekujeme/" enctype="multipart/form-data" data-netlify="true" netlify-honeypot="_honey" data-clarity-mask="true">`

@@ -55,13 +55,14 @@ Vzor, jak to udělat, už web má. `data-cena` je na 240 stránkách s vepsanou 
 
    Meta, OG, Twitter a JSON-LD obsahují jen přesné znění forem ze zdroje a generátor je při změně přepíše. Test najde **0** čísel let u slova záruka mimo tato místa. Výjimky jsou jen ty vyjmenované, každá se zdůvodněním a kontrolou čísla.
 3. **Podmínka všude:** každá zmínka má buď podmínku kontroly 1× za 24 měsíců, nebo je odkazem na `/zaruka`, případně je v bloku, který podmínku obsahuje. Stránka `/zaruka` existuje a uvádí jen potvrzená fakta.
-4. **Nikde „15 let“:** 0 výskytů „15 let“, „patnáct let“ ani „15-year“ v repozitáři webu (mimo `node_modules`).
+4. **Nikde „15 let“:** 0 výskytů „15 let“, „patnáct let“ ani „15-year“ v repozitáři webu (mimo `node_modules`, `tests/` a `CLAUDE.md`). V `tests/` smí „15 let“ být jen jako vstup testu detektoru a v `CLAUDE.md` jen v pravidle „nikde 15 let“.
 5. **Změna na jednom místě:** změna v `firma.json` se po buildu propíše všude, kromě vyjmenovaných výjimek. Test se simulovanou změnou to ověří a výjimky vypíše jako seznam míst k ruční úpravě.
 
 ## Rozsah (ANO / NE výslovně)
 **ANO:**
 - data a skripty: `content/firma.json` → `zaruka`, `scripts/lib/zaruka.mjs`, `scripts/build-zaruka.mjs`, úprava `build-ceny.mjs` (blok SENTINEL, `HSPG_ZARUKA`) a šablony FAQ v `build-regions.mjs`, odebrání `podminka_zaruky` ze `content/sentinel.json`,
 - všechny výskyty z tabulky výše: texty, meta, OG, Twitter, JSON-LD a skripty `svj-podklad.js` a `nabidka-pdf.js`,
+- věta záruky na `/reklamace/`, pokud ji tam už vložil úkol 04 (jen převedení na `data-zaruka`, znění se nemění),
 - H-BOT: odkaz na podmínky a přegenerování znalostí,
 - nová stránka `/zaruka` a její záznam v sitemapě,
 - testy a krátká sekce v `CLAUDE.md`.
@@ -87,11 +88,11 @@ Vzor, jak to udělat, už web má. `data-cena` je na 240 stránkách s vepsanou 
    - `scripts/build-ceny.mjs`: **jak vpisuje `data-cena`** do ručně psaných stránek (přepis na místě regexem nebo parserem?) a jak generuje blok `SENTINEL` a `assets/ceny.js`. Stejný přístup použiješ pro `data-zaruka`,
    - ostatní `scripts/build-*.mjs` (`build-references`, `build-recenze`, `build-hbot` a `build-kontakty`, pokud už proběhly úkoly 01 a 03) a jejich pořadí v build příkazu,
    - zdroj sitemapy (soubor, nebo generátor z úkolu 06), stránku 404, existující testy (`tests/`?) a zda je v `devDependencies` `playwright`.
-3. Inventura: `git grep -nIiE "záruk|zaruk|warrant|garanc|(10|15|deset|patnáct)[[:space:]]+(let|years?)|(10|15)-year|podminka_zaruky|HSPG_SENTINEL" -- . ':!node_modules'`. Výsledek (soubor, řádek, typ: text / meta / JSON-LD / JS / data) dej do hlášení a porovnej s tabulkou v části Proč. Co chybí, doplň. Pokud se „15 let“ najde mimo web (dokumentace, poznámky) a jde o záruku, oprav ho na 10 let. Jinak ho uveď v hlášení.
+3. Inventura: `git grep -nIiE "záruk|zaruk|warrant|garan[ct]|(10|15|deset|patnáct)([[:space:]]|&nbsp;)+(let|years?)|(10|15)-year|podminka_zaruky|HSPG_SENTINEL" -- . ':!node_modules'`. Výsledek (soubor, řádek, typ: text / meta / JSON-LD / JS / data) dej do hlášení a porovnej s tabulkou v části Proč. Co chybí, doplň. Pokud už je v `main` úkol 04, najdeš i `/reklamace/` s větou záruky z `firma.json` (`veta` + `podminka`); patří do kroku 13. Pokud se „15 let“ najde mimo web (dokumentace, poznámky) a jde o záruku, oprav ho na 10 let. Jinak ho uveď v hlášení.
 4. `content/firma.json`:
    - Pokud v `main` už je (úkol 01 nebo 03), uprav **jen** klíč `zaruka`.
    - Pokud tam není, převezmi celý soubor z `../hspg-balicek/balicek/web/content/firma.json`, ostatní klíče nech beze změny a zapiš to do hlášení kvůli slučování s 01 a 03.
-   - Nový obsah klíče (nezlomitelné mezery podle `KONTEXT.md` §4 bod 9 jako ` `; `potvrzeno_kdy` a `nahradni_veta` ponech, jak jsou):
+   - Nový obsah klíče (nezlomitelné mezery podle `KONTEXT.md` §4 bod 9 jako ` ` v českých formách `veta`, `podminka`, `rozsah`, `kratce`, `s_podminkou`, `delka`, `popisek` a `odkaz_text`; v `en` jen mezi číslem a jednotkou. `potvrzeno_kdy` a `nahradni_veta` ponech, jak jsou):
    ```json
    "zaruka": {
      "_poznamka": "JEDINÝ zdroj textu záruky pro web, H-BOT i AI. Do stránek ho propisují scripts/build-zaruka.mjs, build-ceny.mjs a build-regions.mjs. Měnit jen po písemném rozhodnutí majitele, pak spustit build a testy.",
@@ -132,13 +133,19 @@ Vzor, jak to udělat, už web má. `data-cena` je na 240 stránkách s vepsanou 
 
    Pokud je převzatý asistent (úkol 01), spusť `node scripts/build-hbot.mjs` a pak `node scripts/build-hbot.mjs --kontrola` (musí projít, `hbot-znalosti.json` se mění kvůli nezlomitelným mezerám).
 5. `scripts/lib/zaruka.mjs` (bez závislostí):
-   - `nactiZaruku()`: načte `content/firma.json` a ověří data. Při `potvrzeno !== true`, chybějícím `delka_let`, nesouladu čísla (každý text cs obsahuje `${delka_let} let`, en `${delka_let}-year` nebo `${delka_let} years`) nebo výskytu 15 let **vyhodí chybu**. Web se tak nesestaví s nepotvrzenou nebo rozpornou délkou.
+   - `nactiZaruku()`: načte `content/firma.json` a ověří data. **Vyhodí chybu**, když:
+     - `potvrzeno !== true` nebo chybí `delka_let`,
+     - některá forma s číslem (`veta`, `kratce`, `s_podminkou`, `delka`, cs i en) nemá shodu detektoru `CISLO_LET` (níže),
+     - některý text cs nebo en (formy i `nahradni_veta`) má shodu `CISLO_LET` s jiným číslem než `delka_let`, tedy i „15 let“.
+
+     Slovní čísla převáděj („deset“ = 10, „patnáct“ = 15). Formy bez čísla (`podminka`, `rozsah`, `popisek`, `odkaz_text`) číslo obsahovat nemusí. Web se tak nesestaví s nepotvrzenou nebo rozpornou délkou.
    - `formy(jazyk)`: `{veta, podminka, plne, rozsah, kratce, s_podminkou, delka, popisek, odkaz_text, odkaz}`, kde `plne = veta + " " + podminka`. Pro en se použijí texty z `en`, `odkaz` je společný.
    - `zarukaProProhlizec()`: objekt `{cs: formy("cs"), en: formy("en")}` pro `ceny.js`.
    - `DLOUHE_FORMY = ["plne", "veta", "podminka", "rozsah", "s_podminkou"]`.
    - Detektor sdílený generátorem i testy:
      `CISLO_LET = /(?<![\p{L}\p{N}])(\d{1,2}|deset|patnáct)(?:\s|&nbsp;| )+(?:let|roků|years?)(?![\p{L}\p{N}])|(?<![\p{L}\p{N}])\d{1,2}-year(?![\p{L}\p{N}])/giu`.
-     Shoda je „záruční“, když je do 80 znaků před ní nebo za ní `/záruk|zaruk|warrant|garanc|guarantee/i`. „Po 10 letech“ tím pádem nevadí.
+     Shoda je „záruční“, když je do 80 znaků před ní nebo za ní `/záruk|zaruk|warrant|garan[ct]|guarantee/i`. „Po 10 letech“ tím pádem nevadí.
+     U HTML měř okno v textu, kde je každá značka nahrazená mezerou (hodnoty atributů `content`, `alt`, `title` a `aria-label` a obsah `<script>` zůstávají). V surovém HTML by okno 80 znaků minulo 2 dnešní zmínky na `/`: dlaždici ř. 1248 („10 let“ a „záruka na impregnaci“ dělí dlouhý atribut `style`) a certifikát ř. 1653 („Garantovaný certifikát … 10 let“). Ověřeno nad kopií 4. 10.: takto detektor najde 115 shod v 90 souborech a nezachytí posuvník „DESET LET V JEDNOM POSUVNÍKU“ ani „Do 3 let / 3–8 let“ v kalkulačce na `/`.
 6. `scripts/build-zaruka.mjs` přepisuje na místě, stejně jako `build-ceny` u `data-cena`. Projde HTML v publikačním adresáři kromě interních `rd-control-panel/` a `ai-centrum/` a jazyk bere z `<html lang>`:
    - **Prvky `data-zaruka="klíč"`:** obsah = forma (prostý text, HTML-escapovaný). U `<a data-zaruka=…>` nastaví také `href` na `zaruka.odkaz`. Neznámý klíč = chyba.
    - **Blok `<!-- ZARUKA:START -->…<!-- ZARUKA:END -->`:** jen v `zaruka.html`, obsah stránky podmínek z dat (krok 7). Do značek nepiš cesty ani interní poznámky (audit-seo #18).
@@ -162,12 +169,12 @@ Vzor, jak to udělat, už web má. `data-cena` je na 240 stránkách s vepsanou 
    <h2>Rozsah záruky</h2>
    <p data-zaruka="rozsah">…</p>
    <h2>Jak záruku uplatnit</h2>
-   <p>Zavolejte na <a href="tel:+420736618486">+420&nbsp;736&nbsp;618&nbsp;486</a> (Po–So 7:00–19:00)…</p>
+   <p>Zavolejte na <a href="tel:+420736618486">+420&nbsp;736&nbsp;618&nbsp;486</a> (Po–So 7:00–19:00).</p>
    ```
-   - Telefon a pracovní dobu ber z `firma.json` (`telefon`, `telefon_zobrazeni`, `pracovni_doba`).
+   - Telefon a pracovní dobu ber z `firma.json` (`telefon`, `telefon_zobrazeni`, `pracovni_doba`). Odstavec „Jak záruku uplatnit“ obsahuje jen tuto větu s kontakty (a odkazy z dalšího bodu). Nic nedopisuj o postupu, lhůtách, prohlídce ani dokladech: postup dodá právník (úkol 04B).
    - Pokud v `main` existuje `/reklamace` (úkol 04A), přidej odkaz na ni. Pokud proběhl úkol 03, přidej e-mail přes `a[data-kontakt="reklamace"]`. Jinak jen telefon a předávka pro 04.
    - Při `podminky.schvaleno === true` vloží generátor navíc sekce „Na co se záruka vztahuje“, „Na co se nevztahuje“, „Postup uplatnění“ a „Záruka a zákonná práva“ ze seznamů v datech. Do té doby se nevypíšou.
-   - V publikovaném výstupu nesmí být `[DOPLNIT` (test).
+   - V `zaruka.html` ani v žádném souboru, který tento úkol mění, nesmí být `[DOPLNIT` (test). Výskyty z jiných úkolů jen uveď v hlášení.
 8. `build-ceny.mjs` a `content/sentinel.json`:
    - ze `sentinel.json` odeber `podminka_zaruky`,
    - `build-ceny.mjs` importuje knihovnu a do `assets/ceny.js` přidá `g.HSPG_ZARUKA = zarukaProProhlizec()`; `HSPG_SENTINEL` zůstane bez `podminka_zaruky`,
@@ -211,14 +218,15 @@ Vzor, jak to udělat, už web má. `data-cena` je na 240 stránkách s vepsanou 
     - **`/nabidka-svj.html`:** ř. 167 dlaždice `delka` + `popisek`, odkaz.
     - **`/pas-domu.html`:** ukázka ř. 198 → `delka`. Celou ukázku `#ukazkovy-pas` označ `data-zaruka-blok` a na její konec (uvnitř bloku) přidej odkaz `data-zaruka="odkaz_text"`. Datum „ZÁRUKA DO 8/2036“ v ukázce zůstává, test hlídá rok 2026 + `delka_let`. Skutečný pas (`p.zaruka.do` z API) je údaj konkrétní zakázky a nemění se.
     - **Rozcestníky `/cisteni-fasad/` (ř. 18, 20) a `/cisteni-strech/` (ř. 6):** `s_podminkou` + odkaz, věty o rozsahu → `rozsah`.
+    - **`/reklamace/` (jen pokud je v `main` úkol 04):** větu záruky (`firma.zaruka.veta` + `podminka`) převeď na `<span data-zaruka="veta">` + `<span data-zaruka="podminka">`. Znění se nemění, takže testy úkolu 04 (doslovná shoda s `firma.json`) musí dál projít. Větu „Záruka je navíc k vašim zákonným právům…“ neměň. Pokud stránku generuje skript úkolu 04, napoj ho na knihovnu a výstup přegeneruj.
 
     Spusť `node scripts/build-zaruka.mjs`.
 14. Meta, OG, Twitter a JSON-LD. Do textu vlož přesné znění forem (generátor je pak udržuje, krok 6):
     - **meta, OG, Twitter:** zmínka o záruce = `s_podminkou`. Pokud by popis přesáhl 160 znaků, záruku z popisu vypusť a jinak text neměň (úkol 11).
       Spočítáno 4. 10.:
-      - `/` description s formou 163 znaků → záruku vypustit (99 znaků),
+      - `/` description: s formou by měl kolem 171 znaků (> 160) → vypusť celou větu „Vlastní impregnace H-STONE se zárukou 10 let.“, výsledek má 99 znaků,
       - `/` `twitter:description` „Čištění a trvalá ochrana povrchů bez lešení. Impregnace H-STONE: {s_podminkou}. Cena do 24 hodin.“ = 126 znaků → ponechat,
-      - `/akce/` 3× s formou 183 znaků → záruku vypustit (139 znaků).
+      - `/akce/` 3× (description, `og:`, `twitter:`): s formou 183 znaků → vypusť jen „, záruka 10 let“, výsledek má 139 znaků.
     - **JSON-LD `description`** (`/` ř. 45–47, `/en.html` ř. 35): záruka jen jako `s_podminkou` (en: forma en), např. „…hydrofobní impregnace H-STONE – bez lešení; {s_podminkou}.“ Strukturu JSON-LD neměň.
     - **`FAQPage` na `/` (ř. 48):** `acceptedAnswer.text` = přesně viditelný text odpovědi z kroku 13 bez textu odkazu.
     - Pokud JSON-LD generuje skript (ověř v kroku 2), napoj ho na knihovnu místo ruční úpravy.

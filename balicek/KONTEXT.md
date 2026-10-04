@@ -40,6 +40,7 @@ webu a o rozhodnutích majitele. Co tu není potvrzené, se na web nepíše.
 | R5 | 5 firemních schránek + záložní kopie na Seznam | v kódu (`content/firma.json`) |
 | R6 | Web musí být špičkový a plně funkční i **bez AI**; funkčnost nesmí záviset na placené verzi Claude | architektura balíčku |
 | R7 | Paleta webu: tmavě modrá + zlatá (antracit/cyan jen u AI tlačítka a v interním panelu) | platí |
+| R8 | Rozpočet AI – varianta B: zákazníkům odpovídají levnější rychlé modely (Claude Sonnet 5.5, Gemini 2.5 Flash, GPT-5 mini), majitel má v panelu nejlepší (Claude Opus 5.5, Gemini 2.5 Pro, GPT-5); doporučeno zapnout auto-recharge kreditů | rozhodnuto 4. 10. (v kódu) |
 
 **Způsob práce:** majitel si přeje pracovat přes VS Code; rozšíření Claude v Chrome v Netlify nic nenastavuje (úkoly C1, C2 a C10 dělá majitel sám nebo agent ve VS Code přes `netlify` CLI).
 
