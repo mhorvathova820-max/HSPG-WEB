@@ -130,16 +130,16 @@ Na mobilu je mezi začátkem `#holub-sekce` a tlačítkem „🕊 VYPUSŤTE HOLU
      - `text` je český zápis bez mezer („12,5“),
      - prázdné pole → `{ ok:true, prazdne:true }` (pole zůstává nepovinné; minimalizace polí patří úkolu 18).
    - `kod(hodnota, kurzor)` → `{ hodnota, kurzor }`: stávající maska HS-RRRR-ČČČČ z `pas-domu.html` ř. 236 a kurzor za stejným počtem číslic jako před úpravou.
-   - `sklonuj(n, [jeden, dva_az_ctyri, pet_a_vic])` pro celá čísla: 1 → první tvar, 2–4 → druhý, 0 a 5+ → třetí. Mezi číslo a slovo vlož nezlomitelnou mezeru (` `, KONTEXT §4 bod 9).
+   - `sklonuj(n, [jeden, dva_az_ctyri, pet_a_vic])` pro celá čísla: 1 → první tvar, 2–4 → druhý, 0 a 5+ → třetí. Mezi číslo a slovo vlož nezlomitelnou mezeru U+00A0 (v JS `'\u00A0'`, KONTEXT §4 bod 9).
 6. **Napojení validace** (hlášky u pole: `aria-invalid="true"`, text přes `aria-describedby`, fokus na pole):
    - `/` průvodce: `phoneOk`/`emailOk` nahraď voláním modulu, chybové UI `chybaPole` zachovej. Do payloadu (ř. 2243 a `sessionStorage` ř. 2227) dej `hodnota` z modulu.
    - `/akce/`:
      - `#tel` dostane záložní `pattern` pro prohlížeč bez JS, např. `[\+0-9 \(\)\-\.\/]{9,20}`. Pattern platí i se zapnutým JS, proto musí být **nadmnožinou** toho, co přijme modul: všechny přijímané vektory z akceptačních kritérií (např. „(+420) 736 618 486“) ním musí projít, jinak je prohlížeč zablokuje dřív než JS. Escapování musí fungovat i s příznakem `v`, který Chromium u `pattern` používá; ověř testem,
      - `#mail` dostane `pattern="[^@\s]+@[^@\s]+\.[^@\s]{2,}"`,
      - v JS před odesláním proveď kontrolu modulem a `setCustomValidity` / hlášku u pole. Do `FormData` dej normalizovaný telefon.
-   - `/akce/dekujeme/` (`fotky-upload.js` ř. 67): modul, normalizovaný telefon. Fotky se tak spárují s poptávkou podle stejného tvaru čísla. Ověř, jestli s telefonem nepracuje i funkce z úkolu 02, a tvary sjednoť.
+   - `/akce/dekujeme/` (`fotky-upload.js` ř. 67): modul, normalizovaný telefon. Fotky se tak spárují s poptávkou podle stejného tvaru čísla. Pole `Číslo poptávky` a ostatní změny úkolu 02 zachovej. Pokud funkce úkolu 02 (`submission-created`) telefon porovnává nebo zobrazuje, ověř testem, že s tvarem `+420XXXXXXXXX` funguje. Jinak ji neměň, rozdíl jen zapiš do hlášení.
    - `/recenze/` `#kontakt`: prázdné pole je OK. Vyplněné musí být platný telefon nebo e-mail, jinak hláška u pole. Odesílá se normalizovaný tvar.
-   - Načtení: `<script src="/assets/spolecne.js"></script>` těsně před první inline skript, který modul používá (inline skripty jsou na konci `<body>`, soubor je malý).
+   - Načtení: `<script src="/assets/spolecne.js"></script>` těsně před první skript, který modul používá (inline skript, na `/akce/dekujeme/` `fotky-upload.js`). Skripty jsou na konci `<body>` a soubor je malý.
    - **Záloha:** pokud `window.HSPG_SPOLECNE` chybí (skript se nenačetl), použij jen minimální kontrolu (aspoň 9 číslic, v e-mailu `@`). Odeslání poptávky nikdy neblokuj kvůli chybějícímu pomocnému skriptu.
    - H-BOT (`hbot-panel.js`, úkol 01) **neměň**. Do testu zařaď jeho pravidlo jako referenci a rozdíly zapiš do hlášení (např. „123 456 789“ H-BOT přijme, modul odmítne).
 7. **Plocha v průvodci** (ř. 2198): `type="text"`, `inputmode="decimal"`, `autocomplete="off"`, kontrola modulem `plocha()` s hláškou u pole přes `chybaPole`. Do payloadu jde `text` („12,5“) nebo „neuvedeno“.
@@ -240,7 +240,7 @@ Fáze A:
   - „-50“, „0“, „1e9“, „abc“, „1000000“ a „12,555“ → chyba.
 - [ ] Unit `spolecne` – kód a skloňování:
   - `kod("HS-206-0001", 5)` → `{hodnota:"HS-2060-001", kurzor:5}`,
-  - `sklonuj` dává pro 0, 1, 2, 4, 5 a 22 tvary let, rok, roky, roky, let a let s ` `.
+  - `sklonuj` dává pro 0, 1, 2, 4, 5 a 22 tvary let, rok, roky, roky, let a let, mezi číslem a slovem vždy U+00A0.
 - [ ] E2E formuláře (`/` krok Telefon, `/akce/`, `/akce/dekujeme/` fotky, `/recenze/` `#kontakt`):
   - přijímané vstupy projdou, odmítané ukážou českou hlášku u pole s `aria-invalid="true"`,
   - zachycený POST (`page.route`, nic neodchází ven) obsahuje normalizovaný telefon.

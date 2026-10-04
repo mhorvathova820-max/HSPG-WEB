@@ -100,7 +100,7 @@ Ověřeno 4. 10. 2026. Živý `assets/souhlas.js` je shodný s kopií webu (`dif
 - zdroj návštěvy v poptávkách (`Předchozí stránka`, `Kampaň`, `Reklamní kliknutí`) → **úkol 02**. Tady jen napojení `maSouhlas`.
 - vynucení CSP, inventura inline skriptů → **úkol 15**. Tady jen doplnění domén do Report-Only CSP u nástroje, který se skutečně zapne, a zápis do hlášení.
 - obecný výkon, otisky souborů, cache → **úkol 07**. Tady jen LCP lišty a nenačítání prázdného GTM.
-- anglické zásady a poptávka na `/en` → **úkol 18**
+- poptávka na `/en` → **úkol 18** (anglické shrnutí zásad `#english` už dodal úkol 09)
 - přístupový token pasu domu → **úkol 14**. Tady jen to, aby kód pasu nebyl v URL odkazu na `/recenze/`. Příchozí odkaz `/recenze/?kod=…` (např. z e-mailu se žádostí o hodnocení, úkol 14) dál funguje přes cestu pro staré odkazy v kroku 9.
 - nové poptávkové formuláře z úkolu 18. Tady jen pravidlo v `CLAUDE.md`, že musí volat `generate_lead`.
 - zakládání účtů GA4, Google Ads a Sklik, reklamní kampaně, Facebook Pixel a jakékoli další měřicí nástroje
@@ -265,10 +265,10 @@ Ověřeno 4. 10. 2026. Živý `assets/souhlas.js` je shodný s kopií webu (`dif
          - `/recenze/?kod=HS-TEST&utm_source=t` → kód předvyplněný, `location.search === '?utm_source=t'`
       10. `/ai-centrum/` a `/rd-control-panel/` nenačítají `souhlas.js` ani žádný nástroj.
 11. **Sekce `#cookies` v zásadách** (jen pokud je úkol 09 v `main`, jinak do hlášení, viz krok 1):
-    - Do zdroje zásad (nebo do šablony generátoru úkolu 09) vlož značky `COOKIES:START/END` vedle bloku `ZPRACOVANI:ULOZISTE` a spusť `build-souhlas.mjs`.
+    - Obsah mezi značkami `COOKIES:START/END` (z úkolu 09) nahradí `build-souhlas.mjs`. Pokud značky chybí, nevkládej je sám, nahlas to (úkol 09 je měl vložit).
     - Vygenerovaný blok obsahuje jen aktivní nástroje: název, poskytovatel a předání mimo EHP (z `prijemci` registru 09), účel, kategorie, cookies s doménou a platností. Nezbytné úložiště uvádí blok `ZPRACOVANI:ULOZISTE` úkolu 09, neopakuj ho.
     - Dál odstavec o odvolání přes „Nastavení cookies“.
-    - Dokud GTM a GA4 nejsou aktivní, zásady je neuvádějí. Odstavec o nich (úkol 09 ho převzal beze změny) odstraň, ve fázi C se vrátí.
+    - Dokud GTM a GA4 nejsou aktivní, zásady je neuvádějí. Dnešní odstavec o nich (úkol 09 ho převzal beze změny mezi značky) tím zmizí, ve fázi C se vrátí.
     - Text předlož ke schválení spolu se zásadami (úkol 09) a nepublikuj ho samostatně.
 12. **`scripts/kontrola-cookies.mjs <url>`** (Playwright, skutečná síť):
     - **přeruší každý POST** a každý požadavek na `*/g/collect*`
@@ -472,4 +472,4 @@ Formát z `KONTEXT.md` §5, po každé fázi zvlášť, a navíc:
   - `/akce/` posílala celou adresu GETem na `/api/pocasi?q=`. Úkol 09 to řeší („počasí jen s obcí“); ověř, že je to v `main`, jinak zapiš.
   - předávka pro úkol 14: jeho zadání počítá s odkazem „OHODNOTIT NAŠI PRÁCI“ na `/recenze/?kod=<kód>`. Po úkolu 10 platí předání přes `hspg-predvyplnit` a čisté `/recenze/` (pravidlo v `CLAUDE.md`). Příchozí odkaz `/recenze/?kod=` z e-mailu se žádostí o hodnocení funguje (krok 9, parametr se hned odstraní).
   - doklad o souhlasu se ukládá jen v prohlížeči. Serverový záznam souhlasu je na rozhodnutí majitele a právníka.
-  - anglické informace o cookies na `/en` → úkol 18
+  - anglické informace o cookies (sekce `#cookies` je jen česky, `#english` je shrnutí z úkolu 09) → úkol 18
