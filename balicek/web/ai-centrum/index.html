@@ -95,6 +95,109 @@
       </details>
     </div>
   </div>
+
+  <!-- H-WEATHER CONTROL & plánovač: nic se nestahuje při načtení stránky – data až po otevření sekce a kliknutí. -->
+  <section class="panel hwc" id="hwc" aria-labelledby="h-hwc">
+    <div class="hwc-hlava">
+      <div class="hwc-titul">
+        <p class="nadtitul">H-WEATHER CONTROL · interní</p>
+        <h2 class="nadpis" id="h-hwc">H-WEATHER CONTROL &amp; plánovač</h2>
+        <p class="popis">Počasí pro zakázky, rezervace z&nbsp;plánovače, kalendář s&nbsp;varováním pro Google a&nbsp;dárkové kupony. Data se načtou, až o&nbsp;ně požádáte.</p>
+      </div>
+      <button id="hwcOtevrit" type="button" aria-expanded="false" aria-controls="hwcObsah">Otevřít sekci</button>
+    </div>
+
+    <div id="hwcObsah" class="hwc-obsah" hidden>
+      <div class="hwc-taby" role="tablist" aria-label="H-WEATHER CONTROL a plánovač">
+        <button type="button" role="tab" id="hwcTab-pocasi" aria-controls="hwcPanel-pocasi" aria-selected="true">Počasí</button>
+        <button type="button" role="tab" id="hwcTab-zakazky" aria-controls="hwcPanel-zakazky" aria-selected="false" tabindex="-1">Zakázky</button>
+        <button type="button" role="tab" id="hwcTab-kalendar" aria-controls="hwcPanel-kalendar" aria-selected="false" tabindex="-1">Kalendář</button>
+        <button type="button" role="tab" id="hwcTab-kupony" aria-controls="hwcPanel-kupony" aria-selected="false" tabindex="-1">Kupony</button>
+      </div>
+
+      <div class="hwc-panel" role="tabpanel" id="hwcPanel-pocasi" aria-labelledby="hwcTab-pocasi" tabindex="0">
+        <h3 class="hwc-h3">Počasí pro zakázku</h3>
+        <p class="popis">Hodnocení dnů v&nbsp;dosahu předpovědi (asi 9&nbsp;dní) podle interních pravidel pro venkovní práci. Rozhoduje vždy technik na místě.</p>
+        <form id="hwcFormPocasi" class="hwc-form" novalidate>
+          <div class="hwc-pole-obec">
+            <label for="hwcObec">Obec</label>
+            <input id="hwcObec" type="text" list="hwcNavrhy" autocomplete="off" maxlength="120" placeholder="Např. Kolín" aria-describedby="hwcObecTip">
+            <datalist id="hwcNavrhy"></datalist>
+            <small id="hwcObecTip" class="hwc-tip">Po 2 písmenech nabídne obce ze seznamu ČÚZK.</small>
+          </div>
+          <div>
+            <label for="hwcTyp">Typ práce</label>
+            <select id="hwcTyp">
+              <option value="impregnace" selected>Impregnace (H-STONE)</option>
+              <option value="cisteni">Čištění a tlakové mytí</option>
+              <option value="biocid">Biocidní ošetření (H-BIO)</option>
+            </select>
+          </div>
+          <div class="hwc-odeslat"><button class="hlavni" id="hwcVyhodnotit" type="submit">Vyhodnotit</button></div>
+        </form>
+        <div class="hwc-stav"><p id="hwcStavPocasi" role="status"></p></div>
+        <div id="hwcVysledekPocasi" class="hwc-vysledek"></div>
+      </div>
+
+      <div class="hwc-panel" role="tabpanel" id="hwcPanel-zakazky" aria-labelledby="hwcTab-zakazky" tabindex="0" hidden>
+        <h3 class="hwc-h3">Zakázky a rezervace</h3>
+        <p class="popis">Zakázky z&nbsp;vašeho kalendáře a&nbsp;rezervace z&nbsp;plánovače na webu, u&nbsp;dnů v&nbsp;dosahu předpovědi s&nbsp;hodnocením počasí.</p>
+        <div class="akce"><button class="hlavni" id="hwcNacistPrehled" type="button">Načíst</button></div>
+        <div class="hwc-stav"><p id="hwcStavPrehled" role="status"></p></div>
+        <div id="hwcVysledekPrehled" class="hwc-vysledek"></div>
+      </div>
+
+      <div class="hwc-panel" role="tabpanel" id="hwcPanel-kalendar" aria-labelledby="hwcTab-kalendar" tabindex="0" hidden>
+        <h3 class="hwc-h3">Kalendář s&nbsp;varováním v&nbsp;Google</h3>
+        <p class="popis">Zakázky a&nbsp;rezervace s&nbsp;hodnocením počasí (✅ vhodné, ⚠️ riziko, ⛔ nevhodné) jako samostatný kalendář ve vašem Google Kalendáři.</p>
+        <p class="hwc-banner hwc-pozor"><strong>Odkaz je tajný.</strong> Kdo ho zná, vidí vaše zakázky. Nikomu ho neposílejte a&nbsp;nevkládejte na web.</p>
+        <div class="akce"><button class="hlavni" id="hwcOdkaz" type="button">Zobrazit odkaz</button></div>
+        <div id="hwcOdkazBox" class="hwc-odkaz" hidden>
+          <label for="hwcOdkazPole">Tajný odkaz na kalendář (iCal)</label>
+          <div class="hwc-radek">
+            <input id="hwcOdkazPole" type="text" readonly spellcheck="false">
+            <button id="hwcOdkazKopirovat" type="button">Kopírovat</button>
+          </div>
+          <ol class="hwc-kroky">
+            <li>Otevřete Google Kalendář na počítači.</li>
+            <li>Vlevo u&nbsp;„Další kalendáře“ klikněte na +.</li>
+            <li>Zvolte „Přidat z&nbsp;URL“.</li>
+            <li>Vložte odkaz a&nbsp;klikněte na „Přidat kalendář“.</li>
+          </ol>
+          <p class="hwc-tip">Google si kalendář obnovuje sám jednou za několik hodin (interval nejde ovlivnit). Aktuální stav je vždy tady v&nbsp;panelu.</p>
+          <div class="akce"><button id="hwcNovyOdkaz" type="button">Vytvořit nový odkaz (starý přestane fungovat)</button></div>
+        </div>
+        <div class="hwc-stav"><p id="hwcStavKalendar" role="status"></p></div>
+      </div>
+
+      <div class="hwc-panel" role="tabpanel" id="hwcPanel-kupony" aria-labelledby="hwcTab-kupony" tabindex="0" hidden>
+        <h3 class="hwc-h3">Dárkové kupony</h3>
+        <p class="popis" id="hwcNabidkaKupon">Kupon pro sousedy a&nbsp;známé vašich zákazníků. Kód zadají v&nbsp;plánovači nebo na stránce kuponu.</p>
+        <div id="hwcStavNabidek"></div>
+        <form id="hwcFormKupon" class="hwc-form hwc-form-kupon" novalidate>
+          <div class="hwc-pole-poznamka">
+            <label for="hwcPoznamka">Poznámka – komu kupon dáváte</label>
+            <input id="hwcPoznamka" type="text" maxlength="80" autocomplete="off" aria-describedby="hwcPoznamkaTip" placeholder="Např. sousedé Novákových">
+            <small id="hwcPoznamkaTip" class="hwc-tip">Jen pro vás, max. 80&nbsp;znaků, bez telefonu a&nbsp;e-mailu.</small>
+          </div>
+          <div>
+            <label for="hwcMax">Počet domácností</label>
+            <input id="hwcMax" type="number" min="1" max="50" step="1" value="5" inputmode="numeric">
+          </div>
+          <div>
+            <label for="hwcPlatnost">Platnost (dní)</label>
+            <input id="hwcPlatnost" type="number" min="1" max="730" step="1" value="180" inputmode="numeric">
+          </div>
+          <div class="hwc-odeslat"><button class="hlavni" id="hwcVytvorit" type="submit">Vytvořit kupon</button></div>
+        </form>
+        <div class="hwc-stav"><p id="hwcStavKupon" role="status"></p></div>
+        <div id="hwcKarta" class="hwc-karta-obal" hidden></div>
+        <h4 class="hwc-h4">Vydané kupony</h4>
+        <div class="hwc-stav"><p id="hwcStavSeznam" role="status"></p></div>
+        <ul id="hwcKupony" class="hwc-kupony"></ul>
+      </div>
+    </div>
+  </section>
 </div>
 </main>
 

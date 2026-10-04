@@ -1,0 +1,103 @@
+/* Plánovač termínu (/planovac/), poděkování a dárkový kupon (/kupon/). Navazuje na /assets/brand.css. */
+body{background:var(--navy-900);color:var(--cream)}
+.brand-logo{width:48px;height:48px;object-fit:cover;object-position:center top;border-radius:50%;border:1px solid rgba(201,162,39,.62);background:#05070b}
+.hdr .btn{white-space:nowrap}
+@media(max-width:480px){.hdr .btn{padding:10px 14px;font-size:.9rem;min-height:44px}}
+.mini{font-size:.82rem;color:#A9BBCD}
+.pl a:not(.btn),.pl-pata a{color:var(--gold-soft);text-decoration:underline;text-underline-offset:2px}
+.pl{padding-top:clamp(32px,5vw,64px);padding-bottom:clamp(48px,7vw,88px)}
+.pl h1{font-size:clamp(2rem,4.6vw,3.3rem)}
+.pl h2{font-size:clamp(1.3rem,2.4vw,1.7rem)}
+.pl-hlava{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,460px);gap:40px;align-items:start;margin-bottom:40px}
+@media(max-width:980px){.pl-hlava{grid-template-columns:1fr;gap:28px}}
+.pl-body{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 0;padding:0;list-style:none}
+.pl-body li{border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.84rem;color:#D6E1EC}
+.pl-nabidky{display:grid;gap:16px}
+.pl-nabidka,.pl-karta,.kp-karta{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:20px;padding:clamp(20px,3vw,32px);box-shadow:var(--shadow)}
+.pl-nabidka h2{margin:0 0 .4em}
+.pl-nabidka p{margin:0 0 .7em;color:#C3D2E2}
+.pl-stitek{font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--gold-soft)!important}
+details{margin:.6em 0;font-size:.9rem;color:#C3D2E2}
+summary{cursor:pointer;color:var(--gold-soft);font-weight:600;min-height:32px;display:list-item}
+details ul{margin:.6em 0 0;padding-left:1.2em;display:grid;gap:6px}
+.pl-upr{color:#93A7BB;font-size:.85em}
+.pl-pozn{font-size:.82rem;color:#E8D5A3!important;margin:.4em 0 0!important}
+.pl [hidden]{display:none!important}
+.pl-karta{max-width:980px;margin:0 auto}
+.pl-sada{border:0;margin:0 0 18px;padding:0;min-width:0}
+.pl-sada legend{font-family:var(--ff-display);font-size:1.15rem;color:var(--cream);margin:14px 0 12px;padding:0}
+.pl-obec-vstup{position:relative}
+.pl-navrhy{position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:20;margin:0;padding:6px;list-style:none;background:#0F2136;border:1px solid rgba(201,162,39,.5);border-radius:12px;box-shadow:0 18px 40px -12px rgba(0,0,0,.8);max-height:300px;overflow:auto;scroll-margin-bottom:90px}
+.pl-navrhy li{padding:10px 12px;border-radius:8px;cursor:pointer;color:#F5F1E8}
+.pl-navrhy li small{color:#A9BBCD;margin-left:6px}
+.pl-navrhy li[aria-selected=true],.pl-navrhy li:hover{background:#1E3A5F;outline:1px solid var(--gold-soft)}
+.pl-okresy{margin:-6px 0 14px}
+.pl-okresy-tl{display:flex;flex-wrap:wrap;gap:8px}
+.pl-ok,.pl-rezim-tl{min-height:44px;padding:8px 14px;border-radius:10px;border:1px solid rgba(201,169,98,.55);background:rgba(255,255,255,.04);color:#F5F1E8;font:inherit;font-size:.9rem;cursor:pointer}
+.pl-info{font-size:.86rem;color:#D6E1EC;margin:0 0 12px}
+.pl-info:empty{display:none}
+.pl-info.ok{color:#9BE3B0}
+.pl-info.chyba,.pl-chyba{color:#F3C9A0}
+.pl-chyba:empty{display:none}
+.pl-chyba{margin:14px 0 0;text-align:center;font-size:.9rem}
+.pl-kal{margin:0 0 16px;padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.03)}
+.pl-rezim{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.pl-rezim-tl[aria-pressed=true]{background:#1E3A5F;border-color:var(--gold-soft);box-shadow:inset 0 -3px 0 var(--gold-soft);font-weight:700}
+.pl-nep{font-weight:400;color:#A9BBCD}
+.pl-legenda{margin:0 0 10px}
+.pl-l-volno{color:#9BE3B0}.pl-l-potvrdime{color:#E8D5A3}.pl-l-obsazeno{color:#A9BBCD;text-decoration:line-through}
+.pl-tyden,.pl-dny{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin:0;padding:0;list-style:none}
+.pl-tyden{margin-bottom:6px;font-size:.75rem;text-align:center;color:#A9BBCD;letter-spacing:.08em;text-transform:uppercase}
+.pl-dny .z2{grid-column-start:2}.pl-dny .z3{grid-column-start:3}.pl-dny .z4{grid-column-start:4}.pl-dny .z5{grid-column-start:5}.pl-dny .z6{grid-column-start:6}.pl-dny .z7{grid-column-start:7}
+.pl-den{position:relative;width:100%;height:100%;min-height:96px;padding:6px 4px;border:1px solid rgba(255,255,255,.14);border-radius:10px;background:rgba(255,255,255,.04);color:#DFE5EC;font:inherit;font-size:.75rem;line-height:1.3;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.pl-den b{font-size:.84rem;color:#F5F1E8}
+.pl-den.volno{border-color:rgba(201,169,98,.55)}
+.pl-den .v{color:#9BE3B0;font-weight:700}
+.pl-den .p{color:#E8D5A3}
+.pl-den .o{text-decoration:line-through}
+.pl-den .dest{color:#A8CBFF;font-weight:700}
+.pl-den:disabled{opacity:.5;cursor:not-allowed;background:transparent}
+.pl-den.termin{background:linear-gradient(160deg,#f4e4b8,#d9bd7a 60%,#c9a962);border-color:#fff3c4;color:#16181c}
+.pl-den.termin b,.pl-den.termin .v,.pl-den.termin .p,.pl-den.termin .dest{color:#16181c}
+.pl-den.nahradni{background:#1E3A5F;border:2px dashed var(--gold-soft)}
+.pl-den .vyb{display:block;margin-top:2px;padding:1px 6px;border-radius:999px;background:#0B1A2B;color:#F5F1E8;font-weight:700;font-size:.72rem}
+.pl-ok:focus-visible,.pl-rezim-tl:focus-visible,.pl-den:focus-visible,summary:focus-visible,.pl a:focus-visible,.kp a:focus-visible{outline:2px solid #fff3c4;outline-offset:2px}
+.field input:focus-visible,.field select:focus-visible,.field textarea:focus-visible{outline:2px solid #fff3c4;outline-offset:2px}
+.field input[type=date]{color-scheme:dark;min-height:52px}
+.pl-vyber{margin:10px 0 0;font-weight:600;color:#F5F1E8}
+.pl-vyber:empty{display:none}
+.pl-zdroj{margin:8px 0 0;overflow-wrap:anywhere}
+.pl-odeslat{width:100%;justify-content:center}
+.pl-odeslat:disabled{opacity:.7;cursor:wait}
+.pl-stred{margin:16px 0 0;text-align:center}
+.pl-tlacitka{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.pl-dekujeme .pl-karta{max-width:760px}
+.pl-pata a{color:#C3D2E2}
+/* Mobil: dny bez zarovnání do týdnů, 3 v řadě. */
+@media(max-width:700px){
+  .pl-tyden{display:none}
+  .pl-dny{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .pl-dny li{grid-column-start:auto!important}
+}
+@media(max-width:380px){.wrap{padding:0 16px}.pl-kal{padding:10px}.pl-dny{gap:5px}}
+/* Kupon */
+.kp-karta{max-width:720px;margin:0 auto}
+.kp-kod{margin:18px 0;padding:18px;border:2px dashed var(--gold-soft);border-radius:16px;text-align:center;background:rgba(201,162,39,.06)}
+.kp-kod-stitek{margin:0;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:#C3D2E2}
+.kp-kod-hodnota{margin:4px 0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:clamp(1.5rem,6vw,2.4rem);font-weight:700;letter-spacing:.08em;color:#F5F1E8;overflow-wrap:anywhere}
+.kp-stav{margin:0;font-weight:600}
+.kp-stav.ok{color:#9BE3B0}.kp-stav.chyba{color:#F3C9A0}
+.kp-form{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:24px 0 8px}
+.kp-form .field{flex:1 1 220px;margin:0}
+.kp-kontakt,.kp-firma{font-size:.85rem;color:#C3D2E2;margin:12px 0 0}
+.kp-firma{display:none}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.pl *,.pl *::after{transition:none!important;animation:none!important}}
+@media print{
+  body{background:#fff!important;color:#000!important;padding:0!important}
+  .hdr,footer,.skip,.kp-akce,.kp-form,#hspg-lista,#hbot-btn,#hbot,#souhlas-lista{display:none!important}
+  .kp-karta{box-shadow:none;border:2px dashed #000;background:#fff;color:#000;max-width:none}
+  .kp-karta *{color:#000!important}
+  .kp-kod{border-color:#000;background:#fff}
+  .kp-kod-hodnota{font-size:34pt}
+  .kp-firma{display:block}
+}

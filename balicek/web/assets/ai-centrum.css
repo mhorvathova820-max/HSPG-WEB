@@ -195,6 +195,121 @@ th,td{padding:6px 16px 6px 0;text-align:left;border-bottom:1px solid var(--linka
 .historie li span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
 .historie li button{flex:none;min-height:36px;padding:4px 12px;font-size:13px}
 
+/* H-WEATHER CONTROL & plánovač – stav dne vždy barvou i textem (✅ vhodné / ⚠️ riziko / ⛔ nevhodné). */
+.hwc{margin-top:16px}
+.hwc [hidden]{display:none!important}
+.hwc-hlava{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;justify-content:space-between}
+.hwc-titul{flex:1 1 320px;min-width:0}
+.hwc-titul .nadpis{margin:3px 0 6px;font-size:18px}
+.hwc .popis{margin:0 0 12px}
+.hwc-titul .popis{margin:0}
+.hwc-obsah{margin-top:16px}
+.hwc-taby{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:4px;border-radius:12px;border:1px solid var(--linka);background:rgba(4,6,11,.55)}
+.hwc-taby [role=tab]{min-width:0;border-color:transparent;background:transparent;color:var(--tlum);font-weight:800;overflow-wrap:anywhere}
+.hwc-taby [role=tab][aria-selected=true]{color:var(--stribro-sv);border-color:rgba(215,177,79,.6);background:linear-gradient(180deg,rgba(215,177,79,.17),rgba(215,177,79,.04));box-shadow:inset 0 -2px 0 var(--zlata)}
+.hwc-panel{margin-top:14px;border-radius:10px}
+.hwc-h3{margin:0 0 6px;font-size:16px;font-weight:800}
+.hwc-h4{margin:18px 0 8px;font-size:14.5px;font-weight:800;color:var(--stribro-sv)}
+.hwc-h4 small,.hwc-kdy small{font:700 10.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--zlata)}
+.hwc-tip{display:block;margin:5px 0 0;font-size:12.5px;color:var(--tlum)}
+.hwc code{font:600 12.5px var(--mono);color:var(--zlata-sv);overflow-wrap:anywhere}
+.hwc-form{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr));align-items:start}
+.hwc-odeslat{padding-top:24px}
+.hwc-odeslat button{width:100%}
+.hwc-stav{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.hwc-stav p{margin:0;font-size:13.5px;color:var(--tlum)}
+.hwc-stav p.chyba{color:var(--chyba)}
+.hwc-znovu{min-height:40px;padding:4px 12px;font-size:13px}
+.hwc-banner{margin:12px 0;padding:10px 12px;border-radius:10px;border:1px solid var(--linka);background:rgba(255,255,255,.035);font-size:13.5px}
+.hwc-pozor{border-color:rgba(255,210,122,.55);background:rgba(255,210,122,.07)}
+.hwc-info{border-color:rgba(122,221,255,.45);background:rgba(122,221,255,.06)}
+.hwc-banner.chyba{border-color:rgba(255,157,157,.55);background:rgba(255,157,157,.07)}
+.hwc-banner.chyba b{color:var(--chyba)}
+.hwc-pozor strong,.hwc-pravidla{color:var(--pozor)}
+.hwc-vysledek[aria-busy=true]{opacity:.6}
+.hwc-vysledek-hlava .hwc-h4{margin-bottom:0}
+.hwc-vyber{margin:12px 0 0;padding:10px 12px 12px;border-radius:12px;border:1px solid var(--linka)}
+.hwc-vyber legend{padding:0 6px;font-weight:700}
+.hwc-volby{display:flex;flex-wrap:wrap;gap:8px}
+/* Dny a položky: barevný proužek vlevo podle hodnocení + text a ikona. */
+.u-vhodne{--u:var(--ok)}.u-riziko{--u:var(--pozor)}.u-nevhodne{--u:var(--chyba)}.u-neznamo{--u:var(--tlum)}
+.hwc-dny{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));margin:12px 0 0;padding:0;list-style:none}
+.hwc-polozky,.hwc-mimo{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.hwc-den,.hwc-polozka{min-width:0;padding:12px 14px 12px 17px;border-radius:12px;border:1px solid var(--linka);background:rgba(4,6,11,.5);box-shadow:inset 4px 0 0 var(--u,var(--tlum))}
+.hwc-den-hlava,.hwc-polozka-hlava{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between}
+.hwc-polozka-hlava{justify-content:flex-start}
+.hwc-kdy{margin:0;font-size:14px}
+.hwc-kdy b{font-weight:800}
+.hwc-uroven{margin:0;font-size:15px;color:var(--u,var(--text))}
+.hwc-polozka .hwc-uroven{margin-top:10px}
+.hwc-uroven b{font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.hwc-ikona{display:inline-block;margin-right:2px;font-size:19px;line-height:1;vertical-align:-2px}
+.hwc-duvody{margin:8px 0 0;padding:0 0 0 18px;font-size:13px}
+.hwc-duvody li{margin:2px 0}
+.hwc-duvody li::marker{color:var(--u)}
+.hwc-hodnoty{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;margin:10px 0 0;font-size:12.5px}
+.hwc-hodnoty div{min-width:0}
+.hwc-polozka .hwc-hodnoty{grid-template-columns:repeat(auto-fill,minmax(min(150px,100%),1fr))}
+.hwc-hodnoty dt{color:var(--tlum)}
+.hwc-hodnoty dd{margin:0;font-weight:700;overflow-wrap:anywhere}
+.hwc-odznak{display:inline-block;padding:2px 9px;border-radius:999px;border:1px solid rgba(122,221,255,.45);background:rgba(66,120,168,.3);font:700 11px/1.5 var(--mono);letter-spacing:.05em;color:var(--stribro-sv);white-space:nowrap}
+.hwc-odznak.rez{border-color:rgba(215,177,79,.6);background:rgba(215,177,79,.16);color:var(--zlata-sv)}
+.hwc-nazev{font-size:14.5px;overflow-wrap:anywhere}
+.hwc-kde{margin:6px 0 0;font-size:13px;color:var(--tlum);overflow-wrap:anywhere}
+.hwc-polozka .hwc-tip{overflow-wrap:anywhere}
+.hwc-chyba-text{margin:10px 0 0;font-size:13.5px;color:var(--pozor)}
+.hwc-rez{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+.hwc-mimo li{padding:10px 12px;border-radius:10px;border:1px solid var(--linka);font-size:13.5px;overflow-wrap:anywhere}
+.hwc-stitek{display:inline-block;padding:2px 9px;border-radius:999px;border:1px solid var(--linka);font-size:12px;font-weight:700;color:var(--tlum)}
+.hwc-stitek.ok{color:var(--ok);border-color:rgba(126,226,168,.45)}
+.hwc-stitek.pozor{color:var(--pozor);border-color:rgba(255,210,122,.5)}
+.hwc-stitek.chyba{color:var(--chyba);border-color:rgba(255,157,157,.5)}
+.hwc-zdroj{margin:16px 0 0;font-size:12px;color:var(--tlum);overflow-wrap:anywhere}
+/* Kalendář pro Google */
+.hwc-odkaz{margin-top:12px}
+.hwc-radek{display:flex;gap:8px}
+.hwc-radek input{flex:1;min-width:0;font:13px var(--mono)}
+.hwc-radek button{flex:none}
+.hwc-kroky{margin:12px 0 0;padding-left:22px;font-size:13.5px}
+.hwc-kroky li{margin:3px 0}
+/* Kupony: karta (na obrazovce i k tisku) a seznam. */
+.hwc-karta-obal{display:grid;gap:16px;grid-template-columns:minmax(0,380px) minmax(0,1fr);align-items:start;margin-top:14px}
+.hwc-karta{padding:22px 18px 18px;border-radius:14px;border:1px dashed rgba(215,177,79,.8);background:radial-gradient(420px 200px at 50% -20%,rgba(66,120,168,.45),transparent 70%),linear-gradient(180deg,rgba(17,28,49,.95),rgba(4,6,11,.96));box-shadow:0 0 0 4px rgba(4,6,11,.9),0 0 0 5px rgba(215,177,79,.35);text-align:center}
+.hwc-karta p{margin:0}
+.hwc-karta-znacka{font:700 11px/1.4 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--zlata)}
+.hwc-karta .hwc-karta-titul{margin-top:6px;font-size:17px;font-weight:800;color:var(--stribro-sv)}
+.hwc-karta .hwc-karta-nabidka{margin-top:8px;font-size:15px}
+.hwc-karta .hwc-karta-kod{margin:14px 0 10px;font:800 clamp(24px,7vw,32px)/1.15 var(--mono);letter-spacing:.07em;color:var(--zlata-sv);overflow-wrap:anywhere}
+.hwc-karta-platnost,.hwc-karta-odkaz{font-size:13px;color:var(--tlum);overflow-wrap:anywhere}
+.hwc-karta .hwc-karta-odkaz{margin-top:6px}
+.hwc-karta-ovladani{min-width:0}
+.hwc-karta-ovladani textarea{min-height:112px;font-size:14px}
+.hwc-kupony{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));margin:8px 0 0;padding:0;list-style:none}
+.hwc-kupon{min-width:0;padding:12px 14px;border-radius:12px;border:1px solid rgba(215,177,79,.38);background:rgba(4,6,11,.5)}
+.hwc-kupon.neaktivni{border-color:var(--linka);border-style:dashed}
+.hwc-kupon-hlava{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between}
+.hwc-kod{font:800 16px var(--mono);letter-spacing:.07em;color:var(--zlata-sv)}
+.hwc-kupon.neaktivni .hwc-kod{color:var(--tlum);text-decoration:line-through}
+.hwc-pozn{margin:6px 0 0;font-size:13.5px;overflow-wrap:anywhere}
+.hwc-kupon .akce{margin-top:10px}
+.hwc-tisk-obal{display:none}
+@media (max-width:760px){.hwc-karta-obal{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){
+  .hwc-taby{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hwc-odeslat{padding-top:0}
+  .hwc-hlava>button{width:100%}
+}
+@media print{
+  body.hwc-tisk>*:not(.hwc-tisk-obal){display:none!important}
+  body.hwc-tisk::before,body.hwc-tisk::after{display:none}
+  body.hwc-tisk{color:#000;background:#fff}
+  body.hwc-tisk .hwc-tisk-obal{display:block;padding:1cm 0}
+  .hwc-tisk-obal .hwc-karta{max-width:12cm;margin:0 auto;padding:.9cm .8cm;border:2px dashed #000;border-radius:8px;background:#fff;box-shadow:none;break-inside:avoid}
+  .hwc-tisk-obal .hwc-karta *{color:#000!important}
+  .hwc-tisk-obal .hwc-karta-kod{font-size:28pt;letter-spacing:.06em}
+  .hwc-tisk-obal a{text-decoration:none}
+}
+
 /* Přihlášení */
 #prihlaseni{max-width:440px;margin:9vh auto 0;text-align:center}
 #prihlaseni .medailon{width:86px;height:86px;margin:0 auto 14px}
@@ -232,4 +347,6 @@ th,td{padding:6px 16px 6px 0;text-align:left;border-bottom:1px solid var(--linka
   h1{background:none;-webkit-text-fill-color:currentColor}
   button.hlavni,.nastroj .zn,.medailon,.stred{background:ButtonFace;color:ButtonText;text-shadow:none}
   .panel,.zp-telo,.nastroj{border:1px solid CanvasText}
+  .hwc-den,.hwc-polozka,.hwc-kupon,.hwc-karta,.hwc-banner{border:1px solid CanvasText}
+  .hwc-taby [role=tab][aria-selected=true]{outline:2px solid Highlight;outline-offset:-2px}
 }
