@@ -1,0 +1,2 @@
+# Ověřovací soubory vyhledávačů se kopírují bajt po bajtu (bez převodu konců řádků).
+balicek/web/overeni/* -text

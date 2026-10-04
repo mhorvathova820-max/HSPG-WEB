@@ -9,6 +9,7 @@
 | [POSUDEK-MASTER-PLANU.md](POSUDEK-MASTER-PLANU.md) | co z e-mailu „Master plán“ převzít a co ne |
 | [ukoly/PORADI.md](ukoly/PORADI.md) | pořadí úkolů 00–15 |
 | `web/` | hotový kód – cesty odpovídají cílovým cestám ve webHSPGH |
+| `web/overeni/` | ověřovací soubory Seznamu a Bingu – patří do **kořene** publikované složky webu (úkol 20), kopírovat bajt po bajtu |
 | `testy/` | jednotkové testy (`npm test`) a testy v prohlížeči nad kopií webu (`npm run test:e2e`) |
 
 ## Plovoucí asistent „H-SPG CORE · Budoucnost ve Vašich rukách“
@@ -29,7 +30,7 @@
 ## Testy
 ```
 npm install
-npm test                                                      # 61 jednotkových testů
+npm test                                                      # 62 jednotkových testů
 HSPG_MIRROR=/cesta/k/webu CHROMIUM=/cesta/k/chromium npm run test:e2e   # 13 testů v prohlížeči
 HSPG_MIRROR=/cesta/k/webu node balicek/testy/server.mjs       # ruční prohlížení na http://127.0.0.1:8787
 ```

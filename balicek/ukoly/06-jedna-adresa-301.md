@@ -46,7 +46,7 @@ CDN Netlify je ukládá jako dvě položky: ve stejnou chvíli měla `/cenik.htm
 | `sw.js` | kořen webu, ř. 12 a 54 (předukládání a offline záloha) | `/404.html` – **výjimka**, `404.html` se nepřesměrovává (krok 8), odkaz zůstává |
 | `netlify/lib/ai/pravidla.mjs` | z balíčku úkolu 01, ř. 19 (pokyn pro AI) | „odkazy jako hspg.cz/cenik.html“ |
 
-Google si kanonickou adresu v takové situaci může zvolit sám. Skutečný stav podle Search Console 4. 10. (`KONTEXT.md` §2): v indexu je jen úvodní stránka, `/cenik.html` je „Objeveno – momentálně neindexováno“ a `/cenik` Google nezná. Rozporné signály jsou jednou z uvedených příčin, druhou (okresní stránky bez odkazů) řeší úkol 12. Seznam web zatím nezná (ověření v Seznam Webmasteru souborem řeší úkol 20; nová pravidla přesměrování nesmí zachytit `/seznam-wmt-*.txt` – hlídá to test z úkolu 20).
+Google si kanonickou adresu v takové situaci může zvolit sám. Skutečný stav podle Search Console 4. 10. (`KONTEXT.md` §2): v indexu je jen úvodní stránka, `/cenik.html` je „Objeveno – momentálně neindexováno“ a `/cenik` Google nezná. Rozporné signály jsou jednou z uvedených příčin, druhou (okresní stránky bez odkazů) řeší úkol 12. Seznam web zatím nezná (ověření v Seznam Webmasteru souborem řeší úkol 20; nová pravidla přesměrování nesmí zachytit `/seznam-wmt-*.txt` ani `/BingSiteAuth.xml` – hlídá to test z úkolu 20).
 
 **3. Duplicitní cesty `index.html` a hostitel netlify.app** (audit-seo #14, nasazeni #11, závažnost nízká).
 - 200 vracejí: `/index.html` (244 544 B, totéž co `/`), `/akce/index.html`, `/recenze/index.html`, `/pravidla-akce/index.html`, `/cisteni-strech/index.html`, `/cisteni-strech/kolin/index.html`, `/cisteni-dlazby/praha/index.html`, `/akce/dekujeme/index.html` a `/reel/index.html`.

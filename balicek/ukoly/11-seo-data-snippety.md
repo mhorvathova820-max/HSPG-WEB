@@ -334,8 +334,8 @@ Podklad: `audit-seo.json`, nálezy #6, #9–#13 a #15–#19. Jinam patří #7 Jo
 22. Build, všechny kontroly a testy, náhled, ruční validace (jako v kroku 13, navíc `/cisteni-fotovoltaiky/`), Lighthouse a **hlášení fáze B**.
 
 ### Doplněk: ověření v Seznam Webmasteru a Bing Webmaster Tools
-- **Seznam:** ověřuje se **souborem** `/seznam-wmt-UwjLAVRvccQ9DfNFWiVyaCujsuJobTkI.txt` – řeší úkol 20 (hotový dřív). Meta tag `seznam-wmt` nepřidávej. Jen zkontroluj, že test z úkolu 20 prochází a soubor je i ve výstupu buildu.
-- **Bing:** Claude v Chrome (C7) zkouší import ze Search Console. Když projde, nic nepřidávej. Když ne, majitel pošle kód a vlož `<meta name="msvalidate.01" content="…">` jen do `<head>` úvodní stránky (zdroj, ne výstup), ověř `curl -s <náhled>/ | grep msvalidate` a nasaď v dávce s ostatními změnami (žádné samostatné produkční nasazení kvůli tagu). Kód si nevymýšlej; není tajný.
+- **Seznam:** ověřuje se **souborem** `/seznam-wmt-UwjLAVRvccQ9DfNFWiVyaCujsuJobTkI.txt` – řeší úkol 20 (hotový dřív). Meta tag `seznam-wmt` nepřidávej. Jen zkontroluj, že test z úkolu 20 prochází a oba soubory jsou i ve výstupu buildu.
+- **Bing:** ověřuje se **souborem** `/BingSiteAuth.xml` – také úkol 20. Meta tag `msvalidate.01` nepřidávej.
 - DNS ani MX se nemění.
 Po ověření odešli v obou nástrojích sitemap `https://hspg.cz/sitemap.xml` (dělá majitel / C7) a zapiš datum do hlášení.
 
@@ -427,7 +427,7 @@ Viz `balicek/KONTEXT.md` §4. Pro tento úkol navíc:
 - `robots.txt` neslouží k ochraně a nesmí obsahovat interní cesty. Přihlášení ani hlavičky interních stránek neměň a do hlášení ani dokumentace nepiš nic o přístupu k interním stránkám.
 - Žádné mazání ani přejmenování URL a žádná 301 (úkoly 06 a 12). Texty těla měň jen na vyjmenovaných místech: nadtitulek v H1, drobečky, `/kontakt` a `/cisteni-fotovoltaiky/`.
 - Formuláře neodesílej, ani na náhledu. Validátorům dávej jen URL náhledu (GET) nebo vložený kód.
-- Nasazuj jen přes `node scripts/nasadit.mjs` (náhled zdarma). Produkce jen po schválení majitelem a v dávce. MX ani DNS se nemění. Úkol nepotřebuje žádné klíče. Ověření Seznamu je soubor z úkolu 20, Bing import ze Search Console nebo meta tag (C7) – DNS se nemění.
+- Nasazuj jen přes `node scripts/nasadit.mjs` (náhled zdarma). Produkce jen po schválení majitelem a v dávce. MX ani DNS se nemění. Úkol nepotřebuje žádné klíče. Ověření Seznamu i Bingu jsou soubory z úkolu 20 – DNS se nemění.
 
 ## Hlášení po dokončení
 Po **fázi A** i **fázi B** použij formát z `KONTEXT.md` §5 a doplň:
@@ -440,9 +440,9 @@ Po **fázi A** i **fázi B** použij formát z `KONTEXT.md` §5 a doplň:
 - **checklist pro majitele:**
   - [ ] Na náhledu schválit titulky `/` a `/en`, nadtitulek H1 na `/`, texty `/kontakt` a `/cisteni-fotovoltaiky/` a nový OG obrázek.
   - [ ] Odpovědět na O12 (působnost v EU) z úkolu 13.
-  - [ ] S Claude v Chrome (C5): doplnit **existující** Firemní profil Google podle karty NAP (druhý nezakládat) a poslat odkaz na profil. Adresu sídla v profilu nezveřejňovat (sídlo není provozovna). Oblast obsluhy (od 4. 10. jen Česko; profil čeká na ověření videem – KONTEXT §2) sjednotit s webem podle odpovědi O12. Seznam se ověřuje souborem (úkol 20); meta tag Bingu vlož, jen pokud neprojde import ze Search Console a majitel kód pošle – kód si nevymýšlej.
+  - [ ] S Claude v Chrome (C5): doplnit **existující** Firemní profil Google podle karty NAP (druhý nezakládat) a poslat odkaz na profil. Adresu sídla v profilu nezveřejňovat (sídlo není provozovna). Oblast obsluhy (od 4. 10. jen Česko; profil čeká na ověření videem – KONTEXT §2) sjednotit s webem podle odpovědi O12. Seznam i Bing se ověřují soubory z úkolu 20 (meta tagy nepřidávej).
   - [ ] S Claude v Chrome (C6): převzít záznam na Firmy.cz („Dušan Holub, Praha“, IČO 09291881, dnes neověřený), vyplnit ho podle karty NAP a poslat URL detailu.
-  - [ ] S Claude v Chrome (C7): Seznam Webmaster (ověření souborem z úkolu 20) a Bing Webmaster (import ze Search Console, jinak meta tag; DNS ani MX neměnit) a odeslat sitemap.
+  - [ ] S Claude v Chrome (C7): Seznam Webmaster a Bing Webmaster (ověření soubory z úkolu 20; DNS ani MX neměnit) a odeslat sitemap.
   - [ ] Po produkčním nasazení: Facebook Sharing Debugger, „Scrape Again“ pro `/`, `/akce/` a `/cenik`.
 - **předávky:**
   - **12:** `scripts/lib/seo.mjs` (`sluzba`, `drobecky`, `odkazNaFirmu`, `socialniBlok`, pravidla titulků a popisů) použije šablona hubů. Rozcestníky mají sdílené komponenty a `data-seo="rozcestnik"`, tělo střech a fasád ale zůstává ručně psané. Kontrola v kroku 1 úkolu 12 = `build-seo --kontrola` a 4 stránky s `data-seo`. `/cisteni-fotovoltaiky/` nemá okresní klony.

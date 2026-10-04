@@ -3,7 +3,7 @@
 
 ## Proč
 Majitel chce na webu plovoucí tlačítko, ve kterém AI spolupracují – pro zákazníka jinak a pro majitele jinak –
-a web přitom musí být špičkový i **bez AI**. Kód je hotový a otestovaný (61 jednotkových testů, 13 testů
+a web přitom musí být špičkový i **bez AI**. Kód je hotový a otestovaný (62 jednotkových testů, 13 testů
 v Chromiu nad kopií živého webu). Nahrazuje dosavadní H-BOT (`/assets/hbot.js` je vložený na 243 stránkách
 s `defer`, takže **HTML stránek se měnit nemusí**).
 
