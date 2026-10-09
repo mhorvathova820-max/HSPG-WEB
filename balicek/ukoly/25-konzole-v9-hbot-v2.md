@@ -1,13 +1,15 @@
-# Úkol 25: Nová konzole majitele (v8) za tlačítkem „Vše ve tvých rukách“ a H-BOT pro zákazníky (v2)
-> Priorita P1 · Závisí na: 01, 21, 22 (fáze A), 23, 24 · **Nahrazuje fázi B úkolu 22** (export v8 místo v3) · Čeká na majitele: export z Claude Design, viz „Co dodá majitel“ · Čtyři části a–d, po každé hlášení a stop.
+# Úkol 25: Nová konzole majitele (v9) za tlačítkem „Vše ve tvých rukách“ a H-BOT pro zákazníky (v2)
+> Priorita P1 · Závisí na: 01, 21, 22 (fáze A), 23, 24 · **Nahrazuje fázi B úkolu 22** (export v9 místo v3) · Čeká na majitele: export z Claude Design, viz „Co dodá majitel“ · Čtyři části a–d, po každé hlášení a stop.
 
 ## Podklad z Claude Design
-- `HBOT Majitel v8.dc.html` – konzole majitele na jedné stránce: Rozkaz (mise přes okna), scéna se strážci, Tým a zadání, Publikační balíček, Počasí a plánování (přístroj počasí a času), Plán zakázek, Zakázka z adresy (hledání i podle názvu místa, mapy ČÚZK s katastrem, ruční měření, výkresy, nabídka bez DPH), Kupony s tiskem, Kontakty (ARES, dopisy), SEO radar, Připojení, Deník hlášení, nástěnka Zakázky, denní úkoly, statistiky.
+- `HBOT Majitel v9.dc.html` – konzole majitele (stejné funkce jako v8, nově aplikace na celou obrazovku – viz „Stavba v9“): Rozkaz (mise přes okna), scéna se strážci, Tým a zadání, Publikační balíček, Počasí a plánování (přístroj počasí a času), Plán zakázek, Zakázka z adresy (hledání i podle názvu místa, mapy ČÚZK s katastrem, ruční měření, výkresy, nabídka bez DPH), Kupony s tiskem, Kontakty (ARES, dopisy), SEO radar, Připojení, Deník hlášení, nástěnka Zakázky, denní úkoly, statistiky.
 - `HBOT Budoucnost v2.dc.html` – H-BOT pro zákazníky.
+
+**Stavba v9 (aplikace na celou obrazovku):** levá lišta modulů (přepíná okna) · scéna se strážci jako trvalé pozadí · okna modulů před scénou · pravý panel **Mise dne** (denní úkoly a stav mise) · pole **Rozkaz** dole (zadání mise, kroky se zobrazují v oknech). Celá konzole je jedna stránka `/ai-centrum/`, žádné další panely nebo stránky.
 
 **Kam to majitel vloží:** v Claude Design Share → Export → Project HTML (zip) → otevřít
 `https://github.com/mhorvathova820-max/HSPG-WEB/upload/claude/peaceful-johnson-juqa6w/balicek/navrhy`
-→ přetáhnout zip (jeden nebo dva; ideálně pojmenované `hbot-majitel-v8.zip`, `hbot-budoucnost-v2.zip`, max. 25 MB na soubor) → „Commit directly to the claude/peaceful-johnson-juqa6w branch“ → Commit changes.
+→ přetáhnout zip (jeden nebo dva; ideálně pojmenované `hbot-majitel-v9.zip`, `hbot-budoucnost-v2.zip`, max. 25 MB na soubor) → „Commit directly to the claude/peaceful-johnson-juqa6w branch“ → Commit changes.
 
 **Agent:** `git -C ../hspg-balicek pull`, pak `unzip -o ../hspg-balicek/balicek/navrhy/*.zip -d ../hspg-navrhy/` – **mimo složku webu**, prototyp se nikdy nenasadí. Export je podklad pro vzhled, ne hotový kód: převzít rozložení, CSS a texty rozhraní; logiku napsat znovu nad API níže. Nejdřív si vypiš, co v exportu je: přímá volání AI (`window.claude`, `api.anthropic`, `api.openai`, `generativelanguage`, `api.mistral`, `api.groq`, `api.x.ai`, `api.perplexity`, `openrouter`), pole pro klíče, `localStorage`, externí skripty a písma, ukázková data (jména, adresy, čísla, ceny, statistiky). Seznam dej do hlášení části a.
 
@@ -15,10 +17,12 @@
 Konzole nahradí vzhled `/ai-centrum/` (noindex) – plovoucí tlačítko „Vše ve tvých rukách“ po přihlášení otevře ji, ne druhý panel vedle. Na stránce konzole se zákaznický plovoucí panel nezobrazuje. Stávající přihlášení (`/api/majitel`, token v `sessionStorage`) zůstává.
 
 ## 2. Okna → server (místo prototypu)
-| Okno v8 | Napojení | Poznámka |
+| Okno v9 | Napojení | Poznámka |
 |---|---|---|
 | Tým a zadání, Rozkaz | `/api/ai` = `/api/agent/:id` | modely z přepínače (úkol 22); krok mise s dopadem ven (uložení, tisk, dopis, publikace) jen po tlačítku „Potvrdit“ |
-| Scéna se strážci | stav z `/api/ai-stav` | jen vzhled |
+| Scéna se strážci (pozadí) | stav z `/api/ai-stav` | jen vzhled, nesmí blokovat ovládání oken |
+| Levá lišta modulů | – | ovládání klávesnicí (role `tablist` nebo navigace), stav vybraného modulu v adrese (`#modul`) |
+| Mise dne (pravý panel) | `/api/konzole` (denní úkoly) + průběh mise z Rozkazu | jen skutečné úkoly, prázdný stav bez ukázek |
 | Počasí a plánování, Plán zakázek | `/api/pocasi-prace`, odkaz na `/api/pocasi-kalendar/<klíč>.ics`, `/api/pocasi` | přístroj času = čas Europe/Prague |
 | Kupony s tiskem | `/api/kupon` (vytvoření, seznam, zrušení) | QR bez externí služby (knihovna `qrcode` už v balíčku); podmínky z `content/planovac.json` |
 | Zakázka z adresy | `/api/mereni` | hledání podle názvu místa jen přes server (RÚIAN; Nominatim se zámkem 1 dotaz/s), mapy přímo z ČÚZK s uvedením „© ČÚZK“; u výkresu „Schéma z mapových podkladů, ne geodetické zaměření“ |
@@ -60,14 +64,14 @@ Vzhled H-BOTa podle Budoucnost v2 nad stávající `/api/asistent` (rozhraní fu
 ## 6. Výkon a přístupnost (platí pro všechny části)
 - [ ] Veřejné stránky: LCP do 2,5 s (Lighthouse mobil na náhledu, `/`, `/cenik.html`, `/planovac/`; čísla před/po v hlášení), CLS do 0,1.
 - [ ] Scéna konzole jen po přihlášení a líně; `prefers-reduced-motion` vypne animace (CSS i smyčky v JS – test s emulací).
-- [ ] Mobil do 640 px: kompaktní režim bez scény, okna jako seznam; ovládání klávesnicí, viditelné zaměření, 375 px bez vodorovného posunu.
+- [ ] Mobil do 640 px: kompaktní režim bez scény, levá lišta jako menu, Mise dne skládací, Rozkaz zůstává dole, okna přes celou šířku; ovládání klávesnicí, viditelné zaměření, 375 px bez vodorovného posunu.
 - [ ] Písma a skripty z exportu hostovat u sebe (žádné Google Fonts ani CDN – GDPR, CSP z úkolu 15 nerozšiřovat bez důvodu).
 
 ## 7. Pravdivost a právo
 Žádná ukázková data ve výrobě (seznam z exportu → `git grep` = 0, prázdné stavy místo nich). Nabídky bez DPH (majitel je neplátce). Nic se neodešle ani nezveřejní bez potvrzení majitele. Žádný hromadný e-mail na získané adresy (480/2004 Sb., § 7; KONTEXT R14).
 
 ## 8. Co dodá majitel
-- **Ceník:** na webu je `content/ceny.json` (platnost od 1. 10. 2026) – potvrdit, že platí pro H-BOT a nabídky z konzole, nebo dodat nový.
+- **Ceník:** na webu je `content/ceny.json` (platnost od 1. 10. 2026) – potvrdit, že platí pro H-BOT a nabídky z konzole, nebo dodat nový. Potvrzení = `content/cenik-potvrzeni.json` (mechanismus v úkolu 27).
 - **Podmínky kuponu** (`content/planovac.json`, místa `[DOPLNIT]`).
 - **Technický list H-STONE** (pravidla počasí v `content/pocasi-prace.json`).
 - **Klíče v Netlify** (`HSPG_KLIC_ANTHROPIC/OPENAI/GEMINI/MISTRAL/GROQ`, zadává sám, hodnoty nikomu).
