@@ -46,6 +46,8 @@ Jména se záměrně liší od proměnných Gateway (`ANTHROPIC_API_KEY` …) �
 Ceny nových modelů OpenAI/Google/Groq/Mistral nejsou v tabulce odhadů (`limity.mjs`) – počítají se nouzově 15/75 USD; u vlastních klíčů to rozpočet kreditů neovlivní. Před 11. 12. 2026 přepnout Gateway modely GPT (nebo zadat vlastní klíč).
 
 ## Fáze B – vzhled v3 (až dorazí export z Claude Design)
+> **Nahrazeno úkolem 25** (export v8). Fázi B zvlášť nedělej – body níže platí v úkolu 25.
+
 5. v3 **nahradí vzhled `/ai-centrum/`** – žádná druhá stránka majitele. Plovoucí tlačítko na webu zůstává jako rychlý vstup s odkazem do `/ai-centrum/`.
 6. Z exportu převzít jen vzhled a rozložení. Každé volání AI přepsat na `/api/agent/<role>` s tokenem z `/api/majitel`; **odstranit** jakékoli ukládání klíčů v prohlížeči a přímá volání poskytovatelů (`git grep -nE "api\.anthropic|api\.openai|generativelanguage|api\.groq|api\.mistral|localStorage.*(key|klic)"` v novém kódu = 0).
 7. Části v3 napojit na existující API: tým AI → `/api/agent/:id` + `/api/ai-stav`; počasí a zakázky → `/api/pocasi-prace`; kupony → `/api/kupon`; obce → `/api/planovac?navrh=`. „Připojení služeb“ jen ukazuje stav z `/api/ai-stav` (cesta, zapnuto) – žádná pole pro klíče.
