@@ -1,15 +1,15 @@
-# Úkol 25: Nová konzole majitele (v9) za tlačítkem „Vše ve tvých rukách“ a H-BOT pro zákazníky (v2)
+# Úkol 25: Nová konzole majitele (v9) za tlačítkem „Vše ve tvých rukách“ a H-BOT pro zákazníky (v3)
 > Priorita P1 · Závisí na: 01, 21, 22 (fáze A), 23, 24 · **Nahrazuje fázi B úkolu 22** (export v9 místo v3) · Čeká na majitele: export z Claude Design, viz „Co dodá majitel“ · Čtyři části a–d, po každé hlášení a stop.
 
 ## Podklad z Claude Design
 - `HBOT Majitel v9.dc.html` – konzole majitele (stejné funkce jako v8, nově aplikace na celou obrazovku – viz „Stavba v9“): Rozkaz (mise přes okna), scéna se strážci, Tým a zadání, Publikační balíček, Počasí a plánování (přístroj počasí a času), Plán zakázek, Zakázka z adresy (hledání i podle názvu místa, mapy ČÚZK s katastrem, ruční měření, výkresy, nabídka bez DPH), Kupony s tiskem, Kontakty (ARES, dopisy), SEO radar, Připojení, Deník hlášení, nástěnka Zakázky, denní úkoly, statistiky.
-- `HBOT Budoucnost v2.dc.html` – H-BOT pro zákazníky.
+- `HBOT Budoucnost v3.dc.html` – H-BOT pro zákazníky ve stejném designovém systému jako v9. Hlavní tah: **sken domu z adresy** (letecký snímek s obrysem, tři plochy jako odhad, pod tím „Cenu Vám pošleme do 24 hodin“ a formulář, po odeslání volné dny z plánovače a pole pro kupon) = **krok 1 úkolu 27**.
 
 **Stavba v9 (aplikace na celou obrazovku):** levá lišta modulů (přepíná okna) · scéna se strážci jako trvalé pozadí · okna modulů před scénou · pravý panel **Mise dne** (denní úkoly a stav mise) · pole **Rozkaz** dole (zadání mise, kroky se zobrazují v oknech). Celá konzole je jedna stránka `/ai-centrum/`, žádné další panely nebo stránky.
 
 **Kam to majitel vloží:** v Claude Design Share → Export → Project HTML (zip) → otevřít
 `https://github.com/mhorvathova820-max/HSPG-WEB/upload/claude/peaceful-johnson-juqa6w/balicek/navrhy`
-→ přetáhnout zip (jeden nebo dva; ideálně pojmenované `hbot-majitel-v9.zip`, `hbot-budoucnost-v2.zip`, max. 25 MB na soubor) → „Commit directly to the claude/peaceful-johnson-juqa6w branch“ → Commit changes.
+→ přetáhnout zip (jeden nebo dva; ideálně pojmenované `hbot-majitel-v9.zip`, `hbot-budoucnost-v3.zip`, max. 25 MB na soubor) → „Commit directly to the claude/peaceful-johnson-juqa6w branch“ → Commit changes.
 
 **Agent:** `git -C ../hspg-balicek pull`, pak `unzip -o ../hspg-balicek/balicek/navrhy/*.zip -d ../hspg-navrhy/` – **mimo složku webu**, prototyp se nikdy nenasadí. Export je podklad pro vzhled, ne hotový kód: převzít rozložení, CSS a texty rozhraní; logiku napsat znovu nad API níže. Nejdřív si vypiš, co v exportu je: přímá volání AI (`window.claude`, `api.anthropic`, `api.openai`, `generativelanguage`, `api.mistral`, `api.groq`, `api.x.ai`, `api.perplexity`, `openrouter`), pole pro klíče, `localStorage`, externí skripty a písma, ukázková data (jména, adresy, čísla, ceny, statistiky). Seznam dej do hlášení části a.
 
@@ -37,7 +37,7 @@ Přímá volání AI z prohlížeče a ukládání klíčů v prohlížeči **od
 Zakázky, plán, deník hlášení, denní úkoly a statistiky → nová funkce `/api/konzole` (Blobs `hspg-konzole`), jen přihlášený majitel, kontrola původu, limit požadavků, max. velikost záznamu, atomické zápisy (`aktualizuj`), osobní údaje zákazníků nikdy v logu, export JSON pro zálohu. Kontakty = databáze Lovce SVJ, kupony = `/api/kupon` (nic dvakrát). Statistiky počítá server jen ze skutečných dat. Data z prototypu se nepřenáší (jsou ukázková) – začíná se prázdně. V prohlížeči smí zůstat jen nastavení vzhledu (téma, kompaktní režim).
 
 ## 4. Strana zákazníka
-Vzhled H-BOTa podle Budoucnost v2 nad stávající `/api/asistent` (rozhraní funkce beze změny). Odpovědi jen z ověřených faktů (`assets/hbot-znalosti.json`, `build-hbot.mjs --kontrola`). **Bez cen**, dokud majitel nepotvrdí ceník (viz níže) – na cenu odpoví odkazem na nabídku/plánovač. Odkazy do `/planovac/` a na `/kupon/`.
+Vzhled H-BOTa podle Budoucnost v3 nad stávající `/api/asistent` (rozhraní funkce beze změny). Odpovědi jen z ověřených faktů (`assets/hbot-znalosti.json`, `build-hbot.mjs --kontrola`). **Bez cen**, dokud majitel nepotvrdí ceník (viz níže) – na cenu odpoví odkazem na nabídku/plánovač. Odkazy do `/planovac/` a na `/kupon/`. **Návaznost:** sken domu z v3 je krok 1 úkolu 27 – část d staví vzhled H-BOTa a vstup „Sken domu“, úkol 27 hned po ní stránku a `/api/cena-z-adresy` (stejný vzhled, jedna sada stylů).
 
 ## 5. Postup po částech (každá: větev `ukol-25x-…`, testy, náhled `node scripts/nasadit.mjs`, hlášení, stop, schválení majitele; produkce jen po „nasaď“)
 **a) Scéna, Rozkaz, Tým, Počasí**
@@ -48,6 +48,7 @@ Vzhled H-BOTa podle Budoucnost v2 nad stávající `/api/asistent` (rozhraní fu
 - [ ] Jediný panel (plovoucí panel zákazníka na `/ai-centrum/` není), stávající e2e AI centra prošly, axe 0 chyb.
 
 **b) Zakázka z adresy a Kupony**
+- [ ] **Z kontroly prototypu v9:** vrstva katastru se po zapnutí nezobrazila, obrys se bral jako nejbližší budova z OpenStreetMap a podlaží často chyběla. Na webu vše z `/api/mereni` (adresní místo RÚIAN, půdorys z katastrální mapy, výška z výškopisu); OSM jen jako záloha uvnitř `/api/mereni` s upozorněním. Katastr jako WMS ČÚZK – ověřit projekci a měřítko (katastrální mapa se kreslí až při velkém přiblížení), test, že se vrstva po zapnutí opravdu vykreslí.
 - [ ] Adresa i název místa → měření z `/api/mereni`; náměstí bez čísla nabídne adresy; mapy ČÚZK se zdrojem; ruční měření označené „ruční měření z mapy“.
 - [ ] Nabídka **bez DPH** s větou „Nejsme plátci DPH.“; ceny jen z potvrzeného ceníku, jinak `[cena doplní majitel]` a žádný součet; tisk do PDF z prohlížeče; zákazníkovi se nic neodešle bez potvrzení majitele.
 - [ ] Kupon: vytvoření, seznam, zrušení a tisk s QR přes `/api/kupon`; nepotvrzené podmínky = „podmínky potvrdíme v nabídce“.
@@ -58,13 +59,14 @@ Vzhled H-BOTa podle Budoucnost v2 nad stávající `/api/asistent` (rozhraní fu
 - [ ] Kontakty: návrhy podle skóre se zdrojem a citací, Schválit / Zamítnout / Neozývat (i podle kódu z dopisu) / Dopis; běh Lovce po krocích s průběhem a tlačítkem Stop. **Žádné tlačítko pro hromadný e-mail**; e-mail se ukáže jen u záznamu s `emailPovolen`.
 
 **d) Strana zákazníka**
-- [ ] H-BOT v2 nad `/api/asistent`; první načtení stránky nestahuje skripty H-BOTa ani nevolá `/api/*` (jako úkol 01); stávající e2e H-BOTa prošly + nové pro v2.
+- [ ] H-BOT v3 nad `/api/asistent`; první načtení stránky nestahuje skripty H-BOTa ani nevolá `/api/*` (jako úkol 01); stávající e2e H-BOTa prošly + nové pro v3.
+- [ ] Vstup „Sken domu“ vede na krok 1 úkolu 27 (dělá se hned po části d).
 - [ ] Odpověď na cenu neobsahuje číslo, dokud není ceník potvrzený; odkazy na `/planovac/` a `/kupon/` fungují.
 
 ## 6. Výkon a přístupnost (platí pro všechny části)
 - [ ] Veřejné stránky: LCP do 2,5 s (Lighthouse mobil na náhledu, `/`, `/cenik.html`, `/planovac/`; čísla před/po v hlášení), CLS do 0,1.
 - [ ] Scéna konzole jen po přihlášení a líně; `prefers-reduced-motion` vypne animace (CSS i smyčky v JS – test s emulací).
-- [ ] Mobil do 640 px: kompaktní režim bez scény, levá lišta jako menu, Mise dne skládací, Rozkaz zůstává dole, okna přes celou šířku; ovládání klávesnicí, viditelné zaměření, 375 px bez vodorovného posunu.
+- [ ] Mobil do 640 px: kompaktní režim bez scény, levá lišta jako menu, Mise dne skládací, Rozkaz zůstává dole, okna přes celou šířku; ovládání klávesnicí, viditelné zaměření, 375 px bez vodorovného posunu. **Šířku 390 px (mobil na výšku) zatím nikdo neověřil** – agent ji zkontroluje sám v každé části (snímky obrazovky 390 × 844 konzole i strany zákazníka do hlášení).
 - [ ] Písma a skripty z exportu hostovat u sebe (žádné Google Fonts ani CDN – GDPR, CSP z úkolu 15 nerozšiřovat bez důvodu).
 
 ## 7. Pravdivost a právo

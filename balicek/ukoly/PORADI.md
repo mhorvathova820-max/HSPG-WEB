@@ -1,7 +1,7 @@
 # Pořadí úkolů
 
 **Pořadí provádění (agent ve VS Code jde přesně takto):**
-00 → 20 → 01 → 02 → 21 → 22 → 23 → 24 → 25 → 26 → 27 → 17 → 03 → 04 → 05 → 13 → 09 → 06 → 07 → 08 → 16 → 10 → 11 → 18 → 19 → 15 → 14 → 12
+00 → 20 → 01 → 02 → 21 → 22 → 23 → 24 → 25 → 27 → 26 → 17 → 03 → 04 → 05 → 13 → 09 → 06 → 07 → 08 → 16 → 10 → 11 → 18 → 19 → 15 → 14 → 12
 
 Důvod: nejdřív bezpečí a záloha (00), malé ověření webu v Seznamu a Bingu (20 – soubory jedou s nejbližším schváleným nasazením), asistent (01), poptávky (02), plánovač s počasím a rychlou rezervací (21 – zároveň odstraňuje licenční riziko stávajícího počasí z Open-Meteo) a chyba, kvůli které se návštěvník nedostane k formuláři (17), pak právní a pravdivostní rizika (03–05, 13, 09), pak technika a kvalita (06–08, 16, 10, 11, 18, 19, 15) a nakonec věci čekající na data (14, 12).
 
@@ -35,6 +35,6 @@ zbývajících oblastí auditu se může zpřesnit (před každým úkolem `git 
 | 22 | [H-SPG CORE v3: brána AI, vlastní klíče, přepínač modelů, vzhled v3](22-konzole-v3.md) | P1 | 01, 21 | vlastní klíče v Netlify, export v3 z Claude Design |
 | 23 | [Měření budovy z adresy (`/api/mereni`)](23-mereni-budov.md) | P1 | 01, 22 | – |
 | 24 | [Lovec SVJ: veřejné kontakty, návrhy ke schválení, dopis s QR (`/api/lovec-svj`)](24-lovec-svj.md) | P2 | 01, 21, 22, 23 | zapnutí Perplexity v AI Gateway, text nabídky v dopise, právní posouzení (telefon, oprávněný zájem, zásady – úkol 09) |
-| 25 | [Konzole v9 za „Vše ve tvých rukách“ a H-BOT v2 pro zákazníky (části a–d)](25-konzole-v9-hbot-v2.md) | P1 | 01, 21, 22 A, 23, 24 (nahrazuje 22 B) | export z Claude Design do `balicek/navrhy/`, potvrzení ceníku, podmínky kuponu, technický list H-STONE, klíče v Netlify, zapnutí Perplexity, druhý faktor přihlášení |
+| 25 | [Konzole v9 za „Vše ve tvých rukách“ a H-BOT v3 pro zákazníky (části a–d)](25-konzole-v9-hbot-v3.md) | P1 | 01, 21, 22 A, 23, 24 (nahrazuje 22 B) | export z Claude Design do `balicek/navrhy/`, potvrzení ceníku, podmínky kuponu, technický list H-STONE, klíče v Netlify, zapnutí Perplexity, druhý faktor přihlášení |
 | 26 | [Mapa příležitostí: střechy a fasády obce/ulice, riziko mechu, letáky a sousedské kupony](26-mapa-prilezitosti.md) | P2 | 21, 23, 25 | potvrzení ceníku, souhlas zákazníka se zmínkou o zakázce na letáku |
-| 27 | [Okamžitá cena z adresy pro zákazníka (veřejná stránka)](27-cena-z-adresy.md) | P2 | 02, 09, 21, 23, 25 d | potvrzení ceníku (`content/cenik-potvrzeni.json`), slib „cena do 24 hodin“ |
+| 27 | [Okamžitá cena z adresy: sken domu z H-BOT v3, cena do 24 h, plánovač a kupon (navazuje na 25 d)](27-cena-z-adresy.md) | P2 | 02, 09, 21, 23, 25 d | potvrzení ceníku (`content/cenik-potvrzeni.json`), slib „cena do 24 hodin“ |
