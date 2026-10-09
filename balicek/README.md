@@ -41,12 +41,13 @@
 | `GET/POST /api/pocasi-prace` | majitel | vyhodnocení počasí, přehled zakázek a rezervací, odkaz na kalendář |
 | `GET /api/pocasi-kalendar/<klíč>.ics` | Google Kalendář majitele | kalendář s varováním počasí (tajný odkaz, jde vyměnit) |
 | `POST /api/mereni` | majitel | měření budovy z adresy: RÚIAN půdorys + výškopis ČÚZK, záloha OSM; schéma, ne zaměření (úkol 23) |
+| `GET/POST /api/lovec-svj` | majitel | Lovec SVJ: ARES + měření + ověřené veřejné kontakty → návrhy ke schválení, seznam neozývat, dopis k tisku s QR a kuponem; bez hromadného e-mailu (úkol 24) |
 | `submission-created` (`hspg-rezervace`) | Netlify | rezervace do přehledu, uplatnění kuponu, sleva a kupon v oznámení |
 
 ## Testy
 ```
 npm install
-npm test                                                      # 99 jednotkových testů
+npm test                                                      # 106 jednotkových testů
 HSPG_MIRROR=/cesta/k/webu CHROMIUM=/cesta/k/chromium npm run test:e2e   # 47 testů v prohlížeči
 HSPG_MIRROR=/cesta/k/webu node balicek/testy/server.mjs       # ruční prohlížení na http://127.0.0.1:8787
 ```

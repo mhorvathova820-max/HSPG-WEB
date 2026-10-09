@@ -34,3 +34,4 @@ zbývajících oblastí auditu se může zpřesnit (před každým úkolem `git 
 | 21 | [H-WEATHER CONTROL: plánovač s počasím, rychlá rezervace (sleva 10 %), dárkový kupon, kalendář majitele](21-planovac-pocasi.md) | P1 | 00, 01, 02 | podmínky slevy a kuponu, kapacita za den, technický list H-STONE (pravidla počasí), kalendář zakázek + `HSPG_KALENDAR_ICS_URL` |
 | 22 | [H-SPG CORE v3: brána AI, vlastní klíče, přepínač modelů, vzhled v3](22-konzole-v3.md) | P1 | 01, 21 | vlastní klíče v Netlify, export v3 z Claude Design |
 | 23 | [Měření budovy z adresy (`/api/mereni`)](23-mereni-budov.md) | P1 | 01, 22 | – |
+| 24 | [Lovec SVJ: veřejné kontakty, návrhy ke schválení, dopis s QR (`/api/lovec-svj`)](24-lovec-svj.md) | P2 | 01, 21, 22, 23 | zapnutí Perplexity v AI Gateway, text nabídky v dopise, právní posouzení (telefon, oprávněný zájem, zásady – úkol 09) |

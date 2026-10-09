@@ -65,14 +65,14 @@ export async function adresniMisto(fetchFn, { kod, x, y }) {
 // Stavební objekt → { kod, podlazi, zastavenaPlocha, zpusobVyuzitiKod, obestavenyProstor, prstence (S-JTSK) }.
 export async function stavebniObjekt(fetchFn, kod) {
   const j = await jsonZ(fetchFn, `${RUIAN}/Prohlizeci_sluzba_nad_daty_RUIAN/MapServer/3/query?${q({
-    where: `kod=${Number(kod)}`, outFields: "kod,pocetpodlazi,zastavenaplocha,zpusobvyuzitikod,obestavenyprostor,typstavebnihoobjektukod", returnGeometry: "true", outSR: "5514", f: "json",
+    where: `kod=${Number(kod)}`, outFields: "kod,pocetpodlazi,zastavenaplocha,zpusobvyuzitikod,obestavenyprostor,typstavebnihoobjektukod,druhkonstrukcekod", returnGeometry: "true", outSR: "5514", f: "json",
   })}`);
   const f = j.features?.[0];
   if (!f) return null;
   const a = f.attributes || {};
   return {
     kod: a.kod, podlazi: a.pocetpodlazi ?? null, zastavenaPlocha: a.zastavenaplocha ?? null,
-    zpusobVyuzitiKod: a.zpusobvyuzitikod ?? null, obestavenyProstor: a.obestavenyprostor ?? null,
+    zpusobVyuzitiKod: a.zpusobvyuzitikod ?? null, obestavenyProstor: a.obestavenyprostor ?? null, druhKonstrukceKod: a.druhkonstrukcekod ?? null,
     prstence: Array.isArray(f.geometry?.rings) ? f.geometry.rings : [],
   };
 }
@@ -86,6 +86,14 @@ export async function sousedniObjekty(fetchFn, kod, prstenec) {
   });
   return (j.features || []).flatMap((f) => f.geometry?.rings || []).slice(0, 30);
 }
+
+// Druh konstrukce – oficiální číselník VFR_DruhKonstrukce (doména vrstvy RÚIAN, 9. 10. 2026). Panelový dům = stěnové panely.
+export const DRUH_KONSTRUKCE = {
+  1: "cihly, tvárnice, cihlové bloky", 2: "kámen", 3: "kámen a cihly", 4: "stěnové panely", 5: "nepálené cihly", 6: "dřevo",
+  7: "jiné materiály a kombinace", 8: "nedefinováno", 9: "nezjištěno", 10: "kámen, cihly, tvárnice vč. kombinací", 11: "monolit",
+  41: "stěnové panely – beton a železobeton", 42: "stěnové panely – dřevo", 43: "stěnové panely – ostatní",
+};
+export const PANELY = new Set([4, 41, 43]);
 
 // --- výškopis ----------------------------------------------------------------------------------------
 // Výška v bodě (S-JTSK nebo WGS84) z DMP 1G nebo DMR 5G; null když služba bod nezná.
