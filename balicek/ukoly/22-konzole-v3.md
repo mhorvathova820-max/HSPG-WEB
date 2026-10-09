@@ -52,8 +52,8 @@ Ceny nových modelů OpenAI/Google/Groq/Mistral nejsou v tabulce odhadů (`limit
 8. Kontakty a SEO radar: jen to, co nepotřebuje nové klíče ani cizí služby; jinak `[DOPLNIT]` a návrh v hlášení.
 9. Testy: e2e AI centra musí projít (přihlášení, porada, H-WEATHER, modely), axe 0 chyb, 375 px.
 
-## Měření zakázky z adresy (jen návrh, neimplementovat)
-Serverová funkce jen pro majitele najde adresní místo v RÚIAN (ČÚZK, CC BY 4.0) a půdorys budovy vezme ze stavebního objektu ČÚZK, záložně z OSM přes Overpass (ODbL, s uvedením zdroje); Nominatim jen jako poslední možnost (nejvýš 1 dotaz/s), vše s trvalou mezipamětí v Blobs podle kódu adresy. Výsledek je jen „odhad z půdorysu“ (plocha, obvod; střecha = půdorys × sklon jako odhad), technik ho ověří při zaměření – nikdy se nevydává za přesné číslo. Samostatný úkol až po schválení majitele.
+## Měření zakázky z adresy
+Hotové jako samostatný úkol 23 (`/api/mereni`) – konzole v3 ho jen zobrazí (půdorys, pohledy, střecha, 3D z jednoho JSON).
 
 ## Nepřekročitelná pravidla
 KONTEXT §4; hodnoty klíčů nikdy v kódu, logu, chatu ani v odpovědi API; nic neslučovat ani nenasazovat do produkce bez schválení majitele.

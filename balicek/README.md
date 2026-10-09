@@ -8,7 +8,7 @@
 | [KONTEXT.md](KONTEXT.md) | ověřená fakta, rozhodnutí majitele a nepřekročitelná pravidla |
 | [POSUDEK-MASTER-PLANU.md](POSUDEK-MASTER-PLANU.md) | co z e-mailu „Master plán“ převzít a co ne |
 | [PREDANI.md](PREDANI.md) | **začni zde** – co je hotové, kdo co dělá, úkoly majitele |
-| [ukoly/PORADI.md](ukoly/PORADI.md) | pořadí úkolů 00–22 |
+| [ukoly/PORADI.md](ukoly/PORADI.md) | pořadí úkolů 00–23 |
 | `web/` | hotový kód – cesty odpovídají cílovým cestám ve webHSPGH |
 | `web/overeni/` | ověřovací soubory Seznamu a Bingu – patří do **kořene** publikované složky webu, kopírovat bajt po bajtu; `meta-tagy.html` = dva meta tagy do `<head>` úvodní stránky (úkol 20) |
 | `testy/` | jednotkové testy (`npm test`) a testy v prohlížeči nad kopií webu (`npm run test:e2e`) |
@@ -40,12 +40,13 @@
 | `GET /api/kupon?kod=` | veřejné (20/h) | ověření kuponu; vytvoření, seznam a zrušení jen majitel |
 | `GET/POST /api/pocasi-prace` | majitel | vyhodnocení počasí, přehled zakázek a rezervací, odkaz na kalendář |
 | `GET /api/pocasi-kalendar/<klíč>.ics` | Google Kalendář majitele | kalendář s varováním počasí (tajný odkaz, jde vyměnit) |
+| `POST /api/mereni` | majitel | měření budovy z adresy: RÚIAN půdorys + výškopis ČÚZK, záloha OSM; schéma, ne zaměření (úkol 23) |
 | `submission-created` (`hspg-rezervace`) | Netlify | rezervace do přehledu, uplatnění kuponu, sleva a kupon v oznámení |
 
 ## Testy
 ```
 npm install
-npm test                                                      # 94 jednotkových testů
+npm test                                                      # 99 jednotkových testů
 HSPG_MIRROR=/cesta/k/webu CHROMIUM=/cesta/k/chromium npm run test:e2e   # 47 testů v prohlížeči
 HSPG_MIRROR=/cesta/k/webu node balicek/testy/server.mjs       # ruční prohlížení na http://127.0.0.1:8787
 ```
