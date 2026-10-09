@@ -5,7 +5,7 @@
 //   POST { zpravy: [{ role, text }], stranka?, _honey? } -> { rezim: "ai", odpoved, overeno, ai: [...] }
 //        nebo { rezim: "bez-ai" | "limit" | "predat" | "chyba" } (prohlížeč pak použije FAQ / zavolání zpět)
 //        S hlavičkou Accept: application/x-ndjson přijde nejdřív živý průběh spolupráce, pak výsledek.
-import { POSKYTOVATELE, jeZapnuty, vytvorAdaptery, sLimitem, verejneEnv } from "../lib/ai/poskytovatele.mjs";
+import { POSKYTOVATELE, jeZapnuty, vytvorAdaptery, sLimitem, verejneEnv, vlastniKlic } from "../lib/ai/poskytovatele.mjs";
 import { PRAVIDLA_PRAVDIVOSTI, POKYN_ZAKAZNIK, POKYN_KONTROLOR } from "../lib/ai/pravidla.mjs";
 import { povolenyOrigin } from "../lib/ai/autorizace.mjs";
 import { znalostiProAI } from "../lib/ai/znalosti.mjs";
@@ -170,7 +170,7 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
     // Útrata se zapisuje souběžně s odpovědí; Netlify ji nechá doběhnout přes waitUntil.
     const zapisy = [];
     // Rezervace i vyrovnání se počítají k času začátku dotazu (stejné období rozpočtu).
-    const zapis = (id, stat, rezerva) => zapisy.push(zapisUtratu(store, id, stat, env, start, rezerva, model(id), true).catch(() => {}));
+    const zapis = (id, stat, rezerva) => zapisy.push(zapisUtratu(store, id, stat, env, start, rezerva, model(id), true, Boolean(vlastniKlic(id, env))).catch(() => {}));
     // Poskytovatel požadavek odmítl (HTTP chyba) → nic neúčtoval, rezervace se vrátí. Vypršení času (504)
     // a odmítnutí obsahu (422) mohly být účtované, tam rezervace zůstane.
     const vratRezervu = (id, e, rezerva) => {
@@ -193,7 +193,7 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
       for (const id of dostupne) {
         if (zbyva() < casy.minNavrh || klientOdesel()) break;
         emit({ krok: "navrh", ai: POSKYTOVATELE[id].nazev });
-        const rezerva = await rezervuj(store, id, vstupNavrhu, MAX_TOKENU, env, start, model(id), true);
+        const rezerva = await rezervuj(store, id, vstupNavrhu, MAX_TOKENU, env, start, model(id), true, Boolean(vlastniKlic(id, env)));
         if (rezerva === false) return [{ rezim: "bez-ai", duvod: "rozpocet" }, 503];
         try {
           const r = await sLimitem(Math.min(casy.maxNavrh, zbyva() - casy.minKontrola), (signal) =>
@@ -227,7 +227,7 @@ export function vytvorAsistenta({ env = process.env, adaptery, uloziste, ted = (
       if (kontrolor && zbyva() >= casy.minKontrola && !klientOdesel()) {
         emit({ krok: "kontrola", ai: POSKYTOVATELE[kontrolor].nazev });
         try {
-          rezervaK = await rezervuj(store, kontrolor, odhadTokenu(systemKontrola) + odhadTokenuKlienta(zpravyKontrola[0].text), MAX_TOKENU, env, start, model(kontrolor), true);
+          rezervaK = await rezervuj(store, kontrolor, odhadTokenu(systemKontrola) + odhadTokenuKlienta(zpravyKontrola[0].text), MAX_TOKENU, env, start, model(kontrolor), true, Boolean(vlastniKlic(kontrolor, env)));
         } catch (e) {
           console.warn("asistent: rezervace kontroly selhala", e?.message);
         }

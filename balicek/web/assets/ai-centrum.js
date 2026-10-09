@@ -190,7 +190,43 @@
     $("prihlaseni").classList.add("skryte");
     $("aplikace").classList.remove("skryte");
     vykresli();
+    vykresliModely();
   }
+  // Přepínač modelů (úkol 22): pole pro každou AI, zápis přes /api/ai-stav { modely }.
+  function vykresliModely() {
+    const box = $("modelySeznam");
+    if (!box || !stavServer) return;
+    box.textContent = "";
+    for (const x of stavServer.ai || []) {
+      const r = document.createElement("div");
+      r.className = "model-radek";
+      const l = document.createElement("label");
+      l.htmlFor = `model-${x.id}`;
+      l.textContent = `${x.nazev} · ${x.cesta === "vlastni-klic" ? "vlastní klíč" : x.zapnuto ? "Gateway" : "vypnuto"}`;
+      const i = document.createElement("input");
+      i.id = `model-${x.id}`; i.name = x.id; i.maxLength = 80; i.autocomplete = "off"; i.spellcheck = false;
+      i.value = x.prepsano ? x.model : ""; i.placeholder = x.modelVychozi || x.model || "";
+      r.append(l, i);
+      box.append(r);
+    }
+  }
+  $("formModely")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!token) return;
+    const modely = {};
+    for (const i of $("modelySeznam").querySelectorAll("input")) modely[i.name] = i.value.trim();
+    $("modelyStav").textContent = "Ukládám…";
+    try {
+      await AI.nastavModely(token, modely);
+      stavServer = await AI.nactiStav(token);
+      ai = stavServer.ai;
+      vykresliModely();
+      $("modelyStav").textContent = "Uloženo – platí hned.";
+    } catch (err) {
+      if (err.status === 401) return odhlas("Přihlášení vypršelo.");
+      $("modelyStav").textContent = err.message;
+    }
+  });
   $("formPrihlaseni").addEventListener("submit", async (e) => {
     e.preventDefault();
     $("prihlaseniChyba").textContent = "Ověřuji…";

@@ -108,7 +108,7 @@ test("Netlify AI Gateway: bez beta parametrů (hlavičky neprojdou), Grok přes 
     assert.equal(jeZapnuty(id, { OPENROUTER_API_KEY: "k" }), true, id);
     assert.ok(odhadKc(id, 1e6, 0, { KURZ_USD_CZK: "1" }, POSKYTOVATELE[id].model({ OPENROUTER_API_KEY: "k" })) < 15, id);
   }
-  assert.equal(POSKYTOVATELE.grok.model({ XAI_API_KEY: "k" }), "grok-4");
+  assert.equal(POSKYTOVATELE.grok.model({ XAI_API_KEY: "k" }), "grok-4.7"); // grok-4 v dokumentaci xAI 9. 10. 2026 už není
 });
 
 test("varianta B: zákazníci levnější modely, majitel nejlepší; Haiku bez adaptivního uvažování", async () => {

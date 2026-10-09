@@ -8,7 +8,7 @@
 | [KONTEXT.md](KONTEXT.md) | ověřená fakta, rozhodnutí majitele a nepřekročitelná pravidla |
 | [POSUDEK-MASTER-PLANU.md](POSUDEK-MASTER-PLANU.md) | co z e-mailu „Master plán“ převzít a co ne |
 | [PREDANI.md](PREDANI.md) | **začni zde** – co je hotové, kdo co dělá, úkoly majitele |
-| [ukoly/PORADI.md](ukoly/PORADI.md) | pořadí úkolů 00–21 |
+| [ukoly/PORADI.md](ukoly/PORADI.md) | pořadí úkolů 00–22 |
 | `web/` | hotový kód – cesty odpovídají cílovým cestám ve webHSPGH |
 | `web/overeni/` | ověřovací soubory Seznamu a Bingu – patří do **kořene** publikované složky webu, kopírovat bajt po bajtu; `meta-tagy.html` = dva meta tagy do `<head>` úvodní stránky (úkol 20) |
 | `testy/` | jednotkové testy (`npm test`) a testy v prohlížeči nad kopií webu (`npm run test:e2e`) |
@@ -22,8 +22,8 @@
 |---|---|---|
 | `GET/POST /api/asistent` | veřejné | spolupráce AI pro zákazníka (JSON nebo živý průběh NDJSON) |
 | `POST /api/majitel` | veřejné | přihlášení majitele → podepsaný token 12 h |
-| `POST /api/ai` | majitel | jedna AI, streamovaná odpověď |
-| `GET /api/ai-stav` | majitel | stav AI, útrata, kredity |
+| `POST /api/ai` = `/api/agent/:id` | majitel | jedna AI, streamovaná odpověď; vlastní klíč nebo Gateway, 45 s, opakování, převzetí Claudem |
+| `GET /api/ai-stav` | majitel | stav AI, cesta (vlastní klíč / Gateway), útrata, kredity; POST `{ modely }` = přepínač modelů |
 | `submission-created` | Netlify | druhý kanál upozornění na poptávky (ntfy / Telegram / SMTP), směrování na 5 schránek |
 | `POST /api/ai-stav` | majitel | nouzový vypínač AI pro zákazníky (okamžitě, bez nasazení) |
 | edge `media-limit` | Netlify | brzda rychlého stahování `/media/*` (100 / min na IP; pomalé stahování nezastaví – přenos hlídá úkol 15) |
@@ -45,8 +45,8 @@
 ## Testy
 ```
 npm install
-npm test                                                      # 87 jednotkových testů
-HSPG_MIRROR=/cesta/k/webu CHROMIUM=/cesta/k/chromium npm run test:e2e   # 28 testů v prohlížeči
+npm test                                                      # 94 jednotkových testů
+HSPG_MIRROR=/cesta/k/webu CHROMIUM=/cesta/k/chromium npm run test:e2e   # 47 testů v prohlížeči
 HSPG_MIRROR=/cesta/k/webu node balicek/testy/server.mjs       # ruční prohlížení na http://127.0.0.1:8787
 ```
 Testy nevolají žádnou skutečnou AI a nic neodesílají ven. `HSPG_MIRROR` = složka webHSPGH nebo kopie živého webu (`wget --mirror https://hspg.cz`).

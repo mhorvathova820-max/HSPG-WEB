@@ -87,6 +87,14 @@
         <nav class="nastroje" id="nastroje" aria-label="Otevřít AI aplikaci v nové kartě"></nav>
       </section>
 
+      <details class="panel modely" id="modelyPanel">
+        <summary>Modely AI (přepínač bez nasazení)</summary>
+        <p class="popis">Prázdné pole = výchozí model. Změna platí hned pro panel a AI centrum (zákazníci mají své modely v Netlify). „Vlastní klíč“ = účtuje poskytovatel, „Gateway“ = kredity Netlify.</p>
+        <form id="formModely"><div id="modelySeznam"></div>
+          <div class="akce"><button type="submit">Uložit modely</button><span class="info" id="modelyStav" role="status"></span></div>
+        </form>
+      </details>
+
       <details class="panel dejiny">
         <summary>Historie a spotřeba</summary>
         <div class="tab-obal" role="region" aria-label="Spotřeba AI v tomto období" tabindex="0"><table id="spotreba"></table></div>

@@ -131,5 +131,10 @@
     return 'Stránka: ' + document.title + '\nAdresa: ' + location.href + '\n\n' + t.slice(0, max || 30000);
   }
 
-  g.HSPG_AI = { ULOHY: ULOHY, BARVY: BARVY, nactiStav: nactiStav, nastavVerejnouAI: nastavVerejnouAI, zavolej: zavolej, spolupracuj: spolupracuj, obsazeni: obsazeni, textStranky: textStranky };
+  // Přepínač modelů majitele (uloží se v Blobs, platí hned bez nasazení). Prázdný text = výchozí model.
+  function nastavModely(token, modely) {
+    return fetch('/api/ai-stav', { method: 'POST', headers: hlavicky(token, { 'content-type': 'application/json' }), body: JSON.stringify({ modely: modely }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw Object.assign(new Error(j.chyba || 'Uložení se nepovedlo.'), { status: r.status }); return j; }); });
+  }
+  g.HSPG_AI = { ULOHY: ULOHY, BARVY: BARVY, nactiStav: nactiStav, nastavVerejnouAI: nastavVerejnouAI, nastavModely: nastavModely, zavolej: zavolej, spolupracuj: spolupracuj, obsazeni: obsazeni, textStranky: textStranky };
 })(window);

@@ -186,7 +186,10 @@ export const kcNaKredity = (kc, env) => Math.round((kc / cislo(env.KURZ_USD_CZK,
 // verejne=true: volání veřejného asistenta – hlídá i podlimit verejnyLimitKc.
 // Vyrovnání (zapisUtratu) volej se stejným `ted` jako rezervaci – jinak by se přes přelom období
 // odečetla rezerva z nového období.
-export async function rezervuj(ul, id, vstupTokenu, maxVystup, env, ted, model, verejne = false) {
+// vlastni=true: volání s vlastním klíčem majitele (účtuje poskytovatel, ne kredity Netlify) – do rozpočtu
+// kreditů se nerezervuje; útrata se jen eviduje zvlášť (vlastniKc). Proti zneužití chrání limity požadavků.
+export async function rezervuj(ul, id, vstupTokenu, maxVystup, env, ted, model, verejne = false, vlastni = false) {
+  if (vlastni) return 0;
   const kc = odhadKc(id, vstupTokenu, maxVystup, env, model);
   const limit = mesicniLimitKc(env);
   const v = await aktualizuj(ul, `utrata/${mesic(ted, env)}`, (z) => {
@@ -203,13 +206,16 @@ export async function rezervuj(ul, id, vstupTokenu, maxVystup, env, ted, model, 
 // Zápis skutečné útraty; rezervaKc = dříve rezervovaná částka, která se tím vyrovná.
 // Volání odmítnuté poskytovatelem (HTTP chyba, nic se neúčtuje) volající vyrovná se stat {vstup:0, vystup:0};
 // u vypršení času (504) a odmítnutí obsahu (422) rezervace zůstane – tokeny mohly být účtovány.
-export async function zapisUtratu(ul, id, stat, env, ted, rezervaKc = 0, model, verejne = false) {
+export async function zapisUtratu(ul, id, stat, env, ted, rezervaKc = 0, model, verejne = false, vlastni = false) {
   if (!stat) return;
   const kc = odhadKc(id, stat.vstup || 0, stat.vystup || 0, env, model);
   await aktualizuj(ul, `utrata/${mesic(ted, env)}`, (z) => {
     const u = z ? { ...z, ai: { ...z.ai } } : { celkemKc: 0, ai: {} };
-    u.celkemKc = Math.max(0, u.celkemKc + kc - rezervaKc);
-    if (verejne) u.verejneKc = Math.max(0, (u.verejneKc || 0) + kc - rezervaKc);
+    if (vlastni) u.vlastniKc = (u.vlastniKc || 0) + kc; // odhad, účtuje poskytovatel
+    else {
+      u.celkemKc = Math.max(0, u.celkemKc + kc - rezervaKc);
+      if (verejne) u.verejneKc = Math.max(0, (u.verejneKc || 0) + kc - rezervaKc);
+    }
     // Vrácená rezervace odmítnutého volání (0 tokenů) se do statistiky dotazů nepočítá.
     if (!stat.vstup && !stat.vystup) return { hodnota: u, vysledek: true };
     const a = { ...(u.ai[id] || { dotazu: 0, vstup: 0, vystup: 0, kc: 0 }) };

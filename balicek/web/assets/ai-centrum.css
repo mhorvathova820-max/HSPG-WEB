@@ -350,3 +350,8 @@ th,td{padding:6px 16px 6px 0;text-align:left;border-bottom:1px solid var(--linka
   .hwc-den,.hwc-polozka,.hwc-kupon,.hwc-karta,.hwc-banner{border:1px solid CanvasText}
   .hwc-taby [role=tab][aria-selected=true]{outline:2px solid Highlight;outline-offset:-2px}
 }
+
+/* Přepínač modelů (úkol 22) */
+.modely .model-radek{display:grid;grid-template-columns:minmax(0,14rem) minmax(0,1fr);gap:.5rem;align-items:center;margin:.35rem 0}
+.modely .model-radek input{width:100%;min-width:0}
+@media (max-width:600px){.modely .model-radek{grid-template-columns:1fr}}
