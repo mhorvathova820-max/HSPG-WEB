@@ -14,6 +14,11 @@ const { renderEstimatePdf } = require('./server/services/pdfExportEngine');
 const { ReactivationQueue } = require('./server/services/reactivationQueue');
 const { verifyAdminToken } = require('./server/services/adminAuth');
 const { createAgentService } = require('./server/services/agents');
+const multer = require('multer');
+const {
+  REQUIRED_HANDOFF_PHOTOS,
+  ResilienceIntake,
+} = require('./server/services/resilienceIntake');
 
 const assistantGreeting = 'Dobrý den, jsem automatizovaný asistent HOLUB Core. Mohu vám pomoci s orientačními informacemi.';
 const publicDirectory = path.join(__dirname, 'public');
@@ -32,6 +37,8 @@ function createApp({
   auditReaderPath = auditLogPath,
   adminJwtSecret = process.env.ADMIN_JWT_SECRET,
   agentService = createAgentService(),
+  addressValidator = null,
+  resilienceIntake = new ResilienceIntake(),
   adminRateLimiter = rateLimit({
     windowMs: 60_000,
     limit: 60,
@@ -47,6 +54,20 @@ function createApp({
   const reviewedContracts = new Map();
   const reactivationQueue = new ReactivationQueue();
   let activePdfExports = 0;
+  const competitorUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+    fileFilter: (_req, file, callback) => {
+      callback(null, ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype));
+    },
+  });
+  const photoUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 3 * 1024 * 1024, files: 10 },
+    fileFilter: (_req, file, callback) => {
+      callback(null, ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype));
+    },
+  });
 
   app.disable('x-powered-by');
   const trustedProxyIps = (process.env.TRUSTED_PROXY_IPS || '')
@@ -83,7 +104,43 @@ function createApp({
 
   app.post('/api/satellite-scan', async (req, res, next) => {
     try {
-      const estimate = calculateEstimate(req.body?.address);
+      const address = req.body?.address;
+      let needsManualReview = typeof address !== 'string' || !address.trim();
+      if (!needsManualReview && typeof addressValidator === 'function') {
+        try {
+          const validation = await addressValidator(address.trim());
+          needsManualReview = validation?.valid !== true;
+        } catch {
+          needsManualReview = true;
+        }
+      }
+      let estimate;
+      if (!needsManualReview) {
+        try {
+          estimate = calculateEstimate(address);
+        } catch (error) {
+          if (!(error instanceof TypeError)) throw error;
+          needsManualReview = true;
+        }
+      }
+      if (needsManualReview) {
+        const review = resilienceIntake.addAddressReview(address);
+        await auditLogger({
+          eventId: review.requestId,
+          type: 'address-fallback-priority-manual-review',
+          outcome: 'geolocation-not-inferred-awaiting-human-review',
+        });
+        return res.status(202).json({
+          requestId: review.requestId,
+          status: review.status,
+          addressStatus: 'not-verified',
+          message: 'Děkujeme za vaši poptávku. Zadanou adresu nyní ověří náš specialista; do té doby nevytváříme nepřesné měření ani polohu.',
+          adminNotification: {
+            priority: review.priority,
+            message: review.notification,
+          },
+        });
+      }
       const estimateId = crypto.randomUUID();
       estimates.set(estimateId, estimate);
       estimateMetadata.set(estimateId, {
@@ -104,6 +161,31 @@ function createApp({
         outcome: 'success',
       });
       res.status(200).json({ estimateId, ...estimate });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  const competitorReviewLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000,
+    limit: 5,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, res) => res.status(429).json({ error: 'Byl dosažen limit pro příjem dokumentů. Zkuste to později.' }),
+  });
+  app.post('/api/competitor-review', competitorReviewLimiter, competitorUpload.single('document'), async (req, res, next) => {
+    try {
+      if (req.body?.processingConsent !== 'true') {
+        return res.status(400).json({ error: 'Pro jednorázové zpracování souboru potvrďte souhlas.' });
+      }
+      if (!req.file) return res.status(400).json({ error: 'Vyberte jeden soubor PDF nebo obrázek.' });
+      const review = resilienceIntake.addCompetitorDocument(req.file);
+      await auditLogger({
+        eventId: review.caseId,
+        type: 'competitor-document-received',
+        outcome: 'temporary-processing-human-review-required-no-ocr',
+      });
+      return res.status(202).json(review);
     } catch (error) {
       next(error);
     }
@@ -239,8 +321,41 @@ function createApp({
       liveSatelliteTelemetry: false,
       note: 'Seznam obsahuje pouze lokální modelové kalkulace; nejde o satelitní telemetrii.',
       requests,
+      priorityAddressReviews: resilienceIntake.listAddressReviews(20),
     });
   });
+
+  app.get('/api/admin/address-reviews', adminRateLimiter, requireAdmin, (_req, res) => {
+    res.json({
+      reviews: resilienceIntake.listAddressReviews(100),
+      locationProviderConfigured: typeof addressValidator === 'function',
+      message: 'Přibližná poloha nebyla odhadnuta. Položky vyžadují ruční ověření adresy.',
+    });
+  });
+
+  app.post(
+    '/api/admin/estimates/:estimateId/completion-photos',
+    adminRateLimiter,
+    requireAdmin,
+    photoUpload.array('photos', 10),
+    async (req, res, next) => {
+      try {
+        const { estimateId } = req.params;
+        if (!estimates.has(estimateId)) return res.status(404).json({ error: 'Kalkulace nebyla nalezena.' });
+        const result = resilienceIntake.addCompletionPhotos(estimateId, req.files || []);
+        await auditLogger({
+          eventId: crypto.randomUUID(),
+          type: 'completion-photo-evidence-received',
+          outcome: result.eligibleForFinalSignatureReview
+            ? 'minimum-photo-evidence-reached'
+            : 'awaiting-more-photo-evidence',
+        });
+        return res.status(201).json(result);
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
 
   app.get('/api/admin/audit-log', adminRateLimiter, requireAdmin, async (req, res, next) => {
     try {
@@ -337,6 +452,16 @@ function createApp({
       if (!contractDrafts.has(estimateId)) {
         return res.status(409).json({ error: 'Nejprve musí vzniknout návrh smlouvy k ruční kontrole.' });
       }
+      const photoCount = resilienceIntake.photoCount(estimateId);
+      if (photoCount < REQUIRED_HANDOFF_PHOTOS) {
+        return res.status(409).json({
+          error: `Před závěrečnou kontrolou a přípravou výzvy k podpisu nahrajte alespoň ${REQUIRED_HANDOFF_PHOTOS} fotografie dokončené práce.`,
+          photoCount,
+          requiredPhotoCount: REQUIRED_HANDOFF_PHOTOS,
+          signatureRequestSent: false,
+          skipPayActivated: false,
+        });
+      }
       if (req.body?.confirmation !== true) {
         return res.status(400).json({ error: 'Pro schválení je nutné potvrdit ruční kontrolu návrhu.' });
       }
@@ -391,6 +516,7 @@ function createApp({
   });
 
   app.locals.reactivationQueue = reactivationQueue;
+  app.locals.resilienceIntake = resilienceIntake;
   const reviewTimer = setInterval(() => {
     reactivationQueue.getPendingForReview();
   }, 60 * 1000);
@@ -403,6 +529,10 @@ function createApp({
     }
     if (error instanceof RangeError) return res.status(503).json({ error: error.message });
     if (error instanceof TypeError) return res.status(400).json({ error: error.message });
+    if (error instanceof multer.MulterError) {
+      const status = error.code === 'LIMIT_FILE_SIZE' || error.code === 'LIMIT_FILE_COUNT' ? 413 : 400;
+      return res.status(status).json({ error: 'Nahraný soubor překračuje povolené limity nebo nemá očekávanou strukturu.' });
+    }
     if (error?.type === 'entity.too.large') return res.status(413).json({ error: 'Požadavek je příliš velký.' });
     if (error?.statusCode === 503) return res.status(503).json({ error: error.message });
     console.error('Chyba požadavku:', error);
