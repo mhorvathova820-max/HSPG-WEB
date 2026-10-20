@@ -45,7 +45,7 @@ function createApp({
   addressValidator = null,
   propertyProfiler = null,
   verifiedReferences = [],
-  svjGuildDiscountPercent = 0,
+  svjGuildDiscountPercent = null,
   resilienceIntake = new ResilienceIntake(),
   adminRateLimiter = rateLimit({
     windowMs: 60_000,
@@ -276,38 +276,39 @@ function createApp({
         outcome: 'draft-not-contract',
       });
 
-      app.post('/api/export-svj-resolution', async (req, res, next) => {
-        if (activePdfExports >= 2) {
-          return res.status(503).json({ error: 'Kapacita exportu je dočasně vytížena; zkuste to později.' });
-        }
-        activePdfExports += 1;
-        try {
-          const estimate = estimates.get(req.body?.estimateId);
-          if (!estimate) return res.status(404).json({ error: 'Kalkulace nebyla nalezena nebo již není dostupná.' });
-          if (estimate.housingCooperative?.eligible !== true) {
-            return res.status(409).json({ error: 'Tiskový návrh usnesení je dostupný pouze pro ověřený bytový dům.' });
-          }
-          const pdf = await renderHousingCooperativeResolutionPdf(estimate);
-          await auditLogger({
-            eventId: crypto.randomUUID(),
-            type: 'svj-resolution-draft-created',
-            amountCzk: estimate.pricing.totalPrice,
-            outcome: 'printable-draft-not-legal-advice',
-          });
-          return res.type('application/pdf')
-            .set('Content-Disposition', 'attachment; filename="holub360-navrh-usneseni-svj.pdf"')
-            .send(pdf);
-        } catch (error) {
-          return next(error);
-        } finally {
-          activePdfExports -= 1;
-        }
-      });
       res.type('application/pdf')
         .set('Content-Disposition', 'attachment; filename="holub360-orientacni-nabidka.pdf"')
         .send(pdf);
     } catch (error) {
       next(error);
+    } finally {
+      activePdfExports -= 1;
+    }
+  });
+
+  app.post('/api/export-svj-resolution', async (req, res, next) => {
+    if (activePdfExports >= 2) {
+      return res.status(503).json({ error: 'Kapacita exportu je dočasně vytížena; zkuste to později.' });
+    }
+    activePdfExports += 1;
+    try {
+      const estimate = estimates.get(req.body?.estimateId);
+      if (!estimate) return res.status(404).json({ error: 'Kalkulace nebyla nalezena nebo již není dostupná.' });
+      if (estimate.housingCooperative?.eligible !== true) {
+        return res.status(409).json({ error: 'Tiskový návrh usnesení je dostupný pouze pro ověřený bytový dům.' });
+      }
+      const pdf = await renderHousingCooperativeResolutionPdf(estimate);
+      await auditLogger({
+        eventId: crypto.randomUUID(),
+        type: 'svj-resolution-draft-created',
+        amountCzk: estimate.pricing.totalPrice,
+        outcome: 'printable-draft-not-legal-advice',
+      });
+      return res.type('application/pdf')
+        .set('Content-Disposition', 'attachment; filename="holub360-navrh-usneseni-svj.pdf"')
+        .send(pdf);
+    } catch (error) {
+      return next(error);
     } finally {
       activePdfExports -= 1;
     }

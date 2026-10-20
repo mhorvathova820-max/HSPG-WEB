@@ -73,7 +73,9 @@ function renderEstimatePdf(estimate) {
       document.font('Helvetica-Bold').text('Cenový model pro bytový dům / SVJ');
       document.font('Helvetica').moveDown(0.3)
         .text(`Zakrývání oken: ${estimate.area.windowsDeductedM2} m² × ${formatCzk(estimate.pricing.windowCoverRatePerM2)} = ${formatCzk(estimate.pricing.windowCoverPrice)}.`)
-        .text(`Cechovní sleva: ${estimate.pricing.svjGuildDiscountPercent} % (${formatCzk(estimate.pricing.svjGuildDiscount)}); sazbu je nutné před objednávkou potvrdit.`)
+        .text(estimate.housingCooperative.guildDiscountConfigured
+          ? `Cechovní sleva: ${estimate.pricing.svjGuildDiscountPercent} % (${formatCzk(estimate.pricing.svjGuildDiscount)}); sazbu je nutné před objednávkou potvrdit.`
+          : 'Cechovní sazba slevy není v systému nakonfigurována; sleva nebyla odečtena.')
         .text(`Orientační celková cena po uvedené slevě: ${formatCzk(estimate.pricing.totalPrice)}.`)
         .moveDown();
     }
@@ -166,7 +168,9 @@ function renderHousingCooperativeResolutionPdf(estimate) {
     document.font('Helvetica').fontSize(10).moveDown(0.4)
       .text(`Modelová cena po uvedeném příplatku a slevě: ${formatCzk(estimate.pricing.totalPrice)}.`)
       .text(`Zakrývání oken: ${formatCzk(estimate.pricing.windowCoverPrice)} (${estimate.pricing.windowCoverRatePerM2} Kč/m²).`)
-      .text(`Cechovní sleva v modelu: ${estimate.pricing.svjGuildDiscountPercent} % (${formatCzk(estimate.pricing.svjGuildDiscount)}); vyžaduje potvrzení provozovatele.`)
+      .text(estimate.housingCooperative.guildDiscountConfigured
+        ? `Cechovní sleva v modelu: ${estimate.pricing.svjGuildDiscountPercent} % (${formatCzk(estimate.pricing.svjGuildDiscount)}); vyžaduje potvrzení provozovatele.`
+        : 'Cechovní sazba slevy není nakonfigurována a v modelu nebyla odečtena.')
       .text('Cena odkladu není vyčíslena: chybí ověřené údaje o stavu objektu, vývoji znečištění a budoucích nákladech. Nepodložená procentní tvrzení nejsou prognózou ani podkladem pro rozhodnutí.')
       .moveDown();
 

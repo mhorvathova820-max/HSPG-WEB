@@ -80,8 +80,9 @@ form?.addEventListener('submit', async (event) => {
       const svjLine = document.createElement('p');
       svjLine.textContent =
         `Model SVJ: zakrývání oken ${data.area.windowsDeductedM2} m² × ${formatCzk(data.pricing.windowCoverRatePerM2)}; ` +
-        `cechovní sleva ${data.pricing.svjGuildDiscountPercent} % (${formatCzk(data.pricing.svjGuildDiscount)}). ` +
-        'Výše slevy musí být před objednávkou potvrzena.';
+        (data.housingCooperative.guildDiscountConfigured
+          ? `cechovní sleva ${data.pricing.svjGuildDiscountPercent} % (${formatCzk(data.pricing.svjGuildDiscount)}). Výši slevy musí provozovatel potvrdit.`
+          : 'cechovní sleva nebyla odečtena, protože její sazba není nakonfigurována.');
       summary.append(svjLine);
     }
     downloadSvjResolution.hidden = !data.housingCooperative?.eligible;

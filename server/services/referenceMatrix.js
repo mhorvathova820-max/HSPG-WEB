@@ -17,6 +17,16 @@ function distanceKm(from, to) {
   return 6371 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
 }
 
+function verifiedEvidenceUrl(value) {
+  if (typeof value !== 'string') return null;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'https:' ? parsed.href : null;
+  } catch {
+    return null;
+  }
+}
+
 function findNearestVerifiedReference(location, references) {
   if (!validCoordinates(location) || !Array.isArray(references)) return null;
   let nearest = null;
@@ -34,7 +44,7 @@ function findNearestVerifiedReference(location, references) {
         id: reference.id,
         title: reference.title,
         locality: typeof reference.locality === 'string' ? reference.locality : null,
-        evidenceUrl: typeof reference.evidenceUrl === 'string' ? reference.evidenceUrl : null,
+        evidenceUrl: verifiedEvidenceUrl(reference.evidenceUrl),
         distanceKm: Math.round(distance * 10) / 10,
       };
     }
@@ -42,4 +52,4 @@ function findNearestVerifiedReference(location, references) {
   return nearest;
 }
 
-module.exports = { findNearestVerifiedReference };
+module.exports = { findNearestVerifiedReference, verifiedEvidenceUrl };

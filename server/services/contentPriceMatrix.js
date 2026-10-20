@@ -40,9 +40,10 @@ function splitIntoThirds(amount) {
 
 function applyContentPriceMatrix(estimate, {
   buildingProfile = null,
-  svjGuildDiscountPercent = 0,
+  svjGuildDiscountPercent = null,
 } = {}) {
-  validateDiscountPercent(svjGuildDiscountPercent);
+  if (svjGuildDiscountPercent !== null) validateDiscountPercent(svjGuildDiscountPercent);
+  const appliedDiscountPercent = svjGuildDiscountPercent ?? 0;
   const copperGuard = calculateCopperGuard(
     buildingProfile?.verified === true ? buildingProfile.roofRidgeLengthM : null,
   );
@@ -73,7 +74,7 @@ function applyContentPriceMatrix(estimate, {
   const basePrice = estimate.pricing.totalPrice;
   const windowCoverPrice = Math.round(estimate.area.windowsDeductedM2 * SVJ_WINDOW_COVER_RATE_PER_M2);
   const subtotal = basePrice + windowCoverPrice;
-  const guildDiscount = Math.round(subtotal * svjGuildDiscountPercent / 100);
+  const guildDiscount = Math.round(subtotal * appliedDiscountPercent / 100);
   const totalPrice = subtotal - guildDiscount;
   const deposit = totalPrice <= 100000 ? 0 : Math.round(totalPrice * 0.3);
 
@@ -81,8 +82,8 @@ function applyContentPriceMatrix(estimate, {
     ...estimate.pricing,
     windowCoverRatePerM2: SVJ_WINDOW_COVER_RATE_PER_M2,
     windowCoverPrice,
-    svjGuildDiscountPercent,
-    svjGuildDiscount,
+    svjGuildDiscountPercent: svjGuildDiscountPercent,
+    svjGuildDiscount: guildDiscount,
     totalPrice,
     deposit,
     balanceDue: totalPrice - deposit,
@@ -94,6 +95,7 @@ function applyContentPriceMatrix(estimate, {
     windowCoverRatePerM2: SVJ_WINDOW_COVER_RATE_PER_M2,
     windowCoverPrice,
     guildDiscountPercent: svjGuildDiscountPercent,
+    guildDiscountConfigured: svjGuildDiscountPercent !== null,
     guildDiscount,
     priceBeforeDiscount: subtotal,
     totalPrice,

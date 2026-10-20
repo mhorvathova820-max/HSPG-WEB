@@ -16,6 +16,11 @@ const { ReactivationQueue } = require('../services/reactivationQueue');
 const { checkAuditLog, checkDirectory, checkTransparency } = require('../../deploy-orchestrator');
 const { verifyAdminToken } = require('../services/adminAuth');
 const { createAgentService } = require('../services/agents');
+const {
+  applyContentPriceMatrix,
+  calculateCopperGuard,
+} = require('../services/contentPriceMatrix');
+const { findNearestVerifiedReference } = require('../services/referenceMatrix');
 
 const ADMIN_SECRET = 'a-test-only-secret-that-is-long-enough-for-hmac';
 const agentService = createAgentService({
@@ -64,6 +69,30 @@ describe('HOLUB 360 API foundation', () => {
       adminJwtSecret: ADMIN_SECRET,
       agentService,
       addressValidator: async (address) => ({ valid: address !== 'Neexistující 1' }),
+      propertyProfiler: async (address) => address === 'Testovaný bytový dům'
+        ? {
+          verified: true,
+          buildingType: 'apartment-building',
+          roofRidgeLengthM: 7.2,
+          coordinates: { latitude: 50, longitude: 14 },
+        }
+        : null,
+      verifiedReferences: [
+        {
+          id: 'test-reference-near',
+          title: 'Testovací ověřená realizace',
+          locality: 'Testov',
+          coordinates: { latitude: 50.01, longitude: 14.01 },
+          verified: true,
+        },
+        {
+          id: 'test-reference-far',
+          title: 'Vzdálená testovací realizace',
+          coordinates: { latitude: 51, longitude: 15 },
+          verified: true,
+        },
+      ],
+      svjGuildDiscountPercent: 10,
     });
     server = app.listen(0);
     await new Promise((resolve) => server.once('listening', resolve));
@@ -97,6 +126,67 @@ describe('HOLUB 360 API foundation', () => {
     assert.equal(validateWeather(30, 5).suitable, true);
     assert.equal(validateWeather(30.1, 5).suitable, false);
     assert.equal(validateWeather(0, 4.9).suitable, false);
+  });
+
+  test('applies copper price tiers only to a verified ridge length', () => {
+    assert.deepEqual(calculateCopperGuard(null), {
+      available: false,
+      verifiedRidgeLengthM: null,
+      priceCzk: null,
+      status: 'ridge-length-not-verified',
+    });
+    assert.equal(calculateCopperGuard(4).priceCzk, 1490);
+    assert.equal(calculateCopperGuard(4.01).priceCzk, 1780);
+    assert.equal(calculateCopperGuard(8).priceCzk, 2650);
+    assert.equal(calculateCopperGuard(1001).available, false);
+  });
+
+  test('applies the SVJ window-covering supplement and only a configured guild discount', () => {
+    const estimate = calculateEstimate('Testovací objekt');
+    const regular = applyContentPriceMatrix(estimate);
+    assert.equal(regular.housingCooperative.eligible, false);
+    assert.equal(regular.copperGuard.available, false);
+
+    const svj = applyContentPriceMatrix(estimate, {
+      buildingProfile: { verified: true, buildingType: 'apartment-building', roofRidgeLengthM: 5 },
+      svjGuildDiscountPercent: 10,
+    });
+    assert.equal(svj.housingCooperative.eligible, true);
+    assert.equal(svj.pricing.windowCoverPrice, 780);
+    assert.equal(svj.pricing.svjGuildDiscount, Math.round((estimate.pricing.totalPrice + 780) * 0.1));
+    assert.equal(svj.copperGuard.priceCzk, 1780);
+    assert.equal(svj.pricing.totalPrice,
+      estimate.pricing.totalPrice + 780 - svj.pricing.svjGuildDiscount);
+
+    const noDiscount = applyContentPriceMatrix(estimate, {
+      buildingProfile: { verified: true, buildingType: 'apartment-building' },
+    });
+    assert.equal(noDiscount.housingCooperative.guildDiscountConfigured, false);
+    assert.equal(noDiscount.pricing.svjGuildDiscount, 0);
+    assert.throws(() => applyContentPriceMatrix(estimate, { svjGuildDiscountPercent: 101 }), TypeError);
+  });
+
+  test('selects only verified nearest references from validated coordinates', () => {
+    const location = { latitude: 50, longitude: 14 };
+    const references = [
+      {
+        id: 'near',
+        title: 'Blízká reference',
+        evidenceUrl: 'javascript:alert(1)',
+        coordinates: { latitude: 50.01, longitude: 14.01 },
+        verified: true,
+      },
+      {
+        id: 'unverified',
+        title: 'Neověřená reference',
+        coordinates: { latitude: 50.001, longitude: 14.001 },
+        verified: false,
+      },
+    ];
+    assert.equal(findNearestVerifiedReference(location, references).id, 'near');
+    assert.equal(findNearestVerifiedReference(location, references).evidenceUrl, null);
+    assert.equal(findNearestVerifiedReference(location, []), null);
+    assert.equal(findNearestVerifiedReference({ latitude: 100, longitude: 14 }, references), null);
   });
 
   test('creates an estimate and a clearly marked unsigned contract draft', async () => {
@@ -178,6 +268,44 @@ describe('HOLUB 360 API foundation', () => {
     assert.deepEqual(review.automatedFindings, []);
     assert.equal(review.status, 'awaiting-human-review-ocr-unavailable');
     assert.match(review.sha256, /^[a-f0-9]{64}$/);
+  });
+
+  test('integrates a verified apartment profile, nearest reference, and printable SVJ resolution', async () => {
+    const estimateResponse = await fetch(`${baseUrl}/api/satellite-scan`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ address: 'Testovaný bytový dům' }),
+    });
+    assert.equal(estimateResponse.status, 200);
+    const estimate = await estimateResponse.json();
+    assert.equal(estimate.housingCooperative.eligible, true);
+    assert.equal(estimate.pricing.windowCoverPrice, 780);
+    assert.equal(estimate.copperGuard.verifiedRidgeLengthM, 7.2);
+    assert.equal(estimate.copperGuard.priceCzk, 2650);
+    assert.equal(estimate.socialProof.reference.id, 'test-reference-near');
+
+    const pdfResponse = await fetch(`${baseUrl}/api/export-svj-resolution`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ estimateId: estimate.estimateId }),
+    });
+    assert.equal(pdfResponse.status, 200);
+    const pdf = Buffer.from(await pdfResponse.arrayBuffer());
+    assert.equal(pdf.subarray(0, 5).toString(), '%PDF-');
+    assert.ok(pdf.length > 1000);
+
+    const regularEstimateResponse = await fetch(`${baseUrl}/api/satellite-scan`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ address: 'Praha' }),
+    });
+    const regularEstimate = await regularEstimateResponse.json();
+    const deniedPdf = await fetch(`${baseUrl}/api/export-svj-resolution`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ estimateId: regularEstimate.estimateId }),
+    });
+    assert.equal(deniedPdf.status, 409);
   });
 
   test('does not create campaign drafts without confirmed work and consent', async () => {
