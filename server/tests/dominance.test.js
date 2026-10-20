@@ -116,7 +116,7 @@ describe('HOLUB 360 API foundation', () => {
     assert.equal(pdfResponse.status, 200);
     assert.match(pdfResponse.headers.get('content-type'), /application\/pdf/);
     assert.equal(Buffer.from(await pdfResponse.arrayBuffer()).subarray(0, 5).toString(), '%PDF-');
-    const threeResponse = await fetch(`${baseUrl}/vendor/three.module.js`);
+    const threeResponse = await fetch(`${baseUrl}/vendor/three/build/three.module.js`);
     assert.equal(threeResponse.status, 200);
     assert.match(threeResponse.headers.get('content-type'), /javascript/);
     const controlsResponse = await fetch(`${baseUrl}/vendor/three/examples/jsm/controls/OrbitControls.js`);

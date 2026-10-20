@@ -29,17 +29,16 @@ function createApp({ auditLogger = createAuditLogger() } = {}) {
     });
     next();
   });
-  app.use('/vendor/three/examples', express.static(path.join(threeDirectory, 'examples'), {
+  const staticVendorOptions = {
     fallthrough: false,
     immutable: true,
     maxAge: '1d',
     setHeaders(res, filePath) {
       if (filePath.endsWith('.js')) res.type('text/javascript');
     },
-  }));
-  app.get('/vendor/three.module.js', (_req, res) => {
-    res.type('text/javascript').sendFile(path.join(threeDirectory, 'build', 'three.module.js'));
-  });
+  };
+  app.use('/vendor/three/build', express.static(path.join(threeDirectory, 'build'), staticVendorOptions));
+  app.use('/vendor/three/examples', express.static(path.join(threeDirectory, 'examples'), staticVendorOptions));
   app.use(express.static(publicDirectory, { index: 'index.html', fallthrough: true }));
 
   app.post('/api/satellite-scan', async (req, res, next) => {
