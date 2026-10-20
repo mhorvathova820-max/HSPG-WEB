@@ -58,6 +58,26 @@ function renderEstimatePdf(estimate) {
       .text(`Modelový odečet komínů: ${estimate.area.chimneysDeductedM2} m²; FVE: ${estimate.area.solarPanelsDeductedM2} m²`)
       .moveDown();
 
+    document.font('Helvetica-Bold').text('Měděný hřebenový prvek CopperGuard');
+    document.font('Helvetica').moveDown(0.3);
+    if (estimate.copperGuard?.available) {
+      document.text(
+        `Ověřená délka hřebene: ${estimate.copperGuard.verifiedRidgeLengthM} m; orientační cena: ${formatCzk(estimate.copperGuard.priceCzk)} (základní balení do 4 m a další započaté metry dle cenové matice).`,
+      ).text(estimate.copperGuard.description);
+    } else {
+      document.text('Délka hřebene nebyla ověřena; cenu měděného prvku proto nelze stanovit.');
+    }
+    document.text('Uvedený ceník je orientační a před objednávkou jej musí potvrdit provozovatel.').moveDown();
+
+    if (estimate.housingCooperative?.eligible) {
+      document.font('Helvetica-Bold').text('Cenový model pro bytový dům / SVJ');
+      document.font('Helvetica').moveDown(0.3)
+        .text(`Zakrývání oken: ${estimate.area.windowsDeductedM2} m² × ${formatCzk(estimate.pricing.windowCoverRatePerM2)} = ${formatCzk(estimate.pricing.windowCoverPrice)}.`)
+        .text(`Cechovní sleva: ${estimate.pricing.svjGuildDiscountPercent} % (${formatCzk(estimate.pricing.svjGuildDiscount)}); sazbu je nutné před objednávkou potvrdit.`)
+        .text(`Orientační celková cena po uvedené slevě: ${formatCzk(estimate.pricing.totalPrice)}.`)
+        .moveDown();
+    }
+
     document.font('Helvetica-Bold').fontSize(14).fillColor('#222')
       .text(`Celkem v modelu: ${formatCzk(estimate.pricing.totalPrice)}`);
     document.font('Helvetica').fontSize(10).moveDown(0.4)
@@ -83,4 +103,79 @@ function renderEstimatePdf(estimate) {
   });
 }
 
-module.exports = { renderEstimatePdf };
+function renderHousingCooperativeResolutionPdf(estimate) {
+  if (
+    !estimate ||
+    estimate.housingCooperative?.eligible !== true ||
+    typeof estimate.address !== 'string' ||
+    !Number.isFinite(estimate.pricing?.totalPrice)
+  ) {
+    throw new TypeError('Návrh usnesení vyžaduje ověřený profil bytového domu a platnou kalkulaci.');
+  }
+  const printableAddress = estimate.address
+    .replace(/[\u0000-\u001f\u007f]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 300);
+
+  return new Promise((resolve, reject) => {
+    const document = new PDFDocument({
+      size: 'A4',
+      margins: { top: 58, bottom: 58, left: 62, right: 62 },
+      info: {
+        Title: 'Pracovní návrh usnesení pro schůzi vlastníků',
+        Author: 'HOLUB 360',
+      },
+    });
+    const chunks = [];
+    document.on('data', (chunk) => chunks.push(chunk));
+    document.on('error', reject);
+    document.on('end', () => resolve(Buffer.concat(chunks)));
+
+    document.fillColor('#806522').font('Helvetica-Bold').fontSize(19)
+      .text('Návrh usnesení pro schůzi vlastníků', { align: 'center' });
+    document.moveDown(0.4);
+    document.fillColor('#555').font('Helvetica').fontSize(10)
+      .text('Pracovní tiskový podklad — nejde o právní radu ani o schválené usnesení.', { align: 'center' })
+      .moveDown(1.8);
+
+    document.fillColor('#222').font('Helvetica-Bold').fontSize(12).text('Identifikace bodu jednání');
+    document.font('Helvetica').fontSize(10).moveDown(0.4)
+      .text(`Objekt: ${printableAddress}`)
+      .text('Bod programu: Projednání nabídky na odborné ošetření vnějších povrchů objektu.')
+      .text('Datum schůze: ____________________    Číslo bodu: ____________________')
+      .moveDown();
+
+    document.font('Helvetica-Bold').fontSize(12).text('Navržené znění usnesení');
+    document.font('Helvetica').fontSize(10).moveDown(0.5)
+      .text(
+        `Shromáždění vlastníků bere na vědomí předložený nezávazný modelový rozpočet na práce na objektu ${printableAddress}.`,
+        { align: 'justify' },
+      )
+      .moveDown(0.7)
+      .text(
+        'Shromáždění vlastníků schvaluje pokračování v přípravě zakázky, přičemž konečný rozsah prací, skutečné výměry, technologický postup, cenu, termín, zdroj financování a podmínky předání stanoví až závazná nabídka a smluvní dokumentace předložená ke schválení oprávněným orgánem společenství.',
+        { align: 'justify' },
+      )
+      .moveDown(0.7)
+      .text('Výsledek hlasování: pro ______  proti ______  zdržel(a) se ______')
+      .text('Předsedající: ____________________    Zapisovatel: ____________________')
+      .moveDown();
+
+    document.font('Helvetica-Bold').fontSize(12).text('Orientační finanční podklad pro fond oprav');
+    document.font('Helvetica').fontSize(10).moveDown(0.4)
+      .text(`Modelová cena po uvedeném příplatku a slevě: ${formatCzk(estimate.pricing.totalPrice)}.`)
+      .text(`Zakrývání oken: ${formatCzk(estimate.pricing.windowCoverPrice)} (${estimate.pricing.windowCoverRatePerM2} Kč/m²).`)
+      .text(`Cechovní sleva v modelu: ${estimate.pricing.svjGuildDiscountPercent} % (${formatCzk(estimate.pricing.svjGuildDiscount)}); vyžaduje potvrzení provozovatele.`)
+      .text('Cena odkladu není vyčíslena: chybí ověřené údaje o stavu objektu, vývoji znečištění a budoucích nákladech. Nepodložená procentní tvrzení nejsou prognózou ani podkladem pro rozhodnutí.')
+      .moveDown();
+
+    document.font('Helvetica-Bold').fontSize(12).text('Podklady a omezení');
+    document.font('Helvetica').fontSize(9).moveDown(0.4)
+      .text('Tento dokument je upravitelný pracovní návrh. Před hlasováním ověřte působnost orgánu, požadavky stanov, pravidla svolání a hlasování, financování a konečné smluvní podmínky. Případné usnesení musí odpovídat konkrétnímu společenství a jeho právnímu posouzení.', { align: 'justify' })
+      .text('Výměry a cena vycházejí z modelových předpokladů a nenahrazují zaměření ani závaznou cenovou nabídku.');
+    document.end();
+  });
+}
+
+module.exports = { renderEstimatePdf, renderHousingCooperativeResolutionPdf };

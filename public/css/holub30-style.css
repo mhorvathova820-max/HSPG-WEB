@@ -23,7 +23,12 @@ button { color: #201d14; background: var(--gold); border: 0; border-radius: 8px;
 button:hover { background: #e5c65b; }
 button:focus-visible, input:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 .estimate-summary { margin-top: 1.5rem; padding: 1rem; border: 1px solid #746334; border-radius: 10px; background: #211f19; line-height: 1.7; }
+.estimate-summary p { margin: .5rem 0; }
 .download-button { margin-top: .8rem; }
+.reference-card { margin-top: 1.4rem; padding: 1rem; border: 1px solid #d4af375c; border-radius: 12px; background: #171613cc; }
+.reference-card h2 { margin: 0 0 .5rem; color: var(--gold); font: 400 1.15rem/1.3 Georgia, serif; }
+.reference-card p { margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.55; overflow-wrap: anywhere; }
+.reference-card a { color: #ead27d; }
 .visualizer-panel { padding: clamp(16px, 3vw, 32px); background: #ffffff0b; border: 1px solid #ffffff22; border-radius: 20px; box-shadow: 0 25px 90px #0006; backdrop-filter: blur(18px); }
 .building-view { height: min(48vh, 420px); min-height: 260px; overflow: hidden; border-radius: 14px; background: radial-gradient(ellipse at 50% 70%, #3a3223, #151411 69%); touch-action: none; }
 .building-view canvas { display: block; width: 100%; height: 100%; }
