@@ -7,9 +7,9 @@ const root = __dirname;
 const requiredDirectories = ['server/logs', 'public', 'documents'];
 const requiredAuditFields = ['timestamp', 'eventId', 'type', 'amountCzk', 'outcome'];
 
-async function checkDirectory(relativePath) {
+async function checkDirectory(relativePath, baseDirectory = root) {
   try {
-    const details = await fs.stat(path.join(root, relativePath));
+    const details = await fs.stat(path.join(baseDirectory, relativePath));
     return { path: relativePath, ok: details.isDirectory() };
   } catch (error) {
     if (error.code === 'ENOENT') return { path: relativePath, ok: false };
@@ -17,8 +17,8 @@ async function checkDirectory(relativePath) {
   }
 }
 
-async function checkAuditLog() {
-  const filePath = path.join(root, 'server', 'logs', 'ai_compliance.log');
+async function checkAuditLog(baseDirectory = root) {
+  const filePath = path.join(baseDirectory, 'server', 'logs', 'ai_compliance.log');
   let details;
   try {
     details = await fs.lstat(filePath);
@@ -68,16 +68,18 @@ async function checkAuditLog() {
   };
 }
 
-async function run() {
+async function run(baseDirectory = root) {
   console.log('HOLUB 360 — kontrola provozních předpokladů');
   console.log('Tato kontrola nepotvrzuje produkční připravenost, právní soulad ani připravenost ostrého spuštění.');
 
-  const directoryChecks = await Promise.all(requiredDirectories.map(checkDirectory));
+  const directoryChecks = await Promise.all(
+    requiredDirectories.map((relativePath) => checkDirectory(relativePath, baseDirectory)),
+  );
   for (const result of directoryChecks) {
     console.log(`${result.ok ? 'OK' : 'CHYBÍ'} adresář: ${result.path}`);
   }
 
-  const audit = await checkAuditLog();
+  const audit = await checkAuditLog(baseDirectory);
   console.log(`${audit.ok ? 'OK' : 'NELZE OVĚŘIT'} auditní log: ${audit.detail}`);
   console.log('Kontrola logu ověřuje pouze strukturu JSONL a oprávnění souboru, nikoli odolnost proti pozměnění.');
   console.log('Živé integrace poskytovatelů, ochrana přístupů, provozní monitoring a produkční nasazení vyžadují samostatné ověření.');

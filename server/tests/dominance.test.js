@@ -11,6 +11,7 @@ const { createAuditLogger } = require('../services/auditLogger');
 const { buildCampaignDraft } = require('../services/campaignDraft');
 const { renderEstimatePdf } = require('../services/pdfExportEngine');
 const { ReactivationQueue } = require('../services/reactivationQueue');
+const { checkAuditLog, checkDirectory } = require('../../deploy-orchestrator');
 
 describe('HOLUB 360 API foundation', () => {
   let directory;
@@ -211,5 +212,30 @@ describe('HOLUB 360 API foundation', () => {
     assert.ok(!log.includes('Soukromá adresa'));
     const greetingResponse = await fetch(`${baseUrl}/api/hbot/hello`);
     assert.equal((await greetingResponse.json()).message, assistantGreeting);
+  });
+
+  test('deployment check validates directory presence and audit JSONL structure only', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'holub-deploy-check-'));
+    const logs = path.join(root, 'server', 'logs');
+    await fs.mkdir(logs, { recursive: true, mode: 0o700 });
+    assert.equal((await checkDirectory('server/logs', root)).ok, true);
+    assert.equal((await checkDirectory('documents', root)).ok, false);
+    assert.equal((await checkAuditLog(root)).status, 'missing');
+
+    const auditFile = path.join(logs, 'ai_compliance.log');
+    await fs.writeFile(auditFile, `${JSON.stringify({
+      timestamp: new Date().toISOString(),
+      eventId: 'event-1',
+      type: 'test-event',
+      amountCzk: 0,
+      outcome: 'success',
+    })}\n`, { mode: 0o600 });
+    const validAudit = await checkAuditLog(root);
+    assert.equal(validAudit.ok, true);
+    assert.match(validAudit.detail, /kryptografickou nezměnitelnost/);
+
+    await fs.writeFile(auditFile, 'not-json\n', { mode: 0o600 });
+    assert.equal((await checkAuditLog(root)).status, 'invalid');
+    await fs.rm(root, { recursive: true, force: true });
   });
 });

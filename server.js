@@ -14,6 +14,14 @@ const assistantGreeting = 'Dobrý den, jsem automatizovaný asistent HOLUB Core.
 const publicDirectory = path.join(__dirname, 'public');
 const threeDirectory = path.join(__dirname, 'node_modules', 'three');
 
+function loadLocalEnvironment() {
+  try {
+    process.loadEnvFile(path.join(__dirname, '.env'));
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+}
+
 function createApp({ auditLogger = createAuditLogger() } = {}) {
   const app = express();
   const estimates = new Map();
@@ -161,10 +169,11 @@ function createApp({ auditLogger = createAuditLogger() } = {}) {
 }
 
 if (require.main === module) {
+  loadLocalEnvironment();
   const port = Number(process.env.PORT) || 3000;
   createApp().listen(port, () => {
     console.log(`HOLUB 360 API naslouchá na portu ${port}.`);
   });
 }
 
-module.exports = { createApp, assistantGreeting };
+module.exports = { createApp, assistantGreeting, loadLocalEnvironment };
