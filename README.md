@@ -37,3 +37,9 @@ Tests use Node.js's built-in test runner. No live weather, payment/BankID, e-sig
 `npm run build` creates minified browser bundles in the ignored `public/dist/` directory. Minification is not encryption or reliable protection of client-side logic. `npm run check:deploy` checks that expected folders exist and, when present, that the audit file has restrictive permissions and valid JSONL records. It does not prove the log is tamper-proof, certify EU AI Act compliance, verify provider credentials, or declare the platform ready to launch; it exits unsuccessfully if the log is absent or structurally invalid.
 
 `.env.example` documents variable names for future provider integrations. The listed provider APIs are not wired into the application, and putting credentials in `.env` does not enable those integrations.
+
+## Admin cockpit security
+
+Open `/admin-cockpit.html` after `npm run build`. Admin APIs accept externally issued HMAC-SHA256 JWTs only when `ADMIN_JWT_SECRET` contains at least 32 bytes and the token has `iss=holub360`, `aud=holub360-admin`, `role=admin`, a nonempty `sub`, and an unexpired `exp`. This application does not issue administrator tokens or provide an identity/login service. Admin API calls are rate-limited and require HTTPS, except on loopback for local development. Behind a TLS reverse proxy, set `TRUSTED_PROXY_IPS` to the exact trusted proxy address(es); never trust arbitrary forwarded headers.
+
+The cockpit's contract action records a manual review, but cannot sign or send a contract. The Geo-Shield action only prepares a consent-gated draft; it does not activate Meta or Google Ads. Estimate records and the review queue remain in process memory and are not production-persistent. The PWA service worker never caches admin HTML or `/api/` responses, so the privileged panel is online-only.

@@ -1,6 +1,7 @@
 'use strict';
 
 const crypto = require('node:crypto');
+const fs = require('node:fs/promises');
 const path = require('node:path');
 const express = require('express');
 const { calculateEstimate, validateWeather } = require('./server/services/estimate');
@@ -9,10 +10,12 @@ const { buildContractHtml } = require('./server/services/contractHtml');
 const { buildCampaignDraft } = require('./server/services/campaignDraft');
 const { renderEstimatePdf } = require('./server/services/pdfExportEngine');
 const { ReactivationQueue } = require('./server/services/reactivationQueue');
+const { createRateLimiter, verifyAdminToken } = require('./server/services/adminAuth');
 
 const assistantGreeting = 'Dobrý den, jsem automatizovaný asistent HOLUB Core. Mohu vám pomoci s orientačními informacemi.';
 const publicDirectory = path.join(__dirname, 'public');
 const threeDirectory = path.join(__dirname, 'node_modules', 'three');
+const auditLogPath = path.join(__dirname, 'server', 'logs', 'ai_compliance.log');
 
 function loadLocalEnvironment() {
   try {
@@ -22,12 +25,24 @@ function loadLocalEnvironment() {
   }
 }
 
-function createApp({ auditLogger = createAuditLogger() } = {}) {
+function createApp({
+  auditLogger = createAuditLogger(auditLogPath),
+  auditReaderPath = auditLogPath,
+  adminJwtSecret = process.env.ADMIN_JWT_SECRET,
+} = {}) {
   const app = express();
   const estimates = new Map();
+  const estimateMetadata = new Map();
+  const contractDrafts = new Set();
+  const reviewedContracts = new Map();
   const reactivationQueue = new ReactivationQueue();
 
   app.disable('x-powered-by');
+  const trustedProxyIps = (process.env.TRUSTED_PROXY_IPS || '')
+    .split(',')
+    .map((address) => address.trim())
+    .filter(Boolean);
+  app.set('trust proxy', trustedProxyIps);
   app.use(express.json({ limit: '16kb', type: 'application/json' }));
   app.use((req, res, next) => {
     res.set({
@@ -35,6 +50,15 @@ function createApp({ auditLogger = createAuditLogger() } = {}) {
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'no-referrer',
     });
+    next();
+  });
+  app.use((req, res, next) => {
+    if (req.path === '/admin-cockpit.html') {
+      res.set(
+        'Content-Security-Policy',
+        "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+      );
+    }
     next();
   });
   const staticVendorOptions = {
@@ -54,7 +78,17 @@ function createApp({ auditLogger = createAuditLogger() } = {}) {
       const estimate = calculateEstimate(req.body?.address);
       const estimateId = crypto.randomUUID();
       estimates.set(estimateId, estimate);
-      if (estimates.size > 1000) estimates.delete(estimates.keys().next().value);
+      estimateMetadata.set(estimateId, {
+        createdAt: new Date().toISOString(),
+        contractStatus: 'not-generated',
+      });
+      if (estimates.size > 1000) {
+        const oldestEstimateId = estimates.keys().next().value;
+        estimates.delete(oldestEstimateId);
+        estimateMetadata.delete(oldestEstimateId);
+        contractDrafts.delete(oldestEstimateId);
+        reviewedContracts.delete(oldestEstimateId);
+      }
       await auditLogger({
         eventId: estimateId,
         type: 'illustrative-estimate-created',
@@ -84,6 +118,8 @@ function createApp({ auditLogger = createAuditLogger() } = {}) {
         return res.status(400).json({ error: 'Zadejte platné jméno objednatele.' });
       }
       const contractId = crypto.randomUUID();
+      contractDrafts.add(estimateId);
+      estimateMetadata.get(estimateId).contractStatus = 'awaiting-manual-review';
       await auditLogger({
         eventId: contractId,
         type: 'contract-draft-created',
@@ -146,6 +182,149 @@ function createApp({ auditLogger = createAuditLogger() } = {}) {
   });
 
   app.get('/api/hbot/hello', (_req, res) => res.json({ message: assistantGreeting }));
+
+  const adminLimiter = createRateLimiter();
+  app.use('/api/admin', adminLimiter, (req, res, next) => {
+    const remoteAddress = req.socket.remoteAddress || '';
+    const isLoopback = remoteAddress === '127.0.0.1' ||
+      remoteAddress === '::1' ||
+      remoteAddress === '::ffff:127.0.0.1';
+    if (!req.secure && !isLoopback) {
+      return res.status(426).json({ error: 'Administrátorské rozhraní vyžaduje HTTPS.' });
+    }
+    const authorization = req.get('authorization') || '';
+    const match = /^Bearer\s+([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)$/i.exec(authorization);
+    if (!match) return res.status(401).json({ error: 'Je vyžadováno platné administrátorské přihlášení.' });
+    try {
+      req.admin = verifyAdminToken(match[1], adminJwtSecret);
+      return next();
+    } catch (error) {
+      const status = error.statusCode || 401;
+      return res.status(status).json({
+        error: status === 503
+          ? 'Administrátorské ověření není nakonfigurováno.'
+          : 'Je vyžadováno platné administrátorské přihlášení.',
+      });
+    }
+  });
+
+  app.get('/api/admin/overview', (req, res) => {
+    const requests = [...estimateMetadata.entries()]
+      .map(([estimateId, metadata]) => ({
+        estimateId,
+        createdAt: metadata.createdAt,
+        address: estimates.get(estimateId).address,
+        estimatedPriceCzk: estimates.get(estimateId).pricing.totalPrice,
+        estimateType: estimates.get(estimateId).estimateType,
+        contractStatus: reviewedContracts.get(estimateId)?.status || metadata.contractStatus,
+      }))
+      .reverse()
+      .slice(0, 100);
+    res.json({
+      refreshedAt: new Date().toISOString(),
+      refreshIntervalSeconds: 15,
+      liveSatelliteTelemetry: false,
+      note: 'Seznam obsahuje pouze lokální modelové kalkulace; nejde o satelitní telemetrii.',
+      requests,
+    });
+  });
+
+  app.get('/api/admin/audit-log', async (req, res, next) => {
+    try {
+      const requestedLimit = Number(req.query.limit);
+      const limit = Number.isInteger(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 100) : 50;
+      const details = await fs.lstat(auditReaderPath);
+      if (!details.isFile() || details.isSymbolicLink() || details.size > 2 * 1024 * 1024) {
+        return res.status(503).json({ error: 'Auditní soubor není dostupný pro bezpečné zobrazení.' });
+      }
+      const content = await fs.readFile(auditReaderPath, 'utf8');
+      const records = content.split('\n').filter(Boolean).slice(-limit).flatMap((line) => {
+        try {
+          const record = JSON.parse(line);
+          return [{
+            timestamp: record.timestamp,
+            eventId: record.eventId,
+            type: record.type,
+            amountCzk: Number.isFinite(record.amountCzk) ? record.amountCzk : null,
+            outcome: record.outcome,
+          }];
+        } catch {
+          return [];
+        }
+      });
+      res.json({
+        records,
+        tamperProof: false,
+        legalComplianceCertified: false,
+        viewedBy: req.admin.subject,
+      });
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        return res.status(404).json({ error: 'Auditní log zatím neobsahuje žádný soubor.' });
+      }
+      next(error);
+    }
+  });
+
+  app.post('/api/admin/contracts/:estimateId/approve', async (req, res, next) => {
+    try {
+      const { estimateId } = req.params;
+      if (!estimates.has(estimateId)) return res.status(404).json({ error: 'Kalkulace nebyla nalezena.' });
+      if (!contractDrafts.has(estimateId)) {
+        return res.status(409).json({ error: 'Nejprve musí vzniknout návrh smlouvy k ruční kontrole.' });
+      }
+      if (req.body?.confirmation !== true) {
+        return res.status(400).json({ error: 'Pro schválení je nutné potvrdit ruční kontrolu návrhu.' });
+      }
+      const approval = {
+        status: 'approved-for-signature-provider-review',
+        approvedAt: new Date().toISOString(),
+        approvedBy: req.admin.subject,
+        signed: false,
+        sentToProvider: false,
+      };
+      reviewedContracts.set(estimateId, approval);
+      estimateMetadata.get(estimateId).contractStatus = approval.status;
+      await auditLogger({
+        eventId: crypto.randomUUID(),
+        type: 'contract-draft-manually-reviewed',
+        amountCzk: estimates.get(estimateId).pricing.totalPrice,
+        outcome: 'approved-for-provider-review-not-signed',
+      });
+      res.json({
+        estimateId,
+        ...approval,
+        message: 'Ruční kontrola zaznamenána. Dokument není podepsán ani odeslán do DigiSign/BankID.',
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post('/api/admin/geo-shield/draft', async (req, res, next) => {
+    try {
+      if (!estimates.has(req.body?.estimateId)) {
+        return res.status(404).json({ error: 'Kalkulace pro návrh kampaně nebyla nalezena.' });
+      }
+      const campaign = buildCampaignDraft(req.body || {});
+      await auditLogger({
+        eventId: crypto.randomUUID(),
+        type: 'geo-campaign-draft-prepared',
+        amountCzk: estimates.get(req.body.estimateId).pricing.totalPrice,
+        outcome: 'not-sent-awaiting-provider-and-human-review',
+      });
+      res.status(202).json({
+        campaign,
+        estimateId: req.body.estimateId,
+        status: 'draft-only',
+        sentToPlatforms: false,
+        providerIntegrationConfigured: false,
+        preparedBy: req.admin.subject,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
 
   app.locals.reactivationQueue = reactivationQueue;
   const reviewTimer = setInterval(() => {

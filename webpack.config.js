@@ -7,6 +7,7 @@ module.exports = {
   entry: {
     'holub30-visualizer': './public/js/holub30-visualizer.js',
     'hbot-core': './public/js/hbot-core.js',
+    'admin-core': './public/js/admin-core.js',
   },
   output: {
     path: path.resolve(__dirname, 'public', 'dist'),

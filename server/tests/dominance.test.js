@@ -3,6 +3,7 @@
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const assert = require('node:assert/strict');
 const { after, before, describe, test } = require('node:test');
 const { createApp, assistantGreeting } = require('../../server');
@@ -11,7 +12,26 @@ const { createAuditLogger } = require('../services/auditLogger');
 const { buildCampaignDraft } = require('../services/campaignDraft');
 const { renderEstimatePdf } = require('../services/pdfExportEngine');
 const { ReactivationQueue } = require('../services/reactivationQueue');
-const { checkAuditLog, checkDirectory } = require('../../deploy-orchestrator');
+const { checkAuditLog, checkDirectory, checkTransparency } = require('../../deploy-orchestrator');
+const { createRateLimiter, verifyAdminToken } = require('../services/adminAuth');
+
+const ADMIN_SECRET = 'a-test-only-secret-that-is-long-enough-for-hmac';
+
+function createAdminToken(claimOverrides = {}, secret = ADMIN_SECRET) {
+  const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
+  const header = encode({ alg: 'HS256', typ: 'JWT' });
+  const now = Math.floor(Date.now() / 1000);
+  const claims = encode({
+    iss: 'holub360',
+    aud: 'holub360-admin',
+    role: 'admin',
+    sub: 'test-admin',
+    exp: now + 300,
+    ...claimOverrides,
+  });
+  const signature = crypto.createHmac('sha256', secret).update(`${header}.${claims}`).digest('base64url');
+  return `${header}.${claims}.${signature}`;
+}
 
 describe('HOLUB 360 API foundation', () => {
   let directory;
@@ -22,7 +42,11 @@ describe('HOLUB 360 API foundation', () => {
   before(async () => {
     directory = await fs.mkdtemp(path.join(os.tmpdir(), 'holub360-test-'));
     auditPath = path.join(directory, 'audit.log');
-    const app = createApp({ auditLogger: createAuditLogger(auditPath) });
+    const app = createApp({
+      auditLogger: createAuditLogger(auditPath),
+      auditReaderPath: auditPath,
+      adminJwtSecret: ADMIN_SECRET,
+    });
     server = app.listen(0);
     await new Promise((resolve) => server.once('listening', resolve));
     baseUrl = `http://127.0.0.1:${server.address().port}`;
@@ -236,6 +260,122 @@ describe('HOLUB 360 API foundation', () => {
 
     await fs.writeFile(auditFile, 'not-json\n', { mode: 0o600 });
     assert.equal((await checkAuditLog(root)).status, 'invalid');
+    assert.equal((await checkTransparency(path.resolve(__dirname, '../..'))).ok, true);
     await fs.rm(root, { recursive: true, force: true });
+  });
+
+  test('JWT verification enforces signature, role, issuer, audience, and expiry', () => {
+    assert.equal(verifyAdminToken(createAdminToken(), ADMIN_SECRET).subject, 'test-admin');
+    assert.throws(() => verifyAdminToken(createAdminToken(), `${ADMIN_SECRET}-wrong`), /token/);
+    assert.throws(() => verifyAdminToken(createAdminToken({ exp: 1 }), ADMIN_SECRET), /token/);
+    assert.throws(() => verifyAdminToken(createAdminToken({ role: 'user' }), ADMIN_SECRET), /token/);
+    assert.throws(() => verifyAdminToken(createAdminToken({ aud: 'public-api' }), ADMIN_SECRET), /token/);
+    assert.throws(() => verifyAdminToken(createAdminToken(), 'short'), /není nakonfigurováno/);
+  });
+
+  test('admin API denies unauthenticated requests and gates contract review', async () => {
+    const denied = await fetch(`${baseUrl}/api/admin/overview`);
+    assert.equal(denied.status, 401);
+    const estimateResponse = await fetch(`${baseUrl}/api/satellite-scan`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ address: 'Adresa správní budovy' }),
+    });
+    const estimate = await estimateResponse.json();
+    const headers = {
+      authorization: 'Bearer ' + createAdminToken(),
+      'content-type': 'application/json',
+    };
+    const overview = await fetch(`${baseUrl}/api/admin/overview`, { headers });
+    assert.equal(overview.status, 200);
+    const result = await overview.json();
+    assert.equal(result.liveSatelliteTelemetry, false);
+    assert.ok(result.requests.some((request) => request.estimateId === estimate.estimateId));
+
+    const premature = await fetch(`${baseUrl}/api/admin/contracts/${estimate.estimateId}/approve`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ confirmation: true }),
+    });
+    assert.equal(premature.status, 409);
+    await fetch(`${baseUrl}/api/generate-contract`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ estimateId: estimate.estimateId, customerName: 'Test objednatel' }),
+    });
+    const approvalResponse = await fetch(`${baseUrl}/api/admin/contracts/${estimate.estimateId}/approve`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ confirmation: true }),
+    });
+    assert.equal(approvalResponse.status, 200);
+    const approval = await approvalResponse.json();
+    assert.equal(approval.signed, false);
+    assert.equal(approval.sentToProvider, false);
+  });
+
+  test('admin campaign action prepares a consent-gated draft only and audit view is authenticated', async () => {
+    const headers = {
+      authorization: 'Bearer ' + createAdminToken(),
+      'content-type': 'application/json',
+    };
+    const firstEstimateResponse = await fetch(`${baseUrl}/api/satellite-scan`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ address: 'Zakázka s odmítnutým potvrzením' }),
+    });
+    const firstEstimate = await firstEstimateResponse.json();
+    const denied = await fetch(`${baseUrl}/api/admin/geo-shield/draft`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        latitude: 50,
+        longitude: 14,
+        estimateId: firstEstimate.estimateId,
+        workConfirmed: false,
+        consent: true,
+      }),
+    });
+    assert.equal(denied.status, 400);
+    const response = await fetch(`${baseUrl}/api/admin/geo-shield/draft`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        latitude: 50,
+        longitude: 14,
+        estimateId: firstEstimate.estimateId,
+        workConfirmed: true,
+        consent: true,
+      }),
+    });
+    assert.equal(response.status, 202);
+    const campaign = await response.json();
+    assert.equal(campaign.sentToPlatforms, false);
+    assert.equal(campaign.campaign.meta.sentToAdPlatforms, false);
+
+    const auditResponse = await fetch(`${baseUrl}/api/admin/audit-log?limit=100`, { headers });
+    assert.equal(auditResponse.status, 200);
+    const audit = await auditResponse.json();
+    assert.ok(audit.records.some((record) => record.type === 'geo-campaign-draft-prepared'));
+    assert.equal(audit.tamperProof, false);
+  });
+
+  test('admin rate limiter returns 429 after its configured request budget', () => {
+    let time = 1000;
+    const limiter = createRateLimiter({ windowMs: 1000, maxRequests: 1, now: () => time });
+    let nextCount = 0;
+    const response = {
+      set() { return this; },
+      status(code) { this.statusCode = code; return this; },
+      json(body) { this.body = body; return this; },
+    };
+    const request = { ip: 'test-client', socket: {} };
+    limiter(request, response, () => { nextCount += 1; });
+    limiter(request, response, () => { nextCount += 1; });
+    assert.equal(nextCount, 1);
+    assert.equal(response.statusCode, 429);
+    time += 1001;
+    limiter(request, response, () => { nextCount += 1; });
+    assert.equal(nextCount, 2);
   });
 });

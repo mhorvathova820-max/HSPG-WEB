@@ -6,6 +6,7 @@ const path = require('node:path');
 const root = __dirname;
 const requiredDirectories = ['server/logs', 'public', 'documents'];
 const requiredAuditFields = ['timestamp', 'eventId', 'type', 'amountCzk', 'outcome'];
+const assistantDisclosure = 'Dobrý den, jsem automatizovaný asistent HOLUB Core';
 
 async function checkDirectory(relativePath, baseDirectory = root) {
   try {
@@ -68,6 +69,22 @@ async function checkAuditLog(baseDirectory = root) {
   };
 }
 
+async function checkTransparency(baseDirectory = root) {
+  const [serverSource, cockpitSource] = await Promise.all([
+    fs.readFile(path.join(baseDirectory, 'server.js'), 'utf8'),
+    fs.readFile(path.join(baseDirectory, 'public', 'admin-cockpit.html'), 'utf8'),
+  ]);
+  const backendDisclosesAssistant = serverSource.includes(assistantDisclosure) &&
+    serverSource.includes("app.get('/api/hbot/hello'");
+  const adminUiDisclosesAutomation = cockpitSource.includes(assistantDisclosure);
+  return {
+    ok: backendDisclosesAssistant && adminUiDisclosesAutomation,
+    detail: backendDisclosesAssistant && adminUiDisclosesAutomation
+      ? 'Oznamovací text je přítomen v H-BOT handleru i administračním rozhraní; nejde o právní certifikaci.'
+      : 'Chybí kontrolovaný oznamovací text v H-BOT handleru nebo administračním rozhraní.',
+  };
+}
+
 async function run(baseDirectory = root) {
   console.log('HOLUB 360 — kontrola provozních předpokladů');
   console.log('Tato kontrola nepotvrzuje produkční připravenost, právní soulad ani připravenost ostrého spuštění.');
@@ -81,10 +98,12 @@ async function run(baseDirectory = root) {
 
   const audit = await checkAuditLog(baseDirectory);
   console.log(`${audit.ok ? 'OK' : 'NELZE OVĚŘIT'} auditní log: ${audit.detail}`);
+  const transparency = await checkTransparency(baseDirectory);
+  console.log(`${transparency.ok ? 'OK' : 'CHYBA'} automatizované rozhraní: ${transparency.detail}`);
   console.log('Kontrola logu ověřuje pouze strukturu JSONL a oprávnění souboru, nikoli odolnost proti pozměnění.');
   console.log('Živé integrace poskytovatelů, ochrana přístupů, provozní monitoring a produkční nasazení vyžadují samostatné ověření.');
 
-  const readyForFurtherReview = directoryChecks.every((result) => result.ok) && audit.ok;
+  const readyForFurtherReview = directoryChecks.every((result) => result.ok) && audit.ok && transparency.ok;
   console.log(`Výsledek předběžné kontroly: ${readyForFurtherReview ? 'základní kontroly prošly; nutná další provozní kontrola' : 'neúplné — ostré nasazení není potvrzeno'}`);
   if (!readyForFurtherReview) process.exitCode = 1;
 }
@@ -96,4 +115,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { checkAuditLog, checkDirectory, run };
+module.exports = { checkAuditLog, checkDirectory, checkTransparency, run };
