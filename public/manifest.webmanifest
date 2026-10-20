@@ -1,0 +1,20 @@
+{
+  "id": "/admin-cockpit.html",
+  "name": "HOLUB 360 Admin Cockpit",
+  "short_name": "HOLUB Admin",
+  "description": "Autorizované administrační rozhraní HOLUB 360.",
+  "lang": "cs",
+  "start_url": "/admin-cockpit.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#11110f",
+  "theme_color": "#11110f",
+  "icons": [
+    {
+      "src": "/icons/cockpit.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

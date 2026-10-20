@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171613">
+  <title>HOLUB 360 — orientační kalkulace</title>
+  <link rel="stylesheet" href="/dist/holub30-style.css">
+</head>
+<body>
+  <main class="layout">
+    <section class="hero">
+      <p class="eyebrow">HOLUB · POVRCHOVÁ OCHRANA</p>
+      <h1>Ochrana povrchů s přehledem.</h1>
+      <p class="intro">Zadejte adresu pro ukázkovou kalkulaci. Zobrazené výměry jsou modelové, nikoli zaměřené.</p>
+      <form id="estimate-form">
+        <label for="address">Adresa nemovitosti</label>
+        <div class="form-row">
+          <input id="address" name="address" autocomplete="street-address" maxlength="300" required>
+          <button type="submit">Zobrazit model</button>
+        </div>
+      </form>
+      <p id="status" role="status" aria-live="polite"></p>
+      <div id="estimate-summary" class="estimate-summary" hidden></div>
+      <button id="download-pdf" class="download-button" type="button" hidden>Stáhnout orientační PDF</button>
+      <button id="download-svj-resolution" class="download-button" type="button" hidden>Stáhnout návrh usnesení pro SVJ</button>
+      <section id="svj-savings-panel" class="svj-savings-panel" hidden aria-labelledby="svj-savings-title">
+        <h2 id="svj-savings-title">Nákladové scénáře SVJ</h2>
+        <p id="svj-savings-disclosure">Graf se zobrazí pouze s ověřenými nákladovými daty pro konkrétní objekt.</p>
+        <svg id="svj-savings-chart" viewBox="0 0 600 260" role="img" aria-labelledby="svj-chart-title svj-chart-description">
+          <title id="svj-chart-title">Srovnání nákladových scénářů</title>
+          <desc id="svj-chart-description">Náklady HSPG a scénáře odkladu po jednotlivých letech podle ověřeného podkladu.</desc>
+          <g class="chart-grid" aria-hidden="true">
+            <path d="M 62 24 V 210 H 574 M 62 164 H 574 M 62 118 H 574 M 62 70 H 574 M 62 24 H 574"></path>
+          </g>
+          <path id="svj-hspg-path" class="scenario-line hspg-line" d=""></path>
+          <path id="svj-delay-path" class="scenario-line delay-line" d=""></path>
+          <g id="svj-chart-labels"></g>
+          <g class="chart-legend" aria-hidden="true">
+            <path class="hspg-line" d="M 70 238 H 104"></path><text x="112" y="242">HSPG</text>
+            <path class="delay-line" d="M 200 238 H 234"></path><text x="242" y="242">Odklad</text>
+          </g>
+        </svg>
+        <p id="svj-savings-result" class="svj-savings-result" aria-live="polite"></p>
+      </section>
+    </section>
+    <section class="visualizer-panel" aria-label="Interaktivní model budovy">
+      <div id="building-view" class="building-view"></div>
+      <div class="visual-controls">
+        <button id="orbit-toggle" type="button" aria-pressed="false">Spustit otáčení modelu</button>
+        <label class="switch-label"><input id="sound-toggle" type="checkbox"> Zapnout zvukové efekty (opt-in)</label>
+        <label class="switch-label"><input id="haptics-toggle" type="checkbox"> Povolit haptiku</label>
+      </div>
+      <p class="caption">Ilustrační 3D model. Procedurální kapky vody jsou vizuální shaderová animace, nikoli simulace skutečné hydrodynamiky. Stiskněte a táhněte pro otočení.</p>
+      <label for="surface-reveal">Ukázka obnovy povrchu</label>
+      <input id="surface-reveal" type="range" min="0" max="100" value="35">
+      <section id="reference-card" class="reference-card" aria-live="polite">
+        <h2>Ověřená realizace v okolí</h2>
+        <p id="reference-status">Po zadání adresy zobrazíme nejbližší dostupnou ověřenou referenci. Pokud ji nelze doložit, řekneme to otevřeně.</p>
+      </section>
+    </section>
+  </main>
+  <aside class="hbot" aria-labelledby="hbot-title">
+    <div class="hbot-mark" aria-hidden="true">H</div>
+    <div><h2 id="hbot-title">H-BOT</h2><p>Dobrý den, jsem automatizovaný asistent HOLUB Core. Zobrazený výpočet je modelový a nenahrazuje odborné zaměření.</p></div>
+    <canvas id="flock-canvas" aria-hidden="true"></canvas>
+  </aside>
+  <p id="svj-page-note" class="svj-page-note" hidden>Režim pro bytové domy: kalkulace je pouze modelová. Úspora se vypočítává jen z ověřených, doložených nákladových scénářů.</p>
+  <section class="document-review" aria-labelledby="document-review-title">
+    <h2 id="document-review-title">Nezávazná kontrola konkurenční nabídky</h2>
+    <p>Nahrajte PDF nebo obrázek nabídky. Soubor zpracujeme pouze dočasně; automatické OCR není dostupné, proto výsledkem bude bezpečné předání k ručnímu posouzení bez nepodložených závěrů.</p>
+    <form id="competitor-review-form">
+      <label for="competitor-document">Nabídka ve formátu PDF, JPEG, PNG nebo WebP (max. 5 MB)</label>
+      <input id="competitor-document" name="document" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" required>
+      <label><input id="competitor-consent" type="checkbox" required> Souhlasím s jednorázovým zpracováním nahraného souboru za účelem ručního posouzení.</label>
+      <button type="submit">Předat nabídku k ruční kontrole</button>
+    </form>
+    <p id="competitor-review-status" role="status" aria-live="polite"></p>
+    <div id="competitor-review-result" hidden></div>
+  </section>
+  <script defer src="/dist/holub30-visualizer.bundle.js"></script>
+  <script defer src="/dist/hbot-core.bundle.js"></script>
+</body>
+</html>

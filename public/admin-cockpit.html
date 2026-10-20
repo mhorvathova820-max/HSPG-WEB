@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#11110f">
+  <meta name="description" content="Autorizované administrační rozhraní HOLUB 360.">
+  <title>HOLUB 360 — administrační kokpit</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/cockpit.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/dist/admin-cockpit-style.css">
+  <script defer src="/dist/admin-core.bundle.js"></script>
+</head>
+<body>
+  <main class="cockpit-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="HOLUB 360, hlavní stránka"><span class="brand-seal">H</span><span>HOLUB <b>360</b></span></a>
+      <span class="security-label"><span class="status-dot"></span> ADMIN · JWT</span>
+    </header>
+
+    <section class="intro-card">
+      <p class="eyebrow">MOBILE ADMIN COCKPIT</p>
+      <h1>Řízení s přehledem.</h1>
+      <p>Administrátorské rozhraní. Záznamy kalkulací jsou modelové, nikoli skutečná satelitní telemetrie.</p>
+    </section>
+
+    <section class="panel auth-panel" aria-labelledby="auth-heading">
+      <div class="panel-heading"><div><p class="eyebrow">ZABEZPEČENÝ PŘÍSTUP</p><h2 id="auth-heading">Připojení správce</h2></div></div>
+      <label for="admin-token">JWT token</label>
+      <div class="token-row"><input id="admin-token" type="password" autocomplete="off" spellcheck="false" placeholder="Vložte krátkodobý administrátorský token"><button id="connect-button" type="button">Ověřit</button></div>
+      <p class="helper">Token se uchovává pouze v paměti této stránky a při zavření se zahodí. Rozhraní vyžaduje HTTPS mimo localhost.</p>
+      <label class="haptic-option"><input id="haptics-enabled" type="checkbox"> Povolit haptickou odezvu</label>
+      <p id="connection-status" class="status-message" role="status" aria-live="polite">Nepřipojeno. Pro přístup musí správce vložit platný JWT.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="requests-heading">
+      <div class="panel-heading">
+        <div><p class="eyebrow">LOKÁLNÍ ZÁZNAMY</p><h2 id="requests-heading">Přehled kalkulací</h2></div>
+        <button id="refresh-button" class="secondary-button" type="button" disabled>Obnovit</button>
+      </div>
+      <p class="helper">Automatická obnova po 15 sekundách po přihlášení. Nejde o živý sken ani satelitní přenos.</p>
+      <div id="request-list" class="request-list"><p class="empty-state">Přihlaste se pro zobrazení autorizovaných záznamů.</p></div>
+    </section>
+
+    <section class="panel priority-panel" aria-labelledby="address-reviews-heading">
+      <div class="panel-heading"><div><p class="eyebrow">PRIORITNÍ RUČNÍ OVĚŘENÍ</p><h2 id="address-reviews-heading">Neúplné adresy</h2></div></div>
+      <p class="helper">Při neúspěšném ověření se poloha nevymýšlí. Záznamy čekají na ruční kontrolu správce.</p>
+      <div id="address-review-list" class="request-list"><p class="empty-state">Přihlaste se pro zobrazení prioritních požadavků.</p></div>
+    </section>
+
+    <section class="panel" aria-labelledby="contract-heading">
+      <div class="panel-heading"><div><p class="eyebrow">RUČNÍ KONTROLA</p><h2 id="contract-heading">Návrhy smluv</h2></div></div>
+      <p class="helper">Schválení zaznamená kontrolu návrhu pro případné navazující posouzení. Nejde o podpis ani odeslání přes DigiSign/BankID.</p>
+      <div id="contract-list" class="request-list"><p class="empty-state">Po přihlášení se zobrazí návrhy připravené ke kontrole.</p></div>
+    </section>
+
+    <section class="panel" aria-labelledby="handoff-heading">
+      <div class="panel-heading"><div><p class="eyebrow">PŘEDÁVACÍ PROTOKOL TECHNIKA</p><h2 id="handoff-heading">Fotodokumentace díla</h2></div></div>
+      <p class="helper">Nahrajte alespoň tři fotografie dokončené práce. Evidují se pouze kryptografické otisky a metadata; obrazová data se po požadavku zahodí. Bez tří fotografií nelze schválení návrhu posunout k závěrečné kontrole před podpisem.</p>
+      <form id="completion-photo-form">
+        <label for="photo-estimate">Zakázka</label>
+        <select id="photo-estimate" disabled><option value="">Přihlaste správce</option></select>
+        <label for="completion-photos">Fotografie dokončeného díla (JPEG, PNG nebo WebP, nejvýše 5 souborů po 2 MB na jedno nahrání; celkem max. 10 na zakázku)</label>
+        <input id="completion-photos" name="photos" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" multiple required>
+        <button id="upload-photos-button" class="gold-button" type="submit" disabled>Uložit důkazy fotodokumentace</button>
+      </form>
+      <p id="photo-status" class="status-message" role="status" aria-live="polite">Fotodokumentace dosud nebyla předána.</p>
+    </section>
+
+    <section class="panel geo-panel" aria-labelledby="geo-heading">
+      <div class="panel-heading"><div><p class="eyebrow">POUZE NÁVRH KAMPANĚ</p><h2 id="geo-heading">Geo-Shield · 5 km</h2></div></div>
+      <p class="helper">Vyžaduje potvrzení aktivní zakázky a souhlas. Vytvoří pouze návrh; Meta ani Google Ads nejsou připojeny a reklama se neodešle.</p>
+      <label for="geo-estimate">Navázat návrh na evidovanou kalkulaci</label>
+      <select id="geo-estimate" disabled><option value="">Nejprve načtěte přehled zakázek</option></select>
+      <label class="confirmation-option"><input id="work-confirmed" type="checkbox"> Potvrzuji, že jde o aktivní zakázku a mám oprávnění jednat.</label>
+      <label class="confirmation-option"><input id="campaign-consent" type="checkbox"> Potvrzuji souhlas s přípravou lokalizovaného reklamního návrhu.</label>
+      <button id="geo-draft-button" class="gold-button" type="button" disabled>Připravit návrh Geo-Shieldu</button>
+      <p id="geo-status" class="status-message" role="status" aria-live="polite">Žádná kampaň nebyla spuštěna.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="agents-heading">
+      <div class="panel-heading"><div><p class="eyebrow">VÝSLOVNĚ SPUŠTĚNÉ NÁVRHY</p><h2 id="agents-heading">Interní AI asistenti</h2></div></div>
+      <p class="helper">Claude API obdrží text pouze po vašem kliknutí a potvrzení. Nevkládejte osobní ani důvěrné údaje. Návrhy se nepublikují a agenti nic neodesílají.</p>
+      <label for="agent-choice">Specialista</label>
+      <select id="agent-choice" disabled><option value="">Přihlaste správce</option></select>
+      <label for="agent-input">Anonymizovaný text k posouzení</label>
+      <textarea id="agent-input" maxlength="4000" rows="5" placeholder="Vložte pouze text, který smíte předat zpracovateli."></textarea>
+      <label class="confirmation-option"><input id="agent-consent" type="checkbox"> Souhlasím s předáním tohoto anonymizovaného textu službě Anthropic ke zpracování.</label>
+      <button id="agent-run-button" class="gold-button" type="button" disabled>Vytvořit návrh k lidské kontrole</button>
+      <p id="agent-status" class="status-message" role="status" aria-live="polite">Agenti vyžadují připojení správce a nakonfigurované Claude API.</p>
+      <pre id="agent-output" class="agent-output" hidden></pre>
+    </section>
+
+    <section class="panel" aria-labelledby="audit-heading">
+      <div class="panel-heading"><div><p class="eyebrow">AUDITNÍ UDÁLOSTI</p><h2 id="audit-heading">Náhled auditního logu</h2></div></div>
+      <p class="helper">Zobrazení posledních strukturovaných záznamů. Soubor není kryptograficky neměnný a náhled nepotvrzuje právní soulad.</p>
+      <button id="audit-button" class="secondary-button" type="button" disabled>Načíst záznamy</button>
+      <ol id="audit-list" class="audit-list"><li class="empty-state">Pro zobrazení je nutné ověření správce.</li></ol>
+    </section>
+
+    <footer>
+      <p>H-BOT: Dobrý den, jsem automatizovaný asistent HOLUB Core. Toto rozhraní nezajišťuje skutečné podepisování ani reklamní kampaně.</p>
+      <a href="/">Zpět na orientační kalkulaci</a>
+    </footer>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </main>
+</body>
+</html>
