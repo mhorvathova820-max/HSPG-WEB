@@ -5,6 +5,8 @@
   "description": "Transparent API foundation for HOLUB 360",
   "main": "server.js",
   "scripts": {
+    "build": "webpack --mode production",
+    "check:deploy": "node deploy-orchestrator.js",
     "start": "node server.js",
     "test": "node --test server/tests/*.test.js"
   },
@@ -15,5 +17,10 @@
     "express": "5.3.0",
     "pdfkit": "0.17.2",
     "three": "0.186.1"
+  },
+  "devDependencies": {
+    "terser-webpack-plugin": "5.6.1",
+    "webpack": "5.112.0",
+    "webpack-cli": "7.2.3"
   }
 }
