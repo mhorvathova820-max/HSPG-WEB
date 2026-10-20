@@ -69,6 +69,65 @@ if (canvas) {
         duration: 2600 + Math.random() * 900,
       });
     }
+
+    const competitorForm = document.querySelector('#competitor-review-form');
+    if (competitorForm) {
+      competitorForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const status = document.querySelector('#competitor-review-status');
+        const resultPanel = document.querySelector('#competitor-review-result');
+        const fileInput = document.querySelector('#competitor-document');
+        const file = fileInput.files?.[0];
+        resultPanel.hidden = true;
+        resultPanel.replaceChildren();
+        if (!file || !document.querySelector('#competitor-consent').checked) {
+          status.textContent = 'Vyberte dokument a potvrďte jednorázové zpracování.';
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          status.textContent = 'Soubor překračuje maximální velikost 5 MB.';
+          return;
+        }
+
+        const submitButton = competitorForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        status.textContent = 'Soubor se bezpečně předává k posouzení…';
+        try {
+          const body = new FormData();
+          body.append('document', file);
+          body.append('processingConsent', 'true');
+          const response = await fetch('/api/competitor-review', { method: 'POST', body, cache: 'no-store' });
+          const review = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(review.error || `Požadavek selhal (${response.status}).`);
+          status.textContent = review.message;
+
+          const heading = document.createElement('h3');
+          heading.textContent = 'Kontrolní oblasti pro odborné srovnání';
+          const table = document.createElement('table');
+          const tableHead = document.createElement('thead');
+          tableHead.innerHTML = '<tr><th scope="col">Oblast</th><th scope="col">Co ověřit</th><th scope="col">Výsledek skenu</th></tr>';
+          table.append(tableHead);
+          const bodyElement = document.createElement('tbody');
+          for (const checklistItem of review.comparisonChecklist || []) {
+            const row = document.createElement('tr');
+            for (const value of [checklistItem, 'Posouzení odborníkem', 'Automatická analýza neprovedena']) {
+              const cell = document.createElement('td');
+              cell.textContent = value;
+              row.append(cell);
+            }
+            bodyElement.append(row);
+          }
+          table.append(bodyElement);
+          resultPanel.append(heading, table);
+          resultPanel.hidden = false;
+          competitorForm.reset();
+        } catch (error) {
+          status.textContent = error.message;
+        } finally {
+          submitButton.disabled = false;
+        }
+      });
+    }
     if (!frame) frame = requestAnimationFrame(draw);
 
     if (document.querySelector('#sound-toggle')?.checked) {

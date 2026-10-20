@@ -35,6 +35,8 @@ label { display: block; margin: 12px 0 7px; color: #dfdace; font-size: .8rem; }
 input[type="password"] { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid #555044; border-radius: 9px; color: #fff; background: #11110f; }
 textarea { width: 100%; min-height: 110px; padding: 11px; resize: vertical; border: 1px solid #555044; border-radius: 9px; color: #fff; background: #11110f; line-height: 1.5; }
 select { width: 100%; min-height: 46px; padding: 9px 11px; border: 1px solid #555044; border-radius: 9px; color: #fff; background: #11110f; }
+input[type="file"] { width: 100%; min-height: 46px; padding: 9px; border: 1px solid #555044; border-radius: 9px; color: #dedace; background: #11110f; }
+input[type="file"]::file-selector-button { min-height: 30px; margin-right: 10px; padding: 5px 9px; border: 1px solid #746334; border-radius: 6px; color: #f3f0e7; background: #2a2924; }
 .token-row { display: flex; gap: 9px; align-items: stretch; }
 .token-row input { min-width: 0; }
 .token-row button { flex: 0 0 auto; }
@@ -48,6 +50,8 @@ input[type="checkbox"] { width: 20px; height: 20px; flex: 0 0 20px; margin: 0; a
 .request-card { padding: 13px; background: #141411; border: 1px solid var(--line); border-radius: 11px; }
 .request-card h3 { margin: 0 0 5px; overflow-wrap: anywhere; color: #f5edcf; font-size: .92rem; }
 .request-card p { margin: 4px 0; color: var(--muted); font-size: .75rem; line-height: 1.5; }
+.priority-panel { border-color: #8d4c37; }
+.priority-panel .request-card { border-color: #8d4c37; }
 .request-card button { width: 100%; margin-top: 9px; font-size: .78rem; }
 .empty-state { margin: 0; padding: 12px 0; color: var(--muted); font-size: .78rem; }
 .audit-list { display: grid; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }

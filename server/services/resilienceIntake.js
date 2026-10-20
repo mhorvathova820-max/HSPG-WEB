@@ -121,6 +121,13 @@ class ResilienceIntake {
         receivedAt: new Date().toISOString(),
       };
     });
+    const existingHashes = new Set(existing.map((photo) => photo.sha256));
+    for (const photo of additions) {
+      if (existingHashes.has(photo.sha256)) {
+        throw new TypeError('Každá fotografie předávacího protokolu musí být obsahově jedinečná.');
+      }
+      existingHashes.add(photo.sha256);
+    }
     const photos = [...existing, ...additions];
     this.photosByEstimate.set(estimateId, photos);
     return {

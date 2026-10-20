@@ -41,6 +41,18 @@
     <div><h2 id="hbot-title">H-BOT</h2><p>Dobrý den, jsem automatizovaný asistent HOLUB Core. Zobrazený výpočet je modelový a nenahrazuje odborné zaměření.</p></div>
     <canvas id="flock-canvas" aria-hidden="true"></canvas>
   </aside>
+  <section class="document-review" aria-labelledby="document-review-title">
+    <h2 id="document-review-title">Nezávazná kontrola konkurenční nabídky</h2>
+    <p>Nahrajte PDF nebo obrázek nabídky. Soubor zpracujeme pouze dočasně; automatické OCR není dostupné, proto výsledkem bude bezpečné předání k ručnímu posouzení bez nepodložených závěrů.</p>
+    <form id="competitor-review-form">
+      <label for="competitor-document">Nabídka ve formátu PDF, JPEG, PNG nebo WebP (max. 5 MB)</label>
+      <input id="competitor-document" name="document" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" required>
+      <label><input id="competitor-consent" type="checkbox" required> Souhlasím s jednorázovým zpracováním nahraného souboru za účelem ručního posouzení.</label>
+      <button type="submit">Předat nabídku k ruční kontrole</button>
+    </form>
+    <p id="competitor-review-status" role="status" aria-live="polite"></p>
+    <div id="competitor-review-result" hidden></div>
+  </section>
   <script defer src="/dist/holub30-visualizer.bundle.js"></script>
   <script defer src="/dist/hbot-core.bundle.js"></script>
 </body>

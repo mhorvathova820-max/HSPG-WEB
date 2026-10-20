@@ -312,6 +312,7 @@ function createApp({
         estimatedPriceCzk: estimates.get(estimateId).pricing.totalPrice,
         estimateType: estimates.get(estimateId).estimateType,
         contractStatus: reviewedContracts.get(estimateId)?.status || metadata.contractStatus,
+        completionPhotoCount: resilienceIntake.photoCount(estimateId),
       }))
       .reverse()
       .slice(0, 100);
@@ -458,6 +459,7 @@ function createApp({
           error: `Před závěrečnou kontrolou a přípravou výzvy k podpisu nahrajte alespoň ${REQUIRED_HANDOFF_PHOTOS} fotografie dokončené práce.`,
           photoCount,
           requiredPhotoCount: REQUIRED_HANDOFF_PHOTOS,
+          remainingPhotoCount: REQUIRED_HANDOFF_PHOTOS - photoCount,
           signatureRequestSent: false,
           skipPayActivated: false,
         });

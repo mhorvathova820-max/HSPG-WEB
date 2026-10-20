@@ -6,6 +6,7 @@
   const statusMessage = document.querySelector('#connection-status');
   const requestList = document.querySelector('#request-list');
   const contractList = document.querySelector('#contract-list');
+  const addressReviewList = document.querySelector('#address-review-list');
   const auditList = document.querySelector('#audit-list');
   const toast = document.querySelector('#toast');
   const geoButton = document.querySelector('#geo-draft-button');
@@ -14,6 +15,11 @@
   const agentInput = document.querySelector('#agent-input');
   const agentConsent = document.querySelector('#agent-consent');
   const agentButton = document.querySelector('#agent-run-button');
+  const photoEstimate = document.querySelector('#photo-estimate');
+  const photoForm = document.querySelector('#completion-photo-form');
+  const photoInput = document.querySelector('#completion-photos');
+  const photoButton = document.querySelector('#upload-photos-button');
+  const seenAddressReviews = new Set();
   let token = '';
   let refreshTimer = null;
   let toastTimer = null;
@@ -28,11 +34,12 @@
   }
 
   async function api(path, options = {}) {
+    const isMultipart = typeof FormData !== 'undefined' && options.body instanceof FormData;
     const response = await fetch(path, {
       ...options,
       cache: 'no-store',
       headers: {
-        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(options.body && !isMultipart ? { 'Content-Type': 'application/json' } : {}),
         Authorization: 'Bearer ' + token,
         ...options.headers,
       },
@@ -81,19 +88,33 @@
     requestList.replaceChildren();
     contractList.replaceChildren();
     const selectedEstimateId = geoEstimate.value;
+    const selectedPhotoEstimateId = photoEstimate.value;
     geoEstimate.replaceChildren();
+    photoEstimate.replaceChildren();
     const selectPrompt = document.createElement('option');
     selectPrompt.value = '';
     selectPrompt.textContent = data.requests.length ? 'Vyberte evidovanou kalkulaci' : 'Nejsou dostupné žádné kalkulace';
     geoEstimate.append(selectPrompt);
+    const photoPrompt = document.createElement('option');
+    photoPrompt.value = '';
+    photoPrompt.textContent = data.requests.length ? 'Vyberte zakázku' : 'Nejsou dostupné žádné zakázky';
+    photoEstimate.append(photoPrompt);
     for (const item of data.requests) {
       const option = document.createElement('option');
       option.value = item.estimateId;
       option.textContent = `${item.address} · ${new Date(item.createdAt).toLocaleDateString('cs-CZ')}`;
       geoEstimate.append(option);
+      const photoOption = document.createElement('option');
+      photoOption.value = item.estimateId;
+      photoOption.textContent = `${item.address} · ${item.completionPhotoCount}/3 fotografií`;
+      photoEstimate.append(photoOption);
     }
     geoEstimate.disabled = false;
     if (data.requests.some((item) => item.estimateId === selectedEstimateId)) geoEstimate.value = selectedEstimateId;
+    photoEstimate.disabled = false;
+    if (data.requests.some((item) => item.estimateId === selectedPhotoEstimateId)) {
+      photoEstimate.value = selectedPhotoEstimateId;
+    }
     if (!data.requests.length) {
       requestList.innerHTML = '<p class="empty-state">Zatím nejsou k dispozici žádné modelové kalkulace.</p>';
       contractList.innerHTML = '<p class="empty-state">Žádné návrhy smluv k ruční kontrole.</p>';
@@ -115,7 +136,11 @@
       if (item.contractStatus === 'awaiting-manual-review') {
         contractList.append(makeCard(
           item.address,
-          [`ID kalkulace: ${item.estimateId}`, 'Stav: čeká na ruční kontrolu návrhu.'],
+          [
+            `ID kalkulace: ${item.estimateId}`,
+            'Stav: čeká na ruční kontrolu návrhu.',
+            `Fotodokumentace: ${item.completionPhotoCount}/3`,
+          ],
           'SCHVÁLIT SMLOUVU K PODPISU',
           () => approveContract(item),
         ));
@@ -139,6 +164,29 @@
     try {
       const overview = await api('/api/admin/overview');
       renderOverview(overview);
+      addressReviewList.replaceChildren();
+      const reviews = overview.priorityAddressReviews || [];
+      if (!reviews.length) {
+        addressReviewList.innerHTML = '<p class="empty-state">Žádné neúplné adresy nečekají na ruční kontrolu.</p>';
+      } else {
+        for (const review of reviews) {
+          addressReviewList.append(makeCard(
+            review.notification,
+            [
+              `Adresa: ${review.address || 'Nebyla zadána'}`,
+              `ID požadavku: ${review.requestId}`,
+              `Přijato: ${new Date(review.createdAt).toLocaleString('cs-CZ')}`,
+              'Poloha nebyla odhadnuta; vyžaduje ruční ověření.',
+            ],
+            null,
+            null,
+          ));
+          if (!seenAddressReviews.has(review.requestId)) {
+            seenAddressReviews.add(review.requestId);
+            notify(review.notification);
+          }
+        }
+      }
     } finally {
       refreshInProgress = false;
     }
@@ -193,6 +241,37 @@
       if (!result.records.length) {
         auditList.innerHTML = '<li class="empty-state">Auditní soubor zatím nemá žádné záznamy.</li>';
         return;
+      }
+
+      async function uploadCompletionPhotos(event) {
+        event.preventDefault();
+        const files = [...photoInput.files];
+        if (!photoEstimate.value || !files.length) {
+          notify('Vyberte zakázku a alespoň jednu fotografii.');
+          return;
+        }
+        const form = new FormData();
+        for (const file of files) form.append('photos', file);
+        photoButton.disabled = true;
+        document.querySelector('#photo-status').textContent = 'Ověřuji fotografie a ukládám pouze jejich metadata…';
+        try {
+          const result = await api(
+            `/api/admin/estimates/${encodeURIComponent(photoEstimate.value)}/completion-photos`,
+            { method: 'POST', body: form },
+          );
+          document.querySelector('#photo-status').textContent =
+            `Evidováno ${result.photoCount}/${result.requiredPhotoCount} fotografií. Obrazová data se neukládají. ` +
+            (result.eligibleForFinalSignatureReview
+              ? 'Předávací protokol splňuje minimální počet fotografií.'
+              : `Zbývá dodat ${result.requiredPhotoCount - result.photoCount} fotografií.`);
+          photoForm.reset();
+          await refreshOverview();
+          notify('Evidence fotodokumentace byla aktualizována.');
+        } catch (error) {
+          document.querySelector('#photo-status').textContent = error.message;
+        } finally {
+          updatePhotoButton();
+        }
       }
       for (const record of result.records) {
         const item = document.createElement('li');
@@ -257,6 +336,8 @@
     document.querySelector('#audit-button').disabled = true;
     geoButton.disabled = true;
     geoEstimate.disabled = true;
+    photoEstimate.disabled = true;
+    photoButton.disabled = true;
     agentChoice.disabled = true;
     agentButton.disabled = true;
     statusMessage.textContent = 'Odpojeno.';
@@ -304,12 +385,18 @@
   });
   document.querySelector('#audit-button').addEventListener('click', loadAudit);
   geoButton.addEventListener('click', prepareGeoDraft);
+  photoForm.addEventListener('submit', uploadCompletionPhotos);
   function updateGeoButton() {
     geoButton.disabled = !token || !geoEstimate.value ||
       !document.querySelector('#work-confirmed').checked ||
       !document.querySelector('#campaign-consent').checked;
   }
   geoEstimate.addEventListener('change', updateGeoButton);
+  function updatePhotoButton() {
+    photoButton.disabled = !token || !photoEstimate.value || !photoInput.files?.length;
+  }
+  photoEstimate.addEventListener('change', updatePhotoButton);
+  photoInput.addEventListener('change', updatePhotoButton);
   document.querySelector('#work-confirmed').addEventListener('change', updateGeoButton);
   document.querySelector('#campaign-consent').addEventListener('change', updateGeoButton);
   function updateAgentButton() {
