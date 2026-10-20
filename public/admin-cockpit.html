@@ -59,6 +59,19 @@
       <p id="geo-status" class="status-message" role="status" aria-live="polite">Žádná kampaň nebyla spuštěna.</p>
     </section>
 
+    <section class="panel" aria-labelledby="agents-heading">
+      <div class="panel-heading"><div><p class="eyebrow">VÝSLOVNĚ SPUŠTĚNÉ NÁVRHY</p><h2 id="agents-heading">Interní AI asistenti</h2></div></div>
+      <p class="helper">Claude API obdrží text pouze po vašem kliknutí a potvrzení. Nevkládejte osobní ani důvěrné údaje. Návrhy se nepublikují a agenti nic neodesílají.</p>
+      <label for="agent-choice">Specialista</label>
+      <select id="agent-choice" disabled><option value="">Přihlaste správce</option></select>
+      <label for="agent-input">Anonymizovaný text k posouzení</label>
+      <textarea id="agent-input" maxlength="4000" rows="5" placeholder="Vložte pouze text, který smíte předat zpracovateli."></textarea>
+      <label class="confirmation-option"><input id="agent-consent" type="checkbox"> Souhlasím s předáním tohoto anonymizovaného textu službě Anthropic ke zpracování.</label>
+      <button id="agent-run-button" class="gold-button" type="button" disabled>Vytvořit návrh k lidské kontrole</button>
+      <p id="agent-status" class="status-message" role="status" aria-live="polite">Agenti vyžadují připojení správce a nakonfigurované Claude API.</p>
+      <pre id="agent-output" class="agent-output" hidden></pre>
+    </section>
+
     <section class="panel" aria-labelledby="audit-heading">
       <div class="panel-heading"><div><p class="eyebrow">AUDITNÍ UDÁLOSTI</p><h2 id="audit-heading">Náhled auditního logu</h2></div></div>
       <p class="helper">Zobrazení posledních strukturovaných záznamů. Soubor není kryptograficky neměnný a náhled nepotvrzuje právní soulad.</p>

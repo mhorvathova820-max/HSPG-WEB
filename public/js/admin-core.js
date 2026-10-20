@@ -10,6 +10,10 @@
   const toast = document.querySelector('#toast');
   const geoButton = document.querySelector('#geo-draft-button');
   const geoEstimate = document.querySelector('#geo-estimate');
+  const agentChoice = document.querySelector('#agent-choice');
+  const agentInput = document.querySelector('#agent-input');
+  const agentConsent = document.querySelector('#agent-consent');
+  const agentButton = document.querySelector('#agent-run-button');
   let token = '';
   let refreshTimer = null;
   let toastTimer = null;
@@ -133,6 +137,48 @@
     renderOverview(overview);
   }
 
+  async function loadAgents() {
+    const result = await api('/api/admin/agents');
+    agentChoice.replaceChildren();
+    for (const agent of result.agents) {
+      const option = document.createElement('option');
+      option.value = agent.id;
+      option.textContent = `${agent.name} — ${agent.providerConfigured ? 'Claude připraveno' : 'Claude API nenakonfigurováno'}`;
+      option.disabled = !agent.providerConfigured;
+      agentChoice.append(option);
+    }
+    agentChoice.disabled = false;
+    updateAgentButton();
+  }
+
+  async function runAgent() {
+    const input = agentInput.value.trim();
+    if (!input || !agentConsent.checked) {
+      notify('Vložte text a potvrďte předání poskytovateli.');
+      return;
+    }
+    agentButton.disabled = true;
+    document.querySelector('#agent-status').textContent = 'Požadavek byl ručně spuštěn; čekám na Claude API…';
+    document.querySelector('#agent-output').hidden = true;
+    try {
+      const result = await api(`/api/admin/agents/${encodeURIComponent(agentChoice.value)}/run`, {
+        method: 'POST',
+        body: JSON.stringify({ input, externalProcessingConsent: true }),
+      });
+      document.querySelector('#agent-output').textContent = result.draft;
+      document.querySelector('#agent-output').hidden = false;
+      document.querySelector('#agent-status').textContent =
+        `Návrh od ${result.provider} (${result.model}). Vyžaduje lidskou kontrolu; není schválen ani publikován. Otisk vstupu: ${result.promptSha256}.`;
+      notify('Návrh připraven; nebyl odeslán ani publikován.');
+      agentInput.value = '';
+      agentConsent.checked = false;
+    } catch (error) {
+      document.querySelector('#agent-status').textContent = error.message;
+    } finally {
+      updateAgentButton();
+    }
+  }
+
   async function loadAudit() {
     try {
       const result = await api('/api/admin/audit-log?limit=50');
@@ -204,6 +250,8 @@
     document.querySelector('#audit-button').disabled = true;
     geoButton.disabled = true;
     geoEstimate.disabled = true;
+    agentChoice.disabled = true;
+    agentButton.disabled = true;
     statusMessage.textContent = 'Odpojeno.';
   }
 
@@ -216,6 +264,7 @@
     connectButton.disabled = true;
     try {
       await refreshOverview();
+      await loadAgents();
       statusMessage.textContent = 'Správce ověřen. Přehled se obnovuje každých 15 sekund.';
       document.querySelector('#refresh-button').disabled = false;
       document.querySelector('#audit-button').disabled = false;
@@ -256,6 +305,15 @@
   geoEstimate.addEventListener('change', updateGeoButton);
   document.querySelector('#work-confirmed').addEventListener('change', updateGeoButton);
   document.querySelector('#campaign-consent').addEventListener('change', updateGeoButton);
+  function updateAgentButton() {
+    agentButton.disabled = !token || !agentChoice.value ||
+      agentChoice.selectedOptions[0]?.disabled ||
+      !agentInput.value.trim() || !agentConsent.checked;
+  }
+  agentChoice.addEventListener('change', updateAgentButton);
+  agentInput.addEventListener('input', updateAgentButton);
+  agentConsent.addEventListener('change', updateAgentButton);
+  agentButton.addEventListener('click', runAgent);
   window.addEventListener('pagehide', disconnect);
 
   if ('serviceWorker' in navigator && window.isSecureContext) {

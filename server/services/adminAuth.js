@@ -51,13 +51,27 @@ function verifyAdminToken(token, secret, nowSeconds = Math.floor(Date.now() / 10
   return { subject: claims.sub, role: claims.role };
 }
 
-function createRateLimiter({ windowMs = 60_000, maxRequests = 60, now = Date.now } = {}) {
+function createRateLimiter({
+  windowMs = 60_000,
+  maxRequests = 60,
+  maxClients = 2000,
+  now = Date.now,
+} = {}) {
   const clients = new Map();
   return function rateLimit(req, res, next) {
     const currentTime = now();
     const key = req.ip || req.socket.remoteAddress || 'unknown';
     let record = clients.get(key);
     if (!record || record.expiresAt <= currentTime) {
+      if (!clients.has(key) && clients.size >= maxClients) {
+        for (const [client, value] of clients) {
+          if (value.expiresAt <= currentTime) clients.delete(client);
+        }
+        if (clients.size >= maxClients) {
+          res.set('Retry-After', String(Math.ceil(windowMs / 1000)));
+          return res.status(429).json({ error: 'Kapacita administrátorského limitu je dočasně vyčerpána.' });
+        }
+      }
       record = { count: 0, expiresAt: currentTime + windowMs };
       clients.set(key, record);
     }

@@ -4,6 +4,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const express = require('express');
+const compression = require('compression');
 const { calculateEstimate, validateWeather } = require('./server/services/estimate');
 const { createAuditLogger } = require('./server/services/auditLogger');
 const { buildContractHtml } = require('./server/services/contractHtml');
@@ -11,6 +12,7 @@ const { buildCampaignDraft } = require('./server/services/campaignDraft');
 const { renderEstimatePdf } = require('./server/services/pdfExportEngine');
 const { ReactivationQueue } = require('./server/services/reactivationQueue');
 const { createRateLimiter, verifyAdminToken } = require('./server/services/adminAuth');
+const { createAgentService } = require('./server/services/agents');
 
 const assistantGreeting = 'Dobrý den, jsem automatizovaný asistent HOLUB Core. Mohu vám pomoci s orientačními informacemi.';
 const publicDirectory = path.join(__dirname, 'public');
@@ -29,6 +31,7 @@ function createApp({
   auditLogger = createAuditLogger(auditLogPath),
   auditReaderPath = auditLogPath,
   adminJwtSecret = process.env.ADMIN_JWT_SECRET,
+  agentService = createAgentService(),
 } = {}) {
   const app = express();
   const estimates = new Map();
@@ -36,6 +39,7 @@ function createApp({
   const contractDrafts = new Set();
   const reviewedContracts = new Map();
   const reactivationQueue = new ReactivationQueue();
+  let activePdfExports = 0;
 
   app.disable('x-powered-by');
   const trustedProxyIps = (process.env.TRUSTED_PROXY_IPS || '')
@@ -52,6 +56,7 @@ function createApp({
     });
     next();
   });
+  app.use(compression({ threshold: 1024, level: 6 }));
   app.use((req, res, next) => {
     if (req.path === '/admin-cockpit.html') {
       res.set(
@@ -133,6 +138,10 @@ function createApp({
   });
 
   app.post('/api/export-pdf', async (req, res, next) => {
+    if (activePdfExports >= 2) {
+      return res.status(503).json({ error: 'Kapacita exportu je dočasně vytížena; zkuste to později.' });
+    }
+    activePdfExports += 1;
     try {
       const estimate = estimates.get(req.body?.estimateId);
       if (!estimate) return res.status(404).json({ error: 'Kalkulace nebyla nalezena nebo již není dostupná.' });
@@ -148,6 +157,8 @@ function createApp({
         .send(pdf);
     } catch (error) {
       next(error);
+    } finally {
+      activePdfExports -= 1;
     }
   });
 
@@ -247,6 +258,9 @@ function createApp({
             type: record.type,
             amountCzk: Number.isFinite(record.amountCzk) ? record.amountCzk : null,
             outcome: record.outcome,
+            agentId: typeof record.agentId === 'string' ? record.agentId : null,
+            promptSha256: typeof record.promptSha256 === 'string' ? record.promptSha256 : null,
+            outputSha256: typeof record.outputSha256 === 'string' ? record.outputSha256 : null,
           }];
         } catch {
           return [];
@@ -262,6 +276,35 @@ function createApp({
       if (error.code === 'ENOENT') {
         return res.status(404).json({ error: 'Auditní log zatím neobsahuje žádný soubor.' });
       }
+      next(error);
+    }
+  });
+
+  app.get('/api/admin/agents', (_req, res) => {
+    res.json({
+      agents: agentService.list(),
+      notice: 'Agenti reagují pouze na výslovný požadavek správce, po souhlasu s předáním textu Anthropic; výstupy vyžadují lidskou kontrolu.',
+    });
+  });
+
+  app.post('/api/admin/agents/:agentId/run', async (req, res, next) => {
+    try {
+      const result = await agentService.run(req.params.agentId, {
+        input: req.body?.input,
+        externalProcessingConsent: req.body?.externalProcessingConsent,
+      });
+      await auditLogger({
+        eventId: crypto.randomUUID(),
+        type: 'admin-agent-draft-generated',
+        outcome: 'human-review-required-not-published',
+        agentId: result.agentId,
+        provider: result.provider,
+        model: result.model,
+        promptSha256: result.promptSha256,
+        outputSha256: result.outputSha256,
+      });
+      res.json(result);
+    } catch (error) {
       next(error);
     }
   });
@@ -340,6 +383,7 @@ function createApp({
     if (error instanceof RangeError) return res.status(503).json({ error: error.message });
     if (error instanceof TypeError) return res.status(400).json({ error: error.message });
     if (error?.type === 'entity.too.large') return res.status(413).json({ error: 'Požadavek je příliš velký.' });
+    if (error?.statusCode === 503) return res.status(503).json({ error: error.message });
     console.error('Chyba požadavku:', error);
     return res.status(500).json({ error: 'Požadavek se nepodařilo zpracovat.' });
   });

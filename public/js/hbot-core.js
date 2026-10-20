@@ -2,6 +2,7 @@ const canvas = document.querySelector('#flock-canvas');
 if (canvas) {
   const context = canvas.getContext('2d');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const maxBirds = 100;
   let width = 0;
   let height = 0;
   let frame = 0;
@@ -58,7 +59,7 @@ if (canvas) {
     if (reducedMotion.matches) return;
     const rect = canvas.getBoundingClientRect();
     const now = performance.now();
-    for (let i = 0; i < 14; i += 1) {
+    for (let i = 0; i < 14 && birds.length < maxBirds; i += 1) {
       birds.push({
         x: rect.width * (0.2 + Math.random() * 0.6),
         y: rect.height * (0.45 + Math.random() * 0.45),

@@ -33,6 +33,7 @@ h1 { margin: 0 0 10px; font: 400 clamp(2.25rem, 9vw, 3.3rem)/1.04 Georgia, serif
 h2 { margin: 0; font: 400 1.42rem/1.2 Georgia, serif; }
 label { display: block; margin: 12px 0 7px; color: #dfdace; font-size: .8rem; }
 input[type="password"] { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid #555044; border-radius: 9px; color: #fff; background: #11110f; }
+textarea { width: 100%; min-height: 110px; padding: 11px; resize: vertical; border: 1px solid #555044; border-radius: 9px; color: #fff; background: #11110f; line-height: 1.5; }
 select { width: 100%; min-height: 46px; padding: 9px 11px; border: 1px solid #555044; border-radius: 9px; color: #fff; background: #11110f; }
 .token-row { display: flex; gap: 9px; align-items: stretch; }
 .token-row input { min-width: 0; }
@@ -51,6 +52,7 @@ input[type="checkbox"] { width: 20px; height: 20px; flex: 0 0 20px; margin: 0; a
 .empty-state { margin: 0; padding: 12px 0; color: var(--muted); font-size: .78rem; }
 .audit-list { display: grid; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
 .audit-list li:not(.empty-state) { padding: 11px; border-left: 2px solid var(--gold); background: #141411; overflow-wrap: anywhere; font-size: .75rem; line-height: 1.55; }
+.agent-output { max-height: 340px; overflow: auto; padding: 13px; border: 1px solid #4b4430; border-radius: 9px; color: #eee8d8; background: #11110f; white-space: pre-wrap; overflow-wrap: anywhere; font: .8rem/1.6 ui-monospace, monospace; }
 footer { padding: 20px 5px; }
 footer p { font-size: .72rem; }
 footer a { font-size: .78rem; }

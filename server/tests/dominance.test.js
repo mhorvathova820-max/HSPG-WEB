@@ -14,8 +14,21 @@ const { renderEstimatePdf } = require('../services/pdfExportEngine');
 const { ReactivationQueue } = require('../services/reactivationQueue');
 const { checkAuditLog, checkDirectory, checkTransparency } = require('../../deploy-orchestrator');
 const { createRateLimiter, verifyAdminToken } = require('../services/adminAuth');
+const { createAgentService } = require('../services/agents');
 
 const ADMIN_SECRET = 'a-test-only-secret-that-is-long-enough-for-hmac';
+const agentService = createAgentService({
+  model: 'test-model',
+  client: {
+    messages: {
+      async create(request) {
+        return {
+          content: [{ type: 'text', text: `Návrh pro správce podle role: ${request.system.slice(0, 50)}` }],
+        };
+      },
+    },
+  },
+});
 
 function createAdminToken(claimOverrides = {}, secret = ADMIN_SECRET) {
   const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -46,6 +59,7 @@ describe('HOLUB 360 API foundation', () => {
       auditLogger: createAuditLogger(auditPath),
       auditReaderPath: auditPath,
       adminJwtSecret: ADMIN_SECRET,
+      agentService,
     });
     server = app.listen(0);
     await new Promise((resolve) => server.once('listening', resolve));
@@ -377,5 +391,68 @@ describe('HOLUB 360 API foundation', () => {
     time += 1001;
     limiter(request, response, () => { nextCount += 1; });
     assert.equal(nextCount, 2);
+  });
+
+  test('Claude agents require administrator, explicit consent, anonymized text, and retain only fingerprints', async () => {
+    const headers = {
+      authorization: 'Bearer ' + createAdminToken(),
+      'content-type': 'application/json',
+    };
+    const listing = await fetch(`${baseUrl}/api/admin/agents`, { headers });
+    assert.equal(listing.status, 200);
+    const agents = await listing.json();
+    assert.equal(agents.agents.length, 4);
+    assert.ok(agents.agents.every((agent) => agent.humanReviewRequired && !agent.externalActionsEnabled));
+
+    const noConsent = await fetch(`${baseUrl}/api/admin/agents/web-dominance/run`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ input: 'Obecný obsah pro návrh.', externalProcessingConsent: false }),
+    });
+    assert.equal(noConsent.status, 400);
+    const piiInput = await fetch(`${baseUrl}/api/admin/agents/web-dominance/run`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        input: 'Kontaktujte pana na adrese owner@example.cz.',
+        externalProcessingConsent: true,
+      }),
+    });
+    assert.equal(piiInput.status, 400);
+
+    const generated = await fetch(`${baseUrl}/api/admin/agents/competitor-review/run`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        input: 'Porovnej pouze tento anonymizovaný technický popis produktu.',
+        externalProcessingConsent: true,
+      }),
+    });
+    assert.equal(generated.status, 200);
+    const result = await generated.json();
+    assert.equal(result.approved, false);
+    assert.equal(result.dispatched, false);
+    assert.match(result.promptSha256, /^[a-f0-9]{64}$/);
+    const auditResponse = await fetch(`${baseUrl}/api/admin/audit-log?limit=100`, { headers });
+    const audit = await auditResponse.json();
+    assert.ok(audit.records.some((record) =>
+      record.type === 'admin-agent-draft-generated' &&
+      record.agentId === 'competitor-review' &&
+      /^[a-f0-9]{64}$/.test(record.outputSha256),
+    ));
+  });
+
+  test('admin cockpit is online-only, serves manifest, and discloses AI assistance', async () => {
+    const page = await fetch(`${baseUrl}/admin-cockpit.html`);
+    assert.equal(page.status, 200);
+    assert.match(page.headers.get('content-security-policy'), /default-src 'self'/);
+    const html = await page.text();
+    assert.match(html, /Dobrý den, jsem automatizovaný asistent HOLUB Core/);
+    const manifest = await fetch(`${baseUrl}/manifest.webmanifest`);
+    assert.equal(manifest.status, 200);
+    const worker = await fetch(`${baseUrl}/service-worker.js`);
+    const workerSource = await worker.text();
+    assert.match(workerSource, /admin-cockpit\.html/);
+    assert.match(workerSource, /caches\.match/);
   });
 });
