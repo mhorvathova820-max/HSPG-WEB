@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#171613">
   <title>HOLUB 360 — orientační kalkulace</title>
+  <script type="importmap">{"imports":{"three":"/vendor/three.module.js"}}</script>
   <link rel="stylesheet" href="/css/holub30-style.css">
 </head>
 <body>
@@ -22,6 +23,7 @@
       </form>
       <p id="status" role="status" aria-live="polite"></p>
       <div id="estimate-summary" class="estimate-summary" hidden></div>
+      <button id="download-pdf" class="download-button" type="button" hidden>Stáhnout orientační PDF</button>
     </section>
     <section class="visualizer-panel" aria-label="Interaktivní model budovy">
       <div id="building-view" class="building-view"></div>

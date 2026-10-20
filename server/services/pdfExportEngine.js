@@ -15,6 +15,11 @@ function renderEstimatePdf(estimate) {
   ) {
     throw new TypeError('K vytvoření PDF je nutná platná orientační kalkulace.');
   }
+  const printableAddress = estimate.address
+    .replace(/[\u0000-\u001f\u007f]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 300);
 
   return new Promise((resolve, reject) => {
     const document = new PDFDocument({ size: 'A4', margins: { top: 54, bottom: 54, left: 56, right: 56 } });
@@ -41,7 +46,7 @@ function renderEstimatePdf(estimate) {
     document.fillColor('#806522').font('Helvetica-Bold').fontSize(20).text('Orientační kalkulace', { continued: false });
     document.moveDown(0.5);
     document.fillColor('#222').font('Helvetica').fontSize(10)
-      .text(`Adresa: ${estimate.address}`)
+      .text(`Adresa: ${printableAddress}`)
       .text('Způsob stanovení: pevné ilustrační předpoklady; žádné satelitní ani jiné dálkové měření nebylo provedeno.')
       .moveDown();
 
@@ -70,7 +75,7 @@ function renderEstimatePdf(estimate) {
     document.font('Helvetica-Bold').text('Pracovní návrh smlouvy o dílo');
     document.font('Helvetica').moveDown(0.3)
       .text('Tento oddíl je pouze osnovou k právnímu dopracování. Nejde o úplné znění smlouvy ani o právní radu.')
-      .text(`Místo plnění: ${estimate.address}. Předmět, skutečné výměry, technologický postup, cena, termín, předání, vady, záruka a odpovědnost musí být doplněny a oboustranně odsouhlaseny.`)
+      .text(`Místo plnění: ${printableAddress}. Předmět, skutečné výměry, technologický postup, cena, termín, předání, vady, záruka a odpovědnost musí být doplněny a oboustranně odsouhlaseny.`)
       .text('Záloha, splatnost po předání, případná záruka i spotřebitelská práva se řídí až individuální písemnou dohodou a ověřenými obchodními podmínkami.')
       .text('Podpisy: objednatel ____________________   zhotovitel ____________________');
 

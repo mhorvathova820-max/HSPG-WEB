@@ -3,8 +3,9 @@
 const crypto = require('node:crypto');
 
 class ReactivationQueue {
-  constructor({ retentionMs = 72 * 60 * 60 * 1000 } = {}) {
+  constructor({ retentionMs = 72 * 60 * 60 * 1000, maxEntries = 1000 } = {}) {
     this.retentionMs = retentionMs;
+    this.maxEntries = maxEntries;
     this.entries = new Map();
   }
 
@@ -18,6 +19,10 @@ class ReactivationQueue {
     ) {
       throw new TypeError('Zadejte platnou e-mailovou adresu.');
     }
+    for (const [entryId, entry] of this.entries) {
+      if (entry.expiresAt <= now) this.entries.delete(entryId);
+    }
+    if (this.entries.size >= this.maxEntries) throw new RangeError('Fronta následného kontaktu je dočasně plná.');
     const id = crypto.randomUUID();
     this.entries.set(id, {
       id,

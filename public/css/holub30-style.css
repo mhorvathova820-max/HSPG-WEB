@@ -23,6 +23,7 @@ button { color: #201d14; background: var(--gold); border: 0; border-radius: 8px;
 button:hover { background: #e5c65b; }
 button:focus-visible, input:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 .estimate-summary { margin-top: 1.5rem; padding: 1rem; border: 1px solid #746334; border-radius: 10px; background: #211f19; line-height: 1.7; }
+.download-button { margin-top: .8rem; }
 .visualizer-panel { padding: clamp(16px, 3vw, 32px); background: #ffffff0b; border: 1px solid #ffffff22; border-radius: 20px; box-shadow: 0 25px 90px #0006; backdrop-filter: blur(18px); }
 .building-view { height: min(48vh, 420px); min-height: 260px; overflow: hidden; border-radius: 14px; background: radial-gradient(ellipse at 50% 70%, #3a3223, #151411 69%); touch-action: none; }
 .building-view canvas { display: block; width: 100%; height: 100%; }

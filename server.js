@@ -1,17 +1,23 @@
 'use strict';
 
 const crypto = require('node:crypto');
+const path = require('node:path');
 const express = require('express');
 const { calculateEstimate, validateWeather } = require('./server/services/estimate');
 const { createAuditLogger } = require('./server/services/auditLogger');
 const { buildContractHtml } = require('./server/services/contractHtml');
 const { buildCampaignDraft } = require('./server/services/campaignDraft');
+const { renderEstimatePdf } = require('./server/services/pdfExportEngine');
+const { ReactivationQueue } = require('./server/services/reactivationQueue');
 
 const assistantGreeting = 'Dobrý den, jsem automatizovaný asistent HOLUB Core. Mohu vám pomoci s orientačními informacemi.';
+const publicDirectory = path.join(__dirname, 'public');
+const threeDirectory = path.join(__dirname, 'node_modules', 'three');
 
 function createApp({ auditLogger = createAuditLogger() } = {}) {
   const app = express();
   const estimates = new Map();
+  const reactivationQueue = new ReactivationQueue();
 
   app.disable('x-powered-by');
   app.use(express.json({ limit: '16kb', type: 'application/json' }));
@@ -23,6 +29,18 @@ function createApp({ auditLogger = createAuditLogger() } = {}) {
     });
     next();
   });
+  app.use('/vendor/three/examples', express.static(path.join(threeDirectory, 'examples'), {
+    fallthrough: false,
+    immutable: true,
+    maxAge: '1d',
+    setHeaders(res, filePath) {
+      if (filePath.endsWith('.js')) res.type('text/javascript');
+    },
+  }));
+  app.get('/vendor/three.module.js', (_req, res) => {
+    res.type('text/javascript').sendFile(path.join(threeDirectory, 'build', 'three.module.js'));
+  });
+  app.use(express.static(publicDirectory, { index: 'index.html', fallthrough: true }));
 
   app.post('/api/satellite-scan', async (req, res, next) => {
     try {
@@ -71,6 +89,47 @@ function createApp({ auditLogger = createAuditLogger() } = {}) {
     }
   });
 
+  app.post('/api/export-pdf', async (req, res, next) => {
+    try {
+      const estimate = estimates.get(req.body?.estimateId);
+      if (!estimate) return res.status(404).json({ error: 'Kalkulace nebyla nalezena nebo již není dostupná.' });
+      const pdf = await renderEstimatePdf(estimate);
+      await auditLogger({
+        eventId: crypto.randomUUID(),
+        type: 'illustrative-pdf-created',
+        amountCzk: estimate.pricing.totalPrice,
+        outcome: 'draft-not-contract',
+      });
+      res.type('application/pdf')
+        .set('Content-Disposition', 'attachment; filename="holub360-orientacni-nabidka.pdf"')
+        .send(pdf);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post('/api/reactivation/register', (req, res, next) => {
+    try {
+      const estimateId = req.body?.estimateId;
+      if (!estimates.has(estimateId)) {
+        return res.status(404).json({ error: 'Kalkulace nebyla nalezena nebo již není dostupná.' });
+      }
+      const result = reactivationQueue.register({
+        estimateId,
+        contact: req.body?.contact,
+        followUpConsent: req.body?.followUpConsent,
+      });
+      res.status(202).json({
+        ...result,
+        messageStatus: 'not-sent-awaiting-48-hour-review',
+        priceLocked: false,
+        paymentApproval: false,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.post('/api/trigger-geo-shield', (req, res, next) => {
     try {
       res.json(buildCampaignDraft(req.body || {}));
@@ -81,10 +140,18 @@ function createApp({ auditLogger = createAuditLogger() } = {}) {
 
   app.get('/api/hbot/hello', (_req, res) => res.json({ message: assistantGreeting }));
 
+  app.locals.reactivationQueue = reactivationQueue;
+  const reviewTimer = setInterval(() => {
+    reactivationQueue.getPendingForReview();
+  }, 60 * 1000);
+  reviewTimer.unref();
+  app.locals.close = () => clearInterval(reviewTimer);
+
   app.use((error, _req, res, _next) => {
     if (error instanceof SyntaxError && 'body' in error) {
       return res.status(400).json({ error: 'Neplatný JSON požadavek.' });
     }
+    if (error instanceof RangeError) return res.status(503).json({ error: error.message });
     if (error instanceof TypeError) return res.status(400).json({ error: error.message });
     if (error?.type === 'entity.too.large') return res.status(413).json({ error: 'Požadavek je příliš velký.' });
     console.error('Chyba požadavku:', error);
