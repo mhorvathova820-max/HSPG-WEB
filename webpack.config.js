@@ -36,6 +36,8 @@ module.exports = {
       new TerserPlugin({
         extractComments: false,
         terserOptions: {
+          compress: { passes: 2 },
+          mangle: true,
           format: { comments: false },
         },
       }),

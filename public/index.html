@@ -24,15 +24,34 @@
       <div id="estimate-summary" class="estimate-summary" hidden></div>
       <button id="download-pdf" class="download-button" type="button" hidden>Stáhnout orientační PDF</button>
       <button id="download-svj-resolution" class="download-button" type="button" hidden>Stáhnout návrh usnesení pro SVJ</button>
+      <section id="svj-savings-panel" class="svj-savings-panel" hidden aria-labelledby="svj-savings-title">
+        <h2 id="svj-savings-title">Nákladové scénáře SVJ</h2>
+        <p id="svj-savings-disclosure">Graf se zobrazí pouze s ověřenými nákladovými daty pro konkrétní objekt.</p>
+        <svg id="svj-savings-chart" viewBox="0 0 600 260" role="img" aria-labelledby="svj-chart-title svj-chart-description">
+          <title id="svj-chart-title">Srovnání nákladových scénářů</title>
+          <desc id="svj-chart-description">Náklady HSPG a scénáře odkladu po jednotlivých letech podle ověřeného podkladu.</desc>
+          <g class="chart-grid" aria-hidden="true">
+            <path d="M 62 24 V 210 H 574 M 62 164 H 574 M 62 118 H 574 M 62 70 H 574 M 62 24 H 574"></path>
+          </g>
+          <path id="svj-hspg-path" class="scenario-line hspg-line" d=""></path>
+          <path id="svj-delay-path" class="scenario-line delay-line" d=""></path>
+          <g id="svj-chart-labels"></g>
+          <g class="chart-legend" aria-hidden="true">
+            <path class="hspg-line" d="M 70 238 H 104"></path><text x="112" y="242">HSPG</text>
+            <path class="delay-line" d="M 200 238 H 234"></path><text x="242" y="242">Odklad</text>
+          </g>
+        </svg>
+        <p id="svj-savings-result" class="svj-savings-result" aria-live="polite"></p>
+      </section>
     </section>
     <section class="visualizer-panel" aria-label="Interaktivní model budovy">
       <div id="building-view" class="building-view"></div>
       <div class="visual-controls">
         <button id="orbit-toggle" type="button" aria-pressed="false">Spustit otáčení modelu</button>
-        <label class="switch-label"><input id="sound-toggle" type="checkbox"> Povolit zvukový signál</label>
+        <label class="switch-label"><input id="sound-toggle" type="checkbox"> Zapnout zvukové efekty (opt-in)</label>
         <label class="switch-label"><input id="haptics-toggle" type="checkbox"> Povolit haptiku</label>
       </div>
-      <p class="caption">Ilustrační 3D model. Stiskněte a táhněte pro otočení; posuvník ovládá vizuální ukázku obnovy povrchu.</p>
+      <p class="caption">Ilustrační 3D model. Procedurální kapky vody jsou vizuální shaderová animace, nikoli simulace skutečné hydrodynamiky. Stiskněte a táhněte pro otočení.</p>
       <label for="surface-reveal">Ukázka obnovy povrchu</label>
       <input id="surface-reveal" type="range" min="0" max="100" value="35">
       <section id="reference-card" class="reference-card" aria-live="polite">
@@ -46,6 +65,7 @@
     <div><h2 id="hbot-title">H-BOT</h2><p>Dobrý den, jsem automatizovaný asistent HOLUB Core. Zobrazený výpočet je modelový a nenahrazuje odborné zaměření.</p></div>
     <canvas id="flock-canvas" aria-hidden="true"></canvas>
   </aside>
+  <p id="svj-page-note" class="svj-page-note" hidden>Režim pro bytové domy: kalkulace je pouze modelová. Úspora se vypočítává jen z ověřených, doložených nákladových scénářů.</p>
   <section class="document-review" aria-labelledby="document-review-title">
     <h2 id="document-review-title">Nezávazná kontrola konkurenční nabídky</h2>
     <p>Nahrajte PDF nebo obrázek nabídky. Soubor zpracujeme pouze dočasně; automatické OCR není dostupné, proto výsledkem bude bezpečné předání k ručnímu posouzení bez nepodložených závěrů.</p>

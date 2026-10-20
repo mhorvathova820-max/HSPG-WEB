@@ -38,6 +38,51 @@ function splitIntoThirds(amount) {
   return [firstTwo, firstTwo, Math.round((amount - firstTwo * 2) * 100) / 100];
 }
 
+function buildVerifiedSavingsScenario(scenario) {
+  if (
+    !scenario ||
+    scenario.verified !== true ||
+    typeof scenario.sourceName !== 'string' ||
+    !scenario.sourceName.trim() ||
+    scenario.sourceName.length > 120 ||
+    typeof scenario.evidenceUrl !== 'string' ||
+    !scenario.evidenceUrl.startsWith('https://') ||
+    !Array.isArray(scenario.hspgAnnualCostsCzk) ||
+    !Array.isArray(scenario.delayAnnualCostsCzk) ||
+    scenario.hspgAnnualCostsCzk.length < 2 ||
+    scenario.hspgAnnualCostsCzk.length > 30 ||
+    scenario.hspgAnnualCostsCzk.length !== scenario.delayAnnualCostsCzk.length
+  ) return null;
+  let evidenceUrl;
+  try {
+    const parsed = new URL(scenario.evidenceUrl);
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password) return null;
+    evidenceUrl = parsed.href;
+  } catch {
+    return null;
+  }
+
+  const validCosts = (costs) =>
+    costs.every((cost) => Number.isFinite(cost) && cost >= 0 && cost <= 1_000_000_000);
+  if (!validCosts(scenario.hspgAnnualCostsCzk) || !validCosts(scenario.delayAnnualCostsCzk)) return null;
+
+  const hspgTotalCzk = scenario.hspgAnnualCostsCzk.reduce((total, cost) => total + cost, 0);
+  const delayTotalCzk = scenario.delayAnnualCostsCzk.reduce((total, cost) => total + cost, 0);
+  if (delayTotalCzk <= 0 || !Number.isFinite(hspgTotalCzk)) return null;
+
+  return {
+    status: 'verified-source-scenario',
+    sourceName: scenario.sourceName.trim(),
+    evidenceUrl,
+    horizonYears: scenario.hspgAnnualCostsCzk.length,
+    hspgAnnualCostsCzk: [...scenario.hspgAnnualCostsCzk],
+    delayAnnualCostsCzk: [...scenario.delayAnnualCostsCzk],
+    hspgTotalCzk,
+    delayTotalCzk,
+    savingsPercent: Math.round(((delayTotalCzk - hspgTotalCzk) / delayTotalCzk) * 1000) / 10,
+  };
+}
+
 function applyContentPriceMatrix(estimate, {
   buildingProfile = null,
   svjGuildDiscountPercent = null,
@@ -104,6 +149,7 @@ function applyContentPriceMatrix(estimate, {
       status: 'not-quantified-unsupported-growth-claim',
       message: 'Cena odkladu nelze spolehlivě vyčíslit bez doložených dat o konkrétním objektu a nákladech.',
     },
+    savingsScenario: buildVerifiedSavingsScenario(buildingProfile.svjSavingsScenario),
   };
   return result;
 }
@@ -114,6 +160,7 @@ module.exports = {
   COPPERGUARD_INCLUDED_METERS,
   SVJ_WINDOW_COVER_RATE_PER_M2,
   applyContentPriceMatrix,
+  buildVerifiedSavingsScenario,
   calculateCopperGuard,
   validateDiscountPercent,
 };

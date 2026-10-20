@@ -78,6 +78,15 @@ function renderEstimatePdf(estimate) {
           : 'Cechovní sazba slevy není v systému nakonfigurována; sleva nebyla odečtena.')
         .text(`Orientační celková cena po uvedené slevě: ${formatCzk(estimate.pricing.totalPrice)}.`)
         .moveDown();
+      if (estimate.housingCooperative.savingsScenario) {
+        const scenario = estimate.housingCooperative.savingsScenario;
+        document.font('Helvetica-Bold').text('Doložené srovnání nákladových scénářů');
+        document.font('Helvetica').moveDown(0.3)
+          .text(`Podle zdroje „${scenario.sourceName}“ činí modelované náklady HSPG ${formatCzk(scenario.hspgTotalCzk)} a náklady scénáře odkladu ${formatCzk(scenario.delayTotalCzk)} za ${scenario.horizonYears} let. Vypočtený rozdíl: ${scenario.savingsPercent} %.`)
+          .text(`Ověřovací podklad: ${scenario.evidenceUrl}`)
+          .text('Výsledek se vztahuje výhradně k uvedenému objektu, období a předpokladům podkladu; nejde o obecnou garanci úspory.')
+          .moveDown();
+      }
     }
 
     document.font('Helvetica-Bold').fontSize(14).fillColor('#222')
@@ -171,8 +180,15 @@ function renderHousingCooperativeResolutionPdf(estimate) {
       .text(estimate.housingCooperative.guildDiscountConfigured
         ? `Cechovní sleva v modelu: ${estimate.pricing.svjGuildDiscountPercent} % (${formatCzk(estimate.pricing.svjGuildDiscount)}); vyžaduje potvrzení provozovatele.`
         : 'Cechovní sazba slevy není nakonfigurována a v modelu nebyla odečtena.')
-      .text('Cena odkladu není vyčíslena: chybí ověřené údaje o stavu objektu, vývoji znečištění a budoucích nákladech. Nepodložená procentní tvrzení nejsou prognózou ani podkladem pro rozhodnutí.')
+      .text(estimate.housingCooperative.savingsScenario
+        ? `Srovnávací scénář z doloženého podkladu „${estimate.housingCooperative.savingsScenario.sourceName}“: model HSPG ${formatCzk(estimate.housingCooperative.savingsScenario.hspgTotalCzk)}, scénář odkladu ${formatCzk(estimate.housingCooperative.savingsScenario.delayTotalCzk)}, rozdíl ${estimate.housingCooperative.savingsScenario.savingsPercent} % za ${estimate.housingCooperative.savingsScenario.horizonYears} let. Tento výsledek platí pouze pro níže uvedený zdroj a jeho předpoklady.`
+        : 'Cena odkladu ani procentní úspora nejsou vyčísleny: nejsou dostupné ověřené srovnávací náklady pro tento objekt.')
       .moveDown();
+    if (estimate.housingCooperative.savingsScenario) {
+      document.text(
+        `Zdroj srovnávacích nákladů: ${estimate.housingCooperative.savingsScenario.sourceName} — ${estimate.housingCooperative.savingsScenario.evidenceUrl}`,
+      ).moveDown();
+    }
 
     document.font('Helvetica-Bold').fontSize(12).text('Podklady a omezení');
     document.font('Helvetica').fontSize(9).moveDown(0.4)

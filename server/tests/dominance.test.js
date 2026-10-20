@@ -75,6 +75,13 @@ describe('HOLUB 360 API foundation', () => {
           buildingType: 'apartment-building',
           roofRidgeLengthM: 7.2,
           coordinates: { latitude: 50, longitude: 14 },
+          svjSavingsScenario: {
+            verified: true,
+            sourceName: 'Testovací doložený srovnávací podklad',
+            evidenceUrl: 'https://example.com/test-svj-study',
+            hspgAnnualCostsCzk: [10000, 10000, 4000],
+            delayAnnualCostsCzk: [40000, 30000, 30000],
+          },
         }
         : null,
       verifiedReferences: [
@@ -164,6 +171,19 @@ describe('HOLUB 360 API foundation', () => {
     assert.equal(noDiscount.housingCooperative.guildDiscountConfigured, false);
     assert.equal(noDiscount.pricing.svjGuildDiscount, 0);
     assert.throws(() => applyContentPriceMatrix(estimate, { svjGuildDiscountPercent: 101 }), TypeError);
+    assert.equal(applyContentPriceMatrix(estimate, {
+      buildingProfile: {
+        verified: true,
+        buildingType: 'apartment-building',
+        svjSavingsScenario: {
+          verified: true,
+          sourceName: 'Neplatný zdroj',
+          evidenceUrl: 'https://',
+          hspgAnnualCostsCzk: [1, 1],
+          delayAnnualCostsCzk: [10, 10],
+        },
+      },
+    }).housingCooperative.savingsScenario, null);
   });
 
   test('selects only verified nearest references from validated coordinates', () => {
@@ -283,6 +303,15 @@ describe('HOLUB 360 API foundation', () => {
     assert.equal(estimate.copperGuard.verifiedRidgeLengthM, 7.2);
     assert.equal(estimate.copperGuard.priceCzk, 2650);
     assert.equal(estimate.socialProof.reference.id, 'test-reference-near');
+    assert.equal(estimate.housingCooperative.savingsScenario.savingsPercent, 76);
+
+    const offerPdfResponse = await fetch(`${baseUrl}/api/export-pdf`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ estimateId: estimate.estimateId }),
+    });
+    assert.equal(offerPdfResponse.status, 200);
+    assert.match(offerPdfResponse.headers.get('content-type'), /application\/pdf/);
 
     const pdfResponse = await fetch(`${baseUrl}/api/export-svj-resolution`, {
       method: 'POST',
@@ -425,6 +454,9 @@ describe('HOLUB 360 API foundation', () => {
     const homepage = await fetch(baseUrl);
     assert.equal(homepage.status, 200);
     assert.match(homepage.headers.get('content-type'), /text\/html/);
+    const svjPage = await fetch(`${baseUrl}/kalkulacka-svj`);
+    assert.equal(svjPage.status, 200);
+    assert.match(await svjPage.text(), /svj-savings-chart/);
     const estimateResponse = await fetch(`${baseUrl}/api/satellite-scan`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },

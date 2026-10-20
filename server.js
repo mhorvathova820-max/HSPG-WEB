@@ -109,6 +109,9 @@ function createApp({
     maxAge: '1h',
   }));
   app.use(express.static(publicDirectory, { index: 'index.html', fallthrough: true }));
+  app.get('/kalkulacka-svj', (_req, res) => {
+    res.sendFile(path.join(publicDirectory, 'index.html'));
+  });
 
   app.post('/api/satellite-scan', async (req, res, next) => {
     try {
