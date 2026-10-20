@@ -106,54 +106,6 @@ describe('HOLUB 360 API foundation', () => {
       body: JSON.stringify({ address: 'Ulice <script>alert(1)</script>' }),
     });
 
-    test('routes unverified addresses to a priority manual queue without inventing geolocation', async () => {
-      const response = await fetch(`${baseUrl}/api/satellite-scan`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ address: 'Neexistující 1' }),
-      });
-      assert.equal(response.status, 202);
-      const fallback = await response.json();
-      assert.equal(fallback.status, 'awaiting-manual-address-review');
-      assert.equal(fallback.addressStatus, 'not-verified');
-      assert.equal(fallback.adminNotification.priority, 'critical');
-      assert.equal(
-        fallback.adminNotification.message,
-        'CRITICAL: Ruční satelitní revize nutná pro zakázku',
-      );
-      assert.equal('latitude' in fallback, false);
-      assert.match(fallback.message, /nevytváříme nepřesné měření ani polohu/);
-    });
-
-    test('accepts competitor documents only for consented human review and verifies file signatures', async () => {
-      const invalid = new FormData();
-      invalid.append('processingConsent', 'true');
-      invalid.append('document', new Blob(['not a PDF'], { type: 'application/pdf' }), 'offer.pdf');
-      const invalidResponse = await fetch(`${baseUrl}/api/competitor-review`, {
-        method: 'POST',
-        body: invalid,
-      });
-      assert.equal(invalidResponse.status, 400);
-
-      const noConsent = new FormData();
-      noConsent.append('document', new Blob(['%PDF-1.4\n'], { type: 'application/pdf' }), 'offer.pdf');
-      const noConsentResponse = await fetch(`${baseUrl}/api/competitor-review`, {
-        method: 'POST',
-        body: noConsent,
-      });
-      assert.equal(noConsentResponse.status, 400);
-
-      const valid = new FormData();
-      valid.append('processingConsent', 'true');
-      valid.append('document', new Blob(['%PDF-1.4\n'], { type: 'application/pdf' }), 'offer.pdf');
-      const response = await fetch(`${baseUrl}/api/competitor-review`, { method: 'POST', body: valid });
-      assert.equal(response.status, 202);
-      const review = await response.json();
-      assert.equal(review.ocrPerformed, false);
-      assert.deepEqual(review.automatedFindings, []);
-      assert.equal(review.status, 'awaiting-human-review-ocr-unavailable');
-      assert.match(review.sha256, /^[a-f0-9]{64}$/);
-    });
     assert.equal(response.status, 200);
     const estimate = await response.json();
     const contractResponse = await fetch(`${baseUrl}/api/generate-contract`, {
@@ -166,6 +118,66 @@ describe('HOLUB 360 API foundation', () => {
     assert.ok(html.includes('Nezávazný pracovní návrh'));
     assert.ok(html.includes('&lt;img src=x&gt;'));
     assert.ok(!html.includes('<img src=x>'));
+  });
+
+  test('routes unverified addresses to a priority manual queue without inventing geolocation', async () => {
+    const response = await fetch(`${baseUrl}/api/satellite-scan`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ address: 'Neexistující 1' }),
+    });
+    assert.equal(response.status, 202);
+    const fallback = await response.json();
+    assert.equal(fallback.status, 'awaiting-manual-address-review');
+    assert.equal(fallback.addressStatus, 'not-verified');
+    assert.equal(fallback.adminNotification.priority, 'critical');
+    assert.equal(
+      fallback.adminNotification.message,
+      'CRITICAL: Ruční satelitní revize nutná pro zakázku',
+    );
+    assert.equal('latitude' in fallback, false);
+    assert.match(fallback.message, /nevytváříme nepřesné měření ani polohu/);
+    const queueResponse = await fetch(`${baseUrl}/api/admin/address-reviews`, {
+      headers: { authorization: 'Bearer ' + createAdminToken() },
+    });
+    assert.equal(queueResponse.status, 200);
+    const queue = await queueResponse.json();
+    assert.ok(queue.reviews.some((review) => review.requestId === fallback.requestId));
+  });
+
+  test('accepts competitor documents only for consented human review and verifies file signatures', async () => {
+    const invalid = new FormData();
+    invalid.append('processingConsent', 'true');
+    invalid.append('document', new Blob(['not a PDF'], { type: 'application/pdf' }), 'offer.pdf');
+    const invalidResponse = await fetch(`${baseUrl}/api/competitor-review`, {
+      method: 'POST',
+      headers: { 'x-processing-consent': 'true' },
+      body: invalid,
+    });
+    assert.equal(invalidResponse.status, 400);
+
+    const noConsent = new FormData();
+    noConsent.append('document', new Blob(['%PDF-1.4\n'], { type: 'application/pdf' }), 'offer.pdf');
+    const noConsentResponse = await fetch(`${baseUrl}/api/competitor-review`, {
+      method: 'POST',
+      body: noConsent,
+    });
+    assert.equal(noConsentResponse.status, 400);
+
+    const valid = new FormData();
+    valid.append('processingConsent', 'true');
+    valid.append('document', new Blob(['%PDF-1.4\n'], { type: 'application/pdf' }), 'offer.pdf');
+    const response = await fetch(`${baseUrl}/api/competitor-review`, {
+      method: 'POST',
+      headers: { 'x-processing-consent': 'true' },
+      body: valid,
+    });
+    assert.equal(response.status, 202);
+    const review = await response.json();
+    assert.equal(review.ocrPerformed, false);
+    assert.deepEqual(review.automatedFindings, []);
+    assert.equal(review.status, 'awaiting-human-review-ocr-unavailable');
+    assert.match(review.sha256, /^[a-f0-9]{64}$/);
   });
 
   test('does not create campaign drafts without confirmed work and consent', async () => {
@@ -404,6 +416,17 @@ describe('HOLUB 360 API foundation', () => {
       const jpeg = new Blob([Buffer.from([0xff, 0xd8, 0xff, i + 1])], { type: 'image/jpeg' });
       photoForm.append('photos', jpeg, `completion-${i}.jpg`);
     }
+    const invalidPhotoForm = new FormData();
+    invalidPhotoForm.append('photos', new Blob(['not an image'], { type: 'image/jpeg' }), 'bad.jpg');
+    const invalidPhotoResponse = await fetch(
+      `${baseUrl}/api/admin/estimates/${estimate.estimateId}/completion-photos`,
+      {
+        method: 'POST',
+        headers: { authorization: headers.authorization },
+        body: invalidPhotoForm,
+      },
+    );
+    assert.equal(invalidPhotoResponse.status, 400);
     const photoResponse = await fetch(
       `${baseUrl}/api/admin/estimates/${estimate.estimateId}/completion-photos`,
       {

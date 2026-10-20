@@ -63,7 +63,7 @@ function createApp({
   });
   const photoUpload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 3 * 1024 * 1024, files: 10 },
+    limits: { fileSize: 2 * 1024 * 1024, files: 5 },
     fileFilter: (_req, file, callback) => {
       callback(null, ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype));
     },
@@ -173,23 +173,35 @@ function createApp({
     legacyHeaders: false,
     handler: (_req, res) => res.status(429).json({ error: 'Byl dosažen limit pro příjem dokumentů. Zkuste to později.' }),
   });
-  app.post('/api/competitor-review', competitorReviewLimiter, competitorUpload.single('document'), async (req, res, next) => {
-    try {
-      if (req.body?.processingConsent !== 'true') {
-        return res.status(400).json({ error: 'Pro jednorázové zpracování souboru potvrďte souhlas.' });
-      }
-      if (!req.file) return res.status(400).json({ error: 'Vyberte jeden soubor PDF nebo obrázek.' });
-      const review = resilienceIntake.addCompetitorDocument(req.file);
-      await auditLogger({
-        eventId: review.caseId,
-        type: 'competitor-document-received',
-        outcome: 'temporary-processing-human-review-required-no-ocr',
-      });
-      return res.status(202).json(review);
-    } catch (error) {
-      next(error);
+  const requireDocumentConsent = (req, res, next) => {
+    if (req.get('x-processing-consent') !== 'true') {
+      return res.status(400).json({ error: 'Pro jednorázové zpracování souboru potvrďte souhlas.' });
     }
-  });
+    return next();
+  };
+  app.post(
+    '/api/competitor-review',
+    competitorReviewLimiter,
+    requireDocumentConsent,
+    competitorUpload.single('document'),
+    async (req, res, next) => {
+      try {
+        if (req.body?.processingConsent !== 'true') {
+          return res.status(400).json({ error: 'Pro jednorázové zpracování souboru potvrďte souhlas.' });
+        }
+        if (!req.file) return res.status(400).json({ error: 'Vyberte jeden soubor PDF nebo obrázek.' });
+        const review = resilienceIntake.addCompetitorDocument(req.file);
+        await auditLogger({
+          eventId: review.caseId,
+          type: 'competitor-document-received',
+          outcome: 'temporary-processing-human-review-required-no-ocr',
+        });
+        return res.status(202).json(review);
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
 
   app.post('/api/meteo-validation', (req, res, next) => {
     try {
@@ -338,7 +350,7 @@ function createApp({
     '/api/admin/estimates/:estimateId/completion-photos',
     adminRateLimiter,
     requireAdmin,
-    photoUpload.array('photos', 10),
+    photoUpload.array('photos', 5),
     async (req, res, next) => {
       try {
         const { estimateId } = req.params;

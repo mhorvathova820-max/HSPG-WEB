@@ -96,7 +96,12 @@ if (canvas) {
           const body = new FormData();
           body.append('document', file);
           body.append('processingConsent', 'true');
-          const response = await fetch('/api/competitor-review', { method: 'POST', body, cache: 'no-store' });
+          const response = await fetch('/api/competitor-review', {
+            method: 'POST',
+            headers: { 'X-Processing-Consent': 'true' },
+            body,
+            cache: 'no-store',
+          });
           const review = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(review.error || `Požadavek selhal (${response.status}).`);
           status.textContent = review.message;
