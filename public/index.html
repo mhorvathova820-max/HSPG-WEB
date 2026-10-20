@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171613">
+  <title>HOLUB 360 — orientační kalkulace</title>
+  <link rel="stylesheet" href="/css/holub30-style.css">
+</head>
+<body>
+  <main class="layout">
+    <section class="hero">
+      <p class="eyebrow">HOLUB · POVRCHOVÁ OCHRANA</p>
+      <h1>Ochrana povrchů s přehledem.</h1>
+      <p class="intro">Zadejte adresu pro ukázkovou kalkulaci. Zobrazené výměry jsou modelové, nikoli zaměřené.</p>
+      <form id="estimate-form">
+        <label for="address">Adresa nemovitosti</label>
+        <div class="form-row">
+          <input id="address" name="address" autocomplete="street-address" maxlength="300" required>
+          <button type="submit">Zobrazit model</button>
+        </div>
+      </form>
+      <p id="status" role="status" aria-live="polite"></p>
+      <div id="estimate-summary" class="estimate-summary" hidden></div>
+    </section>
+    <section class="visualizer-panel" aria-label="Interaktivní model budovy">
+      <div id="building-view" class="building-view"></div>
+      <div class="visual-controls">
+        <button id="orbit-toggle" type="button" aria-pressed="false">Spustit otáčení modelu</button>
+        <label class="switch-label"><input id="sound-toggle" type="checkbox"> Povolit zvukový signál</label>
+        <label class="switch-label"><input id="haptics-toggle" type="checkbox"> Povolit haptiku</label>
+      </div>
+      <p class="caption">Ilustrační 3D model. Stiskněte a táhněte pro otočení; posuvník ovládá vizuální ukázku obnovy povrchu.</p>
+      <label for="surface-reveal">Ukázka obnovy povrchu</label>
+      <input id="surface-reveal" type="range" min="0" max="100" value="35">
+    </section>
+  </main>
+  <aside class="hbot" aria-labelledby="hbot-title">
+    <div class="hbot-mark" aria-hidden="true">H</div>
+    <div><h2 id="hbot-title">H-BOT</h2><p>Dobrý den, jsem automatizovaný asistent HOLUB Core. Zobrazený výpočet je modelový a nenahrazuje odborné zaměření.</p></div>
+    <canvas id="flock-canvas" aria-hidden="true"></canvas>
+  </aside>
+  <script type="module" src="/js/holub30-visualizer.js"></script>
+  <script type="module" src="/js/hbot-core.js"></script>
+</body>
+</html>
