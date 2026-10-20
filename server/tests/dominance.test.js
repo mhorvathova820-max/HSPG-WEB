@@ -6,6 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const assert = require('node:assert/strict');
 const { after, before, describe, test } = require('node:test');
+const { rateLimit } = require('express-rate-limit');
 const { createApp, assistantGreeting } = require('../../server');
 const { calculateEstimate, validateWeather } = require('../services/estimate');
 const { createAuditLogger } = require('../services/auditLogger');
@@ -13,7 +14,7 @@ const { buildCampaignDraft } = require('../services/campaignDraft');
 const { renderEstimatePdf } = require('../services/pdfExportEngine');
 const { ReactivationQueue } = require('../services/reactivationQueue');
 const { checkAuditLog, checkDirectory, checkTransparency } = require('../../deploy-orchestrator');
-const { createRateLimiter, verifyAdminToken } = require('../services/adminAuth');
+const { verifyAdminToken } = require('../services/adminAuth');
 const { createAgentService } = require('../services/agents');
 
 const ADMIN_SECRET = 'a-test-only-secret-that-is-long-enough-for-hmac';
@@ -39,6 +40,7 @@ function createAdminToken(claimOverrides = {}, secret = ADMIN_SECRET) {
     aud: 'holub360-admin',
     role: 'admin',
     sub: 'test-admin',
+    iat: now,
     exp: now + 300,
     ...claimOverrides,
   });
@@ -48,6 +50,7 @@ function createAdminToken(claimOverrides = {}, secret = ADMIN_SECRET) {
 
 describe('HOLUB 360 API foundation', () => {
   let directory;
+  let app;
   let server;
   let baseUrl;
   let auditPath;
@@ -55,7 +58,7 @@ describe('HOLUB 360 API foundation', () => {
   before(async () => {
     directory = await fs.mkdtemp(path.join(os.tmpdir(), 'holub360-test-'));
     auditPath = path.join(directory, 'audit.log');
-    const app = createApp({
+    app = createApp({
       auditLogger: createAuditLogger(auditPath),
       auditReaderPath: auditPath,
       adminJwtSecret: ADMIN_SECRET,
@@ -68,6 +71,7 @@ describe('HOLUB 360 API foundation', () => {
 
   after(async () => {
     await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+    app.locals.close();
     await fs.rm(directory, { recursive: true, force: true });
   });
 
@@ -140,7 +144,7 @@ describe('HOLUB 360 API foundation', () => {
     assert.ok(pdf.length > 1000);
   });
 
-  test('serves PDF export and bundled Three.js module from the API', async () => {
+  test('serves PDF export and optimized frontend bundles without exposing raw vendor modules', async () => {
     const estimateResponse = await fetch(`${baseUrl}/api/satellite-scan`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -155,12 +159,30 @@ describe('HOLUB 360 API foundation', () => {
     assert.equal(pdfResponse.status, 200);
     assert.match(pdfResponse.headers.get('content-type'), /application\/pdf/);
     assert.equal(Buffer.from(await pdfResponse.arrayBuffer()).subarray(0, 5).toString(), '%PDF-');
-    const threeResponse = await fetch(`${baseUrl}/vendor/three/build/three.module.js`);
-    assert.equal(threeResponse.status, 200);
-    assert.match(threeResponse.headers.get('content-type'), /javascript/);
-    const controlsResponse = await fetch(`${baseUrl}/vendor/three/examples/jsm/controls/OrbitControls.js`);
-    assert.equal(controlsResponse.status, 200);
-    assert.match(controlsResponse.headers.get('content-type'), /javascript/);
+    const visualizer = await fetch(`${baseUrl}/dist/holub30-visualizer.bundle.js`);
+    assert.equal(visualizer.status, 200);
+    assert.match(visualizer.headers.get('content-type'), /javascript/);
+    assert.match(visualizer.headers.get('cache-control'), /max-age=3600/);
+    const style = await fetch(`${baseUrl}/dist/holub30-style.css`);
+    assert.equal(style.status, 200);
+    assert.match(style.headers.get('content-type'), /text\/css/);
+    const distPath = path.resolve(__dirname, '../../public/dist');
+    const chunkFiles = await fs.readdir(distPath);
+    let chunk;
+    for (const name of chunkFiles.filter((file) => file.endsWith('.js'))) {
+      const details = await fs.stat(path.join(distPath, name));
+      if (details.size > 300 * 1024) {
+        chunk = name;
+        break;
+      }
+    }
+    assert.ok(chunk, 'expected the deferred Three.js vendor chunk');
+    const compressed = await fetch(`${baseUrl}/dist/${chunk}`, {
+      headers: { 'accept-encoding': 'gzip' },
+    });
+    assert.equal(compressed.headers.get('content-encoding'), 'gzip');
+    const unbundledVendor = await fetch(`${baseUrl}/vendor/three/build/three.module.js`);
+    assert.equal(unbundledVendor.status, 404);
   });
 
   test('reactivation requires consent and only queues human review after 48 hours', () => {
@@ -374,23 +396,30 @@ describe('HOLUB 360 API foundation', () => {
     assert.equal(audit.tamperProof, false);
   });
 
-  test('admin rate limiter returns 429 after its configured request budget', () => {
-    let time = 1000;
-    const limiter = createRateLimiter({ windowMs: 1000, maxRequests: 1, now: () => time });
-    let nextCount = 0;
-    const response = {
-      set() { return this; },
-      status(code) { this.statusCode = code; return this; },
-      json(body) { this.body = body; return this; },
-    };
-    const request = { ip: 'test-client', socket: {} };
-    limiter(request, response, () => { nextCount += 1; });
-    limiter(request, response, () => { nextCount += 1; });
-    assert.equal(nextCount, 1);
-    assert.equal(response.statusCode, 429);
-    time += 1001;
-    limiter(request, response, () => { nextCount += 1; });
-    assert.equal(nextCount, 2);
+  test('admin rate limiter enforces the request budget at the route', async () => {
+    const limitedApp = createApp({
+      auditLogger: async () => {},
+      auditReaderPath: auditPath,
+      adminJwtSecret: ADMIN_SECRET,
+      agentService,
+      adminRateLimiter: rateLimit({
+        windowMs: 60_000,
+        limit: 1,
+        standardHeaders: false,
+        legacyHeaders: false,
+      }),
+    });
+    const limitedServer = limitedApp.listen(0);
+    await new Promise((resolve) => limitedServer.once('listening', resolve));
+    const url = `http://127.0.0.1:${limitedServer.address().port}/api/admin/agents`;
+    const headers = { authorization: 'Bearer ' + createAdminToken() };
+    try {
+      assert.equal((await fetch(url, { headers })).status, 200);
+      assert.equal((await fetch(url, { headers })).status, 429);
+    } finally {
+      await new Promise((resolve, reject) => limitedServer.close((error) => error ? reject(error) : resolve()));
+      limitedApp.locals.close();
+    }
   });
 
   test('Claude agents require administrator, explicit consent, anonymized text, and retain only fingerprints', async () => {
@@ -440,6 +469,21 @@ describe('HOLUB 360 API foundation', () => {
       record.agentId === 'competitor-review' &&
       /^[a-f0-9]{64}$/.test(record.outputSha256),
     ));
+    const logContent = await fs.readFile(auditPath, 'utf8');
+    assert.ok(!logContent.includes('Porovnej pouze tento anonymizovaný technický popis produktu.'));
+    assert.match(logContent, /promptSha256/);
+  });
+
+  test('Claude agent service remains disabled without explicit provider configuration', async () => {
+    const disabledAgentService = createAgentService({ apiKey: '', model: '' });
+    assert.ok(disabledAgentService.list().every((agent) => !agent.providerConfigured));
+    await assert.rejects(
+      disabledAgentService.run('web-dominance', {
+        input: 'Anonymizovaný text.',
+        externalProcessingConsent: true,
+      }),
+      (error) => error.statusCode === 503,
+    );
   });
 
   test('admin cockpit is online-only, serves manifest, and discloses AI assistance', async () => {

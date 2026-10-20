@@ -17,6 +17,7 @@
   let token = '';
   let refreshTimer = null;
   let toastTimer = null;
+  let refreshInProgress = false;
 
   function notify(message) {
     toast.textContent = message;
@@ -133,8 +134,14 @@
   }
 
   async function refreshOverview() {
-    const overview = await api('/api/admin/overview');
-    renderOverview(overview);
+    if (refreshInProgress) return;
+    refreshInProgress = true;
+    try {
+      const overview = await api('/api/admin/overview');
+      renderOverview(overview);
+    } finally {
+      refreshInProgress = false;
+    }
   }
 
   async function loadAgents() {

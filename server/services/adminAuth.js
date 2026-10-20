@@ -42,7 +42,9 @@ function verifyAdminToken(token, secret, nowSeconds = Math.floor(Date.now() / 10
     claims.iss !== TOKEN_ISSUER ||
     !(claims.aud === TOKEN_AUDIENCE || (Array.isArray(claims.aud) && claims.aud.includes(TOKEN_AUDIENCE))) ||
     claims.role !== 'admin' ||
-    typeof claims.sub !== 'string' || !claims.sub ||
+    typeof claims.sub !== 'string' || !claims.sub || claims.sub.length > 200 ||
+    !Number.isFinite(claims.iat) || claims.iat > nowSeconds + 60 ||
+    claims.exp <= claims.iat || claims.exp - claims.iat > 8 * 60 * 60 ||
     !Number.isFinite(claims.exp) || claims.exp <= nowSeconds ||
     (claims.nbf !== undefined && (!Number.isFinite(claims.nbf) || claims.nbf > nowSeconds))
   ) {
@@ -51,47 +53,8 @@ function verifyAdminToken(token, secret, nowSeconds = Math.floor(Date.now() / 10
   return { subject: claims.sub, role: claims.role };
 }
 
-function createRateLimiter({
-  windowMs = 60_000,
-  maxRequests = 60,
-  maxClients = 2000,
-  now = Date.now,
-} = {}) {
-  const clients = new Map();
-  return function rateLimit(req, res, next) {
-    const currentTime = now();
-    const key = req.ip || req.socket.remoteAddress || 'unknown';
-    let record = clients.get(key);
-    if (!record || record.expiresAt <= currentTime) {
-      if (!clients.has(key) && clients.size >= maxClients) {
-        for (const [client, value] of clients) {
-          if (value.expiresAt <= currentTime) clients.delete(client);
-        }
-        if (clients.size >= maxClients) {
-          res.set('Retry-After', String(Math.ceil(windowMs / 1000)));
-          return res.status(429).json({ error: 'Kapacita administrátorského limitu je dočasně vyčerpána.' });
-        }
-      }
-      record = { count: 0, expiresAt: currentTime + windowMs };
-      clients.set(key, record);
-    }
-    record.count += 1;
-    if (clients.size > 2000) {
-      for (const [client, value] of clients) {
-        if (value.expiresAt <= currentTime) clients.delete(client);
-      }
-    }
-    if (record.count > maxRequests) {
-      res.set('Retry-After', String(Math.ceil((record.expiresAt - currentTime) / 1000)));
-      return res.status(429).json({ error: 'Příliš mnoho administrátorských požadavků.' });
-    }
-    return next();
-  };
-}
-
 module.exports = {
   TOKEN_AUDIENCE,
   TOKEN_ISSUER,
-  createRateLimiter,
   verifyAdminToken,
 };

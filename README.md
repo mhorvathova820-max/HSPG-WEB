@@ -16,7 +16,7 @@ npm run check:deploy
 
 The API listens on port `3000` by default; set `PORT` to use another port. The server reads an optional local `.env` with Node.js's built-in environment-file parser without overriding variables already supplied by the process. The audit file is created at `server/logs/ai_compliance.log` relative to this repository.
 
-Open `http://localhost:3000` for the local UI. Three.js is served from the installed dependency, not an external CDN.
+Open `http://localhost:3000` for the local UI. Run the build first; the UI uses a deferred, minified Three.js chunk rather than exposing the raw dependency tree or loading from a third-party CDN.
 
 ## Implemented routes
 
@@ -37,6 +37,12 @@ Tests use Node.js's built-in test runner. No live weather, payment/BankID, e-sig
 `npm run build` creates minified browser bundles in the ignored `public/dist/` directory. Minification is not encryption or reliable protection of client-side logic. `npm run check:deploy` checks that expected folders exist and, when present, that the audit file has restrictive permissions and valid JSONL records. It does not prove the log is tamper-proof, certify EU AI Act compliance, verify provider credentials, or declare the platform ready to launch; it exits unsuccessfully if the log is absent or structurally invalid.
 
 `.env.example` documents variable names for future provider integrations. The listed provider APIs are not wired into the application, and putting credentials in `.env` does not enable those integrations.
+
+The mobile administration page is `/admin-cockpit.html`. Its API requires a short-lived externally issued HS256 JWT, uses an in-memory per-IP rate limit, and rejects non-HTTPS remote requests. It does not issue tokens or replace an identity provider. Contract approval only records a human review; campaign tooling only prepares consent-gated drafts.
+
+Four Claude-assisted roles are available under the authenticated `/api/admin/agents` endpoints. Each run requires an explicit confirmation to send anonymized text to Anthropic; the app does not retain the prompt or generated output in its audit file, only their SHA-256 fingerprints and event metadata. The roles are suggestion-only and have no publishing, contact scraping, OCR, booking, or purchasing tools. A deployment must independently verify vendor data-processing terms before enabling `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`.
+
+Performance measures include gzip compression for responses, minified JavaScript and CSS, deferred entry scripts, lazy loading of the Three.js scene near the viewport, pausing its animation while the page is hidden, a bounded particle count, a bounded estimate/approval cache, a bounded reactivation queue, and at most two concurrent PDF exports. No PageSpeed Insights or real-device measurement was available; no load-time or score target is claimed. Audit-log growth needs an operator-managed secure archive/rotation policy; application code does not delete audit entries.
 
 ## Admin cockpit security
 

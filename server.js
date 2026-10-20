@@ -5,18 +5,18 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const express = require('express');
 const compression = require('compression');
+const { rateLimit } = require('express-rate-limit');
 const { calculateEstimate, validateWeather } = require('./server/services/estimate');
 const { createAuditLogger } = require('./server/services/auditLogger');
 const { buildContractHtml } = require('./server/services/contractHtml');
 const { buildCampaignDraft } = require('./server/services/campaignDraft');
 const { renderEstimatePdf } = require('./server/services/pdfExportEngine');
 const { ReactivationQueue } = require('./server/services/reactivationQueue');
-const { createRateLimiter, verifyAdminToken } = require('./server/services/adminAuth');
+const { verifyAdminToken } = require('./server/services/adminAuth');
 const { createAgentService } = require('./server/services/agents');
 
 const assistantGreeting = 'Dobrý den, jsem automatizovaný asistent HOLUB Core. Mohu vám pomoci s orientačními informacemi.';
 const publicDirectory = path.join(__dirname, 'public');
-const threeDirectory = path.join(__dirname, 'node_modules', 'three');
 const auditLogPath = path.join(__dirname, 'server', 'logs', 'ai_compliance.log');
 
 function loadLocalEnvironment() {
@@ -32,6 +32,13 @@ function createApp({
   auditReaderPath = auditLogPath,
   adminJwtSecret = process.env.ADMIN_JWT_SECRET,
   agentService = createAgentService(),
+  adminRateLimiter = rateLimit({
+    windowMs: 60_000,
+    limit: 60,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, res) => res.status(429).json({ error: 'Příliš mnoho administrátorských požadavků.' }),
+  }),
 } = {}) {
   const app = express();
   const estimates = new Map();
@@ -50,10 +57,12 @@ function createApp({
   app.use(express.json({ limit: '16kb', type: 'application/json' }));
   app.use((req, res, next) => {
     res.set({
-      'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'no-referrer',
     });
+    if (req.path.startsWith('/api/') || req.path === '/' || req.path.endsWith('.html')) {
+      res.set('Cache-Control', 'no-store');
+    }
     next();
   });
   app.use(compression({ threshold: 1024, level: 6 }));
@@ -66,16 +75,10 @@ function createApp({
     }
     next();
   });
-  const staticVendorOptions = {
-    fallthrough: false,
-    immutable: true,
-    maxAge: '1d',
-    setHeaders(res, filePath) {
-      if (filePath.endsWith('.js')) res.type('text/javascript');
-    },
-  };
-  app.use('/vendor/three/build', express.static(path.join(threeDirectory, 'build'), staticVendorOptions));
-  app.use('/vendor/three/examples', express.static(path.join(threeDirectory, 'examples'), staticVendorOptions));
+  app.use('/dist', express.static(path.join(publicDirectory, 'dist'), {
+    fallthrough: true,
+    maxAge: '1h',
+  }));
   app.use(express.static(publicDirectory, { index: 'index.html', fallthrough: true }));
 
   app.post('/api/satellite-scan', async (req, res, next) => {
@@ -194,8 +197,7 @@ function createApp({
 
   app.get('/api/hbot/hello', (_req, res) => res.json({ message: assistantGreeting }));
 
-  const adminLimiter = createRateLimiter();
-  app.use('/api/admin', adminLimiter, (req, res, next) => {
+  function requireAdmin(req, res, next) {
     const remoteAddress = req.socket.remoteAddress || '';
     const isLoopback = remoteAddress === '127.0.0.1' ||
       remoteAddress === '::1' ||
@@ -217,9 +219,9 @@ function createApp({
           : 'Je vyžadováno platné administrátorské přihlášení.',
       });
     }
-  });
+  }
 
-  app.get('/api/admin/overview', (req, res) => {
+  app.get('/api/admin/overview', adminRateLimiter, requireAdmin, (req, res) => {
     const requests = [...estimateMetadata.entries()]
       .map(([estimateId, metadata]) => ({
         estimateId,
@@ -240,7 +242,7 @@ function createApp({
     });
   });
 
-  app.get('/api/admin/audit-log', async (req, res, next) => {
+  app.get('/api/admin/audit-log', adminRateLimiter, requireAdmin, async (req, res, next) => {
     try {
       const requestedLimit = Number(req.query.limit);
       const limit = Number.isInteger(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 100) : 50;
@@ -249,23 +251,42 @@ function createApp({
         return res.status(503).json({ error: 'Auditní soubor není dostupný pro bezpečné zobrazení.' });
       }
       const content = await fs.readFile(auditReaderPath, 'utf8');
-      const records = content.split('\n').filter(Boolean).slice(-limit).flatMap((line) => {
+      const lines = content.split('\n');
+      if (lines.at(-1) === '') lines.pop();
+      const parsedRecords = [];
+      for (const line of lines) {
+        if (!line.trim()) {
+          return res.status(503).json({ error: 'Auditní log obsahuje neplatný záznam; náhled byl zablokován.' });
+        }
         try {
           const record = JSON.parse(line);
-          return [{
+          if (
+            !record || typeof record !== 'object' ||
+            typeof record.timestamp !== 'string' ||
+            typeof record.eventId !== 'string' ||
+            typeof record.type !== 'string' ||
+            typeof record.outcome !== 'string' ||
+            (record.amountCzk !== null && !Number.isFinite(record.amountCzk))
+          ) {
+            return res.status(503).json({ error: 'Auditní log obsahuje neplatný záznam; náhled byl zablokován.' });
+          }
+          parsedRecords.push({
             timestamp: record.timestamp,
             eventId: record.eventId,
             type: record.type,
             amountCzk: Number.isFinite(record.amountCzk) ? record.amountCzk : null,
             outcome: record.outcome,
             agentId: typeof record.agentId === 'string' ? record.agentId : null,
+            provider: typeof record.provider === 'string' ? record.provider : null,
+            model: typeof record.model === 'string' ? record.model : null,
             promptSha256: typeof record.promptSha256 === 'string' ? record.promptSha256 : null,
             outputSha256: typeof record.outputSha256 === 'string' ? record.outputSha256 : null,
-          }];
+          });
         } catch {
-          return [];
+          return res.status(503).json({ error: 'Auditní log obsahuje neplatný záznam; náhled byl zablokován.' });
         }
-      });
+      }
+      const records = parsedRecords.slice(-limit);
       res.json({
         records,
         tamperProof: false,
@@ -280,14 +301,14 @@ function createApp({
     }
   });
 
-  app.get('/api/admin/agents', (_req, res) => {
+  app.get('/api/admin/agents', adminRateLimiter, requireAdmin, (_req, res) => {
     res.json({
       agents: agentService.list(),
       notice: 'Agenti reagují pouze na výslovný požadavek správce, po souhlasu s předáním textu Anthropic; výstupy vyžadují lidskou kontrolu.',
     });
   });
 
-  app.post('/api/admin/agents/:agentId/run', async (req, res, next) => {
+  app.post('/api/admin/agents/:agentId/run', adminRateLimiter, requireAdmin, async (req, res, next) => {
     try {
       const result = await agentService.run(req.params.agentId, {
         input: req.body?.input,
@@ -309,7 +330,7 @@ function createApp({
     }
   });
 
-  app.post('/api/admin/contracts/:estimateId/approve', async (req, res, next) => {
+  app.post('/api/admin/contracts/:estimateId/approve', adminRateLimiter, requireAdmin, async (req, res, next) => {
     try {
       const { estimateId } = req.params;
       if (!estimates.has(estimateId)) return res.status(404).json({ error: 'Kalkulace nebyla nalezena.' });
@@ -344,7 +365,7 @@ function createApp({
     }
   });
 
-  app.post('/api/admin/geo-shield/draft', async (req, res, next) => {
+  app.post('/api/admin/geo-shield/draft', adminRateLimiter, requireAdmin, async (req, res, next) => {
     try {
       if (!estimates.has(req.body?.estimateId)) {
         return res.status(404).json({ error: 'Kalkulace pro návrh kampaně nebyla nalezena.' });

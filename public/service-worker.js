@@ -3,8 +3,8 @@
 const CACHE_NAME = 'holub-public-shell-v1';
 const PUBLIC_ASSETS = [
   '/',
-  '/css/holub30-style.css',
-  '/css/admin-cockpit.css',
+  '/dist/holub30-style.css',
+  '/dist/admin-cockpit-style.css',
   '/manifest.webmanifest',
   '/icons/cockpit.svg',
   '/dist/holub30-visualizer.bundle.js',

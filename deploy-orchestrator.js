@@ -33,6 +33,9 @@ async function checkAuditLog(baseDirectory = root) {
   if (!details.isFile() || details.isSymbolicLink()) {
     return { ok: false, status: 'invalid', detail: 'Cesta auditního logu není běžný soubor.' };
   }
+  if (details.size > 10 * 1024 * 1024) {
+    return { ok: false, status: 'too-large', detail: 'Auditní log přesahuje 10 MiB; archivujte jej bezpečným externím postupem a ověřte archiv.' };
+  }
   if ((details.mode & 0o077) !== 0) {
     return { ok: false, status: 'permissions', detail: 'Auditní log má příliš otevřená oprávnění; požadován je přístup pouze vlastníka.' };
   }
@@ -70,17 +73,26 @@ async function checkAuditLog(baseDirectory = root) {
 }
 
 async function checkTransparency(baseDirectory = root) {
-  const [serverSource, cockpitSource] = await Promise.all([
+  const [serverSource, cockpitSource, agentSource] = await Promise.all([
     fs.readFile(path.join(baseDirectory, 'server.js'), 'utf8'),
     fs.readFile(path.join(baseDirectory, 'public', 'admin-cockpit.html'), 'utf8'),
+    fs.readFile(path.join(baseDirectory, 'server', 'services', 'agents.js'), 'utf8'),
   ]);
   const backendDisclosesAssistant = serverSource.includes(assistantDisclosure) &&
     serverSource.includes("app.get('/api/hbot/hello'");
   const adminUiDisclosesAutomation = cockpitSource.includes(assistantDisclosure);
+  const agentRolesDeclared = [
+    'WebDominanceAgent',
+    'FasadaScanAgent',
+    'SvjLeadAgent',
+    'CompetitorShieldAgent',
+    'SmartBookingAgent',
+    'LogisticsAgent',
+  ].every((role) => agentSource.includes(role));
   return {
-    ok: backendDisclosesAssistant && adminUiDisclosesAutomation,
-    detail: backendDisclosesAssistant && adminUiDisclosesAutomation
-      ? 'Oznamovací text je přítomen v H-BOT handleru i administračním rozhraní; nejde o právní certifikaci.'
+    ok: backendDisclosesAssistant && adminUiDisclosesAutomation && agentRolesDeclared,
+    detail: backendDisclosesAssistant && adminUiDisclosesAutomation && agentRolesDeclared
+      ? 'Oznamovací text je přítomen v H-BOT handleru a administračním rozhraní; role agentů jsou deklarované. Nejde o právní certifikaci.'
       : 'Chybí kontrolovaný oznamovací text v H-BOT handleru nebo administračním rozhraní.',
   };
 }
