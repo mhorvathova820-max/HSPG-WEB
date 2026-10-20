@@ -72,7 +72,6 @@ if (canvas) {
       if (!frame) frame = requestAnimationFrame(draw);
     }
     playWingSound();
-    playLaserSound();
     if (document.querySelector('#haptics-toggle')?.checked && typeof navigator.vibrate === 'function') {
       navigator.vibrate(35);
     }
