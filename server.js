@@ -56,6 +56,13 @@ function createApp({
   }),
 } = {}) {
   const app = express();
+  const svjPageRateLimiter = rateLimit({
+    windowMs: 60_000,
+    limit: 120,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, res) => res.status(429).send('Příliš mnoho požadavků na kalkulačku SVJ.'),
+  });
   const estimates = new Map();
   const estimateMetadata = new Map();
   const contractDrafts = new Set();
@@ -109,7 +116,7 @@ function createApp({
     maxAge: '1h',
   }));
   app.use(express.static(publicDirectory, { index: 'index.html', fallthrough: true }));
-  app.get('/kalkulacka-svj', (_req, res) => {
+  app.get('/kalkulacka-svj', svjPageRateLimiter, (_req, res) => {
     res.sendFile(path.join(publicDirectory, 'index.html'));
   });
 
