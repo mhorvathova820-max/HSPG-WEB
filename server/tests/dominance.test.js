@@ -3,6 +3,8 @@
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const assert = require('node:assert/strict');
+const { after, before, describe, test } = require('node:test');
 const { createApp, assistantGreeting } = require('../../server');
 const { calculateEstimate, validateWeather } = require('../services/estimate');
 const { createAuditLogger } = require('../services/auditLogger');
@@ -14,7 +16,7 @@ describe('HOLUB 360 API foundation', () => {
   let baseUrl;
   let auditPath;
 
-  beforeAll(async () => {
+  before(async () => {
     directory = await fs.mkdtemp(path.join(os.tmpdir(), 'holub360-test-'));
     auditPath = path.join(directory, 'audit.log');
     const app = createApp({ auditLogger: createAuditLogger(auditPath) });
@@ -23,30 +25,32 @@ describe('HOLUB 360 API foundation', () => {
     baseUrl = `http://127.0.0.1:${server.address().port}`;
   });
 
-  afterAll(async () => {
+  after(async () => {
     await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
     await fs.rm(directory, { recursive: true, force: true });
   });
 
   test('calculates model areas and prices transparently', () => {
     const estimate = calculateEstimate('Stavební 1066');
-    expect(estimate.estimateType).toBe('illustrative-model-not-surveyed');
-    expect(estimate.measuredRemotely).toBe(false);
-    expect(estimate.area.facadeNetM2).toBe(156);
-    expect(estimate.area.roofNetM2).toBe(87.05);
-    expect(estimate.pricing.deposit).toBe(0);
-    expect(estimate.pricing.totalPrice).toBe(
+    assert.equal(estimate.estimateType, 'illustrative-model-not-surveyed');
+    assert.equal(estimate.measuredRemotely, false);
+    assert.equal(estimate.area.facadeNetM2, 156);
+    assert.equal(estimate.area.roofNetM2, 87.05);
+    assert.equal(estimate.pricing.deposit, 0);
+    assert.equal(estimate.pricing.totalPrice,
       estimate.pricing.facadePrice + estimate.pricing.roofPrice,
     );
-    expect(estimate.pricing.threeInstallmentsIllustration.reduce((sum, amount) => sum + amount, 0))
-      .toBe(estimate.pricing.totalPrice);
+    assert.equal(
+      estimate.pricing.threeInstallmentsIllustration.reduce((sum, amount) => sum + amount, 0),
+      estimate.pricing.totalPrice,
+    );
   });
 
   test('rejects empty addresses and validates meteo limits', () => {
-    expect(() => calculateEstimate('  ')).toThrow(TypeError);
-    expect(validateWeather(30, 5).suitable).toBe(true);
-    expect(validateWeather(30.1, 5).suitable).toBe(false);
-    expect(validateWeather(0, 4.9).suitable).toBe(false);
+    assert.throws(() => calculateEstimate('  '), TypeError);
+    assert.equal(validateWeather(30, 5).suitable, true);
+    assert.equal(validateWeather(30.1, 5).suitable, false);
+    assert.equal(validateWeather(0, 4.9).suitable, false);
   });
 
   test('creates an estimate and a clearly marked unsigned contract draft', async () => {
@@ -55,7 +59,7 @@ describe('HOLUB 360 API foundation', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ address: 'Ulice <script>alert(1)</script>' }),
     });
-    expect(response.status).toBe(200);
+    assert.equal(response.status, 200);
     const estimate = await response.json();
     const contractResponse = await fetch(`${baseUrl}/api/generate-contract`, {
       method: 'POST',
@@ -63,28 +67,28 @@ describe('HOLUB 360 API foundation', () => {
       body: JSON.stringify({ estimateId: estimate.estimateId, customerName: '<img src=x>' }),
     });
     const html = await contractResponse.text();
-    expect(contractResponse.status).toBe(200);
-    expect(html).toContain('Nezávazný pracovní návrh');
-    expect(html).toContain('&lt;img src=x&gt;');
-    expect(html).not.toContain('<img src=x>');
+    assert.equal(contractResponse.status, 200);
+    assert.ok(html.includes('Nezávazný pracovní návrh'));
+    assert.ok(html.includes('&lt;img src=x&gt;'));
+    assert.ok(!html.includes('<img src=x>'));
   });
 
   test('does not create campaign drafts without confirmed work and consent', async () => {
-    expect(() => buildCampaignDraft({
+    assert.throws(() => buildCampaignDraft({
       latitude: 50,
       longitude: 14,
       workConfirmed: true,
       consent: false,
-    })).toThrow(/souhlas/);
+    }), /souhlas/);
     const draft = buildCampaignDraft({
       latitude: 50,
       longitude: 14,
       workConfirmed: true,
       consent: true,
     });
-    expect(draft.meta.sentToAdPlatforms).toBe(false);
-    expect(draft.meta.requiresHumanApproval).toBe(true);
-    expect(draft.googleAds.radiusKm).toBe(5);
+    assert.equal(draft.meta.sentToAdPlatforms, false);
+    assert.equal(draft.meta.requiresHumanApproval, true);
+    assert.equal(draft.googleAds.radiusKm, 5);
   });
 
   test('writes sanitized audit entries and discloses the automated assistant', async () => {
@@ -93,11 +97,11 @@ describe('HOLUB 360 API foundation', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ address: 'Soukromá adresa 123' }),
     });
-    expect(response.status).toBe(200);
+    assert.equal(response.status, 200);
     const log = await fs.readFile(auditPath, 'utf8');
-    expect(log).toContain('illustrative-estimate-created');
-    expect(log).not.toContain('Soukromá adresa');
+    assert.ok(log.includes('illustrative-estimate-created'));
+    assert.ok(!log.includes('Soukromá adresa'));
     const greetingResponse = await fetch(`${baseUrl}/api/hbot/hello`);
-    expect((await greetingResponse.json()).message).toBe(assistantGreeting);
+    assert.equal((await greetingResponse.json()).message, assistantGreeting);
   });
 });

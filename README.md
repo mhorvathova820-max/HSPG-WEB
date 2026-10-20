@@ -24,4 +24,4 @@ The API listens on port `3000` by default; set `PORT` to use another port. The a
 
 Pricing inputs in the sample estimator require confirmation by the operator. The installment split is arithmetic only, not a Skip Pay/ČSOB offer or credit approval. The audit log is append-only application output, not tamper-proof or a certification of EU AI Act compliance. Contract text is not legal advice.
 
-This repository has no frontend, Three.js visualization, PDF export engine, live weather or payment integration, e-sign/BankID integration, or verified legal / accreditation documents. Those require separate implementation, credentials/provider agreements, and qualified review.
+Tests use Node.js's built-in test runner to avoid a development dependency with a known transitive vulnerability. This repository has no frontend, Three.js visualization, PDF export engine, live weather or payment integration, e-sign/BankID integration, or verified legal / accreditation documents. Those require separate implementation, credentials/provider agreements, and qualified review.
