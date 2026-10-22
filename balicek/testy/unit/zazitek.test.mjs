@@ -42,33 +42,39 @@ function falesneAudio(z) {
   };
 }
 
-// Falešné tlačítko pro přepínač (jen to, co hspg-zazitek.js používá).
-function falesneTlacitko() {
+// Falešný prvek (jen to, co hspg-zazitek.js používá): přepínač i prvky pozvánky (děti, textContent, remove).
+function falesneTlacitko(tag = "button") {
   const a = {}, posluchaci = {};
   const ikona = { innerHTML: "" };
-  return {
-    tagName: "BUTTON", hidden: true, type: "", isConnected: true, a, ikona,
+  const el = {
+    tagName: tag.toUpperCase(), hidden: true, type: "", isConnected: true, a, ikona, deti: [], parentNode: null, className: "", textContent: "",
     classList: { add() {} },
     setAttribute(k, v) { a[k] = String(v); }, getAttribute(k) { return k in a ? a[k] : null },
     addEventListener(t, fn) { (posluchaci[t] ||= []).push(fn); },
     klikni() { (posluchaci.click || []).forEach((fn) => fn({})); },
+    appendChild(c) { el.deti.push(c); c.parentNode = el; return c; },
+    insertBefore(c) { el.deti.push(c); c.parentNode = el; return c; },
+    remove() { if (el.parentNode) el.parentNode.deti = el.parentNode.deti.filter((x) => x !== el); el.parentNode = null; el.isConnected = false; },
+    najdi(trida) { return el.deti.find((x) => x.className === trida) || null; },
     set innerHTML(v) { this._html = v; }, get innerHTML() { return this._html || ""; },
     querySelector(sel) { return sel === ".hz-ikona" && this._html ? ikona : null; },
   };
+  return el;
 }
 
-function prostredi({ audio = true, vibrace = true, aktivni = true, skryto = false, uloziste = pametoveUloziste(), dokument = true, bezAktivaceApi = false } = {}) {
+const ZAPNUTO = () => pametoveUloziste({ [KLIC]: "1" }); // zákazník si zvuk už zapnul
+function prostredi({ audio = true, vibrace = true, aktivni = true, skryto = false, uloziste = pametoveUloziste(), relace = pametoveUloziste(), dokument = true, bezAktivaceApi = false } = {}) {
   const z = { kontexty: 0, osc: 0, buf: 0, probuzeni: 0, uspani: 0, starty: [], stopy: [], vibrace: [] };
   const posluchaciOkna = {};
   const document = dokument ? {
     hidden: skryto,
     addEventListener() {},
-    createElement: () => falesneTlacitko(),
+    createElement: (tag) => falesneTlacitko(tag),
   } : undefined;
   const navigator = bezAktivaceApi ? {} : { userActivation: { isActive: aktivni, hasBeenActive: aktivni } };
   if (vibrace) navigator.vibrate = (v) => { z.vibrace.push(v); return true; };
   const ctx = {
-    module: { exports: {} }, document, navigator, localStorage: uloziste, Float32Array,
+    module: { exports: {} }, document, navigator, localStorage: uloziste, sessionStorage: relace, Float32Array,
     // Uspávací časovač nesmí držet proces testu naživu.
     setTimeout: (fn, ms) => { const t = setTimeout(fn, ms); t.unref?.(); return t; }, clearTimeout,
     addEventListener: (t, fn) => { (posluchaciOkna[t] ||= []).push(fn); },
@@ -81,7 +87,7 @@ const pockej = () => new Promise((ok) => setImmediate(ok));
 
 test("rozhraní: zvuk, haptika, zapnuto, nastav, prepinac a všech 8 zvuků / 5 vibrací ze zadání", () => {
   const { Z, ctx } = prostredi();
-  for (const f of ["zvuk", "haptika", "zapnuto", "nastav", "prepinac", "naZmenu"]) assert.equal(typeof Z[f], "function", f);
+  for (const f of ["zvuk", "haptika", "zapnuto", "nastav", "prepinac", "pozvanka", "naZmenu"]) assert.equal(typeof Z[f], "function", f);
   assert.equal(ctx.HSPGZazitek, Z, "window.HSPGZazitek");
   assert.deepEqual([...Z.ZVUKY].sort(), ["cena", "chyba", "fajfka", "kridla", "otevrit", "pecet", "srdce", "tuk"]);
   assert.deepEqual([...Z.HAPTIKA].sort(), ["cena", "chyba", "fajfka", "pecet", "tuk"]);
@@ -92,9 +98,9 @@ test("bez AudioContextu, vibrací, úložiště i dokumentu nic nespadne a nic s
   const { Z, z } = prostredi({ audio: false, vibrace: false, uloziste: rozbiteUloziste });
   assert.equal(Z.zvuk("tuk"), false);
   assert.equal(Z.haptika("tuk"), false);
-  assert.equal(Z.zapnuto(), true, "bez uložené volby je zapnuto (rozhodnutí majitele)");
-  assert.doesNotThrow(() => Z.nastav(false));
-  assert.equal(Z.zapnuto(), false, "volba platí aspoň do zavření stránky");
+  assert.equal(Z.zapnuto(), false, "bez uložené volby je vypnuto – zapíná si zákazník sám (rešerše 22. 10. 2026)");
+  assert.doesNotThrow(() => Z.nastav(true));
+  assert.equal(Z.zapnuto(), true, "volba platí aspoň do zavření stránky");
   const tl = falesneTlacitko();
   assert.equal(Z.prepinac(tl), tl);
   assert.equal(tl.hidden, true, "bez zvuku i vibrací se přepínač neukáže");
@@ -107,14 +113,15 @@ test("bez AudioContextu, vibrací, úložiště i dokumentu nic nespadne a nic s
 test("volba se pamatuje v localStorage „hspg-zazitek“ („0“ / „1“) a platí i po novém načtení", () => {
   const uloziste = pametoveUloziste();
   const a = prostredi({ uloziste });
-  assert.equal(a.Z.zapnuto(), true);
-  a.Z.nastav(false);
-  assert.equal(uloziste.getItem(KLIC), "0");
-  const b = prostredi({ uloziste });
-  assert.equal(b.Z.zapnuto(), false, "nové načtení stránky");
-  b.Z.nastav(true);
+  assert.equal(a.Z.zapnuto(), false, "výchozí stav vypnuto");
+  assert.equal(uloziste.getItem(KLIC), null, "ePrivacy čl. 5(3): bez rozhodnutí zákazníka se nic neukládá");
+  a.Z.nastav(true);
   assert.equal(uloziste.getItem(KLIC), "1");
-  assert.equal(prostredi({ uloziste }).Z.zapnuto(), true);
+  const b = prostredi({ uloziste });
+  assert.equal(b.Z.zapnuto(), true, "nové načtení stránky");
+  b.Z.nastav(false);
+  assert.equal(uloziste.getItem(KLIC), "0");
+  assert.equal(prostredi({ uloziste }).Z.zapnuto(), false);
 });
 
 test("vypnuto = žádný zvukový výstup ani vibrace; zapnuto = zvuk hraje", async () => {
@@ -136,20 +143,20 @@ test("vypnuto = žádný zvukový výstup ani vibrace; zapnuto = zvuk hraje", as
 });
 
 test("bez aktivace uživatelem (načtení, najetí, rolování) nic nezazní a nic nevibruje", async () => {
-  const { Z, z } = prostredi({ aktivni: false });
+  const { Z, z } = prostredi({ aktivni: false, uloziste: ZAPNUTO() });
   assert.equal(Z.zvuk("otevrit"), false);
   assert.equal(Z.haptika("tuk"), false);
   await pockej();
   assert.equal(z.kontexty, 0, "AudioContext vzniká až při vědomé akci");
   assert.deepEqual(z.vibrace, []);
   // Starší prohlížeč bez navigator.userActivation: bez zaznamenaného gesta také nic.
-  const stary = prostredi({ bezAktivaceApi: true });
+  const stary = prostredi({ bezAktivaceApi: true, uloziste: ZAPNUTO() });
   assert.equal(stary.Z.zvuk("tuk"), false);
   assert.equal(stary.z.kontexty, 0);
 });
 
 test("skrytá karta: žádný zvuk ani vibrace", async () => {
-  const { Z, z } = prostredi({ skryto: true });
+  const { Z, z } = prostredi({ skryto: true, uloziste: ZAPNUTO() });
   assert.equal(Z.zvuk("cena"), false);
   assert.equal(Z.haptika("cena"), false);
   await pockej();
@@ -159,7 +166,7 @@ test("skrytá karta: žádný zvuk ani vibrace", async () => {
 
 test("každý zvuk je kratší než 450 ms", async () => {
   for (const nazev of prostredi().Z.ZVUKY) {
-    const { Z, z } = prostredi();
+    const { Z, z } = prostredi({ uloziste: ZAPNUTO() });
     assert.equal(Z.zvuk(nazev), true, nazev);
     await pockej();
     assert.ok(z.stopy.length > 0, `${nazev}: něco zazní`);
@@ -170,14 +177,14 @@ test("každý zvuk je kratší než 450 ms", async () => {
 });
 
 test("haptika: vzory ze zadání, neznámý název nic", () => {
-  const { Z, z } = prostredi();
+  const { Z, z } = prostredi({ uloziste: ZAPNUTO() });
   for (const n of ["tuk", "fajfka", "pecet", "cena", "chyba"]) assert.equal(Z.haptika(n), true, n);
   assert.equal(Z.haptika("otevrit"), false);
   assert.equal(Z.haptika("__proto__"), false);
   assert.equal(Z.zvuk("constructor"), false);
   assert.deepEqual(JSON.parse(JSON.stringify(z.vibrace)), [8, [12, 40, 18], [18, 30, 42], [10, 50, 10, 50, 24], [30, 60, 30]]);
   // iOS: navigator.vibrate chybí → tichý no-op.
-  assert.equal(prostredi({ vibrace: false }).Z.haptika("pecet"), false);
+  assert.equal(prostredi({ vibrace: false, uloziste: ZAPNUTO() }).Z.haptika("pecet"), false);
 });
 
 test("přepínač „Zvuk a vibrace“: aria-pressed, ikona, uložení, posluchači a změna z jiné karty", async () => {
@@ -189,25 +196,73 @@ test("přepínač „Zvuk a vibrace“: aria-pressed, ikona, uložení, poslucha
   Z.prepinac(tl);
   assert.equal(tl.hidden, false);
   assert.equal(tl.type, "button");
-  assert.equal(tl.getAttribute("aria-pressed"), "true");
+  assert.equal(tl.getAttribute("aria-pressed"), "false", "výchozí stav vypnuto");
   assert.equal(tl.getAttribute("aria-label"), "Zvuk a vibrace");
   assert.match(tl.innerHTML, /hz-text">Zvuk a vibrace</);
   assert.match(tl.ikona.innerHTML, /<svg/);
   tl.klikni();
+  assert.equal(tl.getAttribute("aria-pressed"), "true");
+  assert.equal(uloziste.getItem(KLIC), "1");
+  tl.klikni();
   assert.equal(tl.getAttribute("aria-pressed"), "false");
   assert.equal(uloziste.getItem(KLIC), "0");
-  tl.klikni();
-  assert.equal(tl.getAttribute("aria-pressed"), "true");
-  assert.deepEqual(zmeny, [false, true]);
+  assert.deepEqual(zmeny, [true, false]);
   // Druhé volání prepinac na stejné tlačítko nepřidá druhý posluchač.
   Z.prepinac(tl);
   tl.klikni();
-  assert.equal(tl.getAttribute("aria-pressed"), "false");
-  // Volba změněná v jiné kartě (událost storage).
-  posluchaciOkna.storage.forEach((fn) => fn({ key: KLIC, newValue: "1" }));
-  assert.equal(Z.zapnuto(), true);
   assert.equal(tl.getAttribute("aria-pressed"), "true");
-  assert.deepEqual(zmeny, [false, true, false, true]);
+  // Volba změněná v jiné kartě (událost storage).
+  posluchaciOkna.storage.forEach((fn) => fn({ key: KLIC, newValue: "0" }));
+  assert.equal(Z.zapnuto(), false);
+  assert.equal(tl.getAttribute("aria-pressed"), "false");
+  assert.deepEqual(zmeny, [true, false, true, false]);
+});
+
+test("pozvánka „Zapnout zvuk?“: jednou za relaci u přepínače, jen bez uložené volby; Zapnout uloží „1“ a zahraje, ✕ nic neuloží", async () => {
+  const uloziste = pametoveUloziste(), relace = pametoveUloziste();
+  const { Z, z } = prostredi({ uloziste, relace });
+  const hlavicka = falesneTlacitko("div"), tl = falesneTlacitko();
+  hlavicka.appendChild(tl);
+  Z.prepinac(tl);
+  const box = Z.pozvanka(tl);
+  assert.ok(box, "pozvánka se ukázala");
+  assert.equal(box.className, "hz-pozvanka");
+  assert.equal(box.getAttribute("role"), "group");
+  assert.equal(box.parentNode, hlavicka, "vložená vedle přepínače");
+  assert.equal(box.najdi("hz-pozvanka-text").textContent, "Zvuk a jemné vibrace jsou vypnuté.");
+  assert.equal(box.najdi("hz-pozvanka-ano").textContent, "Zapnout");
+  assert.equal(box.najdi("hz-pozvanka-ne").getAttribute("aria-label"), "Nechat vypnuté");
+  assert.equal(relace.getItem("hspg-zazitek-pozvanka"), "1", "jednou za relaci");
+  assert.equal(uloziste.getItem(KLIC), null, "samotná pozvánka nic neukládá");
+  assert.equal(Z.pozvanka(tl), null, "podruhé v téže relaci už ne");
+  // Zapnout = vědomá akce: volba „1“, přepínač zapnutý, zvuk otevření + ťuknutí, pozvánka pryč.
+  box.najdi("hz-pozvanka-ano").klikni();
+  assert.equal(uloziste.getItem(KLIC), "1");
+  assert.equal(tl.getAttribute("aria-pressed"), "true");
+  assert.equal(box.parentNode, null, "pozvánka zmizela");
+  await pockej();
+  assert.equal(z.kontexty, 1);
+  assert.ok(z.osc + z.buf > 1, "zvuk otevření");
+  assert.deepEqual(z.vibrace, [8]);
+  // S uloženou volbou se pozvánka neukáže ani v nové relaci.
+  assert.equal(prostredi({ uloziste, relace: pametoveUloziste() }).Z.pozvanka(tl), null);
+  // ✕ = nechat vypnuté: nic se neuloží, po 9 s by zmizela sama; bez zvuku i vibrací se neukáže vůbec.
+  const b = prostredi({ relace: pametoveUloziste() });
+  const tl2 = falesneTlacitko(); falesneTlacitko("div").appendChild(tl2);
+  const box2 = b.Z.pozvanka(tl2);
+  assert.ok(box2);
+  box2.najdi("hz-pozvanka-ne").klikni();
+  assert.equal(box2.parentNode, null);
+  assert.equal(b.Z.zapnuto(), false);
+  assert.equal(b.ctx.localStorage.getItem(KLIC), null);
+  const c = prostredi({ audio: false, vibrace: false, relace: pametoveUloziste() });
+  const tl3 = falesneTlacitko(); falesneTlacitko("div").appendChild(tl3);
+  assert.equal(c.Z.pozvanka(tl3), null);
+  // Rozbité úložiště relace: pozvánka se ukáže, ale jen jednou na načtení stránky.
+  const r = prostredi({ relace: rozbiteUloziste });
+  const tl4 = falesneTlacitko(); falesneTlacitko("div").appendChild(tl4);
+  assert.ok(r.Z.pozvanka(tl4));
+  assert.equal(r.Z.pozvanka(tl4), null);
 });
 
 test("druhé načtení souboru (stránka i panel) nevytvoří druhý stav", () => {

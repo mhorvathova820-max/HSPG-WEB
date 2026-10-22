@@ -72,8 +72,9 @@
     '<div class="hb-head"><span class="hb-znak" aria-hidden="true"></span><div class="hb-titul"><h2 id="hb-titulek">H-SPG CORE</h2><p id="hb-podtitulek">Budoucnost ve Vašich rukách</p></div>' +
     // AI Act čl. 50: když na vlastní otázky odpovídá AI, je to vidět trvale v hlavičce (ne jen v úvodní zprávě).
     '<span class="hb-ai-znacka" hidden>AI asistent</span>' +
-    // Přepínač „Zvuk a vibrace“ (úkol 56) – místo je rezervované, ukáže se, jakmile se načte hspg-zazitek.js.
-    '<div class="hb-head-akce"><button type="button" class="hb-zazitek hb-zazitek--ceka" aria-label="Zvuk a vibrace" title="Zvuk a vibrace" aria-pressed="true"></button>' +
+    // Přepínač „Zvuk a vibrace“ (úkol 56) – místo je rezervované, ukáže se, jakmile se načte hspg-zazitek.js;
+    // výchozí stav vypnuto (zapíná zákazník – pozvánka po otevření).
+    '<div class="hb-head-akce"><button type="button" class="hb-zazitek hb-zazitek--ceka" aria-label="Zvuk a vibrace" title="Zvuk a vibrace" aria-pressed="false"></button>' +
     '<button type="button" class="hb-close" aria-label="Zavřít pomocníka">✕</button></div></div>' +
     '<div class="hb-tabs" role="tablist" hidden>' +
     '<button type="button" role="tab" class="hb-tab" id="hb-tab-z" aria-controls="hb-view-z" aria-selected="true">Pro zákazníky</button>' +
@@ -302,7 +303,9 @@
       '<b style="color:#f4e4b8">Zavoláme vám</b>' +
       '<label class="hb-skryte" for="' + id + 'j">Jméno</label><input id="' + id + 'j" type="text" name="jmeno" autocomplete="name" placeholder="Jméno" required maxlength="80">' +
       '<label class="hb-skryte" for="' + id + 't">Telefon</label><input id="' + id + 't" type="tel" name="telefon" autocomplete="tel" inputmode="tel" placeholder="Telefon" required maxlength="20">' +
-      '<label class="hb-souhlas"><input type="checkbox" name="souhlas" required> <span>Souhlasím se zpracováním jména a telefonu pro zpětné zavolání (<a href="/ochrana-osobnich-udaju.html">zásady</a>).</span></label>' +
+      // Bez zaškrtávacího políčka (rozhodnutí 22. 10. 2026): zavolání zpět je krok před uzavřením smlouvy na žádost
+      // zákazníka – čl. 6 odst. 1 písm. b) GDPR; souhlas by tu nebyl svobodný (podmínka služby) a jen zdržuje.
+      '<p class="hb-udaje">Jméno a telefon použijeme jen k zavolání zpět k vaší poptávce. <a href="/ochrana-osobnich-udaju.html">Zásady ochrany osobních údajů</a></p>' +
       '<input type="text" name="_honey" tabindex="-1" autocomplete="off" class="hb-skryte" aria-hidden="true">' +
       '<p class="hb-chyba" id="' + id + 'ch" role="alert" hidden></p>' +
       '<button class="hb-zlate" type="submit">Chci zavolat zpět</button>';
@@ -319,14 +322,13 @@
       ev.preventDefault();
       chyba.hidden = true;
       var jm = f.elements.jmeno, tl = f.elements.telefon;
-      [jm, tl, f.elements.souhlas].forEach(function (p) { p.removeAttribute('aria-invalid'); p.removeAttribute('aria-describedby'); });
+      [jm, tl].forEach(function (p) { p.removeAttribute('aria-invalid'); p.removeAttribute('aria-describedby'); });
       if (!jm.value.trim()) return ukaz('Vyplňte prosím jméno.', jm);
       var tel = tl.value.replace(/[\s\-().]/g, '');
       if (!/^\+?\d{9,15}$/.test(tel)) return ukaz('Zkontrolujte prosím telefonní číslo (9–15 číslic, může začínat +).', tl);
-      if (!f.elements.souhlas.checked) return ukaz('Bez souhlasu vám nemůžeme zavolat.', f.elements.souhlas);
       var body = new URLSearchParams({
         'form-name': 'hspg-zavolejte', '_honey': f.elements._honey.value,
-        'Jméno': jm.value.trim(), 'Telefon': tel, 'Souhlas': 'ano', 'Stránka': location.pathname, 'Zdroj': 'H-BOT' + (f._souhrn ? ' · kalkulace ' + f._souhrn.slice(0, 300) : '')
+        'Jméno': jm.value.trim(), 'Telefon': tel, 'Stránka': location.pathname, 'Zdroj': 'H-BOT' + (f._souhrn ? ' · kalkulace ' + f._souhrn.slice(0, 300) : '')
       });
       var b = f.querySelector('button[type=submit]'); b.disabled = true; b.textContent = 'Odesílám…';
       fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() })
@@ -665,6 +667,8 @@
       animujZnak(2.4);
       // Vzdušné švihnutí a ťuknutí (jen když panel otevřel zákazník – při otevření z adresy #hbot nic nezazní).
       zazitek('otevrit', 'tuk');
+      // Pozvánka „Zvuk a jemné vibrace jsou vypnuté – Zapnout“ jednou za relaci, jen když panel otevřel zákazník sám.
+      if (zdroj) nactiZazitek().then(function (z) { if (z && !box.hidden) z.pozvanka(zazitekTl); });
       if (!zacatek) uvitani();
       ukazOdkazMajitele();
       if (token()) zapniMajitele(location.hash === '#majitel');

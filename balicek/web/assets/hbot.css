@@ -24,7 +24,15 @@
 #hbot .hb-head p{margin:2px 0 0;font-size:12px;color:var(--hb-tlumeny);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #hbot .hb-ai-znacka{flex:none;margin-left:auto;padding:3px 8px;border-radius:999px;border:1px solid rgba(122,221,255,.4);color:#bfeeff;font:800 10px/1.4 Manrope,Inter,system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;background:rgba(122,221,255,.07)}
 #hbot .hb-ai-znacka[hidden]{display:none}
-#hbot .hb-head-akce{margin-left:auto;flex:none;display:flex;gap:6px}
+#hbot .hb-head-akce{position:relative;margin-left:auto;flex:none;display:flex;gap:6px}
+/* Pozvánka „Zvuk a jemné vibrace jsou vypnuté – Zapnout“ (hspg-zazitek.js): jednou za relaci pod přepínačem, sama zmizí */
+#hbot .hz-pozvanka{position:absolute;top:calc(100% + 10px);right:0;z-index:2;display:flex;align-items:center;gap:8px;max-width:min(300px,calc(100vw - 60px));padding:8px 8px 8px 12px;border-radius:14px;border:1px solid var(--hb-linka-silna);background:linear-gradient(180deg,rgba(17,24,39,.97),rgba(5,7,15,.98));box-shadow:0 18px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);font-size:12.5px;line-height:1.35;color:var(--hb-text)}
+#hbot .hz-pozvanka::before{content:"";position:absolute;top:-6px;right:14px;width:10px;height:10px;transform:rotate(45deg);border-left:1px solid var(--hb-linka-silna);border-top:1px solid var(--hb-linka-silna);background:#111827}
+#hbot .hz-pozvanka-text{flex:1 1 auto;min-width:0}
+#hbot .hz-pozvanka-ano{flex:none;min-height:32px;padding:0 12px;border:0;border-radius:999px;background:var(--hb-tlacitko);color:#17120a;font-weight:700;cursor:pointer}
+#hbot .hz-pozvanka-ne{flex:none;width:30px;height:30px;padding:0;border-radius:50%;border:1px solid rgba(244,241,232,.18);background:transparent;color:var(--hb-tlumeny);cursor:pointer}
+#hbot .hz-pozvanka-ne:hover,#hbot .hz-pozvanka-ano:hover{filter:brightness(1.08)}
+@media (prefers-reduced-motion:no-preference){#hbot .hz-pozvanka{animation:hz-pozvanka .32s var(--hb-krivka) both}@keyframes hz-pozvanka{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}}
 #hbot .hb-close{flex:none;width:40px;height:40px;border-radius:12px;border:1px solid rgba(244,241,232,.18);background:rgba(255,255,255,.03);cursor:pointer;font-size:15px;transition:border-color .25s,background .25s}
 #hbot .hb-ai-znacka:not([hidden])+.hb-head-akce{margin-left:6px}
 #hbot .hb-close:hover{border-color:var(--hb-linka-silna);background:rgba(212,175,55,.08)}
@@ -94,8 +102,7 @@
 #hbot .hb-obrys{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid rgba(244,241,232,.22);background:transparent;cursor:pointer}
 #hbot button:disabled{opacity:.55;cursor:not-allowed}
 #hbot .hb-call{display:grid;gap:8px}
-#hbot .hb-souhlas{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:#c9d2dc}
-#hbot .hb-souhlas input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:#d4af37}
+#hbot .hb-udaje{margin:0;font-size:12.5px;line-height:1.4;color:#c9d2dc}
 #hbot .hb-skryte{position:absolute!important;left:-9999px!important;width:1px;height:1px;overflow:hidden}
 #hbot .hb-pata{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 14px 10px;font-size:12px;color:var(--hb-tlumeny)}
 #hbot .hb-odkaz{background:none;border:0;padding:6px 0;color:var(--hb-tlumeny);text-decoration:underline;cursor:pointer;font-size:12px}

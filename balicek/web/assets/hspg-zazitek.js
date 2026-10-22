@@ -4,13 +4,17 @@
  *  - nic nezazní ani nezavibruje při načtení, najetí myší ani rolování: AudioContext vznikne až při prvním vědomém
  *    kliknutí, klepnutí nebo stisku klávesy (aktivace uživatelem), vibrace jen během takové aktivace,
  *  - nikdy ve skryté kartě (při skrytí se zvukový výstup uspí),
- *  - výchozí stav „zapnuto“ (rozhodnutí majitele); přepínač „Zvuk a vibrace“ je vždy po ruce (hlavička H-BOTa,
- *    hlavička HOLUB 360), volba se pamatuje v localStorage „hspg-zazitek“ („0“ / „1“) a platí ve všech kartách,
+ *  - výchozí stav „vypnuto“: zapíná si je zákazník sám (rozhodnutí 22. 10. 2026 podle rešerše – nečekaný zvuk
+ *    v kanceláři nebo v tramvaji odrazuje; ePrivacy čl. 5(3): volba se ukládá až po jeho aktivním přepnutí).
+ *    Pozvánka „Zvuk a jemné vibrace jsou vypnuté – Zapnout“ se ukáže jednou za relaci u přepínače po první vědomé
+ *    akci (otevření pomocníka, start zaměření) a sama zmizí. Přepínač „Zvuk a vibrace“ je vždy po ruce (hlavička
+ *    H-BOTa, hlavička HOLUB 360), volba se pamatuje v localStorage „hspg-zazitek“ („0“ / „1“) a platí ve všech kartách,
  *  - iPhone: navigator.audioSession.type = 'ambient' – přepínač ticha na telefonu zvuk ztlumí; vibrace web na iOS
  *    nemá (navigator.vibrate chybí) – haptika pak tiše nic nedělá.
  *
  * Prohlížeč: HSPGZazitek.zvuk('fajfka'); HSPGZazitek.haptika('fajfka'); HSPGZazitek.prepinac(tlacitko);
- *            HSPGZazitek.zapnuto(); HSPGZazitek.nastav(false); HSPGZazitek.naZmenu(function (zapnuto) {…})
+ *            HSPGZazitek.pozvanka(tlacitko); HSPGZazitek.zapnuto(); HSPGZazitek.nastav(false);
+ *            HSPGZazitek.naZmenu(function (zapnuto) {…})
  * Zvuky: tuk, otevrit, fajfka, srdce, pecet, cena, kridla, chyba. Haptika: tuk, fajfka, pecet, cena, chyba.
  * Testy/Node: soubor se spustí ve vm kontextu (balicek/testy/unit/zazitek.test.mjs).
  */
@@ -39,8 +43,8 @@
   function zapis(zap) {
     try { W.localStorage.setItem(KLIC, zap ? '1' : '0'); return true; } catch (e) { return false; }
   }
-  var volba = cti(); // null = zákazník nic nezvolil → zapnuto
-  function zapnuto() { return volba !== false; }
+  var volba = cti(); // null = zákazník nic nezvolil → vypnuto (zapne si sám: přepínač nebo pozvánka)
+  function zapnuto() { return volba === true; }
 
   var posluchaci = [];
   function oznam() {
@@ -252,10 +256,62 @@
     var zmena = zapnuto() !== zap;
     volba = zap;
     zapis(zap);
+    zrusPozvanku(); // po rozhodnutí zákazníka už pozvánka nemá co nabízet
     if (!zap) uspi();
     vsechnyPrepinace();
     if (zmena) oznam();
     return zap;
+  }
+
+  // --- pozvánka „Zapnout zvuk?“ ----------------------------------------------------------------------------------
+  // Ukáže se u přepínače jednou za relaci (sessionStorage), jen dokud zákazník nic nezvolil, a po 9 s sama zmizí.
+  // Volá ji stránka po první vědomé akci; bez dokumentu, bez zvuku i vibrací nebo ve skryté kartě nic.
+  var POZVANKA_KLIC = 'hspg-zazitek-pozvanka', POZVANKA_TRVANI = 9000;
+  var pozvankaEl = null, pozvankaCasovac = null, pozvankaByla = false;
+  function pozvankaUkazana() {
+    if (pozvankaByla) return true;
+    try { return W.sessionStorage.getItem(POZVANKA_KLIC) === '1'; } catch (e) { return false; }
+  }
+  function pozvankaZapis() {
+    pozvankaByla = true;
+    try { W.sessionStorage.setItem(POZVANKA_KLIC, '1'); } catch (e) { /* bez úložiště platí jen do nového načtení */ }
+  }
+  function zrusPozvanku() {
+    zrusCasovac(pozvankaCasovac);
+    if (!pozvankaEl) return;
+    var el = pozvankaEl; pozvankaEl = null;
+    try { if (typeof el.remove === 'function') el.remove(); else if (el.parentNode) el.parentNode.removeChild(el); } catch (e) { /* nic */ }
+  }
+  function prvek(tag, trida, text) {
+    var el = d.createElement(tag);
+    el.className = trida;
+    if (text) el.textContent = text;
+    return el;
+  }
+  /** Pozvánka vedle přepínače tl (vloží se za něj). Vrací prvek pozvánky, nebo null, když se neukazuje. */
+  function pozvanka(tl) {
+    if (!d || typeof d.createElement !== 'function' || !tl || !tl.parentNode) return null;
+    if (volba !== null || pozvankaUkazana() || (!maZvuk() && !maVibrace()) || skryto()) return null;
+    zrusPozvanku();
+    var box = prvek('div', 'hz-pozvanka');
+    box.setAttribute('role', 'group');
+    box.setAttribute('aria-label', NAZEV);
+    var ano = prvek('button', 'hz-pozvanka-ano', 'Zapnout');
+    ano.type = 'button';
+    var ne = prvek('button', 'hz-pozvanka-ne', '✕');
+    ne.type = 'button';
+    ne.setAttribute('aria-label', 'Nechat vypnuté');
+    box.appendChild(prvek('span', 'hz-pozvanka-text', 'Zvuk a jemné vibrace jsou vypnuté.'));
+    box.appendChild(ano);
+    box.appendChild(ne);
+    // „Zapnout“ je vědomá akce: uloží volbu a hned ji potvrdí zvukem otevření a ťuknutím.
+    ano.addEventListener('click', function () { nastav(true); zvuk('otevrit'); haptika('tuk'); });
+    ne.addEventListener('click', zrusPozvanku);
+    tl.parentNode.insertBefore(box, tl.nextSibling || null);
+    pozvankaEl = box;
+    pozvankaZapis();
+    pozvankaCasovac = casovac(zrusPozvanku, POZVANKA_TRVANI);
+    return box;
   }
 
   /** Udělá z tlačítka (nebo vytvoří v kontejneru) přepínač „Zvuk a vibrace“ s aria-pressed a ikonou reproduktoru.
@@ -297,6 +353,7 @@
       if (!e || e.key !== KLIC) return;
       var pred = zapnuto();
       volba = e.newValue === '0' ? false : e.newValue === '1' ? true : null;
+      if (volba !== null) zrusPozvanku();
       if (!zapnuto()) uspi();
       vsechnyPrepinace();
       if (pred !== zapnuto()) oznam();
@@ -304,12 +361,13 @@
   }
 
   return {
-    verze: '1.0.0',
+    verze: '1.1.0',
     zvuk: zvuk,
     haptika: haptika,
     zapnuto: zapnuto,
     nastav: nastav,
     prepinac: prepinac,
+    pozvanka: pozvanka,
     naZmenu: naZmenu,
     ZVUKY: Object.keys(ZVUKY),
     HAPTIKA: Object.keys(HAPTIKA),

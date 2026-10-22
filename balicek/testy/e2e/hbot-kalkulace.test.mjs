@@ -106,6 +106,9 @@ test("Cena hned: kalkulace se načte až po kliknutí; obálka s pečetí; cena 
   assert.match(rozpis, /RAL \d{4}/);
   assert.match(rozpis, /Doprava.*Hradec Králové/);
   assert.match(mezery(await p.textContent("#hbot .hn-platba")), /záloha 30 % na materiál/);
+  // Záruka: číslo (10 let při SENTINEL BASE) jen u cesty A; u barevné renovace (B) jen zákonná práva a odkaz na konečnou smlouvu.
+  assert.match(mezery(await p.textContent("#hbot .hn-zaruka:not(.hn-zaruka--b)")), /Záruka 10 let.*Zákonná práva z vadného plnění tím nejsou dotčena\./);
+  assert.match(mezery(await p.textContent("#hbot .hn-zaruka--b")), /^Barevná renovace: platí zákonná práva z vadného plnění; smluvní záruku k nátěrovému systému výrobce barvy stanoví konečná smlouva\.$/);
   assert.ok(!pozadavky.some((r) => /pdfmake/.test(r.url)), "pdfmake až po kliknutí na PDF");
   const [dl] = await Promise.all([p.waitForEvent("download"), p.click("#hbot .hn-akce-tl--zlate")]);
   assert.match(dl.suggestedFilename(), /^HSPG-kalkulace-NK-\d{8}-\d{4}\.pdf$/);
@@ -241,7 +244,6 @@ test("„Zavolejte mi k této kalkulaci“: formulář hspg-zavolejte nese čís
   await p.waitForSelector("#hbot form.hb-call");
   await p.fill("#hbot form.hb-call input[name=jmeno]", "TEST Kalkulace");
   await p.fill("#hbot form.hb-call input[name=telefon]", "+420 777 123 456");
-  await p.check("#hbot form.hb-call input[name=souhlas]");
   await p.click("#hbot form.hb-call button[type=submit]");
   await p.waitForSelector("#hbot .hb-msg >> text=/Děkujeme. Ozveme se/");
   const f = s.formulare.at(-1);

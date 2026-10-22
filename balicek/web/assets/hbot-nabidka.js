@@ -698,6 +698,9 @@
       var tabulka = h('table', { class: 'hn-rozpis' }, [h('caption', { class: 'hb-skryte' }, ['Rozpis orientační ceny']), rozpis, h('tfoot', null, [radekRozpisu('Celkem (orientačně)', 'nejsme plátci DPH, DPH se nepřipočítává', C.kc(n.vysledna), 'hn-r-celkem')])]);
 
       var maA = n.radky.some(function (r) { return r.cesta === 'A'; });
+      // Cesta B (barevná renovace) nemá číselnou smluvní záruku (rozhodnutí 22. 10. 2026): platí zákonná práva
+      // z vadného plnění; případnou záruku k nátěrovému systému výrobce stanoví konečná smlouva (čl. 7 návrhu).
+      var maB = n.radky.some(function (r) { return r.cesta === 'B'; });
       var kroky = h('ol', { class: 'hn-standard' });
       (n.kroky || []).forEach(function (k) { kroky.appendChild(h('li', null, [h('b', null, [k.cislo + ' ' + k.nazev]), ' ' + k.popis])); });
       var cesty = (n.cesty || []).map(function (c) { return h('p', { class: 'hn-cesta' }, [h('b', null, ['Cesta ' + c.id + ' – ' + c.nazev + ': ']), c.popis]); });
@@ -732,6 +735,7 @@
           h('p', { class: 'hn-nezavazne' }, ['Orientační výpočet, ne nabídka. Přesnou cenu potvrdíme po ověření rozsahu na místě.']),
           h('p', { class: 'hn-platba' }, [n.platba.text]),
           maA && zarukaKratce() ? h('p', { class: 'hn-platba hn-zaruka' }, [zarukaKratce() + ' Zákonná práva z vadného plnění tím nejsou dotčena.']) : null,
+          maB ? h('p', { class: 'hn-platba hn-zaruka hn-zaruka--b' }, ['Barevná renovace: platí zákonná práva z vadného plnění; smluvní záruku k nátěrovému systému výrobce barvy stanoví konečná smlouva.']) : null,
           n.skipPay ? h('p', { class: 'hn-platba hn-platba--skip' }, [n.skipPay.text + ' Orientačně ' + n.skipPay.splatek + ' × ' + C.kc(n.skipPay.splatka) + '.']) : null
         ]),
         akce, smlouvaMisto, porovnaniMisto,

@@ -408,6 +408,7 @@ function nastavAdresu() {
     $("h3a-zmerit").disabled = true;
     stav.hejno.start(); // holub „Měří“: požadavek právě odchází
     zazitek("kridla");
+    zazitekModul()?.pozvanka($("h3a-zazitek")); // první vědomá akce: pozvánka „Zapnout zvuk?“ (jednou za relaci)
     try {
       const r = await ziskej(API_MERENI, { method: "POST", telo: { kod: volba.kod, adresa: volba.adresa }, signal: c.signal, limit: 25000 });
       if (mereniCtrl !== c) return;

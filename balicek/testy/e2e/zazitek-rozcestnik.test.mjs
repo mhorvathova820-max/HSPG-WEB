@@ -51,6 +51,8 @@ async function stranka({ cesta = "/cenik.html", sirka = 1280, vyska = 800, pohyb
   return { p, ctx, chyby };
 }
 const rychlyPuls = () => { window.HSPG_HBOT_PULS = [300, 1600, 2900]; };
+// Zákazník si zvuk a vibrace už zapnul (výchozí stav je vypnuto – rozhodnutí 22. 10. 2026 podle rešerše).
+const zvukZapnut = () => { try { localStorage.setItem("hspg-zazitek", "1"); } catch { /* bez úložiště */ } };
 const pocitejPulsy = () => {
   window.__pulsy = 0;
   addEventListener("DOMContentLoaded", () => {
@@ -213,7 +215,7 @@ test("rozcestník na stránce HOLUB 360: dlaždice této stránky má aria-curre
 });
 
 // --------------------------------------------------------------------------------------------- 3. zvuk a vibrace
-test("zvuk a vibrace: nic při načtení, najetí ani rolování; otevření zahraje a ťukne; vypnuto = ticho; přepínač se pamatuje", async () => {
+test("zvuk a vibrace: výchozí vypnuto; otevření ukáže pozvánku „Zapnout“ (jednou za relaci); Zapnout zahraje, ťukne a uloží „1“; přepínač se pamatuje", async () => {
   const { p, chyby } = await stranka({ init: [spehZazitku] });
   await p.hover("#hbot-btn");
   await p.mouse.wheel(0, 600);
@@ -221,15 +223,27 @@ test("zvuk a vibrace: nic při načtení, najetí ani rolování; otevření zah
   assert.deepEqual(await p.evaluate(() => window.__zaz), { kontexty: 0, zdroje: 0, vibrace: [] }, "nic bez vědomé akce");
   await p.click("#hbot-btn");
   await p.waitForSelector("#hbot .hb-zazitek:not(.hb-zazitek--ceka)");
+  const tl = "#hbot .hb-head .hb-zazitek";
+  assert.equal(await p.getAttribute(tl, "aria-pressed"), "false", "výchozí stav vypnuto – zapíná zákazník");
+  assert.equal(await p.getAttribute(tl, "aria-label"), "Zvuk a vibrace");
+  assert.equal(await p.evaluate(() => localStorage.getItem("hspg-zazitek")), null, "bez rozhodnutí zákazníka se nic neukládá");
+  // Pozvánka pod přepínačem: text, Zapnout, ✕; nic zatím nezaznělo ani nezavibrovalo.
+  const poz = "#hbot .hb-head-akce .hz-pozvanka";
+  await p.waitForSelector(poz);
+  assert.equal(await p.textContent(`${poz} .hz-pozvanka-text`), "Zvuk a jemné vibrace jsou vypnuté.");
+  assert.equal(await p.getAttribute(poz, "role"), "group");
+  assert.equal(await p.getAttribute(`${poz} .hz-pozvanka-ne`, "aria-label"), "Nechat vypnuté");
+  assert.deepEqual(await p.evaluate(() => window.__zaz), { kontexty: 0, zdroje: 0, vibrace: [] }, "vypnuto: otevření je tiché");
+  await p.click(`${poz} .hz-pozvanka-ano`);
   await p.waitForFunction(() => window.__zaz.zdroje > 1);
   const z1 = await p.evaluate(() => window.__zaz);
   assert.equal(z1.kontexty, 1);
-  assert.deepEqual(z1.vibrace, [8], "otevření = ťuknutí 8 ms");
-  // Přepínač „Zvuk a vibrace“ v hlavičce panelu vedle zavírání.
-  const tl = "#hbot .hb-head .hb-zazitek";
-  assert.equal(await p.getAttribute(tl, "aria-pressed"), "true", "výchozí stav zapnuto");
-  assert.equal(await p.getAttribute(tl, "aria-label"), "Zvuk a vibrace");
+  assert.deepEqual(z1.vibrace, [8], "Zapnout = zvuk otevření + ťuknutí 8 ms");
+  assert.equal(await p.getAttribute(tl, "aria-pressed"), "true");
+  assert.equal(await p.evaluate(() => localStorage.getItem("hspg-zazitek")), "1");
+  assert.equal(await p.locator(poz).count(), 0, "pozvánka po rozhodnutí zmizí");
   assert.equal(await p.evaluate(() => document.querySelector("#hbot .hb-zazitek").nextElementSibling.classList.contains("hb-close")), true);
+  // Vypnutí přepínačem: ticho, uloží se „0“.
   await p.click(tl);
   assert.equal(await p.getAttribute(tl, "aria-pressed"), "false");
   assert.equal(await p.evaluate(() => localStorage.getItem("hspg-zazitek")), "0");
@@ -237,13 +251,14 @@ test("zvuk a vibrace: nic při načtení, najetí ani rolování; otevření zah
   await p.click("#hbot .hb-chip >> text=Potřebujete lešení?");
   await p.waitForTimeout(300);
   assert.deepEqual(await p.evaluate(() => ({ ...window.__zaz, vibrace: window.__zaz.vibrace.length })), pred, "vypnuto: žádný zvuk ani vibrace");
-  // Volba platí i po novém načtení.
+  // Volba platí i po novém načtení; s uloženou volbou už žádná pozvánka.
   await p.reload({ waitUntil: "load" });
   await p.click("#hbot-btn");
   await p.waitForSelector("#hbot .hb-zazitek:not(.hb-zazitek--ceka)");
   assert.equal(await p.getAttribute(tl, "aria-pressed"), "false");
   await p.waitForTimeout(300);
   assert.equal(await p.evaluate(() => window.__zaz.kontexty), 0, "vypnuto: výstup se ani nevytvoří");
+  assert.equal(await p.locator(poz).count(), 0);
   await p.click(tl);
   assert.equal(await p.getAttribute(tl, "aria-pressed"), "true");
   assert.equal(await p.evaluate(() => localStorage.getItem("hspg-zazitek")), "1");
@@ -251,11 +266,34 @@ test("zvuk a vibrace: nic při načtení, najetí ani rolování; otevření zah
   assert.deepEqual(chyby, []);
 });
 
-test("zvuk: otevření z adresy #hbot (bez kliknutí) nic nezahraje", async () => {
-  const { p } = await stranka({ cesta: "/cenik.html#hbot", init: [spehZazitku] });
+test("pozvánka: ✕ = nechat vypnuté (nic se neuloží), podruhé v téže relaci se neukáže; při omezení pohybu bez animace", async () => {
+  const { p, chyby } = await stranka({ pohyb: "reduce", init: [spehZazitku] });
+  await p.click("#hbot-btn");
+  const poz = "#hbot .hb-head-akce .hz-pozvanka";
+  await p.waitForSelector(poz);
+  assert.equal(await p.evaluate(() => document.querySelector("#hbot .hz-pozvanka").getAnimations().length), 0, "omezení pohybu: žádný vjezd");
+  assert.deepEqual(await axeVazne(p, "#hbot .hb-head"), []);
+  await p.click(`${poz} .hz-pozvanka-ne`);
+  assert.equal(await p.locator(poz).count(), 0);
+  assert.equal(await p.evaluate(() => localStorage.getItem("hspg-zazitek")), null);
+  assert.equal(await p.evaluate(() => sessionStorage.getItem("hspg-zazitek-pozvanka")), "1");
+  await p.click("#hbot .hb-close");
+  await p.click("#hbot-btn");
+  await p.waitForTimeout(300);
+  assert.equal(await p.locator(poz).count(), 0, "jednou za relaci");
+  assert.deepEqual(await p.evaluate(() => window.__zaz), { kontexty: 0, zdroje: 0, vibrace: [] });
+  assert.deepEqual(chyby, []);
+});
+
+test("zvuk: otevření z adresy #hbot (bez kliknutí) nic nezahraje ani neukáže pozvánku", async () => {
+  const { p } = await stranka({ cesta: "/cenik.html#hbot", init: [spehZazitku, zvukZapnut] });
   await p.waitForSelector("#hbot:not([hidden]) .hb-rozc");
   await p.waitForTimeout(500);
   assert.deepEqual(await p.evaluate(() => window.__zaz), { kontexty: 0, zdroje: 0, vibrace: [] });
+  const b = await stranka({ cesta: "/cenik.html#hbot", init: [spehZazitku] });
+  await b.p.waitForSelector("#hbot:not([hidden]) .hb-rozc");
+  await b.p.waitForTimeout(300);
+  assert.equal(await b.p.locator("#hbot .hz-pozvanka").count(), 0, "bez vědomé akce žádná pozvánka");
 });
 
 // Projde kalkulaci na střechu 120 m² až k obálce.
@@ -272,7 +310,7 @@ async function kObalce(p) {
 }
 
 test("obálka „Cena hned“: malé hejno s pravdivými popisky do 1,2 s, pečeť jde rozlomit hned; pečeť a cena zazní a zavibrují", async () => {
-  const { p, chyby } = await stranka({ init: [spehZazitku] });
+  const { p, chyby } = await stranka({ init: [spehZazitku, zvukZapnut] });
   await kObalce(p);
   await p.waitForSelector("#hbot .hn-hejno");
   assert.equal(await p.getAttribute("#hbot .hn-hejno", "aria-hidden"), "true", "jen dekorace");
@@ -289,7 +327,7 @@ test("obálka „Cena hned“: malé hejno s pravdivými popisky do 1,2 s, peče
 });
 
 test("kalkulace: chyba ve validaci = jemný tón a vibrace [30, 60, 30]; volba karty ťukne", async () => {
-  const { p } = await stranka({ init: [spehZazitku] });
+  const { p } = await stranka({ init: [spehZazitku, zvukZapnut] });
   await p.click("#hbot-btn");
   await p.click("#hbot .hb-cena-hned");
   await p.waitForSelector("#hbot .hn-karta");
@@ -333,7 +371,7 @@ async function zmer(p) {
 const stavy = (p) => p.$$eval("#h3a-hejno-kroky .h3a-holub", (e) => e.map((x) => `${x.dataset.krok}:${x.dataset.stav}`));
 
 test("HOLUB 360: hejno při měření – Měří jen během skutečného požadavku, pak Počítá · Ověřuje · Komunikuje; stavový řádek; zvuky", async () => {
-  const { p, chyby, pust } = await h360({ init: [spehZazitku] });
+  const { p, chyby, pust } = await h360({ init: [spehZazitku, zvukZapnut] });
   assert.equal(await p.isHidden("#h3a-hejno-kroky"), true, "před měřením hejno není");
   assert.equal(await p.getAttribute("#h3a-hejno-stav", "role"), "status");
   await zmer(p);
@@ -389,10 +427,10 @@ test("HOLUB 360: chyba měření hejno vrátí do klidu; omezení pohybu = stati
 });
 
 test("HOLUB 360: přepínač „Zvuk a vibrace“ v hlavičce (sdílený s H-BOTem), pečeť zazní a zavibruje; kulisa respektuje hlavní vypínač", async () => {
-  const { p, chyby, pust } = await h360({ init: [spehZazitku] });
+  const { p, chyby, pust } = await h360({ init: [spehZazitku, zvukZapnut] });
   const tl = "#h3a-zazitek";
   await p.waitForSelector(`${tl}:not([hidden])`);
-  assert.equal(await p.getAttribute(tl, "aria-pressed"), "true");
+  assert.equal(await p.getAttribute(tl, "aria-pressed"), "true", "zákazník si zvuk zapnul dříve");
   assert.equal(await p.getAttribute(tl, "aria-label"), "Zvuk a vibrace");
   assert.match(await p.textContent(tl), /Zvuk a vibrace/);
   assert.equal(await p.evaluate(() => !!document.querySelector("#h3a-zazitek").closest(".h3a-hlavicka")), true);
@@ -424,5 +462,27 @@ test("HOLUB 360: přepínač „Zvuk a vibrace“ v hlavičce (sdílený s H-BOT
   await p.click("#h3a-zvuk");
   await p.waitForSelector('#h3a-zvuk[aria-pressed="true"]');
   assert.equal(await p.getAttribute(tl, "aria-pressed"), "true");
+  assert.deepEqual(chyby, []);
+});
+
+test("HOLUB 360: výchozí vypnuto; start zaměření ukáže pozvánku u přepínače v hlavičce; Zapnout uloží „1“ a zapne oba přepínače", async () => {
+  const { p, chyby, pust } = await h360({ init: [spehZazitku] });
+  const tl = "#h3a-zazitek";
+  await p.waitForSelector(`${tl}:not([hidden])`);
+  assert.equal(await p.getAttribute(tl, "aria-pressed"), "false");
+  assert.equal(await p.locator(".h3a-hlavicka-akce .hz-pozvanka").count(), 0, "před vědomou akcí nic");
+  await zmer(p);
+  const poz = ".h3a-hlavicka-akce .hz-pozvanka";
+  await p.waitForSelector(poz);
+  assert.deepEqual(await p.evaluate(() => window.__zaz), { kontexty: 0, zdroje: 0, vibrace: [] }, "vypnuto: křídla nezazní");
+  pust(MERENI);
+  await p.waitForSelector("#h3a-vysledek:not([hidden])");
+  await p.click(`${poz} .hz-pozvanka-ano`);
+  await p.waitForFunction(() => window.__zaz.zdroje > 1);
+  assert.equal(await p.getAttribute(tl, "aria-pressed"), "true");
+  assert.equal(await p.evaluate(() => localStorage.getItem("hspg-zazitek")), "1");
+  assert.deepEqual(await p.evaluate(() => JSON.parse(JSON.stringify(window.__zaz.vibrace))), [8]);
+  assert.equal(await p.locator(poz).count(), 0);
+  assert.deepEqual(await axeVazne(p, ".h3a-hlavicka"), []);
   assert.deepEqual(chyby, []);
 });

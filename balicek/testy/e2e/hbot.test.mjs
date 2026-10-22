@@ -75,13 +75,17 @@ test("zákazník bez AI: vlastní otázka → FAQ; neznámá otázka → zavolá
   await p.click("#hbot form.hb-call button[type=submit]");
   await p.waitForSelector("#hbot .hb-chyba:not([hidden]) >> text=/telefonní číslo/");
   await p.fill("#hbot form.hb-call input[name=telefon]", "+420 777 123 456");
-  await p.check("#hbot form.hb-call input[name=souhlas]");
+  // Bez zaškrtávacího políčka souhlasu (čl. 6 odst. 1 písm. b) GDPR) – jen informační věta s odkazem na zásady.
+  assert.equal(await p.locator("#hbot form.hb-call input[type=checkbox]").count(), 0);
+  assert.match(await p.textContent("#hbot form.hb-call .hb-udaje"), /^Jméno a telefon použijeme jen k zavolání zpět k vaší poptávce\. Zásady ochrany osobních údajů$/);
+  assert.equal(await p.getAttribute("#hbot form.hb-call .hb-udaje a", "href"), "/ochrana-osobnich-udaju.html");
   await p.click("#hbot form.hb-call button[type=submit]");
   await p.waitForSelector("#hbot .hb-msg >> text=/Děkujeme. Ozveme se/");
   assert.equal(s.formulare.length, 1);
   assert.equal(s.formulare[0]["form-name"], "hspg-zavolejte");
   assert.equal(s.formulare[0]["Telefon"], "+420777123456");
   assert.equal(s.formulare[0]["Zdroj"], "H-BOT");
+  assert.equal("Souhlas" in s.formulare[0], false, "žádné pole Souhlas");
 });
 
 test("zákazník s AI: upozornění o AI, odpověď ověřená druhou AI, odkazy a další krok", async () => {
