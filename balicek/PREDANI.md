@@ -11,7 +11,7 @@ Jedna stránka: co je hotové, kdo co dělá a v jakém pořadí, co zbývá na 
 | Ochrana kreditů Netlify | rozpočet AI za období kreditů (11.–10.) s rezervací před voláním, podíl zákazníků (výchozí polovina), nouzový vypínač v panelu, při výpadku úložiště AI vypnutá, pojistka nasazení `scripts/nasadit.mjs` (náhled zdarma, produkce jen se schválením, max. 1× denně) |
 | Bezpečnost | přihlášení majitele tokenem (heslo jen v Netlify), zámek pokusů, tajemství podpisu na serveru, žádné klíče v kódu |
 | Ověření vyhledávačů | soubory a meta tagy Seznamu a Bingu v `web/overeni/` (úkol 20; všechny vygenerované kódy najednou) |
-| Testy | 183 jednotkových + 78 v prohlížeči (Chromium; kopie živého webu nebo zástupné stránky), všechny prochází (22. 10. 2026) |
+| Testy | 186 jednotkových + 79 v prohlížeči (Chromium; kopie živého webu nebo zástupné stránky), všechny prochází (22. 10. 2026) |
 | **H-BOT v5 a „Cena hned“** (úkol 48) | zlatý 3D origami holub nad střechou, hejno, oznámení AI; orientační cena z ceníku v zapečetěné obálce, PDF kalkulace, NÁVRH smlouvy o dílo (nezávazný, jen v prohlížeči), porovnání s cizí nabídkou |
 | **HOLUB 360** (úkol 49) | `/holub-360/`: průlet nad Prahou, zaměření na dálku, 3D model, cesta A/B, kalkulace, kalendář s technologickým oknem, rezervace |
 | **Standard HOLUB, SENTINEL, cenové jádro** (úkol 50) | `/standard-holub/` z dat, tarify BASE / PLUS / PRESTIGE, jedna cena pro všechny části webu |

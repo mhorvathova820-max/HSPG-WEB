@@ -58,8 +58,8 @@
 ## Testy
 ```
 npm install
-npm test                                                      # 183 jednotkových testů
-HSPG_MIRROR=/cesta/k/webu CHROMIUM=/cesta/k/chromium npm run test:e2e   # 78 testů v prohlížeči (bez HSPG_MIRROR na zástupných stránkách testy/fixtures/web)
+npm test                                                      # 186 jednotkových testů
+HSPG_MIRROR=/cesta/k/webu CHROMIUM=/cesta/k/chromium npm run test:e2e   # 79 testů v prohlížeči (bez HSPG_MIRROR na zástupných stránkách testy/fixtures/web)
 HSPG_MIRROR=/cesta/k/webu node balicek/testy/server.mjs       # ruční prohlížení na http://127.0.0.1:8787
 ```
 Testy nevolají žádnou skutečnou AI a nic neodesílají ven. `HSPG_MIRROR` = složka webHSPGH nebo kopie živého webu (`wget --mirror https://hspg.cz`).
