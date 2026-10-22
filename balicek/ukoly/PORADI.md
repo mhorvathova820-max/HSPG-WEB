@@ -1,9 +1,9 @@
 # Pořadí úkolů
 
 **Pořadí provádění (agent ve VS Code jde přesně takto):**
-00 → 20 → 01 → 02 → 21 → 22 → 23 → 24 → 25 → 27 → **50 → 48 → 52 → 49** → 26 → 17 → 03 → 04 → 05 → 13 → 09 → 06 → 07 → 08 → 16 → 10 → 11 → 18 → 19 → **53** → 15 → 14 → **51** → 12
+00 → 20 → 01 → 02 → 21 → 22 → 23 → 24 → 25 → 27 → **50 → 48 → 52 → 49** → 26 → 17 → 03 → 04 → 05 → 13 → 09 → 06 → 07 → 08 → 16 → 10 → 11 → 18 → 19 → **53** → 15 → **54** → **56** → 14 → **51** → 12
 
-**Úkoly 48–53 (rozhodnutí majitele 22. 10. 2026, R15–R19; čísla 28–47 nejsou obsazená):** pokud už jsi v pořadí za úkolem 27, udělej hned jako další **50 → 48 → 52 → 49** (48 a 52 nasaď ve stejné dávce – kalkulace volá `/api/konkurence`), pak pokračuj tam, kde jsi skončil. **53** až po 19 (CI), **51** až po 14 (přístupové kódy pasů). Kód je v balíčku na větvi `claude/apex-48-53` (obsahuje i vše z `claude/peaceful-johnson-juqa6w`). Závěry rady AI k textům a smlouvě: `balicek/RADA-AI-2026-10-22.md`.
+**Úkoly 48–53 (rozhodnutí majitele 22. 10. 2026, R15–R19; čísla 28–47 nejsou obsazená):** pokud už jsi v pořadí za úkolem 27, udělej hned jako další **50 → 48 → 52 → 49** (48 a 52 nasaď ve stejné dávce – kalkulace volá `/api/konkurence`), pak pokračuj tam, kde jsi skončil. **53** až po 19 (CI), **54** (štít obsahu) a **56** (puls, rozcestník, zvuk a haptika, hejno při zaměření) po 15 (hlavičky), **51** až po 14 (přístupové kódy pasů). **55** (opravy živého webu podle auditu z 22. 10.) udělej hned po 50 – jsou to texty a pravdivost. Kód je v balíčku na větvi `claude/apex-48-53` (obsahuje i vše z `claude/peaceful-johnson-juqa6w`). Závěry rady AI k textům a smlouvě: `balicek/RADA-AI-2026-10-22.md`.
 
 Důvod: nejdřív bezpečí a záloha (00), malé ověření webu v Seznamu a Bingu (20 – soubory jedou s nejbližším schváleným nasazením), asistent (01), poptávky (02), plánovač s počasím a rychlou rezervací (21 – zároveň odstraňuje licenční riziko stávajícího počasí z Open-Meteo) a chyba, kvůli které se návštěvník nedostane k formuláři (17), pak právní a pravdivostní rizika (03–05, 13, 09), pak technika a kvalita (06–08, 16, 10, 11, 18, 19, 15) a nakonec věci čekající na data (14, 12).
 
@@ -46,3 +46,6 @@ zbývajících oblastí auditu se může zpřesnit (před každým úkolem `git 
 | 51 | [Pas domu – trezor](51-pas-domu-trezor.md) | P2 | 14, 50 | přístupové kódy k pasům, TEST pas |
 | 52 | [Rada AI přes OpenRouter, pseudonymizace, `/api/konkurence`](52-rada-ai-openrouter.md) | P1 | 01, 22 | `HSPG_KLIC_OPENROUTER` v Netlify, kredit OpenRouter |
 | 53 | [Spolupráce agentů: Claude Code + GitHub Copilot (AGENTS.md, issue, PR, CI), rada AI z terminálu](53-spoluprace-agentu.md) | P1 | 00, 19, 52 | zapnout Copilot coding agent, GitHub Pro (ochrana větve) |
+| 54 | [Štít obsahu: výhrada vytěžování dat (TDM), zákaz rámování, ochrana médií, IPTC, postup proti kopiím](54-stit-obsahu.md) | P1 | 00, 08, 15 | ochranné známky (podklady v DOKUMENTY-K-ODESLANI), seznam fotek k podpisu |
+| 55 | [Opravy živého webu podle auditu 22. 10.: embargo slov, 5 kroků, SENTINEL BASE/PLUS/PRESTIGE, „Cena ihned“ s celým postupem](55-opravy-ziveho-webu.md) | P0 | 50 | – |
+| 56 | [Pulzující plaketa a rozcestník celého webu, zvuk a haptika s vypínačem, hejno 4 holubů při zaměření](56-puls-rozcestnik-zazitek.md) | P1 | 48, 49, 15 | – |
