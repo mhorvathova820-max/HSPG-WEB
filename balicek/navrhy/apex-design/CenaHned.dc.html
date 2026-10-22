@@ -131,7 +131,7 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 
 <div style="display: flex; flex-direction: column; gap: 8px" role="radiogroup" aria-label="Cesta ochrany">
 <button type="button" class="volba" role="radio" aria-checked="{{vA}}" onClick="{{zvolA}}"><span class="radio"><i></i></span><span><b>Cesta A · Neviditelný štít H-STONE</b><span>2× nástřik hydrofobní nano-impregnace. Voda perlí, povrch dýchá, vzhled zůstává. Záruka 10 let při péči SENTINEL BASE.</span></span><span class="sazba">od 119 Kč/m²<small>střecha 178 · fasáda 168 · dlažba 119</small></span></button>
-<button type="button" class="volba" role="radio" aria-checked="{{vB}}" onClick="{{zvolB}}"><span class="radio"><i></i></span><span><b>Cesta B · Barevná renovace v odstínu RAL</b><span>Penetrace a 2× strojní airless nástřik ohřívanou barvou. Pro střechu a fasádu, když chcete barvu vrátit nebo změnit.</span></span><span class="sazba">od 268 Kč/m²<small>střecha 268 · fasáda 298</small></span></button>
+<button type="button" class="volba" role="radio" aria-checked="{{vB}}" onClick="{{zvolB}}"><span class="radio"><i></i></span><span><b>Cesta B · Barevná renovace v odstínu RAL</b><span>Penetrace a 2× strojní airless nástřik ohřívanou barvou. Pro střechu a fasádu, když chcete barvu vrátit nebo změnit. Zákonná práva z vadného plnění; záruku k nátěrovému systému stanoví smlouva.</span></span><span class="sazba">od 268 Kč/m²<small>střecha 268 · fasáda 298</small></span></button>
 <button type="button" class="volba" role="radio" aria-checked="{{vC}}" onClick="{{zvolC}}"><span class="radio"><i></i></span><span><b>Čištění a ošetření</b><span>Kroky 01–04 Standardu HOLUB – čištění, odmaštění, ošetření biocidy a oplach – bez finální ochranné vrstvy.</span></span><span class="sazba">od 69 Kč/m²<small>střecha 99 · fasáda 89 · dlažba 69</small></span></button>
 </div>
 
@@ -189,24 +189,24 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 <div class="radek celkem"><div class="n">Celkem (orientačně)</div><div class="c">{{celkemText}}</div></div>
 </div>
 <p class="sedy" style="margin: 0; font-size: 12.5px; line-height: 1.5">Orientační výpočet z ceníku platného od 1.&nbsp;10.&nbsp;2026, ne nabídka. Přesnou cenu potvrdíme po ověření rozsahu na místě. Nejsme plátci DPH.</p>
-<div class="obalka-mini"><span class="pecet-mini"><svg viewBox="-60 -78 110 112" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><b class="pf" style="font-size: 14px; color: #f6e7a8">V kroku 5 cenu zapečetíme</b><span class="sedy" style="font-size: 12px">Rozlomíte pečeť, stáhnete PDF kalkulaci a nezávazný NÁVRH smlouvy.</span></div></div>
+<div class="obalka-mini"><span class="pecet-mini"><svg viewBox="-60 -78 110 112" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><b class="pf" style="font-size: 14px; color: #f6e7a8">V kroku 5 cenu zapečetíme</b><span class="sedy" style="font-size: 12px">Rozlomíte pečeť, stáhnete PDF kalkulaci a nezávazný NÁVRH smlouvy. Otevřením nic neobjednáváte.</span></div></div>
 <div style="display: flex; gap: 10px; margin-top: auto"><button type="button" class="tl-ghost" onClick="{{tuk}}">Zpět</button><button type="button" class="tl-zlate" style="flex: 1" onClick="{{tuk}}">Pokračovat na plochy</button></div>
 </div>
 </div>
 </section>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"vahaniPoMs":{"editor":"int","default":12000,"min":0,"max":60000,"step":1000,"section":"Váhání"},"zvukVychozi":{"editor":"boolean","default":true,"section":"Zvuk"},"$preview":{"width":1440,"height":1000}}'>
+<script type="text/x-dc" data-dc-script data-props='{"vahaniPoMs":{"editor":"int","default":12000,"min":0,"max":60000,"step":1000,"section":"Váhání"},"zvukVychozi":{"editor":"boolean","default":false,"section":"Zvuk"},"$preview":{"width":1440,"height":1000}}'>
 class Component extends DCLogic {
   constructor(p) {
     super(p);
-    this.state = { strecha: true, fasada: true, dlazba: false, cesta: 'B', ral: 'RAL 9001', ulozene: {}, mStrecha: 190, mFasada: 340, mDlazba: 60, prepnuti: 0, vahani: false, zvuk: true };
+    this.state = { strecha: true, fasada: true, dlazba: false, cesta: 'B', ral: 'RAL 9001', ulozene: {}, mStrecha: 190, mFasada: 340, mDlazba: 60, prepnuti: 0, vahani: false, zvuk: false };
     this._t = []; this._ac = null;
     var self = this;
     ['prepStrecha', 'prepFasada', 'prepDlazba', 'zvolA', 'zvolB', 'zvolC', 'zmenStrecha', 'zmenFasada', 'zmenDlazba', 'prepniZvuk', 'tuk'].forEach(function (k) { self[k] = self[k].bind(self); });
   }
   componentDidMount() {
-    if (this.props.zvukVychozi === false) this.setState({ zvuk: false });
+    if (this.props.zvukVychozi === true) this.setState({ zvuk: true });
     var self = this, ms = this.props.vahaniPoMs == null ? 12000 : this.props.vahaniPoMs;
     if (ms > 0) this._t.push(setTimeout(function () { self.setState({ vahani: true }); }, ms));
   }

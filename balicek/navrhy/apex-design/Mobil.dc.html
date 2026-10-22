@@ -25,6 +25,10 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 .tl-zlate[disabled]{opacity:.5;cursor:default}
 .tl-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 18px;border-radius:999px;border:1px solid rgba(212,175,55,.5);background:transparent;color:var(--apex-zlato-svetle,#f6e7a8);font:700 14px Manrope,sans-serif;text-decoration:none;cursor:pointer}
 .tl-zlate:focus-visible,.tl-ghost:focus-visible,.pecet:focus-visible,.lista button:focus-visible,.lista a:focus-visible,.prepinac:focus-visible{outline:2px solid var(--apex-zlato-svetle,#f6e7a8);outline-offset:2px}
+.pozvanka{position:absolute;top:calc(100% + 8px);right:0;z-index:6;display:flex;align-items:center;gap:8px;max-width:calc(390px - 32px);padding:8px 8px 8px 12px;border-radius:14px;border:1px solid rgba(212,175,55,.42);background:rgba(11,15,25,.97);box-shadow:0 18px 40px rgba(0,0,0,.5);font:500 12.5px/1.35 Manrope,sans-serif;color:#f4f1e8}
+.pozvanka .ano{min-height:32px;padding:0 12px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6e7a8 0%,#d4af37 42%,#9c7b16 100%);color:#17120a;font:700 12.5px Manrope,sans-serif;cursor:pointer}
+.pozvanka .ne{width:30px;height:30px;padding:0;border-radius:50%;border:1px solid rgba(244,241,232,.18);background:transparent;color:#a3a9b5;font:600 13px Manrope,sans-serif;cursor:pointer}
+@media (prefers-reduced-motion:no-preference){.pozvanka{animation:pozvanka .32s cubic-bezier(.2,.8,.2,1) both}@keyframes pozvanka{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}}
 .prepinac{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid rgba(212,175,55,.35);background:rgba(11,15,25,.7);color:var(--apex-text,#f4f1e8);cursor:pointer}
 .prepinac svg{width:18px;height:18px}
 .prepinac[aria-pressed="true"]{border-color:var(--apex-zlato-svetle,#f6e7a8);color:var(--apex-zlato-svetle,#f6e7a8)}
@@ -117,9 +121,12 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 </svg>
 
 <div class="obsah">
-<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+<div style="position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px">
 <div style="display: flex; align-items: center; gap: 10px"><svg viewBox="-60 -78 110 112" width="42" height="42" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg><div style="display: flex; flex-direction: column; gap: 3px"><h1 style="font-size: 20px; line-height: 1; color: #f6e7a8">HOLUB&nbsp;360</h1><span class="stitek">Zaměření na dálku</span></div></div>
 <button type="button" class="prepinac" aria-pressed="{{zvukText}}" aria-label="Zvuk a vibrace" onClick="{{prepniZvuk}}"><svg class="vyp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M23 9l-6 6M17 9l6 6"/></svg><svg class="zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg></button>
+<sc-if value="{{jePozvanka}}" hint-placeholder-val="{{false}}">
+<div class="pozvanka" role="group" aria-label="Zvuk a vibrace"><span>Zvuk a jemné vibrace jsou vypnuté.</span><button type="button" class="ano" onClick="{{zapnoutZvuk}}">Zapnout</button><button type="button" class="ne" aria-label="Nechat vypnuté" onClick="{{nechatVypnuto}}">✕</button></div>
+</sc-if>
 </div>
 
 <sc-if value="{{jeKlid}}" hint-placeholder-val="{{true}}">
@@ -173,9 +180,9 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 </div>
 
 
-<sc-if value="{{jeBeh}}" hint-placeholder-val="{{false}}"><button type="button" class="tl-zlate" disabled="disabled">Holubi pracují…</button></sc-if>
+<sc-if value="{{jeBeh}}" hint-placeholder-val="{{false}}"><button type="button" class="tl-zlate" disabled="disabled">Holubi pracují…</button><button type="button" class="tl-ghost" onClick="{{preskocit}}" style="min-height: 44px">Přeskočit animaci → rovnou k ceně</button></sc-if>
 <sc-if value="{{jeObalka}}" hint-placeholder-val="{{false}}">
-<div class="obalka"><div class="obalka-klopa"></div><button type="button" class="pecet" aria-label="Rozlomit pečeť a zobrazit orientační cenu" onClick="{{rozlomit}}"><svg viewBox="-60 -78 110 112" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg></button><div class="obalka-text"><span class="pf" style="font-size: 15px; color: #f6e7a8">Orientační cena je zapečetěná</span><span class="sedy" style="font-size: 12.5px">Klepněte na pečeť. Výpočet běží z ceníku HSPG, ne z AI. Ukázka: střecha cesta A, fasáda cesta B.</span></div></div>
+<div class="obalka"><div class="obalka-klopa"></div><button type="button" class="pecet" aria-label="Rozlomit pečeť a zobrazit orientační cenu" onClick="{{rozlomit}}"><svg viewBox="-60 -78 110 112" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg></button><div class="obalka-text"><span class="pf" style="font-size: 15px; color: #f6e7a8">Orientační cena je zapečetěná</span><span class="sedy" style="font-size: 12.5px">Klepněte na pečeť – otevřením nic neobjednáváte. Orientační výpočet z ceníku HSPG, ne nabídka. Ukázka: střecha cesta A, fasáda cesta B.</span></div></div>
 </sc-if>
 <sc-if value="{{jeCena}}" hint-placeholder-val="{{false}}">
 <div class="sklo cena-karta" style="padding: 16px; display: flex; flex-direction: column; gap: 8px; border-color: rgba(246,231,168,.45)">
@@ -185,11 +192,11 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 <div class="radek"><div><div class="n">Střecha · A · neviditelný štít</div><div class="d">190&nbsp;m² × 178&nbsp;Kč</div></div><div class="c">33&nbsp;820&nbsp;Kč</div></div>
 <div class="radek"><div><div class="n">Fasáda · B · renovace RAL&nbsp;9001</div><div class="d">340&nbsp;m² × 298&nbsp;Kč</div></div><div class="c">101&nbsp;320&nbsp;Kč</div></div>
 <div class="radek"><div><div class="n">Sleva za dva a více povrchů (5&nbsp;%)</div></div><div class="c">−6&nbsp;757&nbsp;Kč</div></div>
-<div class="radek"><div><div class="n">Doprava</div><div class="d">do 30&nbsp;km zdarma, dál 12&nbsp;Kč/km · v&nbsp;ukázce 34&nbsp;km</div></div><div class="c">408&nbsp;Kč</div></div>
+<div class="radek"><div><div class="n">Doprava</div><div class="d">v&nbsp;ukázce 64&nbsp;km od Hradce Králové: prvních 30&nbsp;km zdarma, 34&nbsp;km × 12&nbsp;Kč</div></div><div class="c">408&nbsp;Kč</div></div>
 <div class="radek"><div><div class="n">Zaokrouhlení na desítky</div></div><div class="c">−1&nbsp;Kč</div></div>
 <div class="radek celkem"><div class="n">Celkem (orientačně)</div><div class="c">128&nbsp;790&nbsp;Kč</div></div>
 </div>
-<p class="sedy" style="margin: 0; font-size: 12.5px; line-height: 1.5">Orientační výpočet z ceníku, ne nabídka. Přesnou cenu potvrdíme po ověření rozsahu na místě. Záloha 30&nbsp;% jen u zakázek nad 100&nbsp;000&nbsp;Kč. Záruka 10&nbsp;let se vztahuje na neviditelný štít H-STONE (zde střecha) při péči SENTINEL BASE; zákonná práva z vadného plnění tím nejsou dotčena.</p>
+<p class="sedy" style="margin: 0; font-size: 12.5px; line-height: 1.5">Orientační výpočet z ceníku, ne nabídka. Přesnou cenu potvrdíme po ověření rozsahu na místě. Záloha 30&nbsp;% jen u zakázek nad 100&nbsp;000&nbsp;Kč. Záruka 10&nbsp;let se vztahuje na neviditelný štít H-STONE (zde střecha) při péči SENTINEL BASE; zákonná práva z vadného plnění tím nejsou dotčena. Barevná renovace (zde fasáda): platí zákonná práva z vadného plnění; smluvní záruku k nátěrovému systému výrobce barvy stanoví konečná smlouva.</p>
 <div style="display: flex; flex-direction: column; gap: 8px"><button type="button" class="tl-zlate" onClick="{{stahnout}}">Stáhnout kalkulaci (PDF)</button><a href="#termin" class="tl-ghost">Rezervovat termín</a><button type="button" class="tl-ghost" onClick="{{znovu}}">Zaměřit znovu</button></div>
 </div>
 </sc-if>
@@ -202,17 +209,17 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 </nav>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"zvukVychozi":{"editor":"boolean","default":true,"section":"Zvuk"},"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"zvukVychozi":{"editor":"boolean","default":false,"section":"Zvuk"},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   constructor(p) {
     super(p);
-    this.state = { faze: 0, zvuk: true, strecha: 0, fasada: 0, sklon: 0, overeni: 0, cena: 0, puls: false };
+    this.state = { faze: 0, zvuk: false, pozvanka: false, zvukRozhodnuto: false, strecha: 0, fasada: 0, sklon: 0, overeni: 0, cena: 0, puls: false };
     this._t = []; this._iv = null; this._ac = null;
     var self = this;
-    ['zamerit', 'rozlomit', 'znovu', 'prepniZvuk', 'stahnout', 'tuk'].forEach(function (k) { self[k] = self[k].bind(self); });
+    ['zamerit', 'rozlomit', 'znovu', 'prepniZvuk', 'stahnout', 'tuk', 'preskocit', 'zapnoutZvuk', 'nechatVypnuto'].forEach(function (k) { self[k] = self[k].bind(self); });
   }
   componentDidMount() {
-    if (this.props.zvukVychozi === false) this.setState({ zvuk: false });
+    if (this.props.zvukVychozi === true) this.setState({ zvuk: true, zvukRozhodnuto: true });
     var self = this;
     this._t.push(setTimeout(function () { self.setState({ puls: true }); }, 3000));
     this._t.push(setTimeout(function () { self.setState({ puls: false }); }, 7300));
@@ -260,6 +267,7 @@ class Component extends DCLogic {
   zamerit() {
     this.vycisti(); this.setState({ faze: 1, strecha: 0, fasada: 0, sklon: 0, overeni: 0, cena: 0, puls: false }); this.zvuk('kridla');
     var self = this;
+    if (!this.state.zvuk && !this.state.zvukRozhodnuto) { this.setState({ pozvanka: true }); this.po(9000, function () { self.setState({ pozvanka: false }); }); }
     this.po(2600, function () { self.setState({ faze: 2 }); self.zvuk('tuk'); self.pocitej('strecha', 190, 1200); self.po(700, function () { self.setState({ sklon: 38 }); }); });
     this.po(4300, function () { self.setState({ faze: 3 }); self.zvuk('tuk'); self.po(450, function () { self.setState({ overeni: 1 }); }); self.po(850, function () { self.setState({ overeni: 2 }); }); self.po(1250, function () { self.setState({ overeni: 3 }); self.zvuk('fajfka'); }); });
     this.po(5900, function () { self.setState({ faze: 4 }); self.zvuk('kridla'); });
@@ -267,7 +275,10 @@ class Component extends DCLogic {
   }
   rozlomit() { if (this.state.faze !== 5) return; this.zvuk('pecet'); var self = this; this.setState({ faze: 6 }); this.po(380, function () { self.pocitej('cena', 128790, 1400, function () { self.zvuk('cena'); }); }); }
   znovu() { this.vycisti(); this.setState({ faze: 0, strecha: 0, fasada: 0, sklon: 0, overeni: 0, cena: 0 }); }
-  prepniZvuk() { var z = !this.state.zvuk; this.setState({ zvuk: z }); if (z) { var self = this; setTimeout(function () { self.zvuk('tuk'); }, 0); } }
+  prepniZvuk() { var z = !this.state.zvuk; this.setState({ zvuk: z, pozvanka: false, zvukRozhodnuto: true }); if (z) { var self = this; setTimeout(function () { self.zvuk('tuk'); }, 0); } }
+  preskocit() { if (this.state.faze < 1 || this.state.faze > 4) return; this.vycisti(); this.setState({ faze: 5, strecha: 190, fasada: 340, sklon: 38, overeni: 3 }); this.zvuk('tuk'); }
+  zapnoutZvuk() { var self = this; this.setState({ zvuk: true, pozvanka: false, zvukRozhodnuto: true }); setTimeout(function () { self.zvuk('kridla'); self.zvuk('tuk'); }, 0); }
+  nechatVypnuto() { this.setState({ pozvanka: false, zvukRozhodnuto: true }); }
   stahnout() { this.zvuk('fajfka'); }
   tuk() { this.zvuk('tuk'); }
   kc(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' Kč'; }
@@ -282,9 +293,10 @@ class Component extends DCLogic {
       tridy: tridy, jeKlid: f === 0, jeBeh: f >= 1 && f <= 4, jeObalka: f >= 5, jeCena: f >= 6,
       posadka: posadka, stavText: stavy[f],
       strechaText: f >= 2 ? String(s.strecha) : '–', fasadaText: f >= 2 ? String(s.fasada) : '–', pudorysText: s.sklon ? '132' : '–', overeniText: f >= 3 ? (s.overeni >= 3 ? '1 budova' : s.overeni + '/3') : '–',
-      cenaText: this.kc(s.cena), zvukText: s.zvuk ? 'true' : 'false', pulsTrida: s.puls ? 'puls' : '',
+      cenaText: this.kc(s.cena), zvukText: s.zvuk ? 'true' : 'false', jePozvanka: s.pozvanka, pulsTrida: s.puls ? 'puls' : '',
       letM: f === 1 ? 'leti' : '', letO: f === 3 ? 'leti' : '', letK: f === 4 ? 'leti' : '',
-      zamerit: this.zamerit, rozlomit: this.rozlomit, znovu: this.znovu, prepniZvuk: this.prepniZvuk, stahnout: this.stahnout, tuk: this.tuk
+      zamerit: this.zamerit, rozlomit: this.rozlomit, znovu: this.znovu, prepniZvuk: this.prepniZvuk, stahnout: this.stahnout, tuk: this.tuk,
+      preskocit: this.preskocit, zapnoutZvuk: this.zapnoutZvuk, nechatVypnuto: this.nechatVypnuto
     };
   }
 }

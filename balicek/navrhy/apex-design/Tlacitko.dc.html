@@ -109,7 +109,7 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-width: 560px">
 <div class="cislo"><b>5</b><span>kroků Standardu HOLUB, které nezkracujeme</span></div>
 <div class="cislo"><b>10&nbsp;let</b><span>záruka na H-STONE při péči SENTINEL BASE</span></div>
-<div class="cislo"><b>2&nbsp;000+</b><span>ošetřených objektů v ČR <small style="display:block;font:600 11px Manrope,sans-serif;color:#a3a9b5">[DOPLNIT: evidence zakázek]</small></span></div>
+<div class="cislo"><b>IČO 09291881</b><span>od roku 2020 · neplátce DPH</span></div>
 </div>
 </div>
 <div class="sklo" style="height: 520px; display: grid; place-items: center; position: relative; overflow: hidden">
@@ -151,16 +151,16 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"pulsZaMs":{"editor":"int","default":1500,"min":0,"max":10000,"step":100,"section":"Puls"},"zvukVychozi":{"editor":"boolean","default":true,"section":"Zvuk"},"$preview":{"width":1440,"height":1000}}'>
+<script type="text/x-dc" data-dc-script data-props='{"pulsZaMs":{"editor":"int","default":1500,"min":0,"max":10000,"step":100,"section":"Puls"},"zvukVychozi":{"editor":"boolean","default":false,"section":"Zvuk"},"$preview":{"width":1440,"height":1000}}'>
 class Component extends DCLogic {
   constructor(p) {
     super(p);
-    this.state = { otevreno: false, puls: false, zvuk: true, otevrel: false };
+    this.state = { otevreno: false, puls: false, zvuk: false, otevrel: false };
     this._t = []; this._ac = null;
     this.prepni = this.prepni.bind(this); this.prepniZvuk = this.prepniZvuk.bind(this); this.tuk = this.tuk.bind(this); this.odeslat = this.odeslat.bind(this);
   }
   componentDidMount() {
-    if (this.props.zvukVychozi === false) this.setState({ zvuk: false });
+    if (this.props.zvukVychozi === true) this.setState({ zvuk: true });
     var self = this, za = this.props.pulsZaMs == null ? 1500 : this.props.pulsZaMs;
     // Puls v dávkách (WCAG 2.2.2): 3 obíhající kruhy ≈ 4,5 s, druhá dávka po 14 s, žádná po otevření.
     this._t.push(setTimeout(function () { self.davka(); }, za));

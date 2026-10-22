@@ -32,6 +32,11 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 .prepinac{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid rgba(212,175,55,.35);background:rgba(11,15,25,.7);color:var(--apex-text,#f4f1e8);font:700 13px Manrope,sans-serif;cursor:pointer}
 .prepinac[aria-pressed="true"]{border-color:var(--apex-zlato-svetle,#f6e7a8);color:var(--apex-zlato-svetle,#f6e7a8);box-shadow:0 0 0 1px rgba(212,175,55,.25),0 0 22px rgba(212,175,55,.25)}
 .prepinac svg{width:18px;height:18px}
+.pozvanka{position:absolute;top:calc(100% + 10px);right:0;z-index:6;display:flex;align-items:center;gap:8px;max-width:320px;padding:8px 8px 8px 12px;border-radius:14px;border:1px solid rgba(212,175,55,.42);background:rgba(11,15,25,.97);box-shadow:0 18px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);font:500 12.5px/1.35 Manrope,sans-serif;color:#f4f1e8}
+.pozvanka::before{content:"";position:absolute;top:-6px;right:22px;width:10px;height:10px;transform:rotate(45deg);border-left:1px solid rgba(212,175,55,.42);border-top:1px solid rgba(212,175,55,.42);background:#0b0f19}
+.pozvanka .ano{min-height:32px;padding:0 12px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6e7a8 0%,#d4af37 42%,#9c7b16 100%);color:#17120a;font:700 12.5px Manrope,sans-serif;cursor:pointer}
+.pozvanka .ne{width:30px;height:30px;padding:0;border-radius:50%;border:1px solid rgba(244,241,232,.18);background:transparent;color:#a3a9b5;font:600 13px Manrope,sans-serif;cursor:pointer}
+@media (prefers-reduced-motion:no-preference){.pozvanka{animation:pozvanka .32s cubic-bezier(.2,.8,.2,1) both}@keyframes pozvanka{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}}
 .prepinac .zap{display:none}.prepinac[aria-pressed="true"] .zap{display:inline}.prepinac[aria-pressed="true"] .vyp{display:none}
 /* posádka */
 .posadka{display:flex;flex-direction:column;gap:8px}
@@ -192,6 +197,7 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 <button type="button" class="tl-zlate tep-tlacitko" onClick="{{zamerit}}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>Zaměřit na dálku</button>
 </sc-if>
 <sc-if value="{{jeBeh}}" hint-placeholder-val="{{false}}">
+<button type="button" class="tl-ghost" onClick="{{preskocit}}" style="min-height: 44px">Přeskočit animaci → rovnou k ceně</button>
 <button type="button" class="tl-zlate" disabled="disabled"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.2 2.2M16.2 16.2l2.2 2.2M5.6 18.4l2.2-2.2M16.2 7.8l2.2-2.2"/></svg>Holubi pracují…</button>
 </sc-if>
 <sc-if value="{{jeHotovo}}" hint-placeholder-val="{{false}}">
@@ -233,7 +239,7 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 <div class="obalka">
 <div class="obalka-klopa"></div><div class="obalka-linka"></div>
 <button type="button" class="pecet" aria-label="Rozlomit pečeť a zobrazit orientační cenu" onClick="{{rozlomit}}"><svg viewBox="-60 -78 110 112" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg></button>
-<div class="obalka-text"><span class="pf" style="font-size: 17px; color: #f6e7a8">{{obalkaTitul}}</span><span class="sedy" style="font-size: 12px">Klepněte na pečeť. Výpočet běží z ceníku HSPG, ne z AI.</span></div>
+<div class="obalka-text"><span class="pf" style="font-size: 17px; color: #f6e7a8">{{obalkaTitul}}</span><span class="sedy" style="font-size: 12px">Klepněte na pečeť – otevřením nic neobjednáváte. Orientační výpočet z ceníku HSPG, ne nabídka.</span></div>
 </div>
 </div>
 </sc-if>
@@ -247,7 +253,7 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 <div class="radek"><div><div class="n">{{r.nazev}}</div><div class="d">{{r.detail}}</div></div><div class="c">{{r.castka}}</div></div>
 </sc-for>
 <div class="radek"><div><div class="n">Sleva za dva a více povrchů (5&nbsp;%)</div></div><div class="c">{{slevaText}}</div></div>
-<div class="radek"><div><div class="n">Doprava</div><div class="d">do 30&nbsp;km od základny zdarma, dál 12&nbsp;Kč/km · v&nbsp;ukázce 34&nbsp;km</div></div><div class="c">408&nbsp;Kč</div></div>
+<div class="radek"><div><div class="n">Doprava</div><div class="d">v&nbsp;ukázce 64&nbsp;km od Hradce Králové: prvních 30&nbsp;km zdarma, 34&nbsp;km × 12&nbsp;Kč</div></div><div class="c">408&nbsp;Kč</div></div>
 <div class="radek"><div><div class="n">Zaokrouhlení na desítky</div></div><div class="c">{{zaokrText}}</div></div>
 <div class="radek celkem"><div class="n">Celkem (orientačně)</div><div class="c">{{celkemText}}</div></div>
 </div>
@@ -260,12 +266,15 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 
 <!-- PRAVÝ SLOUPEC: SCÉNA -->
 <div style="position: relative; display: flex; flex-direction: column; gap: 14px; min-width: 0">
-<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
+<div style="position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <h2 style="font-size: 30px; line-height: 1.05; color: #f4f1e8">Dům zaměříme na dálku. <em style="color: #f6e7a8">Hejno to zvládne za pár vteřin.</em></h2>
 <p role="status" aria-live="polite" class="sedy" style="margin: 0; font-size: 14px">{{stavText}}</p>
 </div>
 <button type="button" class="prepinac" aria-pressed="{{zvukText}}" onClick="{{prepniZvuk}}" aria-label="Zvuk a vibrace"><svg class="vyp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M23 9l-6 6M17 9l6 6"/></svg><svg class="zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg><span>Zvuk a vibrace</span></button>
+<sc-if value="{{jePozvanka}}" hint-placeholder-val="{{false}}">
+<div class="pozvanka" role="group" aria-label="Zvuk a vibrace"><span>Zvuk a jemné vibrace jsou vypnuté.</span><button type="button" class="ano" onClick="{{zapnoutZvuk}}">Zapnout</button><button type="button" class="ne" aria-label="Nechat vypnuté" onClick="{{nechatVypnuto}}">✕</button></div>
+</sc-if>
 </div>
 
 <div class="scena-obal sklo" style="padding: 10px; border-radius: 26px; overflow: hidden">
@@ -336,7 +345,7 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 <g class="holub h-overuje {{letO}}"><g transform="scale(-.58,.58)"><use class="p1" href="#h-nahoru" x="-60" y="-78" width="110" height="112"/><use class="p2" href="#h-stred" x="-60" y="-78" width="110" height="112"/><use class="p3" href="#h-dolu" x="-60" y="-78" width="110" height="112"/></g></g>
 <g class="holub h-komunikuje {{letK}}"><g transform="scale(-.62,.62)"><use class="p1" href="#h-nahoru" x="-60" y="-78" width="110" height="112"/><use class="p2" href="#h-stred" x="-60" y="-78" width="110" height="112"/><use class="p3" href="#h-dolu" x="-60" y="-78" width="110" height="112"/></g></g>
 </svg>
-<div class="bublina" aria-hidden="true"><b>Holub Komunikuje</b>Hotovo: střecha 190 m², fasáda 340 m², sklon 38°. Předávám do kalkulace – pečeť je připravená.</div>
+<div class="bublina" aria-hidden="true"><b>Holub Komunikuje</b>Hotovo: střecha ≈ 190 m², fasáda ≈ 340 m² – odhad z obrysu. Předávám do kalkulace, vyberte cestu ochrany.</div>
 <span class="stitek" style="position: absolute; right: 22px; bottom: 16px; color: #a3a9b5; letter-spacing: .16em">Ilustrační model · ukázka</span>
 </div>
 
@@ -349,15 +358,16 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"tempo":{"editor":"range","default":1,"min":0.5,"max":2,"step":0.1,"section":"Pohyb"},"zvukVychozi":{"editor":"boolean","default":true,"section":"Zvuk"},"$preview":{"width":1440,"height":1000}}'>
+<script type="text/x-dc" data-dc-script data-props='{"tempo":{"editor":"range","default":1,"min":0.5,"max":2,"step":0.1,"section":"Pohyb"},"zvukVychozi":{"editor":"boolean","default":false,"section":"Zvuk"},"$preview":{"width":1440,"height":1000}}'>
 class Component extends DCLogic {
   constructor(p) {
     super(p);
-    this.state = { faze: 0, zvuk: true, strecha: 0, fasada: 0, sklon: 0, overeni: 0, cena: 0, strechaCesta: 'A', fasadaCesta: 'B' };
+    this.state = { faze: 0, zvuk: false, pozvanka: false, zvukRozhodnuto: false, strecha: 0, fasada: 0, sklon: 0, overeni: 0, cena: 0, strechaCesta: 'A', fasadaCesta: 'B' };
     this._t = []; this._iv = null; this._ac = null;
     this.zamerit = this.zamerit.bind(this); this.rozlomit = this.rozlomit.bind(this); this.znovu = this.znovu.bind(this);
     this.prepniZvuk = this.prepniZvuk.bind(this); this.stahnout = this.stahnout.bind(this);
-    this.zapecetit = this.zapecetit.bind(this);
+    this.zapecetit = this.zapecetit.bind(this); this.preskocit = this.preskocit.bind(this);
+    this.zapnoutZvuk = this.zapnoutZvuk.bind(this); this.nechatVypnuto = this.nechatVypnuto.bind(this);
     var self = this;
     this.sVolA = function () { self.setState({ strechaCesta: 'A' }); self.zvuk('fajfka'); };
     this.sVolB = function () { self.setState({ strechaCesta: 'B' }); self.zvuk('fajfka'); };
@@ -375,7 +385,7 @@ class Component extends DCLogic {
     var sleva = Math.round(soucet * 0.05), doprava = 408, mezi = soucet - sleva + doprava, celkem = Math.round(mezi / 10) * 10;
     return { polozky: polozky, sleva: sleva, doprava: doprava, zaokr: celkem - mezi, celkem: celkem };
   }
-  componentDidMount() { if (this.props.zvukVychozi === false) this.setState({ zvuk: false }); }
+  componentDidMount() { if (this.props.zvukVychozi === true) this.setState({ zvuk: true, zvukRozhodnuto: true }); }
   componentWillUnmount() { this.vycisti(); }
   vycisti() { this._t.forEach(clearTimeout); this._t = []; if (this._iv) { clearInterval(this._iv); this._iv = null; } }
   po(ms, f) { var k = 1 / (this.props.tempo || 1); this._t.push(setTimeout(f, ms * k)); }
@@ -423,11 +433,17 @@ class Component extends DCLogic {
     this.setState({ faze: 1, strecha: 0, fasada: 0, sklon: 0, overeni: 0, cena: 0 });
     this.zvuk('kridla');
     var self = this;
+    // Zvuk je výchozí vypnutý (rozhodnutí 22. 10. 2026): po první vědomé akci se jednou ukáže pozvánka, po 9 s zmizí.
+    if (!this.state.zvuk && !this.state.zvukRozhodnuto) { this.setState({ pozvanka: true }); this.po(9000, function () { self.setState({ pozvanka: false }); }); }
     this.po(2600, function () { self.setState({ faze: 2 }); self.zvuk('tuk'); self.pocitej('strecha', 190, 1200); self.po(700, function () { self.setState({ sklon: 38 }); }); });
     this.po(4300, function () { self.setState({ faze: 3 }); self.zvuk('tuk'); self.po(450, function () { self.setState({ overeni: 1 }); }); self.po(850, function () { self.setState({ overeni: 2 }); }); self.po(1250, function () { self.setState({ overeni: 3 }); self.zvuk('fajfka'); }); });
     this.po(5900, function () { self.setState({ faze: 4 }); self.zvuk('kridla'); });
     this.po(7300, function () { self.setState({ faze: 5 }); self.zvuk('tuk'); });
   }
+  // Přeskočení animace: stejné plochy, stejná cena – jen bez čekání (shoda rady AI 22. 10.).
+  preskocit() { if (this.state.faze < 1 || this.state.faze > 4) return; this.vycisti(); this.setState({ faze: 5, strecha: 190, fasada: 340, sklon: 38, overeni: 3 }); this.zvuk('tuk'); }
+  zapnoutZvuk() { var self = this; this.setState({ zvuk: true, pozvanka: false, zvukRozhodnuto: true }); setTimeout(function () { self.zvuk('kridla'); self.zvuk('tuk'); }, 0); }
+  nechatVypnuto() { this.setState({ pozvanka: false, zvukRozhodnuto: true }); }
   zapecetit() { if (this.state.faze !== 5) return; this.setState({ faze: 6 }); this.zvuk('tuk'); }
   rozlomit() {
     if (this.state.faze !== 6) return;
@@ -437,7 +453,7 @@ class Component extends DCLogic {
     this.po(380, function () { self.pocitej('cena', cil, 1400, function () { self.zvuk('cena'); }); });
   }
   znovu() { this.vycisti(); this.setState({ faze: 0, strecha: 0, fasada: 0, sklon: 0, overeni: 0, cena: 0 }); }
-  prepniZvuk() { var z = !this.state.zvuk; this.setState({ zvuk: z }); if (z) { var self = this; setTimeout(function () { self.zvuk('tuk'); }, 0); } }
+  prepniZvuk() { var z = !this.state.zvuk; this.setState({ zvuk: z, pozvanka: false, zvukRozhodnuto: true }); if (z) { var self = this; setTimeout(function () { self.zvuk('tuk'); }, 0); } }
   stahnout() { this.zvuk('fajfka'); }
   kc(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' Kč'; }
   renderVals() {
@@ -454,15 +470,16 @@ class Component extends DCLogic {
       obalkaTitul: f >= 7 ? 'Pečeť rozlomena' : 'Osobní kalkulace · ukázkový dům',
       sA: s.strechaCesta === 'A' ? 'true' : 'false', sB: s.strechaCesta === 'B' ? 'true' : 'false', fA: s.fasadaCesta === 'A' ? 'true' : 'false', fB: s.fasadaCesta === 'B' ? 'true' : 'false',
       polozky: c.polozky, slevaText: this.kc(-c.sleva), zaokrText: this.kc(c.zaokr), celkemText: this.kc(c.celkem), zalohaText: c.celkem > 100000 ? 'Záloha 30 % (' + this.kc(Math.round(c.celkem * 0.3 / 10) * 10) + ') – jen u zakázek nad 100 000 Kč.' : 'Bez zálohy – zakázka do 100 000 Kč.',
-      zarukaText: s.strechaCesta === 'A' || s.fasadaCesta === 'A' ? 'Záruka 10 let se vztahuje na neviditelný štít H-STONE (' + (s.strechaCesta === 'A' && s.fasadaCesta === 'A' ? 'střecha i fasáda' : s.strechaCesta === 'A' ? 'zde střecha' : 'zde fasáda') + ') při péči SENTINEL BASE. Zákonná práva z vadného plnění tím nejsou dotčena.' : 'Záruka na barevnou renovaci: podle konečného znění smlouvy.',
+      zarukaText: (s.strechaCesta === 'A' || s.fasadaCesta === 'A' ? 'Záruka 10 let se vztahuje na neviditelný štít H-STONE (' + (s.strechaCesta === 'A' && s.fasadaCesta === 'A' ? 'střecha i fasáda' : s.strechaCesta === 'A' ? 'zde střecha' : 'zde fasáda') + ') při péči SENTINEL BASE. Zákonná práva z vadného plnění tím nejsou dotčena. ' : '') + (s.strechaCesta === 'B' || s.fasadaCesta === 'B' ? 'Barevná renovace: platí zákonná práva z vadného plnění; smluvní záruku k nátěrovému systému výrobce barvy stanoví konečná smlouva.' : ''),
       posadka: posadka, stavText: stavy[f],
       strechaText: f >= 2 ? String(s.strecha) : '–', fasadaText: f >= 2 ? String(s.fasada) : '–', pudorysText: s.sklon ? '132' : '–',
       overeniText: f >= 3 ? (s.overeni >= 3 ? '1 budova' : s.overeni + '/3') : '–',
       cenaText: this.kc(s.cena),
-      zvukText: s.zvuk ? 'true' : 'false',
+      zvukText: s.zvuk ? 'true' : 'false', jePozvanka: s.pozvanka,
       letM: f === 1 ? 'leti' : '', letO: f === 3 ? 'leti' : '', letK: f === 4 ? 'leti' : '',
       zamerit: this.zamerit, rozlomit: this.rozlomit, znovu: this.znovu, prepniZvuk: this.prepniZvuk, stahnout: this.stahnout,
-      zapecetit: this.zapecetit, sVolA: this.sVolA, sVolB: this.sVolB, fVolA: this.fVolA, fVolB: this.fVolB
+      zapecetit: this.zapecetit, sVolA: this.sVolA, sVolB: this.sVolB, fVolA: this.fVolA, fVolB: this.fVolB,
+      preskocit: this.preskocit, zapnoutZvuk: this.zapnoutZvuk, nechatVypnuto: this.nechatVypnuto
     };
   }
 }
