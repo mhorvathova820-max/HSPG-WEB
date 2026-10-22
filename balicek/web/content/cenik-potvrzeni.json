@@ -1,0 +1,8 @@
+{
+  "_poznamka": "Mechanismus z úkolu 27: ceny se zákazníkům ukážou jen, když platnost_od souhlasí s content/ceny.json. Majitel 22. 10. 2026 v zadání HOLUB 360 uvedl ceny shodné s ceníkem od 1. 10. 2026 a požádal o okamžitou cenovou nabídku v H-BOTovi (R16). Agent ve VS Code si potvrzení nechá od majitele zopakovat jednou větou v chatu a datum doplní.",
+  "platnost_od": "2026-10-01",
+  "potvrdil": "majitel",
+  "datum": "2026-10-22",
+  "zdroj": "zadání HOLUB 360 – OpenRouter Extension & Apex Design (22. 10. 2026)",
+  "rezim": "orientacni-cena"
+}

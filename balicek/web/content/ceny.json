@@ -43,12 +43,29 @@
       "Praha",
       "Hradec Králové"
     ],
-    "kc_za_km": 12
+    "kc_za_km": 12,
+    "zakladny_gps": {
+      "Praha": [
+        50.0925,
+        14.451
+      ],
+      "Hradec Králové": [
+        50.2092,
+        15.8328
+      ]
+    },
+    "koeficient_silnice": 1.3
   },
   "platby": {
     "hranice_zalohy": 100000,
     "zaloha_nad_hranici": 0.3,
     "splatnost_dni": 7,
-    "splatnost_svj_dni": 14
+    "splatnost_svj_dni": 14,
+    "skip_pay": {
+      "zapnuto": false,
+      "nazev": "Skip Pay – Na třetiny",
+      "splatek": 3,
+      "poznamka": "Zapnout až po podpisu smlouvy se Skip Pay a jen s textem podle jejich schválených podmínek (spotřebitelský úvěr, zákon č. 257/2016 Sb.)."
+    }
   }
 }
