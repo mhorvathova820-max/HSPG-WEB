@@ -68,7 +68,10 @@
   // Microsoft Clarity nesmí nahrávat otázky ani kontakty psané do panelu.
   box.setAttribute('data-clarity-mask', 'true');
   box.innerHTML =
-    '<div class="hb-head"><img src="/assets/v/logo-160.webp" alt="" width="40" height="40"><div><h2 id="hb-titulek">H-SPG CORE</h2><p id="hb-podtitulek">Budoucnost ve Vašich rukách</p></div>' +
+    // Znak: zlatý origami holub nad střechou (kreslí ho zavaděč, R18) – žádné kulaté logo.
+    '<div class="hb-head"><span class="hb-znak" aria-hidden="true"></span><div class="hb-titul"><h2 id="hb-titulek">H-SPG CORE</h2><p id="hb-podtitulek">Budoucnost ve Vašich rukách</p></div>' +
+    // AI Act čl. 50: když na vlastní otázky odpovídá AI, je to vidět trvale v hlavičce (ne jen v úvodní zprávě).
+    '<span class="hb-ai-znacka" hidden>AI asistent</span>' +
     '<button type="button" class="hb-close" aria-label="Zavřít pomocníka">✕</button></div>' +
     '<div class="hb-tabs" role="tablist" hidden>' +
     '<button type="button" role="tab" class="hb-tab" id="hb-tab-z" aria-controls="hb-view-z" aria-selected="true">Pro zákazníky</button>' +
@@ -80,6 +83,8 @@
     '<input type="text" name="_honey" tabindex="-1" autocomplete="off" class="hb-skryte" aria-hidden="true">' +
     '<button class="hb-zlate" type="submit">Poslat</button></form></div>' +
     '<div class="hb-view" id="hb-view-m" role="tabpanel" aria-labelledby="hb-tab-m" hidden></div>' +
+    // Okamžitá kalkulace (úkol 48): /assets/hbot-nabidka.js se načte až po kliknutí na „Cena hned“.
+    '<div class="hb-view hb-view-n" id="hb-view-n" hidden></div>' +
     '<div class="hb-pata"><span>' + esc(DOBA) + ' · <a href="tel:' + TEL + '">' + TEL_TEXT + '</a></span>' +
     '<button type="button" class="hb-odkaz" data-majitel hidden>Přihlášení majitele</button></div>';
   d.body.appendChild(box);
@@ -93,6 +98,34 @@
   var tabZ = box.querySelector('#hb-tab-z'), tabM = box.querySelector('#hb-tab-m');
   var viewZ = box.querySelector('#hb-view-z'), viewM = box.querySelector('#hb-view-m');
   var majitelBtn = box.querySelector('[data-majitel]');
+  var viewN = box.querySelector('#hb-view-n'), aiZnacka = box.querySelector('.hb-ai-znacka');
+
+  // --- znak v hlavičce: holub ze zavaděče (canvas), záložně plochý holub v SVG -------------------
+  var znak = box.querySelector('.hb-znak'), znakPlatno = null, znakCtx = null;
+  if (Z.holub && Z.platno) { try { znakPlatno = Z.platno(52, 38); znakCtx = znakPlatno.getContext('2d'); znak.appendChild(znakPlatno); } catch (e) { znakCtx = null; } }
+  if (!znakCtx && Z.holubSvg) znak.innerHTML = Z.holubSvg;
+  function kresliZnak(t, mav) {
+    if (!znakCtx) return;
+    var r = znakPlatno._r;
+    znakCtx.setTransform(1, 0, 0, 1, 0, 0);
+    znakCtx.clearRect(0, 0, znakPlatno.width, znakPlatno.height);
+    Z.holub.kresli(znakCtx, { x: 26 * r, y: 15.5 * r, meritko: 12.5 * r, mav: mav, cas: t, strecha: true, hreben: -0.84, strechaVelikost: 0.72, stoupani: 0.05 * Math.sin(t * 2.2) });
+  }
+  kresliZnak(0, 0.22);
+  var znakDo = 0, znakBezi = false;
+  // Holub mávne křídly při otevření a když odpovídá (jen bez prefers-reduced-motion).
+  function animujZnak(sekund) {
+    if (Z.klid || !znakCtx || !window.requestAnimationFrame) return;
+    znakDo = Math.max(znakDo, performance.now() + sekund * 1000);
+    if (znakBezi) return;
+    znakBezi = true;
+    requestAnimationFrame(function snimek(ted) {
+      var zbyva = znakDo - ted, t = ted / 1000;
+      if (zbyva <= 0 || box.hidden || d.hidden) { znakBezi = false; kresliZnak(t, 0.22); return; }
+      kresliZnak(t, 0.22 + 0.3 * Math.sin(t * Math.PI * 2 * 1.5) * Math.min(1, zbyva / 900));
+      requestAnimationFrame(snimek);
+    });
+  }
   // Návštěvníci odkaz nevidí. Majitel otevře panel přes hspg.cz/#majitel; zařízení si to pak pamatuje.
   var ZARIZENI_KLIC = 'hspg-majitel-zarizeni';
   // Hodnota = podepsaný příznak zařízení ze serveru (výjimka z globálního stropu pokusů o přihlášení).
@@ -103,7 +136,7 @@
 
   function msg(html, trida) {
     var m = d.createElement('div'); m.className = 'hb-msg' + (trida ? ' ' + trida : '');
-    if (trida === 'hb-me') m.textContent = html; else m.innerHTML = html;
+    if (trida === 'hb-me') m.textContent = html; else { m.innerHTML = html; animujZnak(1.2); }
     log.appendChild(m); log.scrollTop = log.scrollHeight; return m;
   }
 
@@ -137,8 +170,8 @@
   }
   function dalsiKrok() {
     var w = d.createElement('div'); w.className = 'hb-chips';
-    var a = d.createElement('a'); a.className = 'hb-chip hb-plny'; a.href = '/akce/'; a.textContent = 'Chci cenu do 24 h';
-    a.addEventListener('click', function () { udalost('hbot_cta', { cil: 'akce' }); });
+    // R16: okamžitá orientační cena přímo v H-BOTovi (dřív odkaz „Chci cenu do 24 h“ na /akce/).
+    var a = cipCenaHned('hbot_cta');
     var c = d.createElement('button'); c.type = 'button'; c.className = 'hb-chip'; c.textContent = '☎ Zavolejte mi';
     c.addEventListener('click', zavolejteMi);
     w.appendChild(a); w.appendChild(c); log.appendChild(w); log.scrollTop = log.scrollHeight;
@@ -226,9 +259,12 @@
   }
 
   // --- zákazník: zavolání zpět (Netlify Forms) --------------------------------------------------
-  function zavolejteMi() {
-    if (log.querySelector('form.hb-call')) { log.querySelector('form.hb-call input').focus(); return; }
-    var f = d.createElement('form'); f.className = 'hb-msg hb-call'; f.noValidate = true;
+  // souhrn = text kalkulace (číslo, povrchy, plochy, cena) – jde do pole Zdroj, ať tým ví, co zákazník spočítal.
+  function zavolejteMi(souhrn) {
+    if (typeof souhrn !== 'string') souhrn = '';
+    var stary = log.querySelector('form.hb-call:not(.hb-login)');
+    if (stary) { if (souhrn) stary._souhrn = souhrn; stary.querySelector('input').focus(); return; }
+    var f = d.createElement('form'); f.className = 'hb-msg hb-call'; f.noValidate = true; f._souhrn = souhrn;
     var id = 'hbc' + Date.now();
     f.innerHTML =
       '<b style="color:#f4e4b8">Zavoláme vám</b>' +
@@ -257,7 +293,7 @@
       if (!f.elements.souhlas.checked) return ukaz('Bez souhlasu vám nemůžeme zavolat.', f.elements.souhlas);
       var body = new URLSearchParams({
         'form-name': 'hspg-zavolejte', '_honey': f.elements._honey.value,
-        'Jméno': jm.value.trim(), 'Telefon': tel, 'Souhlas': 'ano', 'Stránka': location.pathname, 'Zdroj': 'H-BOT'
+        'Jméno': jm.value.trim(), 'Telefon': tel, 'Souhlas': 'ano', 'Stránka': location.pathname, 'Zdroj': 'H-BOT' + (f._souhrn ? ' · kalkulace ' + f._souhrn.slice(0, 300) : '')
       });
       var b = f.querySelector('button[type=submit]'); b.disabled = true; b.textContent = 'Odesílám…';
       fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() })
@@ -291,8 +327,9 @@
   function vyberKartu(m) {
     tabZ.setAttribute('aria-selected', m ? 'false' : 'true'); tabZ.tabIndex = m ? -1 : 0;
     tabM.setAttribute('aria-selected', m ? 'true' : 'false'); tabM.tabIndex = m ? 0 : -1;
-    viewZ.hidden = !!m; viewM.hidden = !m;
+    viewZ.hidden = !!m; viewM.hidden = !m; viewN.hidden = true;
     box.classList.toggle('hb-siroky', !!m);
+    box.classList.remove('hb-kalkulace');
     d.getElementById('hb-titulek').textContent = m ? 'Vše ve tvých rukách' : 'H-SPG CORE';
     d.getElementById('hb-podtitulek').textContent = m ? 'Všechny AI pro majitele · interní' : 'Budoucnost ve Vašich rukách';
   }
@@ -348,6 +385,51 @@
     });
   }
 
+  // --- okamžitá kalkulace „Cena hned“ (úkol 48) ---------------------------------------------------
+  function skript(src) {
+    return new Promise(function (ok, ch) { var s = d.createElement('script'); s.src = src; s.async = true; s.onload = function () { ok(); }; s.onerror = ch; d.head.appendChild(s); });
+  }
+  var kalkulaceNacitani = null, kalkulace = null;
+  function nactiKalkulaci() {
+    if (kalkulaceNacitani) return kalkulaceNacitani;
+    kalkulaceNacitani = Promise.all([window.HSPGCena ? null : skript('/assets/hspg-cena.js'), window.HSPGNabidka ? null : skript('/assets/hbot-nabidka.js')])
+      .then(function () { if (!window.HSPGCena || !window.HSPGNabidka) throw new Error('kalkulace'); })
+      .catch(function (e) { kalkulaceNacitani = null; throw e; });
+    return kalkulaceNacitani;
+  }
+  function cipCenaHned(zdroj) {
+    var c = d.createElement('button'); c.type = 'button'; c.className = 'hb-chip hb-plny hb-cena-hned'; c.textContent = '✦ Cena hned';
+    c.addEventListener('click', function () { udalost('hbot_cta', { cil: 'kalkulace', zdroj: zdroj }); otevriKalkulaci(); });
+    return c;
+  }
+  function ukazKalkulaci(ano) {
+    viewN.hidden = !ano; viewZ.hidden = !!ano;
+    if (ano) { viewM.hidden = true; tabZ.setAttribute('aria-selected', 'true'); tabM.setAttribute('aria-selected', 'false'); }
+    box.classList.toggle('hb-siroky', !!ano);
+    box.classList.toggle('hb-kalkulace', !!ano);
+    d.getElementById('hb-titulek').textContent = ano ? 'Cena hned' : 'H-SPG CORE';
+    d.getElementById('hb-podtitulek').textContent = ano ? 'Orientační kalkulace z ceníku HSPG' : 'Budoucnost ve Vašich rukách';
+  }
+  function otevriKalkulaci() {
+    ukazKalkulaci(true);
+    if (kalkulace) { kalkulace.fokus(); return; }
+    if (!viewN.firstChild) viewN.innerHTML = '<p class="hb-msg hb-info" style="margin:14px">Připravuji kalkulaci…</p>';
+    nactiKalkulaci().then(function () {
+      if (kalkulace) return;
+      kalkulace = window.HSPGNabidka.spust(viewN, {
+        zavadec: Z,
+        zpet: function () { ukazKalkulaci(false); vstup.focus({ preventScroll: true }); },
+        zavolejte: function (souhrn) { ukazKalkulaci(false); msg('Rádi vám zavoláme k vaší kalkulaci. Nechte nám prosím jméno a telefon.'); zavolejteMi(souhrn); },
+        dokumenty: '/assets/hspg-dokumenty.js', konkurence: '/assets/hspg-konkurence.js', planovac: '/planovac/', poptavka: '/akce/',
+        // „Plochu neznám“ → HOLUB 360 (úkol 49): zaměření na dálku, bez služby měření ruční plochy nebo adresa + telefon.
+        zamereni: '/holub-360/#h3a-adresa'
+      });
+      if (!box.hidden && !viewN.hidden) kalkulace.fokus();
+    }).catch(function () {
+      viewN.innerHTML = '<p class="hb-msg hb-chyba" style="margin:14px">Kalkulaci se teď nepodařilo načíst. Cenu vám spočítáme z <a href="/akce/">poptávky</a> nebo po telefonu <a href="tel:' + TEL + '">' + TEL_TEXT + '</a>.</p>';
+    });
+  }
+
   // --- otevření, zavření, klávesnice ------------------------------------------------------------
   var zacatek = false, otvirac = null;
   // Na mobilu panel zakryje skoro celou obrazovku → chová se jako modální okno: zbytek stránky je
@@ -375,9 +457,12 @@
       stavNacten.then(function () {
         if (!stavAI.ai) return poznamka.remove();
         poznamka.className = 'hb-msg hb-info';
-        poznamka.innerHTML = 'Na vlastní otázky odpovídají spolupracující AI (' + esc(stavAI.poskytovatele.join(', ')) + ') jen z ověřených informací HSPG; druhá AI odpověď kontroluje. Text otázky se zpracuje u poskytovatele AI (USA). Nepište sem prosím osobní údaje.';
+        // AI Act (nařízení EU 2024/1689) čl. 50: člověk musí vědět, že komunikuje s AI.
+        poznamka.innerHTML = 'Píšete si s asistentem, který používá umělou inteligenci (AI) – nejste ve spojení s člověkem. Na vlastní otázky odpovídají spolupracující AI (' + esc(stavAI.poskytovatele.join(', ')) + ') jen z ověřených informací HSPG; druhá AI odpověď kontroluje. Text otázky se zpracuje u poskytovatele AI (USA). Nepište sem prosím osobní údaje. Okamžitou cenu počítá ceník HSPG, ne AI.';
+        aiZnacka.hidden = false;
       });
       var w = d.createElement('div'); w.className = 'hb-chips';
+      w.appendChild(cipCenaHned('hbot_uvitani'));
       (KB.rychle_otazky || []).forEach(function (q) {
         var c = d.createElement('button'); c.type = 'button'; c.className = 'hb-chip'; c.textContent = q;
         c.addEventListener('click', function () { rychlaOtazka(q); }); w.appendChild(c);
@@ -387,14 +472,16 @@
       log.appendChild(w);
     });
   }
-  function otevri(zdroj) {
+  function otevri(zdroj, rezim) {
     otvirac = zdroj || d.activeElement;
     styly.then(function () {
       box.hidden = false; Z.otevreno(true); nastavModal(true);
+      animujZnak(2.4);
       if (!zacatek) uvitani();
       ukazOdkazMajitele();
       if (token()) zapniMajitele(location.hash === '#majitel');
       else if (location.hash === '#majitel') prihlaseni();
+      if (rezim === 'nabidka') { otevriKalkulaci(); udalost('hbot_open', { majitel: !!token(), rezim: 'kalkulace' }); return; }
       // Na dotyku by fokus do pole vysunul klávesnici dřív, než zákazník uvidí rychlé otázky.
       var dotyk = window.matchMedia && matchMedia('(pointer: coarse)').matches;
       var heslo = d.getElementById('hb-heslo');
@@ -440,6 +527,8 @@
   window.HSPG_HBOT = {
     otevri: otevri,
     zavri: zavri,
-    prepni: function (zdroj) { box.hidden ? otevri(zdroj) : zavri(); }
+    prepni: function (zdroj) { box.hidden ? otevri(zdroj) : zavri(); },
+    // Rovnou okamžitá kalkulace (lišta „Cena hned“, odkazy data-hbot-cena, #cena).
+    nabidka: function (zdroj) { if (box.hidden) otevri(zdroj, 'nabidka'); else otevriKalkulaci(); }
   };
 })();

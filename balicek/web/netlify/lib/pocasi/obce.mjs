@@ -80,17 +80,20 @@ export async function najdiObec(vstup) {
   return { nejednoznacne: kandidati.slice(0, 40).map(popis) };
 }
 
-// Návrhy pro našeptávač plánovače (lokálně, bez externí služby): obce začínající zadaným textem.
+// Návrhy pro našeptávač plánovače a okamžité kalkulace H-BOTa (lokálně, bez externí služby): obce začínající
+// zadaným textem. Se středem obce (lat, lon – veřejná data ČÚZK, CC BY 4.0), ať kalkulace odhadne dopravu
+// bez dalšího dotazu; ulice ani číslo domu se nikam neposílají.
+const navrh = (k) => ({ ...popis(k), lat: k.lat, lon: k.lon });
 export function navrhyObci(text, limit = 8) {
   const d = dejData();
   const k = bezDiakritiky(text);
   if (k.length < 2) return [];
-  const presne = (d.obce.get(k) || []).map(popis);
+  const presne = (d.obce.get(k) || []).map(navrh);
   const out = [...presne];
   for (const [nazev, seznam] of d.obce) {
     if (out.length >= limit) break;
     if (nazev === k || !nazev.startsWith(k)) continue;
-    for (const o of seznam) out.push(popis(o));
+    for (const o of seznam) out.push(navrh(o));
   }
   return out.slice(0, limit);
 }

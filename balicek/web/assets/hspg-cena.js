@@ -136,7 +136,10 @@
     if (povrch === 'fve') return 'šetrné čištění panelů vodou';
     if (cesta === 'cisteni') return 'kroky 01–04 Standardu HOLUB';
     var c = standard.cesty && standard.cesty[cesta];
-    var t = 'kroky 01–04 + ' + (c ? c.popis.replace(/\.$/, '').toLowerCase() : 'ochranná vrstva');
+    // Jen první věta popisu a malé jen první písmeno (značka H-STONE zůstane velkými).
+    var veta = c ? String(c.popis || '').split(/\.\s/)[0].replace(/\.$/, '') : '';
+    if (cesta === 'B' && barva && barva.ral) veta = veta.replace(/\s+v odstínu podle vašeho výběru$/, '');
+    var t = 'kroky 01–04 + ' + (veta ? veta.charAt(0).toLowerCase() + veta.slice(1) : 'ochranná vrstva');
     if (cesta === 'B') t += barva && barva.ral ? ' · odstín ' + barva.ral + (barva.nazev ? ' ' + barva.nazev : '') : ' · odstín určíte podle vzorníku';
     return t;
   }
@@ -168,11 +171,12 @@
     var standard = data.standard || VYCHOZI.standard;
     var sentinel = data.sentinel || VYCHOZI.sentinel;
     var potvrzeni = data.potvrzeni || null;
+    var firma = data.firma || null; // veřejné údaje o firmě pro dokumenty (z assets/hspg-cenik.json)
     var potvrzeno = !!(potvrzeni && potvrzeni.platnost_od && potvrzeni.platnost_od === cenik.platnost_od && potvrzeni.datum);
 
     function spocitej(vstup) {
       var polozky = (vstup && vstup.polozky) || [];
-      if (!polozky.length) throw new Error('Nabídka nemá žádnou položku.');
+      if (!polozky.length) throw new Error('Kalkulace nemá žádnou položku.');
       var typ = TYPY_OBJEKTU[vstup.typObjektu] ? vstup.typObjektu : 'rd';
       var radky = [], prace = 0, priplatky = 0, doplnky = 0, plochaCelkem = 0, povrchy = {}, cesty = {};
 
@@ -255,7 +259,7 @@
 
     return {
       spocitej: spocitej,
-      cenik: cenik, standard: standard, sentinel: sentinel, potvrzeno: potvrzeno,
+      cenik: cenik, standard: standard, sentinel: sentinel, potvrzeno: potvrzeno, firma: firma,
       barvy: function (povrch) { return ((standard.barvy_renovace || {})[povrch] || []).slice(); },
       cestyPro: function (povrch) {
         if (povrch === 'fve') return [];
@@ -269,17 +273,25 @@
     };
   }
 
-  /** Načte ceník, standard, tarify a potvrzení z webu; při chybě použije výchozí data (ceny se pak neukazují). */
+  /** Načte ceník, standard, tarify a potvrzení z webu; při chybě použije výchozí data (ceny se pak neukazují).
+   *  Nejdřív jeden soubor assets/hspg-cenik.json (generuje ho scripts/build-hbot.mjs z content/*.json – na webu
+   *  nemusí být složka content veřejná), záložně jednotlivé soubory z /content/. */
   function nacti(moznosti) {
     moznosti = moznosti || {};
     var zaklad = moznosti.zaklad || '/content/';
     var f = moznosti.fetch || (typeof fetch === 'function' ? fetch.bind(typeof self !== 'undefined' ? self : this) : null);
-    function json(soubor) {
+    function json(url) {
       if (!f) return Promise.resolve(null);
-      return f(zaklad + soubor, { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+      return f(url, { credentials: 'same-origin', cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
     }
-    return Promise.all([json('ceny.json'), json('standard.json'), json('sentinel.json'), json('cenik-potvrzeni.json')]).then(function (v) {
-      return vytvor({ cenik: v[0] || VYCHOZI.cenik, standard: v[1] || VYCHOZI.standard, sentinel: v[2] || VYCHOZI.sentinel, potvrzeni: v[0] ? v[3] : null });
+    var balicek = moznosti.balicek === false ? Promise.resolve(null) : json(moznosti.balicek || '/assets/hspg-cenik.json');
+    return balicek.then(function (b) {
+      if (b && b.cenik && b.cenik.platnost_od) {
+        return vytvor({ cenik: b.cenik, standard: b.standard || VYCHOZI.standard, sentinel: b.sentinel || VYCHOZI.sentinel, potvrzeni: b.potvrzeni || null, firma: b.firma || null });
+      }
+      return Promise.all([json(zaklad + 'ceny.json'), json(zaklad + 'standard.json'), json(zaklad + 'sentinel.json'), json(zaklad + 'cenik-potvrzeni.json')]).then(function (v) {
+        return vytvor({ cenik: v[0] || VYCHOZI.cenik, standard: v[1] || VYCHOZI.standard, sentinel: v[2] || VYCHOZI.sentinel, potvrzeni: v[0] ? v[3] : null });
+      });
     });
   }
 

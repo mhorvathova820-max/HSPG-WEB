@@ -8,7 +8,7 @@
     stranka: { nazev: 'Zkontroluj tuto stránku',
       pokyn: 'Zkontroluj text stránky webu hspg.cz. Vypiš číslovaně: 1) tvrzení, která nejsou doložená nebo mohou být klamavá (ČOI), 2) překlepy a gramatiku, 3) nejasná nebo matoucí místa pro majitele domu, 4) chybějící informace, které zákazník potřebuje k poptávce. U každého bodu cituj původní text a navrhni opravu. Nic nevymýšlej.' },
     poptavka: { nazev: 'Odpověď na poptávku',
-      pokyn: 'Napiš e-mailovou odpověď zákazníkovi na poptávku. Poděkuj, shrň, co poptává, navrhni další krok (zaměření z mapy, fotky, termín) a uveď, jaké údaje ještě potřebujeme (plocha, materiál, fotky). Ceny a termíny jen ze zadání, jinak [DOPLNIT].' },
+      pokyn: 'Napiš e-mailovou odpověď zákazníkovi na poptávku. Poděkuj, shrň, co poptává, navrhni další krok (zaměření na dálku, fotky, termín) a uveď, jaké údaje ještě potřebujeme (plocha, materiál, fotky). Ceny a termíny jen ze zadání, jinak [DOPLNIT].' },
     facebook: { nazev: 'Příspěvek na Facebook',
       pokyn: 'Napiš příspěvek na Facebook HSPG (max. 120 slov, 1–3 emoji, výzva k akci s odkazem hspg.cz). Pouze fakta ze zadání. Konkrétní zakázku zmiň jen, pokud je v zadání i se souhlasem majitele domu.' },
     nabidka: { nazev: 'Text nabídky',

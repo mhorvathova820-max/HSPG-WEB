@@ -42,7 +42,7 @@
         "křeh"
       ],
       "q": "Nepoškodí tlaková voda střechu nebo fasádu?",
-      "a": "Ne. Tlak i trysky volíme podle materiálu — beton, pálená taška, omítka i zámková dlažba mají svůj vlastní postup. Křehké povrchy ošetřujeme šetrným biocidním postupem bez tlaku. Proto vždy začínáme obhlídkou z mapy a fotografií."
+      "a": "Ne. Tlak i trysky volíme podle materiálu — beton, pálená taška, omítka i zámková dlažba mají svůj vlastní postup. Křehké povrchy ošetřujeme šetrným biocidním postupem bez tlaku. Proto vždy začínáme zaměřením na dálku (HOLUB CORE QUANTUM SENSE) a fotografiemi."
     },
     {
       "k": [
@@ -74,7 +74,7 @@
         "výšk"
       ],
       "q": "Potřebujete lešení?",
-      "a": "Většinou ne — pracujeme vlastní technikou bez lešení. Přístup posoudíme předem; kdyby bylo lešení výjimečně nutné, uvedeme to v nabídce. Zaměříme na dálku z map a nezávaznou cenu pošleme do 24 hodin."
+      "a": "Většinou ne — pracujeme vlastní technikou bez lešení. Přístup posoudíme předem; kdyby bylo lešení výjimečně nutné, uvedeme to v nabídce. Orientační cenu spočítáte hned tady v H-BOTovi (Cena hned); přesnou potvrdíme do 24 hodin po zaměření na dálku."
     },
     {
       "k": [
@@ -107,11 +107,11 @@
         "servis"
       ],
       "q": "Jak funguje trvalá péče?",
-      "a": "Každý dům v záruce má tarif SENTINEL START zdarma — technickou kontrolu jednou za 24 měsíců a digitální pas domu. Tarify PLUS a PREMIUM přidávají servis dvakrát ročně, čištění okapů a lokální obnovu vrstvy.",
       "link": [
         "/cenik.html#sentinel",
         "Tarify SENTINEL"
-      ]
+      ],
+      "typ": "sentinel"
     },
     {
       "k": [
@@ -142,7 +142,7 @@
         "zahranič"
       ],
       "q": "Kde působíte?",
-      "a": "Po celé České republice, na vyžádání i v EU. Zaměříme na dálku z map, takže technik k vám kvůli ceně jezdit nemusí."
+      "a": "Po celé České republice, na vyžádání i v EU. Zaměříme na dálku (HOLUB CORE QUANTUM SENSE), takže technik k vám kvůli ceně jezdit nemusí."
     },
     {
       "k": [
@@ -164,7 +164,11 @@
         "průběh"
       ],
       "q": "Jaký je postup?",
-      "a": "Vždy celý postup: 01 Čištění — tlak i trysky podle materiálu, bez lešení. 02 Odmaštění — aby další vrstvy měly na čem držet. 03 Biocid H-BIO — likvidace spor v hloubce pórů. 04 Impregnace H-STONE — hydrofobní vrstva, neviditelná a prodyšná."
+      "typ": "postup",
+      "link": [
+        "/standard-holub/",
+        "Standard HOLUB"
+      ]
     },
     {
       "k": [

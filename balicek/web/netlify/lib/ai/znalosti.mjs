@@ -11,7 +11,24 @@ const kc = (n) => Number(n).toLocaleString("cs-CZ");
 export function odpovedCena(C) {
   const o = C.ochrana_hstone;
   const c = C.cisteni_only;
-  return `Cena vychází z plochy, materiálu a znečištění. Orientačně s ochranou H-STONE: fasáda od ${o.facade} Kč/m², střecha od ${o.roof} Kč/m², dlažba od ${o.driveway} Kč/m²; jen čištění: dlažba od ${c.driveway}, fasáda od ${c.facade}, střecha od ${c.roof} Kč/m². Konečné ceny — nejsme plátci DPH. Do ${kc(C.platby.hranice_zalohy)} Kč bez zálohy. Přesnou cenu spočítáme z mapy do 24 hodin od zadání adresy, zdarma a nezávazně.`;
+  return `Cena vychází z plochy, materiálu a znečištění. Orientačně s ochranou H-STONE: fasáda od ${o.facade} Kč/m², střecha od ${o.roof} Kč/m², dlažba od ${o.driveway} Kč/m²; jen čištění: dlažba od ${c.driveway}, fasáda od ${c.facade}, střecha od ${c.roof} Kč/m². Konečné ceny — nejsme plátci DPH. Do ${kc(C.platby.hranice_zalohy)} Kč bez zálohy. Orientační cenu spočítáte hned tady v H-BOTovi – tlačítko „Cena hned“. Přesnou cenu potvrdíme do 24 hodin od zadání adresy (zaměření na dálku HOLUB CORE QUANTUM SENSE), zdarma a nezávazně.`;
+}
+
+const malym = (t) => String(t || "").charAt(0).toLowerCase() + String(t || "").slice(1);
+const bezTecky = (t) => String(t || "").replace(/[.\s]+$/, "");
+
+// „Jaký je postup?“ – pětikrokový Standard HOLUB z content/standard.json (R15; značka biocidu se neuvádí).
+export function odpovedPostup(standard) {
+  const kroky = (standard.kroky || []).map((k) => `${k.cislo} ${k.nazev} – ${malym(bezTecky(k.popis))}.`).join(" ");
+  const A = standard.cesty?.A, B = standard.cesty?.B;
+  const cesty = A && B ? ` Cesta A – ${A.nazev}: ${bezTecky(A.popis)}. Cesta B – ${B.nazev}: ${bezTecky(B.popis)}.` : "";
+  return `Vždy celý ${standard.nazev || "Standard HOLUB"}: ${kroky}${cesty} ${standard.biocidy_veta || ""}`.trim();
+}
+
+// „Jak funguje trvalá péče?“ – tarify SENTINEL a podmínka záruky z content/sentinel.json (R15).
+export function odpovedSentinel(sentinel) {
+  const tarify = (sentinel.tarify || []).map((t) => `${t.nazev} za ${kc(t.cena_rok)} Kč ročně – ${(t.body || []).map((b) => malym(b)).join(", ")}.`).join(" ");
+  return `Péče SENTINEL: ${tarify} ${sentinel.podminka_zaruky || ""} ${sentinel.puvodni_podminka || ""}`.replace(/\s{2,}/g, " ").trim();
 }
 
 // Doplní {{zaruka}} a {{zaruka_podminka}}; nepotvrzená záruka se nahradí neutrální větou.
@@ -23,9 +40,9 @@ export function doplnFirmu(text, firma) {
 }
 
 // Data pro prohlížeč (assets/hbot-znalosti.json).
-export function znalostiProProhlizec({ faq = faqData, firma = firmaData, ceny = cenyData } = {}) {
+export function znalostiProProhlizec({ faq = faqData, firma = firmaData, ceny = cenyData, sentinel = sentinelData, standard = standardData } = {}) {
   return {
-    vygenerovano_z: "content/hbot-faq.json, content/firma.json, content/ceny.json",
+    vygenerovano_z: "content/hbot-faq.json, content/firma.json, content/ceny.json, content/sentinel.json, content/standard.json",
     firma: {
       telefon: firma.telefon,
       telefon_zobrazeni: firma.telefon_zobrazeni,
@@ -35,7 +52,7 @@ export function znalostiProProhlizec({ faq = faqData, firma = firmaData, ceny = 
     otazky: faq.otazky.map((e) => ({
       k: e.k,
       q: e.q,
-      a: e.typ === "cena" ? odpovedCena(ceny) : doplnFirmu(e.a, firma),
+      a: e.typ === "cena" ? odpovedCena(ceny) : e.typ === "postup" ? odpovedPostup(standard) : e.typ === "sentinel" ? odpovedSentinel(sentinel) : doplnFirmu(e.a, firma),
       ...(e.link ? { link: e.link } : {}),
     })),
   };
@@ -43,14 +60,15 @@ export function znalostiProProhlizec({ faq = faqData, firma = firmaData, ceny = 
 
 // Text znalostí pro AI (systémový pokyn).
 export function znalostiProAI({ faq = faqData, firma = firmaData, ceny = cenyData, sentinel = sentinelData, standard = standardData } = {}) {
-  const z = znalostiProProhlizec({ faq, firma, ceny });
+  const z = znalostiProProhlizec({ faq, firma, ceny, sentinel, standard });
   const tarify = (sentinel.tarify || [])
     .map((t) => `- ${t.nazev}: ${t.cena_rok ? `${kc(t.cena_rok)} Kč/rok${t.cena_mesic ? ` (${kc(t.cena_mesic)} Kč/měsíc)` : ""}` : "zdarma"}${t.povinny_pro_zaruku ? " (podmínka trvání záruky)" : ""} – ${t.popis}. ${t.body.join("; ")}.`)
     .join("\n");
   const sazby = (nazev, t) => Object.entries(t).map(([k, v]) => `${{ facade: "fasáda", roof: "střecha", driveway: "dlažba", solar: "fotovoltaika" }[k] || k} od ${v} Kč/m²`).join(", ");
   return `SCHVÁLENÉ ZNALOSTI HSPG (jediný zdroj faktů):
 Firma: ${firma.znacka}, provozovatel ${firma.provozovatel} (${firma.pravni_forma}), IČO ${firma.ico}, ${firma.dph}. Telefon ${firma.telefon_zobrazeni}, pracovní doba ${firma.pracovni_doba} (tj. ${String(firma.pracovni_doba).replace(/:00/g, "")} h). Působnost: ${firma.pusobnost}. Web ${firma.web}.
-Poptávka a přesná cena zdarma: formulář hspg.cz/akce/ (adresa → cena z mapy do 24 hodin), nebo zavolání zpět přes H-BOT.
+Poptávka a přesná cena zdarma: formulář hspg.cz/akce/ (adresa → cena do 24 hodin), nebo zavolání zpět přes H-BOT. Orientační cenu si zákazník spočítá hned v H-BOTovi tlačítkem „Cena hned“ (kalkulace z ceníku, ne AI) a stáhne si ji v PDF i s NÁVRHEM smlouvy o dílo (nezávazný).
+Měření na dálku se jmenuje HOLUB CORE QUANTUM SENSE – neuváděj, z jakých podkladů měříme, a nic netvrď o kvantové technologii.
 Ceník (platný od ${ceny.platnost_od}, konečné ceny, neplátce DPH):
 - Ochrana H-STONE (čištění + impregnace): ${sazby("ochrana", ceny.ochrana_hstone)}.
 - Jen čištění: ${sazby("cisteni", ceny.cisteni_only)}.

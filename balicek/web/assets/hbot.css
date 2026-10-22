@@ -1,46 +1,62 @@
-/* Panel H-BOT a „Vše ve tvých rukách“ – načítá se až s panelem. Barvy webu: tmavě modrá + zlatá.
+/* Panel H-BOT v5 „Apex“ (R18, 22. 10. 2026) – načítá se až s panelem. Matná vesmírná čerň, obsidiánové sklo,
+   tekuté zlato #D4AF37. Hodnoty shodné s assets/apex-tokens.css (tady jen v rozsahu #hbot, ať se nic na webu nezmění).
    z-index 95: otevřený panel leží nad lištou souhlasu (90), aby šel na mobilu použít; po zavření je lišta zpět. */
-#hbot{--hb-zlata:#c9a962;--hb-zlata-svetla:#f4e4b8;--hb-text:#e9edf3;--hb-tlumeny:#a9b1bc;--hb-pozadi:rgba(12,18,30,.97);--hb-linka:rgba(255,255,255,.09);
-  position:fixed;left:18px;bottom:82px;z-index:95;width:min(400px,calc(100vw - 36px));max-height:min(660px,calc(100dvh - 110px));display:flex;flex-direction:column;
-  border-radius:18px;border:1px solid rgba(201,169,98,.5);background:linear-gradient(165deg,rgba(27,39,64,.97),var(--hb-pozadi));backdrop-filter:blur(14px);
-  box-shadow:0 30px 80px -24px rgba(0,0,0,.9);color:var(--hb-text);font:14px/1.55 Manrope,Inter,system-ui,sans-serif;overflow:hidden}
+#hbot{--hb-zlata:#d4af37;--hb-zlata-svetla:#f6e7a8;--hb-zlata-tmava:#8a6a12;--hb-text:#f4f1e8;--hb-tlumeny:#a3a9b5;--hb-linka:rgba(212,175,55,.16);--hb-linka-silna:rgba(212,175,55,.42);
+  --hb-sklo:linear-gradient(180deg,rgba(17,24,39,.8),rgba(5,7,15,.95));--hb-tlacitko:linear-gradient(135deg,#f6e7a8 0%,#d4af37 42%,#9c7b16 100%);--hb-krivka:cubic-bezier(.2,.8,.2,1);
+  position:fixed;left:18px;bottom:90px;z-index:95;width:min(420px,calc(100vw - 36px));max-height:min(680px,calc(100dvh - 118px));display:flex;flex-direction:column;
+  border-radius:22px;border:1px solid rgba(212,175,55,.34);background:var(--hb-sklo);-webkit-backdrop-filter:blur(24px) saturate(1.4);backdrop-filter:blur(24px) saturate(1.4);
+  box-shadow:0 40px 120px rgba(0,0,0,.62),0 0 0 1px rgba(5,7,15,.6),inset 0 1px 0 rgba(255,255,255,.07);color:var(--hb-text);font:14px/1.55 Manrope,Inter,system-ui,sans-serif;overflow:hidden}
 #hbot[hidden]{display:none}
-#hbot.hb-siroky{width:min(760px,calc(100vw - 36px));max-height:min(820px,calc(100dvh - 110px))}
+#hbot.hb-siroky{width:min(780px,calc(100vw - 36px));max-height:min(840px,calc(100dvh - 118px))}
 #hbot,#hbot *{box-sizing:border-box}
 #hbot button,#hbot input,#hbot select,#hbot textarea{font:inherit;color:inherit}
-#hbot :focus-visible{outline:2px solid #fff3c4;outline-offset:2px}
+#hbot :focus-visible{outline:2px solid #f6e7a8;outline-offset:2px}
 #hbot:focus{outline:none}
-#hbot a{color:#e2c685}
-#hbot .hb-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--hb-linka)}
-#hbot .hb-head img{width:40px;height:40px;border-radius:50%;border:1px solid rgba(201,169,98,.6)}
-#hbot .hb-head h2{margin:0;font:600 18px/1.2 "Playfair Display",Georgia,serif;color:var(--hb-zlata-svetla)}
-#hbot .hb-head p{margin:0;font-size:12px;color:var(--hb-tlumeny)}
-#hbot .hb-close{margin-left:auto;flex:none;width:40px;height:40px;border-radius:50%;border:1px solid rgba(233,237,243,.25);background:transparent;cursor:pointer;font-size:16px}
+#hbot a{color:#f0d68a}
+/* Hlavička: znak holuba nad střechou, nadpis z tekutého zlata */
+#hbot .hb-head{display:flex;align-items:center;gap:10px;padding:12px 14px 12px 12px;border-bottom:1px solid var(--hb-linka);background:linear-gradient(180deg,rgba(212,175,55,.06),transparent)}
+#hbot .hb-znak{flex:none;display:block;width:52px;height:38px}
+#hbot .hb-znak canvas,#hbot .hb-znak svg{display:block;width:52px;height:38px}
+#hbot .hb-titul{min-width:0}
+#hbot .hb-head h2{margin:0;font:600 19px/1.15 "Playfair Display",Georgia,"Times New Roman",serif;letter-spacing:.01em;
+  background:linear-gradient(110deg,#8a6a12 0%,#d4af37 28%,#f6e7a8 45%,#d4af37 62%,#8a6a12 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent}
+@media (prefers-reduced-motion:no-preference){#hbot .hb-head h2{animation:hb-zlato 7s linear infinite}@keyframes hb-zlato{to{background-position:-220% 0}}}
+#hbot .hb-head p{margin:2px 0 0;font-size:12px;color:var(--hb-tlumeny);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hbot .hb-ai-znacka{flex:none;margin-left:auto;padding:3px 8px;border-radius:999px;border:1px solid rgba(122,221,255,.4);color:#bfeeff;font:800 10px/1.4 Manrope,Inter,system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;background:rgba(122,221,255,.07)}
+#hbot .hb-ai-znacka[hidden]{display:none}
+#hbot .hb-close{margin-left:auto;flex:none;width:40px;height:40px;border-radius:12px;border:1px solid rgba(244,241,232,.18);background:rgba(255,255,255,.03);cursor:pointer;font-size:15px;transition:border-color .25s,background .25s}
+#hbot .hb-ai-znacka:not([hidden])+.hb-close{margin-left:6px}
+#hbot .hb-close:hover{border-color:var(--hb-linka-silna);background:rgba(212,175,55,.08)}
 #hbot .hb-tabs{display:flex;gap:4px;padding:8px 10px 0;border-bottom:1px solid var(--hb-linka)}
 #hbot .hb-tabs[hidden]{display:none}
 #hbot .hb-tab{flex:1;min-height:40px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--hb-tlumeny);font-weight:700;cursor:pointer}
 #hbot .hb-tab[aria-selected=true]{color:var(--hb-zlata-svetla);border-bottom-color:var(--hb-zlata)}
 #hbot .hb-view{flex:1;min-height:0;display:flex;flex-direction:column}
 #hbot .hb-view[hidden]{display:none}
-#hbot .hb-log{flex:1;min-height:min(120px,22dvh);overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
-#hbot .hb-msg{max-width:94%;padding:10px 13px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);overflow-wrap:anywhere}
-#hbot .hb-me{align-self:flex-end;background:rgba(201,169,98,.18);border-color:rgba(201,169,98,.35)}
-#hbot .hb-info{font-size:12.5px;color:#c3cad3;background:rgba(34,211,238,.06);border-color:rgba(34,211,238,.2)}
+/* Rozhovor */
+#hbot .hb-log{flex:1;min-height:min(120px,22dvh);overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(212,175,55,.35) transparent}
+#hbot .hb-msg{max-width:94%;padding:10px 13px;border-radius:16px 16px 16px 6px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.07);box-shadow:inset 0 1px 0 rgba(255,255,255,.04);overflow-wrap:anywhere}
+#hbot .hb-me{align-self:flex-end;border-radius:16px 16px 6px 16px;background:rgba(212,175,55,.13);border-color:rgba(212,175,55,.34)}
+#hbot .hb-info{font-size:12.5px;color:#c9d2dc;background:rgba(122,221,255,.05);border-color:rgba(122,221,255,.2)}
 #hbot .hb-stitek{display:block;margin-top:6px;font-size:12px;color:var(--hb-tlumeny)}
 #hbot .hb-pise{color:var(--hb-tlumeny);font-style:italic}
 #hbot .hb-chips{display:flex;flex-wrap:wrap;gap:6px}
-#hbot .hb-chip{min-height:40px;padding:0 13px;border-radius:999px;border:1px solid rgba(201,169,98,.45);background:transparent;color:var(--hb-zlata-svetla);font-weight:700;font-size:13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
-#hbot .hb-chip.hb-plny{background:linear-gradient(160deg,#f4e4b8,#c9a962 55%,#9a7a3d);color:#16181c;border:0}
+#hbot .hb-chip{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--hb-linka-silna);background:transparent;color:var(--hb-zlata-svetla);font-weight:700;font-size:13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;transition:background .25s,border-color .25s,transform .2s var(--hb-krivka)}
+#hbot .hb-chip:hover{background:rgba(212,175,55,.1);border-color:rgba(246,231,168,.6)}
+#hbot .hb-chip.hb-plny{background:var(--hb-tlacitko);color:#17120a;border:0;box-shadow:0 10px 26px -12px rgba(212,175,55,.7),inset 0 1px 0 rgba(255,255,255,.55)}
+#hbot .hb-chip.hb-plny:hover{filter:brightness(1.06);transform:translateY(-1px)}
 #hbot .hb-form{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--hb-linka)}
-#hbot input[type=text],#hbot input[type=tel],#hbot input[type=password],#hbot select,#hbot textarea{width:100%;min-height:44px;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(8,12,20,.65);color:#fff}
+#hbot input[type=text],#hbot input[type=tel],#hbot input[type=email],#hbot input[type=password],#hbot select,#hbot textarea{width:100%;min-height:44px;padding:9px 12px;border-radius:12px;border:1px solid rgba(212,175,55,.26);background:rgba(5,7,15,.72);color:#fff;transition:border-color .3s var(--hb-krivka),box-shadow .3s var(--hb-krivka)}
+#hbot input:focus,#hbot select:focus,#hbot textarea:focus{border-color:var(--hb-zlata);box-shadow:0 0 15px rgba(212,175,55,.35);outline:none}
+#hbot input:focus-visible,#hbot select:focus-visible,#hbot textarea:focus-visible{outline:2px solid #f6e7a8;outline-offset:1px}
 #hbot textarea{min-height:96px;resize:vertical}
 #hbot .hb-form input{flex:1}
-#hbot .hb-zlate{min-height:44px;padding:0 16px;border:0;border-radius:10px;background:linear-gradient(160deg,#f4e4b8,#c9a962 55%,#9a7a3d);color:#16181c;font-weight:800;cursor:pointer}
-#hbot .hb-obrys{min-height:44px;padding:0 14px;border-radius:10px;border:1px solid rgba(233,237,243,.25);background:transparent;cursor:pointer}
+#hbot .hb-zlate{min-height:44px;padding:0 16px;border:0;border-radius:12px;background:var(--hb-tlacitko);color:#17120a;font-weight:800;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+#hbot .hb-obrys{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid rgba(244,241,232,.22);background:transparent;cursor:pointer}
 #hbot button:disabled{opacity:.55;cursor:not-allowed}
 #hbot .hb-call{display:grid;gap:8px}
-#hbot .hb-souhlas{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:#c3cad3}
-#hbot .hb-souhlas input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:#c9a962}
+#hbot .hb-souhlas{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:#c9d2dc}
+#hbot .hb-souhlas input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:#d4af37}
 #hbot .hb-skryte{position:absolute!important;left:-9999px!important;width:1px;height:1px;overflow:hidden}
 #hbot .hb-pata{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 14px 10px;font-size:12px;color:var(--hb-tlumeny)}
 #hbot .hb-odkaz{background:none;border:0;padding:6px 0;color:var(--hb-tlumeny);text-decoration:underline;cursor:pointer;font-size:12px}
@@ -56,7 +72,7 @@
 #hbot .hbm-akce{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 #hbot .hbm-info{font-size:12px;color:var(--hb-tlumeny);margin-left:auto}
 #hbot .hbm-vysledky{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-#hbot .hbm-karta{border:1px solid var(--hb-linka);border-top:3px solid var(--c,#c9a962);border-radius:12px;padding:10px 12px;background:rgba(255,255,255,.03);display:flex;flex-direction:column;min-height:120px}
+#hbot .hbm-karta{border:1px solid var(--hb-linka);border-top:3px solid var(--c,#d4af37);border-radius:14px;padding:10px 12px;background:rgba(255,255,255,.03);display:flex;flex-direction:column;min-height:120px}
 #hbot .hbm-karta h3{margin:0;font-size:14px;display:flex;justify-content:space-between;gap:8px}
 #hbot .hbm-karta h3 span{font-weight:400;font-size:11px;color:var(--hb-tlumeny)}
 #hbot .hbm-text{flex:1;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0;max-height:42vh;overflow:auto}
@@ -65,11 +81,220 @@
 #hbot .hbm-pata button{min-height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--hb-linka);background:transparent;cursor:pointer;font-size:12px}
 #hbot .hbm-odkazy{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
 #hbot .hbm-odkazy a{padding:4px 9px;border:1px solid var(--hb-linka);border-radius:8px;text-decoration:none;color:var(--hb-text)}
+
+/* =====================================================================================================
+   Okamžitá kalkulace „Cena hned“ (hbot-nabidka.js, úkol 48)
+   ===================================================================================================== */
+#hbot .hn{flex:1;min-height:0;display:flex;flex-direction:column}
+/* Styly webu pro obecné prvky (header, ol, table, fieldset …) se do kalkulace nesmí propsat. */
+#hbot .hn,#hbot .hn-hlava,#hbot .hn-pata,#hbot .hn-telo{max-width:none;margin:0;width:auto}
+#hbot .hn :where(h3,p,ol,ul,li,table,fieldset,legend,details,summary,label){max-width:none;letter-spacing:normal;text-transform:none}
+#hbot .hn-hlava{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;padding:12px 16px 10px;border-bottom:1px solid var(--hb-linka)}
+#hbot .hn-zpet{width:36px;height:36px;display:grid;place-items:center;border-radius:12px;border:1px solid rgba(244,241,232,.16);background:rgba(255,255,255,.03);cursor:pointer;color:var(--hb-zlata-svetla)}
+#hbot .hn-zpet svg{width:18px;height:18px}
+#hbot .hn-stitek,#hbot .hn-cena-stitek,#hbot .hn-mereni-titul,#hbot .hn-paleta-titul,#hbot .hn-smlouva-titul{margin:0;font:800 10.5px/1.3 Manrope,Inter,system-ui,sans-serif;letter-spacing:.24em;text-transform:uppercase;color:var(--hb-zlata)}
+#hbot .hn-nadpis{margin:2px 0 0;font:600 21px/1.2 "Playfair Display",Georgia,"Times New Roman",serif;color:var(--hb-text);outline:none}
+#hbot .hn-kroky{grid-column:1/-1;display:flex;gap:4px;margin:8px 0 0;padding:0;list-style:none;counter-reset:hn}
+#hbot .hn-krok{flex:1;min-width:0;position:relative;font-size:11px;color:var(--hb-tlumeny)}
+#hbot .hn-krok::before{content:"";display:block;height:2px;margin-bottom:6px;border-radius:2px;background:rgba(255,255,255,.1)}
+#hbot .hn-krok--hotovo::before{background:linear-gradient(90deg,#8a6a12,#d4af37)}
+#hbot .hn-krok--aktualni::before{background:linear-gradient(90deg,#d4af37,#f6e7a8);box-shadow:0 0 10px rgba(212,175,55,.6)}
+#hbot .hn-krok--aktualni{color:var(--hb-zlata-svetla)}
+#hbot .hn-krok button{display:flex;gap:4px;align-items:baseline;width:100%;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer;text-align:left}
+#hbot .hn-krok button:hover .hn-krok-n{color:var(--hb-zlata-svetla);text-decoration:underline}
+#hbot .hn-krok-c{font-weight:800;margin-right:4px;font-variant-numeric:tabular-nums}
+#hbot .hn-krok-n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hbot .hn-telo{flex:1;min-height:0;overflow-y:auto;padding:14px 16px 18px;display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(212,175,55,.35) transparent}
+#hbot .hn-nacitam{color:var(--hb-tlumeny);font-style:italic;margin:0}
+#hbot .hn-otazka{margin:0;padding:0;border:0;min-width:0}
+#hbot .hn-otazka--povrch{padding-top:2px}
+#hbot .hn-legenda{display:block;padding:0;margin:0 0 8px;font:600 16px/1.3 "Playfair Display",Georgia,serif;color:var(--hb-zlata-svetla)}
+#hbot .hn-volby{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+#hbot .hn-volby--cesty{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+#hbot .hn-volba{position:relative;min-width:0}
+#hbot .hn-skryty-vstup{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+#hbot .hn-karta{position:relative;display:flex;gap:10px;align-items:flex-start;height:100%;min-height:76px;padding:14px 38px 14px 14px;border-radius:16px;border:1px solid rgba(244,241,232,.1);
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));cursor:pointer;transition:border-color .3s var(--hb-krivka),box-shadow .3s var(--hb-krivka),transform .25s var(--hb-krivka),background .3s}
+#hbot .hn-karta:hover{border-color:rgba(212,175,55,.45);transform:translateY(-1px)}
+#hbot .hn-skryty-vstup:checked+.hn-karta{border-color:var(--hb-zlata);background:linear-gradient(180deg,rgba(212,175,55,.14),rgba(212,175,55,.04));box-shadow:0 0 0 1px rgba(212,175,55,.35),0 14px 34px -18px rgba(212,175,55,.6),inset 0 1px 0 rgba(246,231,168,.18)}
+#hbot .hn-skryty-vstup:focus-visible+.hn-karta{outline:2px solid #f6e7a8;outline-offset:2px}
+#hbot .hn-karta-ikona{flex:none;width:30px;height:30px;color:var(--hb-zlata)}
+#hbot .hn-karta-ikona svg{width:30px;height:30px}
+#hbot .hn-karta-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+#hbot .hn-karta-titul{font-weight:800;color:var(--hb-text);line-height:1.3}
+#hbot .hn-karta-popis{font-size:12.5px;color:var(--hb-tlumeny);line-height:1.4}
+#hbot .hn-karta-cena{position:absolute;right:14px;bottom:10px;font-size:12px;font-weight:800;color:var(--hb-zlata-svetla);font-variant-numeric:tabular-nums}
+#hbot .hn-karta--cena{padding-bottom:32px}
+#hbot .hn-karta-znacka{position:absolute;right:10px;top:10px;width:22px;height:22px;display:grid;place-items:center;border-radius:50%;border:1px solid rgba(244,241,232,.2);color:transparent;transition:all .25s var(--hb-krivka)}
+#hbot .hn-karta-znacka svg{width:14px;height:14px}
+#hbot .hn-skryty-vstup:checked+.hn-karta .hn-karta-znacka{background:var(--hb-tlacitko);border-color:transparent;color:#17120a}
+#hbot .hn-pozn{margin:0;font-size:12.5px;line-height:1.5;color:var(--hb-tlumeny)}
+#hbot .hn-pozn--biocid{font-size:11.5px;opacity:.9}
+/* Paleta RAL */
+#hbot .hn-paleta{margin-top:12px;padding:14px;border-radius:16px;border:1px solid var(--hb-linka);background:rgba(5,7,15,.45);display:grid;gap:8px}
+#hbot .hn-paleta[hidden]{display:none}
+#hbot .hn-ral{display:flex;flex-wrap:wrap;gap:8px}
+#hbot .hn-vzorek{width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:var(--vzorek);cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),inset 0 -8px 14px rgba(0,0,0,.25);transition:transform .2s var(--hb-krivka),box-shadow .2s}
+#hbot .hn-vzorek:hover{transform:translateY(-2px)}
+#hbot .hn-vzorek[aria-checked=true]{box-shadow:0 0 0 2px #05070f,0 0 0 4px #d4af37,0 0 18px rgba(212,175,55,.55)}
+#hbot .hn-paleta-nazev{margin:0;font-weight:700;color:var(--hb-text)}
+/* Plochy */
+#hbot .hn-plocha,#hbot .hn-mereni,#hbot .hn-obec{padding:14px;border-radius:16px;border:1px solid rgba(244,241,232,.09);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012));display:grid;gap:8px}
+#hbot .hn-mereni{border-color:rgba(122,221,255,.22);background:linear-gradient(180deg,rgba(122,221,255,.06),rgba(255,255,255,.01))}
+#hbot .hn-mereni-titul{color:#bfeeff}
+#hbot .hn-mereni-radek{display:flex;gap:8px}
+#hbot .hn-mereni-radek .hn-tl{flex:none}
+#hbot .hn-plocha-hlava{display:flex;align-items:center;gap:8px}
+#hbot .hn-plocha-hlava .hn-legenda{margin:0}
+#hbot .hn-plocha-ikona{width:24px;height:24px;color:var(--hb-zlata)}
+#hbot .hn-plocha-ikona svg{width:24px;height:24px}
+#hbot .hn-popisek{display:block;font-size:12px;font-weight:700;color:var(--hb-tlumeny);margin:0 0 4px}
+#hbot .hn-cislo{min-width:0}
+#hbot .hn-cislo[hidden]{display:none}
+#hbot .hn-cislo-obal{position:relative}
+#hbot .hn-cislo-obal .hn-pole{padding-right:44px;font-variant-numeric:tabular-nums;font-size:16px}
+#hbot .hn-jednotka{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--hb-tlumeny);font-size:13px;pointer-events:none}
+#hbot .hn-pole[aria-invalid=true]{border-color:#fca5a5;box-shadow:0 0 12px rgba(252,165,165,.25)}
+#hbot .hn-radek{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+#hbot .hn-rozmery{display:grid;gap:8px;padding:12px;border-radius:14px;border:1px dashed rgba(212,175,55,.28);background:rgba(5,7,15,.4)}
+#hbot .hn-rozmery[hidden]{display:none}
+#hbot .hn-napoveda{margin:2px 0 0;font-size:12px;color:var(--hb-tlumeny)}
+#hbot .hn-zpusob{margin:0;font-size:12.5px;color:var(--hb-zlata-svetla)}
+#hbot .hn-zpusob:empty{display:none}
+#hbot .hn-odkaz{justify-self:start;padding:4px 0;border:0;background:none;color:#f0d68a;font-weight:700;font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+#hbot .hn-zaskrtavaci{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--hb-text);cursor:pointer}
+#hbot .hn-zaskrtavaci input{margin-top:2px;width:18px;height:18px;flex:none;accent-color:#d4af37}
+#hbot .hn-med{display:grid;gap:8px;padding-top:6px;border-top:1px solid var(--hb-linka)}
+#hbot .hn-obec-obal{position:relative}
+#hbot .hn-navrhy{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:2;margin:0;padding:4px;list-style:none;border-radius:12px;border:1px solid var(--hb-linka-silna);background:#0b0f19;box-shadow:0 18px 40px rgba(0,0,0,.6);max-height:240px;overflow:auto}
+#hbot .hn-navrhy[hidden]{display:none}
+#hbot .hn-navrhy li{padding:8px 10px;border-radius:8px;cursor:pointer}
+#hbot .hn-navrhy li small{color:var(--hb-tlumeny)}
+#hbot .hn-navrhy li:hover,#hbot .hn-navrhy li[aria-selected=true]{background:rgba(212,175,55,.12)}
+#hbot .hn-zdroj{margin:0;font-size:10.5px;color:rgba(163,169,181,.75)}
+/* Pata kroků */
+#hbot .hn-pata{display:grid;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--hb-linka);background:linear-gradient(0deg,rgba(5,7,15,.9),rgba(5,7,15,.6))}
+#hbot .hn-pata-tl{display:flex;gap:8px;justify-content:space-between}
+#hbot .hn-chyba{margin:0;color:#fca5a5;font-size:13px}
+#hbot .hn-chyba[hidden]{display:none}
+#hbot .hn-tl{min-height:46px;padding:0 20px;border-radius:999px;font-weight:800;cursor:pointer;transition:transform .25s var(--hb-krivka),filter .25s,border-color .25s}
+#hbot .hn-tl[hidden]{display:none}
+#hbot .hn-tl--zlate{border:0;color:#17120a;background:var(--hb-tlacitko);box-shadow:0 12px 30px -12px rgba(212,175,55,.65),inset 0 1px 0 rgba(255,255,255,.55)}
+#hbot .hn-tl--zlate:hover{transform:translateY(-1px);filter:brightness(1.06)}
+#hbot .hn-tl--duch{border:1px solid rgba(244,241,232,.2);background:transparent;color:var(--hb-text)}
+#hbot .hn-tl--duch:hover{border-color:var(--hb-linka-silna)}
+/* Obřad: zapečetěná obálka */
+#hbot .hn-obrad{display:grid;justify-items:center;gap:14px;padding:44px 0 6px}
+#hbot .hn-obalka{position:relative;width:min(100%,360px);aspect-ratio:16/10;perspective:900px;margin-top:18px}
+#hbot .hn-obalka-zadni,#hbot .hn-obalka-predni,#hbot .hn-obalka-klopa{position:absolute;left:0;right:0}
+#hbot .hn-obalka-zadni{inset:0;z-index:0;border-radius:14px;background:linear-gradient(160deg,#1f2937,#0b0f19);border:1px solid rgba(212,175,55,.35);box-shadow:0 30px 70px -20px rgba(0,0,0,.9)}
+#hbot .hn-obalka-dopis{position:absolute;z-index:1;left:6%;right:6%;top:5%;height:88%;border-radius:10px;background:linear-gradient(180deg,#f8f1dc,#e9dcb5);box-shadow:0 8px 20px rgba(0,0,0,.4);display:grid;align-content:start;gap:8px;padding:9% 8% 0;transition:transform .9s var(--hb-krivka) .3s}
+#hbot .hn-obalka-cislo{font:700 10px/1.2 Manrope,Inter,system-ui,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#8a6a12}
+#hbot .hn-obalka-linka{display:block;height:1px;background:linear-gradient(90deg,rgba(138,106,18,.6),transparent)}
+/* přední kapsa: celé tělo obálky kromě trojúhelníku pod klopou */
+#hbot .hn-obalka-predni{inset:0;z-index:2;border-radius:14px;background:linear-gradient(165deg,#1b2433 0%,#0f1520 55%,#0b0f19 100%);clip-path:polygon(0 0,50% 54%,100% 0,100% 100%,0 100%);box-shadow:inset 0 -1px 0 rgba(212,175,55,.35)}
+#hbot .hn-obalka-predni::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom right,transparent 49.6%,rgba(212,175,55,.32) 50%,transparent 50.4%),linear-gradient(to bottom left,transparent 49.6%,rgba(212,175,55,.32) 50%,transparent 50.4%);opacity:.6}
+#hbot .hn-obalka-klopa{top:0;height:56%;z-index:3;transform-origin:50% 0;background:linear-gradient(180deg,#2a3548,#141b28);clip-path:polygon(0 0,100% 0,50% 100%);border-radius:14px 14px 0 0;transition:transform .7s var(--hb-krivka),z-index 0s linear .35s}
+#hbot .hn-pecet{position:absolute;left:50%;top:56%;z-index:4;width:74px;height:74px;margin:-40px 0 0 -37px;border:0;border-radius:46% 54% 50% 50%/52% 48% 52% 48%;cursor:pointer;display:grid;place-items:center;
+  background:radial-gradient(circle at 35% 30%,#f6e7a8 0%,#d4af37 38%,#9c7b16 72%,#6e520c 100%);box-shadow:0 10px 24px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,250,230,.6),inset 0 -6px 10px rgba(80,58,8,.55),0 0 0 4px rgba(212,175,55,.18);transition:transform .5s var(--hb-krivka),opacity .5s,box-shadow .3s}
+#hbot .hn-pecet svg{width:44px;height:44px;filter:drop-shadow(0 1px 0 rgba(255,243,196,.55))}
+#hbot .hn-pecet:hover{box-shadow:0 10px 24px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,250,230,.6),inset 0 -6px 10px rgba(80,58,8,.55),0 0 0 6px rgba(212,175,55,.3),0 0 34px rgba(212,175,55,.45)}
+/* Pečeť „dýchá“ jen září (bez změny velikosti – tlačítko se pod kurzorem nehýbe). */
+@media (prefers-reduced-motion:no-preference){#hbot .hn-obalka[data-stav=zapecetena] .hn-pecet{animation:hn-tep 2.4s var(--hb-krivka) infinite}
+  @keyframes hn-tep{0%,100%{box-shadow:0 10px 24px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,250,230,.6),inset 0 -6px 10px rgba(80,58,8,.55),0 0 0 4px rgba(212,175,55,.18)}
+    50%{box-shadow:0 10px 24px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,250,230,.6),inset 0 -6px 10px rgba(80,58,8,.55),0 0 0 9px rgba(212,175,55,.2),0 0 38px rgba(212,175,55,.5)}}}
+#hbot .hn-obalka[data-stav=otevrena] .hn-pecet{transform:scale(1.25) rotate(-12deg);opacity:0;animation:none}
+#hbot .hn-obalka[data-stav=otevrena] .hn-obalka-klopa{transform:rotateX(180deg);z-index:0}
+#hbot .hn-obalka[data-stav=otevrena] .hn-obalka-dopis{transform:translateY(-40%)}
+#hbot .hn-obalka-vyzva{margin:0;font-size:13px;color:var(--hb-tlumeny);text-align:center}
+/* Výsledek – certifikát s cenou */
+#hbot .hn-vysledek{display:grid;gap:14px}
+#hbot .hn-certifikat{position:relative;padding:22px 20px 20px;border-radius:20px;border:1px solid rgba(212,175,55,.45);text-align:center;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 0%,rgba(212,175,55,.16),rgba(212,175,55,0) 60%),linear-gradient(180deg,rgba(17,24,39,.9),rgba(5,7,15,.95));box-shadow:0 30px 80px -30px rgba(212,175,55,.35),inset 0 1px 0 rgba(246,231,168,.15)}
+#hbot .hn-certifikat::before{content:"";position:absolute;inset:6px;border-radius:15px;border:1px solid rgba(212,175,55,.18);pointer-events:none}
+#hbot .hn-cena-stitek{outline:none}
+#hbot .hn-cena-castka{margin:6px 0 2px;font:600 clamp(34px,7vw,48px)/1.05 "Playfair Display",Georgia,serif;font-variant-numeric:lining-nums tabular-nums;letter-spacing:.005em;
+  background:linear-gradient(110deg,#8a6a12 0%,#d4af37 28%,#f6e7a8 45%,#d4af37 62%,#8a6a12 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent}
+@media (prefers-reduced-motion:no-preference){#hbot .hn-cena-castka{animation:hb-zlato 7s linear infinite}}
+#hbot .hn-cena-dph{margin:0;font-size:12px;color:var(--hb-tlumeny);letter-spacing:.02em}
+#hbot .hn-platba{margin:10px auto 0;max-width:44ch;font-size:13px;color:var(--hb-text)}
+#hbot .hn-nezavazne{margin:8px auto 0;max-width:46ch;font-size:12.5px;color:var(--hb-zlata-svetla)}
+#hbot .hn-zaruka{margin-top:6px;color:var(--hb-text)}
+#hbot .hn-plocha-odkazy{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center}
+#hbot .hn-odkaz--tichy{color:var(--hb-tlumeny);font-weight:600}
+#hbot .hn-obrad .hn-odkaz--tichy{justify-self:center}
+#hbot .hn-platba--skip{margin-top:4px;color:var(--hb-zlata-svetla)}
+#hbot .hn-akce{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+#hbot .hn-akce-tl{display:flex;align-items:center;gap:10px;min-height:48px;padding:10px 14px;border-radius:14px;border:1px solid rgba(244,241,232,.12);background:rgba(255,255,255,.03);color:var(--hb-text);font-weight:700;font-size:13.5px;text-decoration:none;text-align:left;cursor:pointer;transition:border-color .25s,background .25s,transform .2s var(--hb-krivka)}
+#hbot .hn-akce-tl:hover{border-color:var(--hb-linka-silna);background:rgba(212,175,55,.07);transform:translateY(-1px)}
+#hbot .hn-akce-tl--zlate{border:0;color:#17120a;background:var(--hb-tlacitko);box-shadow:0 12px 30px -14px rgba(212,175,55,.7),inset 0 1px 0 rgba(255,255,255,.5)}
+#hbot .hn-akce-tl--zlate:hover{background:var(--hb-tlacitko);filter:brightness(1.05)}
+#hbot .hn-akce-ikona{flex:none;width:20px;height:20px}
+#hbot .hn-akce-ikona svg{width:20px;height:20px}
+#hbot .hn-detail{border-radius:16px;border:1px solid rgba(244,241,232,.09);background:rgba(255,255,255,.02);padding:0 14px}
+#hbot .hn-detail>summary{min-height:46px;display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:800;color:var(--hb-zlata-svetla);list-style:none}
+#hbot .hn-detail>summary::-webkit-details-marker{display:none}
+#hbot .hn-detail>summary::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .25s}
+#hbot .hn-detail[open]>summary::after{transform:rotate(225deg)}
+#hbot .hn-detail>:last-child{margin-bottom:14px}
+#hbot .hn-rozpis{width:100%;border-collapse:collapse;font-size:13px}
+#hbot .hn-rozpis th,#hbot .hn-rozpis td{padding:9px 0;border-top:1px solid rgba(244,241,232,.07);vertical-align:top;text-align:left;font-weight:400}
+#hbot .hn-rozpis td{text-align:right;white-space:nowrap;padding-left:12px;font-variant-numeric:tabular-nums;font-weight:700}
+#hbot .hn-r-nazev{display:block;font-weight:700;color:var(--hb-text)}
+#hbot .hn-r-detail{display:block;font-size:12px;color:var(--hb-tlumeny);margin-top:2px}
+#hbot .hn-r-sleva td{color:#86efac}
+#hbot .hn-r-celkem th,#hbot .hn-r-celkem td{border-top:1px solid rgba(212,175,55,.4);padding-top:12px}
+#hbot .hn-r-celkem .hn-r-nazev{font:600 17px/1.2 "Playfair Display",Georgia,serif;color:var(--hb-zlata-svetla)}
+#hbot .hn-r-celkem td{font:600 18px/1.2 "Playfair Display",Georgia,serif;color:var(--hb-zlata-svetla)}
+#hbot .hn-standard{margin:0 0 10px;padding-left:0;list-style:none;display:grid;gap:6px;font-size:13px}
+#hbot .hn-standard b{color:var(--hb-zlata-svetla)}
+#hbot .hn-cesta{margin:0 0 8px;font-size:13px}
+#hbot .hn-tarify{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+#hbot .hn-tarif{padding:12px;border-radius:14px;border:1px solid rgba(244,241,232,.1);background:rgba(255,255,255,.025)}
+#hbot .hn-tarif--zaklad{border-color:rgba(212,175,55,.55);box-shadow:inset 0 1px 0 rgba(246,231,168,.12)}
+#hbot .hn-tarif-nazev{margin:0;font-weight:800;color:var(--hb-text)}
+#hbot .hn-tarif-cena{margin:2px 0 0;font:600 18px/1.25 "Playfair Display",Georgia,serif;color:var(--hb-zlata-svetla)}
+#hbot .hn-tarif-stitek{display:inline-block;margin:6px 0 0;padding:2px 8px;border-radius:999px;background:var(--hb-tlacitko);color:#17120a;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+#hbot .hn-tarif ul{margin:8px 0 0;padding-left:18px;font-size:12.5px;color:var(--hb-tlumeny)}
+#hbot .hn-smlouva{display:grid;gap:10px;padding:14px;border-radius:16px;border:1px solid var(--hb-linka-silna);background:rgba(5,7,15,.5)}
+#hbot .hn-smlouva .hn-tl{justify-self:start}
+/* Porovnání s jinou nabídkou (hspg-konkurence.js) */
+#hbot .hk{display:grid;gap:10px;padding:14px;border-radius:16px;border:1px solid rgba(122,221,255,.22);background:rgba(122,221,255,.04)}
+#hbot .hk-titul{margin:0;font:800 10.5px/1.3 Manrope,Inter,system-ui,sans-serif;letter-spacing:.24em;text-transform:uppercase;color:#bfeeff}
+#hbot .hk-soubor{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#hbot .hk-tabulka-obal{overflow-x:auto;-webkit-overflow-scrolling:touch}
+#hbot .hk-tabulka{width:100%;min-width:480px;border-collapse:collapse;font-size:12.5px}
+#hbot .hk-vstup{display:block;width:100%;max-width:100%;padding:10px;border-radius:12px;border:1px dashed rgba(212,175,55,.4);background:rgba(5,7,15,.5);color:var(--hb-text);font-size:13px}
+#hbot .hk-vstup::file-selector-button{margin-right:10px;padding:8px 14px;border:0;border-radius:999px;background:var(--hb-tlacitko);color:#17120a;font-weight:800;cursor:pointer}
+#hbot .hk .hn-tl{justify-self:start}
+#hbot .hk-tabulka th,#hbot .hk-tabulka td{padding:8px 6px;border-top:1px solid rgba(244,241,232,.08);text-align:left;vertical-align:top}
+#hbot .hk-tabulka thead th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--hb-tlumeny);border-top:0}
+#hbot .hk-ano{color:#86efac;font-weight:800}
+#hbot .hk-ne{color:#fcd34d;font-weight:800}
+#hbot .hk-citace{display:block;margin-top:2px;font-size:11.5px;color:var(--hb-tlumeny);font-style:italic}
+
 @media (max-width:760px){
   /* 16 px: iOS Safari při fokusu menšího písma stránku přiblíží */
   #hbot input,#hbot select,#hbot textarea{font-size:16px}
-  #hbot,#hbot.hb-siroky{left:0;right:0;bottom:0;width:100%;max-height:min(88dvh,calc(100dvh - 12px));border-radius:18px 18px 0 0;padding-bottom:env(safe-area-inset-bottom)}
+  #hbot,#hbot.hb-siroky{left:0;right:0;bottom:0;width:100%;max-height:min(90dvh,calc(100dvh - 12px));border-radius:22px 22px 0 0;padding-bottom:env(safe-area-inset-bottom)}
   #hbot .hbm-radek{grid-template-columns:1fr}
+  #hbot .hn-volby,#hbot .hn-volby--cesty{grid-template-columns:1fr 1fr}
+  #hbot .hn-hlava{padding:10px 14px 8px}
+  #hbot .hn-telo{padding:12px 14px 16px}
+  #hbot .hn-krok-n{display:none}
+  #hbot .hn-krok--aktualni .hn-krok-n{display:inline}
+  #hbot .hn-pata{padding-bottom:12px}
+  /* V kalkulaci na telefonu: bez opakovaného štítku a bez patičky panelu (telefon je v kalkulaci v akcích). */
+  #hbot .hn-stitek{display:none}
+  #hbot.hb-kalkulace>.hb-pata{display:none}
 }
-@media (prefers-reduced-motion:no-preference){#hbot{animation:hb-vjezd .18s ease-out}@keyframes hb-vjezd{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}}
-@media (forced-colors:active){#hbot{border:1px solid CanvasText}}
+@media (max-width:420px){
+  #hbot .hn-volby--cesty{grid-template-columns:1fr}
+  #hbot .hn-karta{min-height:0;padding:12px 36px 12px 12px}
+  #hbot .hn-karta--cena{padding-bottom:30px}
+  #hbot .hn-akce{grid-template-columns:1fr}
+  #hbot .hn-mereni-radek{flex-direction:column}
+}
+@media (prefers-reduced-motion:no-preference){#hbot{animation:hb-vjezd .32s var(--hb-krivka)}@keyframes hb-vjezd{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}}
+@media (prefers-reduced-motion:reduce){#hbot *{transition:none!important;animation:none!important}}
+@media (forced-colors:active){#hbot{border:1px solid CanvasText}#hbot .hn-skryty-vstup:checked+.hn-karta{outline:2px solid Highlight}#hbot .hb-head h2,#hbot .hn-cena-castka{color:CanvasText;background:none}}
