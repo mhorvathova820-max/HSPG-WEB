@@ -51,3 +51,9 @@
 - Celý úkol: `git revert` sloučení úkolu 56 v `main` → náhled → produkce jen se souhlasem majitele (KONTEXT §4.4).
 - Bez nového kódu: **rozcestník** vypne `"cile": []` v `content/hbot-rozcestnik.json` + build (vrátí se čipy „Cena hned“ a „Zavolejte mi“); **zvuk** si každý vypne přepínačem.
 - Jednotlivě v kódu: **puls** – v `assets/hbot.js` nevolat `pulsPlan()`; **zvuk** – smazat `<script src="/assets/hspg-zazitek.js">` z HOLUB 360 a v `hbot-panel.js` volání `nactiZazitek()` (bez modulu je vše tiché a přepínač skrytý); výchozí stav „vypnuto“ = v `hspg-zazitek.js` `zapnuto()` vrací `volba === true`; **hejno HOLUB 360** – v `holub360-apex.js` vynechat volání `stav.hejno.*` (měření funguje beze změny).
+
+## Doplněk 22. 10. 2026 – ověřená fakta k haptice a zvuku (rešerše `RESERSE-HAPTIKA-ZVUK-WEBGL-2026-10-22.md`)
+- `navigator.vibrate` funguje jen v prohlížečích na Chromiu na Androidu a jen po gestu uživatele; Firefox ho od verze 129 nemá, Safari nikdy. Na iPhonu z webu programová vibrace nejde (trik se skrytým `switch` po iOS 26.5 nefunguje) – v textech webu proto nikdy „haptika na všech telefonech“ (směrnice 2024/825).
+- Zvuk jen syntézou Web Audio (bez souborů), `AudioContext` až po gestu + `resume()` v téže obsluze; na iOS ponechat `audioSession.type = "ambient"` (respektuje tichý režim) – nikdy `"playback"` (zastavil by uživateli hudbu). Zvuky 50–200 ms, nejvýš 1 za 300 ms, nic při načtení, hoveru ani otevření panelu.
+- Uložení volby „Zvuk a vibrace“ do `localStorage` až po aktivním přepnutí uživatelem a uvést ji v zásadách ochrany soukromí (ePrivacy čl. 5(3) – EDPB 2/2023); do té doby nic neukládat. Výchozí stav rozhodl majitel: zapnuto po první akci – rešerše doporučuje vypnuto; při stížnostech přepnout výchozí na vypnuto (jedna konstanta v `hspg-zazitek.js`).
+- Přepínač jako skutečný prvek s `aria-pressed`/`role=switch`; při `prefers-reduced-motion` nabízet vypnuto. Každá haptika má vizuální ekvivalent.
