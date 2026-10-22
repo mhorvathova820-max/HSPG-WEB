@@ -1,5 +1,6 @@
 // Vygeneruje soubory pro prohlížeč ze stejných zdrojů, ze kterých čerpá AI a funkce:
-//  • assets/hbot-znalosti.json – okamžité odpovědi H-BOTa (content/hbot-faq.json, firma.json, ceny.json),
+//  • assets/hbot-znalosti.json – okamžité odpovědi H-BOTa (content/hbot-faq.json, firma.json, ceny.json) a rozcestník
+//    „Celý web na jednom místě“ (content/hbot-rozcestnik.json, úkol 56 – neplatný cíl build zastaví),
 //  • assets/hspg-cenik.json – data cenového jádra pro okamžitou kalkulaci, HOLUB 360 a PDF (úkol 48):
 //    content/ceny.json, standard.json, sentinel.json, cenik-potvrzeni.json a veřejná část firma.json,
 //  • standard-holub/index.html – stránka Standard HOLUB (úkol 50) ze stejných dat (scripts/stranka-standard.mjs).

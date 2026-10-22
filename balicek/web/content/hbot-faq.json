@@ -172,6 +172,33 @@
     },
     {
       "k": [
+        "rozdíl",
+        "rozdil",
+        "cesta",
+        "cesty",
+        "cestu",
+        "štít",
+        "stit",
+        "renovac",
+        "barevn",
+        "barva",
+        "barvu",
+        "nátěr",
+        "nater",
+        "impregnac",
+        "vybrat",
+        "zvolit",
+        "kterou"
+      ],
+      "q": "Jaký je rozdíl mezi neviditelným štítem a barevnou renovací?",
+      "a": "Kroky 01–04 Standardu HOLUB jsou vždy stejné: čištění, odmaštění, ošetření biocidy a oplach. Rozdíl je až v kroku 05. Cesta A – neviditelný štít H-STONE: 2× nástřik hydrofobní nano-impregnace, voda perlí, povrch dýchá a vzhled zůstává; hodí se pro střechu, fasádu i dlažbu a při péči SENTINEL BASE platí záruka 10 let. Cesta B – barevná renovace: penetrace a 2× strojní airless nástřik ohřívanou barvou v odstínu RAL nebo NCS podle vašeho výběru; pro střechu a fasádu, když chcete povrchu vrátit nebo změnit barvu. Bez ochranné vrstvy můžete zvolit i samotné čištění a ošetření (kroky 01–04).",
+      "link": [
+        "/standard-holub/",
+        "Standard HOLUB"
+      ]
+    },
+    {
+      "k": [
         "rezerv",
         "termín",
         "termin",

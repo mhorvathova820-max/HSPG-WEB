@@ -24,9 +24,18 @@
 #hbot .hb-head p{margin:2px 0 0;font-size:12px;color:var(--hb-tlumeny);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #hbot .hb-ai-znacka{flex:none;margin-left:auto;padding:3px 8px;border-radius:999px;border:1px solid rgba(122,221,255,.4);color:#bfeeff;font:800 10px/1.4 Manrope,Inter,system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;background:rgba(122,221,255,.07)}
 #hbot .hb-ai-znacka[hidden]{display:none}
-#hbot .hb-close{margin-left:auto;flex:none;width:40px;height:40px;border-radius:12px;border:1px solid rgba(244,241,232,.18);background:rgba(255,255,255,.03);cursor:pointer;font-size:15px;transition:border-color .25s,background .25s}
-#hbot .hb-ai-znacka:not([hidden])+.hb-close{margin-left:6px}
+#hbot .hb-head-akce{margin-left:auto;flex:none;display:flex;gap:6px}
+#hbot .hb-close{flex:none;width:40px;height:40px;border-radius:12px;border:1px solid rgba(244,241,232,.18);background:rgba(255,255,255,.03);cursor:pointer;font-size:15px;transition:border-color .25s,background .25s}
+#hbot .hb-ai-znacka:not([hidden])+.hb-head-akce{margin-left:6px}
 #hbot .hb-close:hover{border-color:var(--hb-linka-silna);background:rgba(212,175,55,.08)}
+/* Přepínač „Zvuk a vibrace“ (hspg-zazitek.js, úkol 56): ikona reproduktoru, stav v aria-pressed */
+#hbot .hb-zazitek{flex:none;width:40px;height:40px;display:grid;place-items:center;padding:0;border-radius:12px;border:1px solid rgba(244,241,232,.18);background:rgba(255,255,255,.03);color:var(--hb-tlumeny);cursor:pointer;transition:border-color .25s,background .25s,color .25s}
+#hbot .hb-zazitek[hidden]{display:none}
+#hbot .hb-zazitek--ceka{visibility:hidden}
+#hbot .hb-zazitek:hover{border-color:var(--hb-linka-silna);background:rgba(212,175,55,.08)}
+#hbot .hb-zazitek[aria-pressed=true]{color:var(--hb-zlata-svetla);border-color:var(--hb-linka-silna)}
+#hbot .hb-zazitek .hz-ikona,#hbot .hb-zazitek svg{display:block;width:18px;height:18px}
+#hbot .hb-zazitek .hz-text{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 #hbot .hb-tabs{display:flex;gap:4px;padding:8px 10px 0;border-bottom:1px solid var(--hb-linka)}
 #hbot .hb-tabs[hidden]{display:none}
 #hbot .hb-tab{flex:1;min-height:40px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--hb-tlumeny);font-weight:700;cursor:pointer}
@@ -45,6 +54,36 @@
 #hbot .hb-chip:hover{background:rgba(212,175,55,.1);border-color:rgba(246,231,168,.6)}
 #hbot .hb-chip.hb-plny{background:var(--hb-tlacitko);color:#17120a;border:0;box-shadow:0 10px 26px -12px rgba(212,175,55,.7),inset 0 1px 0 rgba(255,255,255,.55)}
 #hbot .hb-chip.hb-plny:hover{filter:brightness(1.06);transform:translateY(-1px)}
+/* Rozcestník „Celý web na jednom místě“ (úkol 56): skutečné odkazy a tlačítka, 2 sloupce, zlatá hlavní dlaždice */
+#hbot .hb-uvod{display:grid;gap:10px}
+#hbot .hb-uvod:empty{display:none}
+#hbot .hb-rozcestnik{display:grid;gap:8px;margin:0;padding:0}
+#hbot .hb-rozc-nadpis{margin:2px 0 0;padding:0;border:0;max-width:none;font:800 10.5px/1.3 Manrope,Inter,system-ui,sans-serif;letter-spacing:.24em;text-transform:uppercase;color:var(--hb-zlata)}
+#hbot .hb-rozc-mriz{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#hbot .hb-rozc-mriz>li{display:flex;min-width:0;margin:0;padding:0;list-style:none}
+#hbot .hb-rozc-mriz>li::before{content:none}
+#hbot .hb-rozc-mriz>li.hb-rozc-sirka{grid-column:1/-1}
+#hbot .hb-rozc{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"ikona titul" "popis popis";align-items:center;align-content:start;gap:5px 9px;width:100%;min-height:44px;margin:0;padding:11px 12px 12px;
+  border-radius:14px;border:1px solid rgba(212,175,55,.24);background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.015));box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+  color:var(--hb-text);font:inherit;text-align:left;text-decoration:none;cursor:pointer;transition:border-color .25s,background .25s,transform .2s var(--hb-krivka),box-shadow .25s}
+#hbot .hb-rozc:hover{border-color:rgba(246,231,168,.6);background:linear-gradient(180deg,rgba(212,175,55,.13),rgba(212,175,55,.03));transform:translateY(-1px);color:var(--hb-text)}
+#hbot .hb-rozc:focus-visible{outline:2px solid #f6e7a8;outline-offset:2px}
+#hbot .hb-rozc-text{display:contents}
+#hbot .hb-rozc-ikona{grid-area:ikona;display:block;width:20px;height:20px;color:var(--hb-zlata)}
+#hbot .hb-rozc-ikona svg{display:block;width:100%;height:100%}
+#hbot .hb-rozc-titul{grid-area:titul;font:600 15.5px/1.2 "Playfair Display",Georgia,"Times New Roman",serif;letter-spacing:.005em;color:var(--hb-text)}
+#hbot .hb-rozc-popis{grid-area:popis;font:500 12px/1.4 Manrope,Inter,system-ui,sans-serif;color:var(--hb-tlumeny)}
+#hbot .hb-rozc--hlavni{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"ikona titul sipka" "ikona popis sipka";gap:2px 12px;padding:13px 16px;border:0;
+  background:linear-gradient(135deg,#f6e7a8 0%,#d4af37 55%,#b8922c 100%);color:#17120a;box-shadow:0 14px 34px -16px rgba(212,175,55,.75),inset 0 1px 0 rgba(255,255,255,.55)}
+#hbot .hb-rozc--hlavni:hover{background:linear-gradient(135deg,#f6e7a8 0%,#d4af37 55%,#b8922c 100%);color:#17120a;filter:brightness(1.05)}
+#hbot .hb-rozc--hlavni .hb-rozc-ikona{width:28px;height:28px;color:#17120a}
+#hbot .hb-rozc--hlavni .hb-rozc-titul{font-size:19px;color:#17120a}
+#hbot .hb-rozc--hlavni .hb-rozc-popis{font-weight:700;color:#2b210c}
+#hbot .hb-rozc--hlavni::after{content:"";grid-area:sipka;width:9px;height:9px;margin-right:4px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:rotate(45deg)}
+#hbot .hb-rozc[aria-current=page]{border-color:var(--hb-linka-silna);background:rgba(212,175,55,.08)}
+#hbot .hb-rozc-tady{grid-column:1/-1;justify-self:start;margin-top:1px;font:800 9.5px/1.2 Manrope,Inter,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--hb-zlata-svetla)}
+@media (prefers-reduced-motion:no-preference){#hbot .hb-rozc-mriz>li{animation:hb-rozc-vjezd .5s var(--hb-krivka) both;animation-delay:calc(var(--i,0) * 45ms)}}
+@keyframes hb-rozc-vjezd{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 #hbot .hb-form{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--hb-linka)}
 #hbot input[type=text],#hbot input[type=tel],#hbot input[type=email],#hbot input[type=password],#hbot select,#hbot textarea{width:100%;min-height:44px;padding:9px 12px;border-radius:12px;border:1px solid rgba(212,175,55,.26);background:rgba(5,7,15,.72);color:#fff;transition:border-color .3s var(--hb-krivka),box-shadow .3s var(--hb-krivka)}
 #hbot input:focus,#hbot select:focus,#hbot textarea:focus{border-color:var(--hb-zlata);box-shadow:0 0 15px rgba(212,175,55,.35);outline:none}
@@ -130,6 +169,19 @@
 #hbot .hn-skryty-vstup:checked+.hn-karta .hn-karta-znacka{background:var(--hb-tlacitko);border-color:transparent;color:#17120a}
 #hbot .hn-pozn{margin:0;font-size:12.5px;line-height:1.5;color:var(--hb-tlumeny)}
 #hbot .hn-pozn--biocid{font-size:11.5px;opacity:.9}
+#hbot .hn-postup{margin:0 0 14px;padding:12px 14px;border:1px solid var(--hb-linka);border-radius:16px;background:linear-gradient(180deg,rgba(212,175,55,.06),rgba(5,7,15,.2))}
+#hbot .hn-postup-titul{margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--hb-zlata)}
+#hbot .hn-postup-kroky{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+#hbot .hn-postup-krok{display:flex;flex-direction:column;gap:2px;padding:8px 6px;border-radius:10px;background:rgba(5,7,15,.55);border:1px solid var(--hb-linka);text-align:center}
+#hbot .hn-postup-krok--volba{border-style:dashed;border-color:var(--hb-linka-silna)}
+#hbot .hn-postup-c{font:italic 600 15px/1 "Playfair Display",Georgia,serif;font-variant-numeric:lining-nums;color:var(--hb-zlata-svetla)}
+#hbot .hn-postup-n{font-size:11px;line-height:1.25;color:var(--hb-text)}
+#hbot .hn-vahani{margin-top:12px;padding:12px 14px;border-radius:14px;border:1px solid var(--hb-linka-silna);background:rgba(212,175,55,.07)}
+#hbot .hn-vahani-text{margin:0 0 8px;font-size:13px;line-height:1.5;color:var(--hb-text)}
+#hbot .hn-vahani-akce{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+@media (prefers-reduced-motion:no-preference){#hbot .hn-vahani{animation:hn-vahani .4s var(--hb-krivka) both}}
+@keyframes hn-vahani{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (max-width:520px){#hbot .hn-postup-kroky{grid-template-columns:repeat(3,minmax(0,1fr))}}
 /* Paleta RAL */
 #hbot .hn-paleta{margin-top:12px;padding:14px;border-radius:16px;border:1px solid var(--hb-linka);background:rgba(5,7,15,.45);display:grid;gap:8px}
 #hbot .hn-paleta[hidden]{display:none}
@@ -207,6 +259,17 @@
 #hbot .hn-obalka[data-stav=otevrena] .hn-obalka-klopa{transform:rotateX(180deg);z-index:0}
 #hbot .hn-obalka[data-stav=otevrena] .hn-obalka-dopis{transform:translateY(-40%)}
 #hbot .hn-obalka-vyzva{margin:0;font-size:13px;color:var(--hb-tlumeny);text-align:center}
+/* Malé hejno u obálky (dekorace, aria-hidden, úkol 56): co kalkulace skutečně udělala – plochy od zákazníka,
+   ceník, kontrola, pečeť. Doběhne do 1,2 s a nic nezdržuje (pečeť jde rozlomit hned). */
+#hbot .hn-hejno{display:flex;justify-content:center;gap:clamp(12px,4vw,24px);margin:-20px 0 0}
+#hbot .hn-hejno-holub{display:grid;justify-items:center;gap:4px;font:800 10px/1.2 Manrope,Inter,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--hb-zlata-svetla)}
+#hbot .hn-hejno-holub svg{display:block;width:30px;height:30px}
+@media (prefers-reduced-motion:no-preference){
+  #hbot .hn-hejno-holub{animation:hn-hejno-text .3s var(--hb-krivka) both;animation-delay:calc(var(--i,0) * .3s)}
+  #hbot .hn-hejno-holub svg{animation:hn-hejno-vzlet .3s var(--hb-krivka) both;animation-delay:calc(var(--i,0) * .3s)}
+}
+@keyframes hn-hejno-text{from{color:var(--hb-tlumeny)}to{color:var(--hb-zlata-svetla)}}
+@keyframes hn-hejno-vzlet{from{opacity:.25;transform:translateY(6px) scale(.86)}to{opacity:1;transform:none}}
 /* Výsledek – certifikát s cenou */
 #hbot .hn-vysledek{display:grid;gap:14px}
 #hbot .hn-certifikat{position:relative;padding:22px 20px 20px;border-radius:20px;border:1px solid rgba(212,175,55,.45);text-align:center;overflow:hidden;
@@ -297,4 +360,5 @@
 }
 @media (prefers-reduced-motion:no-preference){#hbot{animation:hb-vjezd .32s var(--hb-krivka)}@keyframes hb-vjezd{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}}
 @media (prefers-reduced-motion:reduce){#hbot *{transition:none!important;animation:none!important}}
-@media (forced-colors:active){#hbot{border:1px solid CanvasText}#hbot .hn-skryty-vstup:checked+.hn-karta{outline:2px solid Highlight}#hbot .hb-head h2,#hbot .hn-cena-castka{color:CanvasText;background:none}}
+@media (forced-colors:active){#hbot{border:1px solid CanvasText}#hbot .hn-skryty-vstup:checked+.hn-karta{outline:2px solid Highlight}#hbot .hb-head h2,#hbot .hn-cena-castka{color:CanvasText;background:none}
+  #hbot .hb-rozc{border:1px solid ButtonText}#hbot .hb-rozc--hlavni{border:2px solid ButtonText}#hbot .hb-zazitek[aria-pressed=true]{outline:2px solid Highlight}}

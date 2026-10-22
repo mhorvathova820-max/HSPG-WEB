@@ -34,6 +34,19 @@
 .h3a-znacka b { font: 700 17px/1 var(--apex-pismo-nadpis); letter-spacing: .14em; }
 .h3a-znacka span span { display: block; font: 600 9.5px/1.2 var(--apex-pismo); letter-spacing: .26em; text-transform: uppercase; color: var(--apex-tlumene); margin-top: 3px; }
 .h3a-hlavicka-tel { min-height: 44px; padding: 0 16px; font-size: 14px; }
+.h3a-hlavicka-akce { display: flex; align-items: center; gap: 8px; flex: none; }
+/* Přepínač „Zvuk a vibrace“ (hspg-zazitek.js, úkol 56): na úzkém displeji jen ikona, název zůstává v aria-label */
+.h3a-zazitek .hz-ikona { display: block; width: 18px; height: 18px; }
+.h3a-tl-mini.h3a-zazitek svg { width: 18px; height: 18px; }
+@media (max-width: 599px) {
+  .h3a-zazitek { width: 44px; padding: 0; justify-content: center; }
+  .h3a-zazitek .hz-text { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+@media (max-width: 420px) {
+  .h3a-hlavicka .h3a-obal { gap: 8px; }
+  .h3a-hlavicka-akce { gap: 6px; }
+  .h3a-hlavicka-tel { padding: 0 12px; }
+}
 
 /* ---------- hero ---------- */
 .h3a-hero { position: relative; isolation: isolate; min-height: max(640px, 100svh); display: flex; align-items: flex-end; overflow: hidden; background: var(--apex-cern-0); }
@@ -88,6 +101,47 @@
 @media (prefers-reduced-motion: no-preference) { .h3a-sense.je-aktivni i { animation: h3a-blik 1s ease-in-out infinite; } }
 @keyframes h3a-blik { 50% { opacity: .25; } }
 .h3a-stitek-ukazka { display: inline-block; margin-left: 10px; padding: 3px 10px; border-radius: 999px; background: #f6e7a8; color: #17120a; font: 800 11px/1.4 var(--apex-pismo); letter-spacing: .18em; vertical-align: middle; }
+
+/* ---------- hejno při měření (holub360-hejno.js, úkol 56) ----------
+   Každý holub svítí jen ve skutečném kroku měření; kaskáda fajfek je jen vzhled (≤ 0,3 s), výsledek se ukáže hned. */
+.h3a-hejno { margin-top: 16px; }
+.h3a-hejno-kroky { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+@media (max-width: 560px) { .h3a-hejno-kroky { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.h3a-holub { display: grid; justify-items: center; align-content: start; gap: 3px; padding: 14px 8px 12px; border-radius: 18px; border: 1px solid var(--apex-linka); background: rgba(5, 7, 15, .5); text-align: center;
+  transition: border-color .4s var(--apex-krivka), box-shadow .4s var(--apex-krivka), background .4s var(--apex-krivka); }
+.h3a-holub[data-stav="bezi"] { border-color: var(--apex-zlato); box-shadow: var(--apex-zare); background: rgba(212, 175, 55, .07); }
+.h3a-holub[data-stav="hotovo"] { border-color: var(--apex-linka-silna); }
+.h3a-holub-scena { position: relative; width: 64px; height: 48px; margin-bottom: 6px; transition: opacity .4s var(--apex-krivka); }
+.h3a-holub[data-stav="ceka"] .h3a-holub-scena { opacity: .4; }
+.h3a .h3a-holub-ptak { position: absolute; left: 4px; top: 4px; }
+.h3a .h3a-holub-ptak--svg { left: 12px; width: 40px; height: 40px; }
+.h3a .h3a-holub-ptak--svg svg { width: 100%; height: 100%; }
+.h3a .h3a-holub-jezdec { left: 17px; top: 0; }
+.h3a-holub-ptak--svg.h3a-holub-jezdec { width: 30px; height: 22px; }
+.h3a .h3a-holub-obrys { position: absolute; inset: 0; width: 64px; height: 48px; overflow: visible; }
+.h3a-holub-obrys path { fill: none; stroke: var(--apex-zlato); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 100; stroke-dashoffset: 0; opacity: .45; }
+.h3a-holub[data-stav="bezi"] .h3a-holub-obrys path, .h3a-holub[data-stav="hotovo"] .h3a-holub-obrys path { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .h3a-holub[data-stav="bezi"] .h3a-holub-obrys path { animation: h3a-obrys 1.6s linear infinite; }
+  @supports (offset-path: path("M0 0")) {
+    .h3a-holub[data-stav="bezi"] .h3a-holub-jezdec { left: 0; top: 0; offset-path: path("M6 29 L32 9 L58 29"); offset-anchor: 50% 85%; offset-rotate: 0deg; animation: h3a-jezdec 2.4s linear infinite; }
+  }
+}
+@keyframes h3a-obrys { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@keyframes h3a-jezdec { 0% { offset-distance: 0%; transform: none; } 49.9% { offset-distance: 100%; transform: none; } 50% { offset-distance: 100%; transform: scaleX(-1); } 100% { offset-distance: 0%; transform: scaleX(-1); } }
+.h3a .h3a-holub-znacka { position: absolute; right: -4px; bottom: 0; width: 16px; height: 16px; color: var(--apex-zlato); }
+.h3a-holub-fajfka { position: absolute; right: -8px; top: -8px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: var(--apex-tlacitko); color: #17120a; box-shadow: 0 0 10px rgba(212, 175, 55, .5); transform: scale(0); transition: transform .35s var(--apex-krivka); }
+.h3a .h3a-holub-fajfka svg { width: 12px; height: 12px; }
+.h3a-holub[data-stav="hotovo"] .h3a-holub-fajfka { transform: scale(1); }
+.h3a-holub:nth-child(2) .h3a-holub-fajfka { transition-delay: .08s; }
+.h3a-holub:nth-child(3) .h3a-holub-fajfka { transition-delay: .16s; }
+.h3a-holub:nth-child(4) .h3a-holub-fajfka { transition-delay: .24s; }
+.h3a-holub-nazev { font: 600 16px/1.2 var(--apex-pismo-nadpis); color: var(--apex-tlumene); }
+.h3a-holub[data-stav="bezi"] .h3a-holub-nazev, .h3a-holub[data-stav="hotovo"] .h3a-holub-nazev { color: var(--apex-zlato-svetle); }
+.h3a-holub-prace { font-size: 12.5px; line-height: 1.35; color: var(--apex-tlumene); }
+.h3a-hejno-stav { min-height: 1.5em; margin-top: 10px; font-size: 14px; color: var(--apex-zlato-svetle); }
+.h3a-hejno-stav:empty { min-height: 0; margin-top: 0; }
+@media (forced-colors: active) { .h3a-holub[data-stav="bezi"] { outline: 2px solid Highlight; } .h3a-holub-fajfka { forced-color-adjust: none; } }
 
 /* ---------- krok 2: výsledek měření ---------- */
 .h3a-vysledek-mrizka { display: grid; gap: 20px; margin-top: 32px; }

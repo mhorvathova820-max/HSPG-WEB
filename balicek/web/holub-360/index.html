@@ -24,6 +24,7 @@
 <link rel="stylesheet" href="/assets/apex-tokens.css">
 <link rel="stylesheet" href="/assets/holub360-apex.css">
 <link rel="modulepreload" href="/assets/holub360-apex.js">
+<link rel="modulepreload" href="/assets/holub360-hejno.js">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Úvod","item":"https://hspg.cz/"},{"@type":"ListItem","position":2,"name":"HOLUB 360","item":"https://hspg.cz/holub-360/"}]}</script>
 </head>
 <body class="h3a">
@@ -35,7 +36,11 @@
       <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><defs><linearGradient id="h3a-zl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e7a8"/><stop offset=".5" stop-color="#d4af37"/><stop offset="1" stop-color="#8a6a12"/></linearGradient></defs><path d="M6 30 L20 22 L26 8 L30 22 L42 18 L32 28 L36 40 L24 32 L12 38 Z" fill="none" stroke="url(#h3a-zl)" stroke-width="1.6" stroke-linejoin="round"/><path d="M20 22 L24 32 L30 22 M20 22 L32 28" fill="none" stroke="url(#h3a-zl)" stroke-width="1" stroke-opacity=".7"/></svg>
       <span><b>HOLUB</b><span>Surface Protection Group</span></span>
     </a>
-    <a class="apex-tlacitko apex-tlacitko--duch h3a-hlavicka-tel" href="tel:+420736618486">736&nbsp;618&nbsp;486</a>
+    <div class="h3a-hlavicka-akce">
+      <!-- Přepínač „Zvuk a vibrace“ (assets/hspg-zazitek.js, úkol 56) – bez JavaScriptu zůstává skrytý. -->
+      <button class="h3a-tl-mini h3a-zazitek" type="button" id="h3a-zazitek" aria-label="Zvuk a vibrace" aria-pressed="true" hidden></button>
+      <a class="apex-tlacitko apex-tlacitko--duch h3a-hlavicka-tel" href="tel:+420736618486">736&nbsp;618&nbsp;486</a>
+    </div>
   </div>
 </header>
 
@@ -80,7 +85,7 @@
       </div>
       <div class="h3a-hero-pata">
         <button class="h3a-tl-mini" type="button" id="h3a-kapky-tip" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3c3 4.2 6 7.6 6 11a6 6 0 0 1-12 0c0-3.4 3-6.8 6-11z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Klepněte kamkoliv – voda na ošetřeném povrchu perlí</button>
-        <button class="h3a-tl-mini" type="button" id="h3a-zvuk" aria-pressed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 10v4h4l5 4V6L8 10H4z M16 9c1.5 1.5 1.5 4.5 0 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Zvuk: vypnutý</span></button>
+        <button class="h3a-tl-mini" type="button" id="h3a-zvuk" aria-pressed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 10v4h4l5 4V6L8 10H4z M16 9c1.5 1.5 1.5 4.5 0 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Zvuková kulisa: vypnutá</span></button>
         <span class="h3a-pozn-scena">Ilustrační vizualizace Staré Prahy</span>
       </div>
     </div>
@@ -109,6 +114,11 @@
         </form>
         <p class="h3a-mini" id="h3a-adresa-napoveda">Napište aspoň 3&nbsp;znaky a&nbsp;vyberte adresu ze seznamu (šipkami a&nbsp;Enterem nebo myší).</p>
         <p class="h3a-sense" id="h3a-sense"><i aria-hidden="true"></i>HOLUB CORE QUANTUM SENSE · zaměření na dálku</p>
+        <!-- Hejno při měření (úkol 56): čtyři holubi podle skutečného průběhu – měří, počítá, ověřuje, komunikuje. -->
+        <div class="h3a-hejno" id="h3a-hejno">
+          <ol class="h3a-hejno-kroky" id="h3a-hejno-kroky" aria-label="Průběh měření na dálku" hidden></ol>
+          <p class="h3a-hejno-stav" id="h3a-hejno-stav" role="status" aria-live="polite"></p>
+        </div>
         <p class="h3a-stav" id="h3a-adresa-stav" role="status" aria-live="polite"
            data-nacitam="Měříme na dálku…"
            data-hotovo="Hotovo. Plochy jsou odhad – můžete je upravit."
@@ -324,6 +334,7 @@
 </footer>
 
 <script src="/assets/hspg-cena.js" defer></script>
+<script src="/assets/hspg-zazitek.js" defer></script>
 <script type="module" src="/assets/holub360-apex.js"></script>
 <script src="/assets/hbot.js" defer></script>
 </body>

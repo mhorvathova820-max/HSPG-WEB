@@ -7,6 +7,8 @@
  * ceníku žádná částka v Kč; 3D model je ilustrační (pevná výška, žádné výšky z měření); ukázka jen s ?ukazka=1.
  * Volá jen vlastní web: /content/*.json (jádro), /api/cena-z-adresy, /api/planovac a odeslání formuláře na „/“.
  */
+import { vytvorHejno } from "./holub360-hejno.js";
+
 const $ = (id) => document.getElementById(id);
 const NB = "\u00a0";
 const API_MERENI = "/api/cena-z-adresy";
@@ -30,7 +32,7 @@ const UKAZKOVY_DUM = {
 const stav = {
   jadro: null, C: null, mereni: null, cesta: "A", barvy: { strecha: null, fasada: null }, vlastni: "",
   typObjektu: "rd", med: 0, nabidka: null, otevreno: false, termin: "", plan: null, planKlic: null,
-  model: null, modelSlib: null, scena: null, zvuk: null, kapky: null, rucne: false,
+  model: null, modelSlib: null, scena: null, zvuk: null, kapky: null, rucne: false, hejno: null,
 };
 
 // ---------------------------------------------------------------- pomůcky
@@ -136,17 +138,43 @@ class Zvuk {
   kapka() { this.ton(1900 + Math.random() * 900, 0.12, 0.03); }
 }
 
+// Zvuková kulisa v úvodu (tichý pad, jen po zapnutí). Hlavní vypínač „Zvuk a vibrace“ platí i pro ni.
+async function prepniKulisu(zapnout) {
+  const b = $("h3a-zvuk");
+  stav.zvuk ||= new Zvuk();
+  if (zapnout) {
+    if (!(await stav.zvuk.zapni())) return;
+    const z = zazitekModul();
+    if (z && !z.zapnuto()) z.nastav(true); // zákazník zvuk výslovně chce → zapne i hlavní vypínač
+  } else stav.zvuk.vypni();
+  b.setAttribute("aria-pressed", String(zapnout));
+  b.querySelector("span").textContent = zapnout ? "Zvuková kulisa: zapnutá" : "Zvuková kulisa: vypnutá";
+}
 function nastavZvuk() {
   const b = $("h3a-zvuk");
   if (!b || !(window.AudioContext || window.webkitAudioContext)) return;
   b.hidden = false;
-  b.addEventListener("click", async () => {
-    stav.zvuk ||= new Zvuk();
-    const zapnout = b.getAttribute("aria-pressed") !== "true";
-    if (zapnout) { if (!(await stav.zvuk.zapni())) return; } else stav.zvuk.vypni();
-    b.setAttribute("aria-pressed", String(zapnout));
-    b.querySelector("span").textContent = zapnout ? "Zvuk: zapnutý" : "Zvuk: vypnutý";
-  });
+  b.addEventListener("click", () => prepniKulisu(b.getAttribute("aria-pressed") !== "true"));
+}
+
+// ---------------------------------------------------------------- zvuk a vibrace (assets/hspg-zazitek.js, úkol 56)
+// Krátké zvuky a vibrace jen po vědomé akci (pečeť, cena, měření, chyba); přepínač „Zvuk a vibrace“ v hlavičce.
+const zazitekModul = () => window.HSPGZazitek || null;
+function zazitek(zvuk, haptika) {
+  const z = zazitekModul();
+  if (!z) return;
+  try { if (zvuk) z.zvuk(zvuk); if (haptika) z.haptika(haptika); } catch { /* bez zvuku */ }
+}
+function nastavZazitek() {
+  const tl = $("h3a-zazitek");
+  const pripoj = () => {
+    const z = zazitekModul();
+    if (!z || !tl) return;
+    z.prepinac(tl);
+    z.naZmenu((zap) => { if (!zap && stav.zvuk?.on) prepniKulisu(false); });
+  };
+  if (zazitekModul()) pripoj();
+  else document.querySelector('script[src$="/hspg-zazitek.js"]')?.addEventListener("load", pripoj, { once: true });
 }
 
 // ---------------------------------------------------------------- hero: průlet a kapky
@@ -362,13 +390,15 @@ function nastavAdresu() {
     if (navrhy.length === 1) return zvol(navrhy[0]);
     const t = vstup.value.trim();
     vstup.focus(); // návrhy se ukazují jen u zaměřeného pole
-    if (t.length < 3) return hlas(stavEl, "vyber");
+    if (t.length < 3) { zazitek("chyba", "chyba"); return hlas(stavEl, "vyber"); }
     await navrhni(t);
     if (navrhy.length === 1) zvol(navrhy[0]);
-    else if (navrhChyba) { hlas(stavEl, "chyba", "chyba"); rucniZadani({ adresa: t }); }
-    else { vstup.focus(); hlas(stavEl, navrhy.length ? "vyber" : "nenalezeno", navrhy.length ? null : "chyba"); }
+    else if (navrhChyba) { zazitek("chyba"); hlas(stavEl, "chyba", "chyba"); rucniZadani({ adresa: t }); }
+    else { vstup.focus(); if (!navrhy.length) zazitek("chyba"); hlas(stavEl, navrhy.length ? "vyber" : "nenalezeno", navrhy.length ? null : "chyba"); }
   });
 
+  // Hejno při měření (úkol 56): holubi se rozsvěcují jen podle skutečných kroků níže, nic se nezdržuje.
+  stav.hejno = vytvorHejno($("h3a-hejno-kroky"), $("h3a-hejno-stav"), { klid: () => pohybDolu.matches, typo });
   let mereniCtrl;
   async function zmer(volba) {
     mereniCtrl?.abort();
@@ -376,24 +406,32 @@ function nastavAdresu() {
     hlas(stavEl, "nacitam");
     sense.classList.add("je-aktivni");
     $("h3a-zmerit").disabled = true;
+    stav.hejno.start(); // holub „Měří“: požadavek právě odchází
+    zazitek("kridla");
     try {
       const r = await ziskej(API_MERENI, { method: "POST", telo: { kod: volba.kod, adresa: volba.adresa }, signal: c.signal, limit: 25000 });
       if (mereniCtrl !== c) return;
-      if (r.status === 429) { hlas(stavEl, "limit", "chyba"); zahodMereni(volba.adresa); return rucniZadani({ adresa: volba.adresa }); }
-      if (r.status === 404) { zahodMereni(volba.adresa); return hlas(stavEl, "nenalezeno", "chyba"); }
-      if (!r.ok) { hlas(stavEl, "chyba", "chyba"); zahodMereni(volba.adresa); return rucniZadani({ adresa: volba.adresa }); }
+      if (r.status === 429) { zazitek("chyba"); hlas(stavEl, "limit", "chyba"); zahodMereni(volba.adresa); return rucniZadani({ adresa: volba.adresa }); }
+      if (r.status === 404) { zazitek("chyba"); zahodMereni(volba.adresa); return hlas(stavEl, "nenalezeno", "chyba"); }
+      if (!r.ok) { zazitek("chyba"); hlas(stavEl, "chyba", "chyba"); zahodMereni(volba.adresa); return rucniZadani({ adresa: volba.adresa }); }
+      stav.hejno.krok("pocita"); // odpověď je tu – počítají se plochy
       const m = normalizujMereni(r.j, volba);
+      stav.hejno.krok("overuje", { plochy: m.plochy }); // výběr budovy a úplnost údajů
       if (m.stav === "vyber" || m.stav === "neni-budova") {
+        zazitek("chyba");
         hlas(stavEl, m.stav === "vyber" ? "vyber" : "neniBudova", "chyba");
         zahodMereni(volba.adresa);
         vstup.focus();
         return ukaz(m.kandidati);
       }
-      if (m.stav !== "hotovo") { hlas(stavEl, "chyba", "chyba"); zahodMereni(volba.adresa); return rucniZadani({ adresa: volba.adresa }); }
+      if (m.stav !== "hotovo") { zazitek("chyba"); hlas(stavEl, "chyba", "chyba"); zahodMereni(volba.adresa); return rucniZadani({ adresa: volba.adresa }); }
+      stav.hejno.krok("komunikuje");
       hlas(stavEl, "hotovo", "ok");
       zobrazMereni(m);
+      stav.hejno.hotovo(); // výsledek je oznámený a vidět v kroku 02
+      zazitek("fajfka");
     } catch {
-      if (mereniCtrl === c) { hlas(stavEl, "chyba", "chyba"); zahodMereni(volba.adresa); rucniZadani({ adresa: volba.adresa }); }
+      if (mereniCtrl === c) { zazitek("chyba"); hlas(stavEl, "chyba", "chyba"); zahodMereni(volba.adresa); rucniZadani({ adresa: volba.adresa }); }
     } finally {
       if (mereniCtrl === c) { sense.classList.remove("je-aktivni"); $("h3a-zmerit").disabled = false; }
     }
@@ -410,6 +448,7 @@ function nastavAdresu() {
 
 // Neúspěšné nové měření nesmí nechat plochy, cenu ani adresu předchozího domu (ručně zadané plochy zůstávají).
 function zahodMereni(adresa = "") {
+  stav.hejno?.zrus(); // neúspěšné měření: hejno zpět do klidu, stavový řádek prázdný
   if (!stav.mereni || stav.mereni.stav === "rucne") return;
   stav.mereni = null;
   for (const p of ["strecha", "fasada"]) { $("h3a-plocha-" + p).value = ""; $("h3a-chce-" + p).checked = false; }
@@ -552,7 +591,7 @@ function nastavCesty() {
     if (!c) continue;
     const vstup = el("input");
     vstup.type = "radio"; vstup.name = "h3a-cesta"; vstup.value = id; vstup.checked = id === stav.cesta;
-    vstup.addEventListener("change", () => { stav.cesta = id; zobrazBarvy(); aktualizujModel(); prepocitej(); });
+    vstup.addEventListener("change", () => { zazitek("tuk", "tuk"); stav.cesta = id; zobrazBarvy(); aktualizujModel(); prepocitej(); });
     const sazby = cenyPotvrzene()
       ? POVRCHY.map((p) => { const x = J.cestyPro(p).find((k) => k.id === id); return x ? `${NAZEV_POVRCHU[p]} ${x.sazba} Kč/m²` : null; }).filter(Boolean).join(" · ")
       : "";
@@ -576,7 +615,7 @@ function nastavCesty() {
     for (const b of J?.barvy(povrch) || []) {
       const v = el("input");
       v.type = "radio"; v.name = "h3a-ral-" + povrch; v.value = b.ral;
-      v.addEventListener("change", () => { stav.barvy[povrch] = b; aktualizujModel(); prepocitej(); });
+      v.addEventListener("change", () => { zazitek("tuk", "tuk"); stav.barvy[povrch] = b; aktualizujModel(); prepocitej(); });
       const kruh = el("i");
       kruh.style.setProperty("background", b.hex);
       vzornik.append(el("label", "h3a-vzorek", v, kruh, el("span", "", b.ral.replace("RAL ", `RAL${NB}`)), sr(` ${b.nazev}`)));
@@ -647,9 +686,10 @@ function nastavObalku() {
     b.setAttribute("aria-expanded", "true");
     papir.classList.add("je-otevrena");
     stav.zvuk?.pecet();
-    try { navigator.vibrate?.([12, 40, 18]); } catch { /* nepodporováno */ }
+    zazitek("pecet", "pecet"); // vibrace jen přes přepínač „Zvuk a vibrace“
     const ukaz = () => {
       document.querySelector(".h3a-obalka-scena").hidden = true;
+      zazitek("cena", "cena");
       const cert = $("h3a-certifikat");
       cert.hidden = false;
       cert.classList.add("je-novy");
@@ -856,10 +896,12 @@ function vykresliKalendar(fokus) {
 function vyberDen(d, s, okno) {
   const infoEl = $("h3a-kal-info");
   if (!s.lze) {
+    zazitek("chyba", "chyba");
     if (s.trida === "nevhodny") info(infoEl, typo(`${okno.text} – vyberte prosím jiný den.`), "chyba");
     else hlas(infoEl, "obsazeno", "chyba");
     return;
   }
+  zazitek("tuk", "tuk");
   info(infoEl, "");
   stav.termin = stav.termin === d.datum ? "" : d.datum;
   $("h3a-f-termin").value = stav.termin;
@@ -944,6 +986,7 @@ document.addEventListener("visibilitychange", () => {
 
 async function start() {
   document.documentElement.classList.add("h3a-js");
+  nastavZazitek();
   nastavZvuk();
   nastavHero();
   stav.jadro = await nactiJadro();

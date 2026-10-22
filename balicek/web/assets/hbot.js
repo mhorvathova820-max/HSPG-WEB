@@ -199,7 +199,21 @@
     '#hbot-btn .hb-znak-svg svg{width:46px;height:46px;margin:0 9px}',
     // Text: nadpis Playfair, nad ním zlatý štítek. Sbalí se (třída hb-sbaleno), rozbalí při najetí a fokusu.
     '#hbot-btn .hb-btn-text{display:flex;flex-direction:column;align-items:flex-start;overflow:hidden;white-space:nowrap;max-width:300px;margin:0 16px 0 6px;font:600 15px/1.2 "Playfair Display",Georgia,"Times New Roman",serif;letter-spacing:.01em;text-align:left;transition:max-width .4s cubic-bezier(.2,.8,.2,1),margin .4s cubic-bezier(.2,.8,.2,1),opacity .25s}',
-    '#hbot-btn .hb-btn-text small{display:block;margin-bottom:4px;font:800 10px/1 Manrope,Inter,system-ui,sans-serif;letter-spacing:.26em;text-transform:uppercase;color:#d4af37}',
+    '#hbot-btn .hb-btn-text small{display:grid;margin-bottom:4px;font:800 10px/1 Manrope,Inter,system-ui,sans-serif;letter-spacing:.26em;text-transform:uppercase;color:#d4af37}',
+    // Štítek během pulsu („Celý web na jednom místě“) leží ve stejné buňce jako běžný – šířka plakety se nemění.
+    '#hbot-btn .hb-stitek{grid-area:1/1;white-space:nowrap;transition:opacity .45s}',
+    '#hbot-btn .hb-stitek-puls{opacity:0;letter-spacing:.1em}',
+    '#hbot-btn.hb-pulzuje .hb-stitek-zakl{opacity:0}#hbot-btn.hb-pulzuje .hb-stitek-puls{opacity:1}',
+    // Puls „nabízím se“: dvě zlaté vlny kolem plakety a kolem „Cena hned“ na liště. Jen krátké dávky (WCAG 2.2.2,
+    // viz pulsuj()), vlny jsou stín mimo tlačítko (žádný posun rozvržení), nikdy při najetí/fokusu, omezení pohybu
+    // ani ve vynucených barvách.
+    '.hb-puls{position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none}',
+    '.hb-puls::before,.hb-puls::after{content:"";position:absolute;inset:0;border-radius:inherit;opacity:0}',
+    '@media (prefers-reduced-motion:no-preference){.hb-pulzuje .hb-puls::before,.hb-pulzuje .hb-puls::after{animation:hb-puls 1.8s cubic-bezier(.2,.8,.2,1) 2 both}.hb-pulzuje .hb-puls::after{animation-delay:.6s}}',
+    '@keyframes hb-puls{0%{opacity:1;box-shadow:0 0 0 0 rgba(246,231,168,.7),0 0 0 0 rgba(212,175,55,.5)}75%{opacity:1}100%{opacity:0;box-shadow:0 0 0 8px rgba(246,231,168,0),0 0 0 20px rgba(212,175,55,0)}}',
+    '#hbot-btn.hb-pulzuje{border-color:rgba(246,231,168,.75)}',
+    '#hbot-btn:hover .hb-puls,#hbot-btn:focus-visible .hb-puls,#hspg-lista .hl-cena:focus-visible .hb-puls{display:none}',
+    '@media (prefers-reduced-motion:reduce),(forced-colors:active){.hb-puls{display:none}}',
     // Odznak AI majitele: safírový kámen.
     '#hbot-btn .hb-odznak{flex:none;margin-right:10px;font:800 10px Manrope,Inter,system-ui,sans-serif;font-style:normal;letter-spacing:.06em;padding:3px 7px;border-radius:999px;color:#eaf6ff;background:linear-gradient(180deg,#4f8fca,#1b406d 60%,#10284d);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 0 0 1px #0c1f3c}',
     '#hbot-btn .hb-btn-text+.hb-odznak{margin-left:-6px}',
@@ -218,7 +232,7 @@
     '#hspg-lista .hl-bot svg{width:22px;height:22px}',
     '#hspg-lista .hl-tel{color:#f6e7a8;border:1px solid rgba(212,175,55,.5);background:transparent}',
     '#hspg-lista .hl-bot{color:#f4f1e8;border:1px solid rgba(212,175,55,.42);background:linear-gradient(180deg,rgba(31,41,55,.85),rgba(11,15,25,.95));box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}',
-    '#hspg-lista .hl-cena{color:#17120a;border:0;background:linear-gradient(135deg,#f6e7a8 0%,#d4af37 42%,#9c7b16 100%);box-shadow:0 10px 26px -10px rgba(212,175,55,.55),inset 0 1px 0 rgba(255,255,255,.55)}',
+    '#hspg-lista .hl-cena{position:relative;color:#17120a;border:0;background:linear-gradient(135deg,#f6e7a8 0%,#d4af37 42%,#9c7b16 100%);box-shadow:0 10px 26px -10px rgba(212,175,55,.55),inset 0 1px 0 rgba(255,255,255,.55)}',
     '#hspg-lista a:focus-visible,#hspg-lista button:focus-visible{outline:2px solid #f6e7a8;outline-offset:2px}',
     'body{padding-bottom:calc(66px + env(safe-area-inset-bottom))}',
     'body.hero-cta-na-obrazovce #hspg-lista{transform:translateY(110%);visibility:hidden;transition:transform .3s ease,visibility 0s linear .3s}}',
@@ -243,9 +257,12 @@
   var znak = holubCtx ? holubPlatno : (function () { var s = d.createElement('span'); s.className = 'hb-znak-svg'; s.innerHTML = HOLUB_SVG; return s; })();
   var popisek = d.createElement('span'); popisek.className = 'hb-btn-text';
   var odznak = d.createElement('i'); odznak.className = 'hb-odznak'; odznak.setAttribute('aria-hidden', 'true'); odznak.textContent = 'AI';
-  btn.appendChild(znak); btn.appendChild(popisek);
+  var vlny = d.createElement('span'); vlny.className = 'hb-puls'; vlny.setAttribute('aria-hidden', 'true');
+  btn.appendChild(vlny); btn.appendChild(znak); btn.appendChild(popisek);
   function popisTlacitka(m) {
-    popisek.innerHTML = '<small>' + (m ? 'H-BOT · majitel' : 'H-BOT · cena hned') + '</small>' + (m ? 'Vše ve tvých rukách' : 'Budoucnost ve Vašich rukách');
+    // Druhý štítek se ukáže jen během pulsu; přístupný název tlačítka (aria-label) zůstává stejný.
+    popisek.innerHTML = '<small><span class="hb-stitek hb-stitek-zakl">' + (m ? 'H-BOT · majitel' : 'H-BOT · cena hned') + '</span>' +
+      '<span class="hb-stitek hb-stitek-puls" aria-hidden="true">Celý web na jednom místě</span></small>' + (m ? 'Vše ve tvých rukách' : 'Budoucnost ve Vašich rukách');
     if (m) btn.appendChild(odznak); else if (odznak.parentNode) odznak.parentNode.removeChild(odznak);
     btn.setAttribute('aria-label', m ? 'Vše ve tvých rukách – AI panel majitele' : 'Budoucnost ve Vašich rukách – holub H-BOT: cena hned a odpovědi na otázky');
   }
@@ -337,7 +354,7 @@
     '<a class="hl-tel" href="tel:' + TEL + '">' + IKONA('M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z') + 'Zavolat</a>' +
     '<button type="button" class="hl-bot" aria-controls="hbot" aria-expanded="false" aria-haspopup="dialog">' + HOLUB_SVG + 'Zeptat se</button>' +
     // Bez JavaScriptu (nebo když se panel nenačte) vede na poptávku; jinak otevře okamžitou kalkulaci v H-BOTovi.
-    '<a class="hl-cena" href="' + (naAkci ? '#poptavka' : '/akce/') + '" data-hbot-cena>' + JISKRA + 'Cena hned</a>';
+    '<a class="hl-cena" href="' + (naAkci ? '#poptavka' : '/akce/') + '" data-hbot-cena><span class="hb-puls" aria-hidden="true"></span>' + JISKRA + 'Cena hned</a>';
 
   d.body.appendChild(btn);
   d.body.appendChild(lista);
@@ -414,6 +431,7 @@
   // rezim 'nabidka' = rovnou okamžitá kalkulace (lišta „Cena hned“, odkazy s data-hbot-cena, #cena).
   function otevri(e, rezim) {
     var zdroj = e && e.currentTarget;
+    pulsHotovo();
     nactiPanel()
       .then(function (h) {
         var z = d.getElementById('hbot-zaloha'); if (z) z.hidden = true;
@@ -438,14 +456,65 @@
     otevri({ currentTarget: a }, 'nabidka');
   });
 
+  // --- puls: plaketa (a „Cena hned“ na liště) se krátce nabídne ----------------------------------------
+  // WCAG 2.2.2: nikdy trvale – nejvýš tři dávky po ~4 s (3 s po načtení, pak ~30 s a ~75 s). Po prvním otevření
+  // panelu už do konce relace ne (sessionStorage). Nepulzuje při najetí ani fokusu (tehdy běží obíhající světlo),
+  // při omezení pohybu, ve skryté kartě, ve vynucených barvách ani majiteli. Časy jde zkrátit jen pro testy
+  // (window.HSPG_HBOT_PULS = [ms, ms, ms] nastavené před načtením tohoto souboru).
+  var PULS_KLIC = 'hspg-hbot-otevreno', PULS_DAVKA = 4200, PULS_ROZESTUP = 12000;
+  var puls = { casovace: [], konec: 0, davek: 0, posledni: -1e9, stop: false };
+  function relace(k, v) {
+    try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) {}
+    return null;
+  }
+  function plati(dotaz) { return !!(window.matchMedia && matchMedia(dotaz).matches); }
+  function pulsKonec() {
+    clearTimeout(puls.konec);
+    btn.classList.remove('hb-pulzuje'); cenaLista.classList.remove('hb-pulzuje');
+  }
+  function pulsStop() { puls.stop = true; puls.casovace.forEach(clearTimeout); puls.casovace = []; pulsKonec(); }
+  function pulsHotovo() { relace(PULS_KLIC, '1'); pulsStop(); }
+  function pulsuj(pokus) {
+    if (puls.stop || puls.davek >= 3) return;
+    if (plati('(prefers-reduced-motion: reduce)')) return pulsStop();
+    var hover = false;
+    try { hover = btn.matches(':hover'); } catch (e) {}
+    var ted = Date.now();
+    var ceka = d.hidden || hover || d.activeElement === btn || d.activeElement === cenaLista || btn.getAttribute('aria-expanded') === 'true' ||
+      plati('(forced-colors: active)') || ted - puls.posledni < PULS_ROZESTUP || ![btn, cenaLista].some(viditelne);
+    // Teď se nehodí (skrytá karta, najetí, plaketa schovaná u hlavní výzvy) → zkusit za chvíli, nejvýš 8×.
+    if (ceka) { if (pokus < 8) puls.casovace.push(setTimeout(function () { pulsuj(pokus + 1); }, 4000)); return; }
+    puls.davek++; puls.posledni = ted;
+    btn.classList.add('hb-pulzuje'); cenaLista.classList.add('hb-pulzuje');
+    clearTimeout(puls.konec);
+    puls.konec = setTimeout(pulsKonec, PULS_DAVKA);
+  }
+  function pulsPlan() {
+    if (KLID || majitel || relace(PULS_KLIC) === '1') return;
+    var casy = Array.isArray(window.HSPG_HBOT_PULS) ? window.HSPG_HBOT_PULS : [3000, 30000, 75000];
+    casy.slice(0, 3).forEach(function (ms) { puls.casovace.push(setTimeout(function () { pulsuj(0); }, Math.max(0, Number(ms) || 0))); });
+  }
+  // Najetí, fokus nebo skrytí karty dávku hned ukončí (vlny i štítek se vrátí).
+  btn.addEventListener('pointerenter', pulsKonec);
+  btn.addEventListener('focus', pulsKonec);
+  cenaLista.addEventListener('focus', pulsKonec);
+  d.addEventListener('visibilitychange', function () { if (d.hidden) pulsKonec(); });
+  if (window.matchMedia) {
+    var pohybDotaz = matchMedia('(prefers-reduced-motion: reduce)');
+    var priZmenePohybu = function () { if (pohybDotaz.matches) pulsStop(); };
+    if (pohybDotaz.addEventListener) pohybDotaz.addEventListener('change', priZmenePohybu); else if (pohybDotaz.addListener) pohybDotaz.addListener(priZmenePohybu);
+  }
+  if (d.readyState === 'complete') pulsPlan(); else window.addEventListener('load', pulsPlan, { once: true });
+
   // Rozhraní pro panel: popisek po přihlášení majitele, aria-expanded, hejno a holub pro znak v panelu.
   var hejnoVzletlo = false;
   window.HSPG_HBOT_ZAVADEC = {
     tlacitka: [btn, botLista],
-    majitel: function (m) { popisTlacitka(m); },
+    majitel: function (m) { popisTlacitka(m); if (m) pulsStop(); },
     otevreno: function (o) {
       btn.setAttribute('aria-expanded', o ? 'true' : 'false');
       botLista.setAttribute('aria-expanded', o ? 'true' : 'false');
+      if (o) pulsHotovo();
       if (o && !hejnoVzletlo) { hejnoVzletlo = true; hejno([btn, botLista].filter(viditelne)[0]); }
     },
     nabidka: function (zdroj) { otevri({ currentTarget: zdroj }, 'nabidka'); },

@@ -82,6 +82,12 @@
   function udalost(nazev, data) {
     try { window.dataLayer = window.dataLayer || []; var o = { event: nazev }; for (var k in data || {}) o[k] = data[k]; window.dataLayer.push(o); } catch (e) {}
   }
+  // Zvuk a vibrace (assets/hspg-zazitek.js, úkol 56) – načítá ho panel; bez něj se nic nestane.
+  function zazitek(zvuk, haptika) {
+    var z = window.HSPGZazitek;
+    if (!z) return;
+    try { if (zvuk) z.zvuk(zvuk); if (haptika) z.haptika(haptika); } catch (e) {}
+  }
   function skript(src) {
     return new Promise(function (ok, chyba) {
       var s = d.createElement('script'); s.src = src; s.async = true;
@@ -181,6 +187,7 @@
       udalost('hbot_kalkulace', { krok: KROKY[krok] });
     }
     function ukazChybu(text, pole) {
+      zazitek('chyba', 'chyba');
       chyba.textContent = ''; chyba.hidden = false;
       setTimeout(function () { chyba.textContent = T(text); }, 30);
       if (pole && pole.focus) { pole.setAttribute('aria-invalid', 'true'); pole.focus(); }
@@ -204,7 +211,7 @@
     // Karta volby (radio / checkbox schované, karta je popisek → nativní klávesnice a čtečky).
     function karta(typ, jmeno, hodnota, zaskrtnuto, titulek, popis, cena, ikonaCesta, priZmene) {
       var id = 'hn-' + jmeno + '-' + hodnota;
-      var vstup = h('input', { type: typ, name: jmeno, id: id, value: hodnota, class: 'hn-skryty-vstup', checked: zaskrtnuto, onchange: priZmene });
+      var vstup = h('input', { type: typ, name: jmeno, id: id, value: hodnota, class: 'hn-skryty-vstup', checked: zaskrtnuto, onchange: function (e) { zazitek('tuk', 'tuk'); priZmene(e); } });
       return h('div', { class: 'hn-volba' }, [
         vstup,
         h('label', { for: id, class: 'hn-karta' + (cena ? ' hn-karta--cena' : '') }, [
@@ -262,13 +269,51 @@
       if (J.potvrzeno && sl.multi_surface) telo.appendChild(h('p', { class: 'hn-pozn' }, ['Dva a více povrchů: sleva ' + Math.round(sl.multi_surface * 100) + ' %. Slevy se nesčítají – uplatní se nejvýhodnější.']));
     }
 
+    // Celý postup Standardu HOLUB nad volbou: kroky 01–04 vždy, krok 05 podle zvolené cesty (přání majitele 22. 10.).
+    function postupStandardu() {
+      var kroky = (J.standard && J.standard.kroky) || [];
+      if (!kroky.length) return null;
+      return h('div', { class: 'hn-postup', role: 'group', 'aria-label': 'Postup Standard HOLUB' }, [
+        h('p', { class: 'hn-postup-titul' }, ['Postup je vždy celý – Standard HOLUB']),
+        h('ol', { class: 'hn-postup-kroky' }, kroky.map(function (k) {
+          var volitelny = k.cislo === '05';
+          return h('li', { class: 'hn-postup-krok' + (volitelny ? ' hn-postup-krok--volba' : '') }, [
+            h('span', { class: 'hn-postup-c' }, [k.cislo]),
+            h('span', { class: 'hn-postup-n' }, [volitelny ? k.nazev + ' podle volby' : k.nazev])
+          ]);
+        }))
+      ]);
+    }
+    // Když zákazník váhá (dlouho bez volby nebo opakované přepínání), nabídne H-BOT vysvětlení – nic se samo neotevře.
+    function hlidejVahani(misto) {
+      if (S.pomocNabidnuta || !moznosti.zeptejSe) return function () {};
+      var gen = S.gen, prepnuti = 0;
+      function nabidni() {
+        if (gen !== S.gen || S.pomocNabidnuta) return;
+        S.pomocNabidnuta = true;
+        udalost('hbot_kalkulace', { krok: 'vahani' });
+        misto.appendChild(h('div', { class: 'hn-vahani', role: 'note' }, [
+          h('p', { class: 'hn-vahani-text' }, ['Nevíte, kterou cestu zvolit? Rozdíl mezi neviditelným štítem a barevnou renovací vám vysvětlím.']),
+          h('div', { class: 'hn-vahani-akce' }, [
+            h('button', { type: 'button', class: 'hn-tl hn-tl--duch', onclick: function () { moznosti.zeptejSe('Jaký je rozdíl mezi neviditelným štítem a barevnou renovací?'); } }, ['Zeptat se H-BOTa']),
+            moznosti.zavolejte ? h('button', { type: 'button', class: 'hn-odkaz hn-odkaz--tichy', onclick: function () { moznosti.zavolejte(S.cislo ? S.cislo + ': váhá mezi cestou A a B' : 'Váhá mezi cestou A a B'); } }, ['Raději zavolejte']) : null
+          ])
+        ]));
+      }
+      setTimeout(nabidni, 20000);
+      return function () { prepnuti++; if (prepnuti >= 3) nabidni(); };
+    }
+
     function krokOchrana() {
+      var postup = postupStandardu();
+      if (postup) telo.appendChild(postup);
+      var prepnuto = function () {};
       povrchyVybrane().filter(function (p) { return p !== 'fve'; }).forEach(function (p) {
         if (!S.volba[p]) S.volba[p] = { cesta: 'A', barva: null };
         var volba = S.volba[p];
         var sk = h('fieldset', { class: 'hn-otazka hn-otazka--povrch', 'data-povrch': p }, [h('legend', { class: 'hn-legenda' }, [C.POVRCHY[p].nazev])]);
         var mriz = h('div', { class: 'hn-volby hn-volby--cesty' });
-        var cesty = J.cestyPro(p).concat([{ id: 'cisteni', nazev: 'Jen čištění', popis: 'Kroky 01–04 Standardu HOLUB bez ochranné vrstvy.', sazba: (J.cenik.cisteni_only || {})[C.POVRCHY[p].klic] }]);
+        var cesty = J.cestyPro(p).concat([{ id: 'cisteni', nazev: 'Čištění a ošetření', popis: 'Kroky 01–04 Standardu HOLUB – čištění, odmaštění, ošetření biocidy a oplach – bez finální ochranné vrstvy.', sazba: (J.cenik.cisteni_only || {})[C.POVRCHY[p].klic] }]);
         if (!cesty.some(function (c) { return c.id === volba.cesta; })) volba.cesta = cesty[0].id;
         var paleta = h('div', { class: 'hn-paleta', hidden: volba.cesta !== 'B' });
         cesty.forEach(function (c) {
@@ -276,7 +321,7 @@
           var titul = c.id === 'A' ? 'A · ' + c.nazev + ' H-STONE' : c.id === 'B' ? 'B · ' + c.nazev : c.nazev;
           var popis = c.id === 'A' && zarukaKratce() ? c.popis + ' ' + zarukaKratce() : c.popis;
           mriz.appendChild(karta('radio', 'cesta-' + p, c.id, volba.cesta === c.id, titul, popis, J.potvrzeno ? c.sazba + ' Kč/m²' : null, IKONY[c.id], function () {
-            volba.cesta = c.id; chyba.hidden = true; paleta.hidden = c.id !== 'B';
+            volba.cesta = c.id; chyba.hidden = true; paleta.hidden = c.id !== 'B'; prepnuto();
           }));
         });
         sk.appendChild(mriz);
@@ -285,6 +330,9 @@
       });
       if (S.povrchy.fve) telo.appendChild(h('p', { class: 'hn-pozn' }, ['Fotovoltaiku jen šetrně čistíme – ochrannou vrstvu na panely nedáváme.']));
       if (J.standard && J.standard.biocidy_veta) telo.appendChild(h('p', { class: 'hn-pozn hn-pozn--biocid' }, [J.standard.biocidy_veta]));
+      var mistoPomoci = h('div', { class: 'hn-pomoc-misto' });
+      telo.appendChild(mistoPomoci);
+      prepnuto = hlidejVahani(mistoPomoci);
     }
     // „Záruka 10 let při péči SENTINEL BASE (499 Kč ročně).“ – z dat, jen když je tarif povinný pro záruku.
     function zarukaKratce() {
@@ -297,6 +345,7 @@
       var mriz = h('div', { class: 'hn-ral', role: 'radiogroup', 'aria-label': 'Odstín ' + (p === 'strecha' ? 'střechy' : 'fasády') });
       var vlastni = h('input', { type: 'text', class: 'hn-pole hn-ral-pole', id: 'hn-ral-' + p, maxlength: '24', placeholder: 'např. RAL 7016 nebo NCS S 2005-Y20R', autocomplete: 'off', value: volba.barva && volba.barva.vlastni ? volba.barva.ral : '' });
       function vyber(b, tl) {
+        zazitek('tuk', 'tuk');
         volba.barva = b;
         Array.prototype.forEach.call(mriz.children, function (x) { x.setAttribute('aria-checked', x === tl ? 'true' : 'false'); x.tabIndex = x === tl ? 0 : -1; });
         nazev.textContent = T(b.ral + (b.nazev ? ' · ' + b.nazev : ''));
@@ -581,10 +630,18 @@
       ]);
       var vyzva = h('p', { class: 'hn-obalka-vyzva' }, ['Vaše orientační cena je zapečetěná. Rozlomte pečeť.']);
       var preskocit = h('button', { type: 'button', class: 'hn-odkaz hn-odkaz--tichy' }, ['Zobrazit cenu bez animace']);
-      telo.appendChild(h('div', { class: 'hn-obrad' }, [obalka, vyzva, preskocit]));
+      // Malé hejno (dekorace, úkol 56) popisuje jen to, co kalkulace opravdu udělala: plochy zadal zákazník (nic se
+      // neměřilo), cena je z ceníku, vstupy prošly kontrolou, výsledek je zapečetěný. Doběhne do 1,2 s, nic nezdrží.
+      var hejnoObalky = h('div', { class: 'hn-hejno', 'aria-hidden': 'true' }, ['Plochy', 'Ceník', 'Kontrola', 'Pečeť'].map(function (t, i) {
+        var holub = h('span', { class: 'hn-hejno-holub', svg: (Z && Z.holubSvg) || HOLUB_SVG }, [t]);
+        holub.style.setProperty('--i', String(i));
+        return holub;
+      }));
+      telo.appendChild(h('div', { class: 'hn-obrad' }, [hejnoObalky, obalka, vyzva, preskocit]));
       var otevreno = false, genObalky = S.gen;
       function otevri() {
         if (otevreno) return; otevreno = true; S.otevreno = true;
+        zazitek('pecet', 'pecet');
         obalka.setAttribute('data-stav', 'otevrena');
         if (Z && Z.hejno) Z.hejno(pecet);
         setTimeout(function () {
@@ -602,6 +659,7 @@
       setTimeout(function () { pecet.focus({ preventScroll: true }); }, 60);
     }
     function ukazCenu(vysledek, n, hned) {
+      zazitek('cena', 'cena');
       var cil = vysledek.querySelector('.hn-cena-castka');
       var castka = n.vysledna;
       if (hned || KLID || !window.requestAnimationFrame) { cil.textContent = T(C.kc(castka)); }
@@ -731,8 +789,8 @@
           var kontext = { cislo: S.cislo, datum: new Date(), firma: J.firma || null, standard: J.standard, tarify: J.tarify(), podminkaZaruky: J.podminkaZaruky(), cenik: J.cenik, obec: S.obec ? S.obec.obec : '', objednatel: objednatel || null };
           return druh === 'kalkulace' ? window.HSPGDokumenty.kalkulace(S.vysledek, kontext) : window.HSPGDokumenty.navrhSmlouvy(S.vysledek, kontext);
         })
-        .then(function () { stav.textContent = T(druh === 'kalkulace' ? 'Kalkulace se stahuje' : 'NÁVRH se stahuje'); setTimeout(function () { stav.textContent = puvodni; }, 2600); })
-        .catch(function () { stav.textContent = T('PDF se nepodařilo vytvořit – zkuste znovu'); setTimeout(function () { stav.textContent = puvodni; }, 3200); })
+        .then(function () { zazitek('fajfka', 'fajfka'); stav.textContent = T(druh === 'kalkulace' ? 'Kalkulace se stahuje' : 'NÁVRH se stahuje'); setTimeout(function () { stav.textContent = puvodni; }, 2600); })
+        .catch(function () { zazitek('chyba'); stav.textContent = T('PDF se nepodařilo vytvořit – zkuste znovu'); setTimeout(function () { stav.textContent = puvodni; }, 3200); })
         .then(function () { tl.disabled = false; tl.removeAttribute('aria-busy'); });
     }
     function akceKontakt() {

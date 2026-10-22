@@ -1,10 +1,13 @@
 // Schválené znalosti H-BOTa: jediný zdroj pro okamžité odpovědi (prohlížeč) i pro AI (server).
-// Zdroje: content/hbot-faq.json, content/firma.json, content/ceny.json, content/sentinel.json, content/standard.json.
+// Zdroje: content/hbot-faq.json, content/firma.json, content/ceny.json, content/sentinel.json, content/standard.json,
+// content/hbot-rozcestnik.json (rozcestník „Celý web na jednom místě“, úkol 56).
 import faqData from "../../../content/hbot-faq.json" with { type: "json" };
 import firmaData from "../../../content/firma.json" with { type: "json" };
 import cenyData from "../../../content/ceny.json" with { type: "json" };
 import sentinelData from "../../../content/sentinel.json" with { type: "json" };
 import standardData from "../../../content/standard.json" with { type: "json" };
+import rozcestnikData from "../../../content/hbot-rozcestnik.json" with { type: "json" };
+import { rozcestnikProProhlizec } from "./rozcestnik.mjs";
 
 const kc = (n) => Number(n).toLocaleString("cs-CZ");
 
@@ -40,9 +43,9 @@ export function doplnFirmu(text, firma) {
 }
 
 // Data pro prohlížeč (assets/hbot-znalosti.json).
-export function znalostiProProhlizec({ faq = faqData, firma = firmaData, ceny = cenyData, sentinel = sentinelData, standard = standardData } = {}) {
+export function znalostiProProhlizec({ faq = faqData, firma = firmaData, ceny = cenyData, sentinel = sentinelData, standard = standardData, rozcestnik = rozcestnikData } = {}) {
   return {
-    vygenerovano_z: "content/hbot-faq.json, content/firma.json, content/ceny.json, content/sentinel.json, content/standard.json",
+    vygenerovano_z: "content/hbot-faq.json, content/firma.json, content/ceny.json, content/sentinel.json, content/standard.json, content/hbot-rozcestnik.json",
     firma: {
       telefon: firma.telefon,
       telefon_zobrazeni: firma.telefon_zobrazeni,
@@ -55,6 +58,8 @@ export function znalostiProProhlizec({ faq = faqData, firma = firmaData, ceny = 
       a: e.typ === "cena" ? odpovedCena(ceny) : e.typ === "postup" ? odpovedPostup(standard) : e.typ === "sentinel" ? odpovedSentinel(sentinel) : doplnFirmu(e.a, firma),
       ...(e.link ? { link: e.link } : {}),
     })),
+    // Rozcestník v uvítání H-BOTa (úkol 56) – zkontrolovaný; neplatný obsah zastaví build.
+    rozcestnik: rozcestnikProProhlizec(rozcestnik, { firma }),
   };
 }
 

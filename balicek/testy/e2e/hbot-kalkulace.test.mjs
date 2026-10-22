@@ -271,3 +271,23 @@ test("porovnání s jinou nabídkou: PDF se čte v prohlížeči, server vrátí
   assert.doesNotMatch(t, /lepší|horší|nekvalitní|podvod/i, "žádné hodnocení konkurence");
   assert.deepEqual(chyby.filter((x) => !/Cannot polyfill|@napi-rs/.test(x)), []);
 });
+
+test("ochrana: celý postup Standardu HOLUB 01–05, volba „Čištění a ošetření“; při váhání H-BOT nabídne vysvětlení", async () => {
+  const { p, chyby } = await stranka();
+  await p.click("#hbot-btn");
+  await p.click("#hbot .hb-cena-hned");
+  await p.click("#hbot label[for=hn-typ-rd]");
+  await p.waitForSelector("#hbot label[for=hn-povrch-strecha]");
+  await p.click("#hbot label[for=hn-povrch-strecha]");
+  await p.click("#hbot .hn-tl--zlate");
+  await p.waitForSelector("#hbot .hn-postup");
+  assert.equal(await p.locator("#hbot .hn-postup-krok").count(), 5);
+  assert.match(mezery(await p.textContent("#hbot .hn-postup")), /01\s*Čištění.*04\s*Oplach.*05\s*Ochranná vrstva podle volby/);
+  assert.match(mezery(await p.textContent("#hbot label[for=hn-cesta-strecha-cisteni]")), /Čištění a ošetření/);
+  // Trojí přepnutí cesty = váhání → nabídka vysvětlení (nic se samo neotevře).
+  for (const c of ["B", "A", "cisteni"]) await p.click(`#hbot label[for=hn-cesta-strecha-${c}]`);
+  await p.waitForSelector("#hbot .hn-vahani");
+  await p.click("#hbot .hn-vahani .hn-tl");
+  await p.waitForFunction(() => /Kroky 01–04 Standardu HOLUB jsou vždy stejné/.test(document.querySelector("#hbot")?.textContent || ""));
+  assert.deepEqual(chyby, []);
+});

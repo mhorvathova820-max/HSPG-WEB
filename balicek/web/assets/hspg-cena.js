@@ -127,14 +127,14 @@
 
   function nazevSluzby(standard, povrch, cesta) {
     if (povrch === 'fve') return 'Čištění fotovoltaiky';
-    if (cesta === 'cisteni') return 'Čištění bez ochranné vrstvy';
+    if (cesta === 'cisteni') return 'Čištění a ošetření bez ochranné vrstvy';
     var c = standard.cesty && standard.cesty[cesta];
     return c ? 'Cesta ' + cesta + ' – ' + c.nazev : cesta;
   }
 
   function detailSluzby(standard, povrch, cesta, barva) {
     if (povrch === 'fve') return 'šetrné čištění panelů vodou';
-    if (cesta === 'cisteni') return 'kroky 01–04 Standardu HOLUB';
+    if (cesta === 'cisteni') return 'kroky 01–04 Standardu HOLUB: čištění, odmaštění, ošetření biocidy, oplach';
     var c = standard.cesty && standard.cesty[cesta];
     // Jen první věta popisu a malé jen první písmeno (značka H-STONE zůstane velkými).
     var veta = c ? String(c.popis || '').split(/\.\s/)[0].replace(/\.$/, '') : '';
