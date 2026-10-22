@@ -628,7 +628,8 @@
         h('div', { class: 'hn-obalka-klopa' }),
         pecet
       ]);
-      var vyzva = h('p', { class: 'hn-obalka-vyzva' }, ['Vaše orientační cena je zapečetěná. Rozlomte pečeť.']);
+      // § 1732 odst. 2 OZ: že nejde o nabídku, musí být zřejmé už před otevřením, ne až pod částkou (rada AI 22. 10.).
+      var vyzva = h('p', { class: 'hn-obalka-vyzva' }, ['Vaše orientační cena je zapečetěná. Rozlomte pečeť – otevřením nic neobjednáváte, jde o orientační výpočet, ne nabídku.']);
       var preskocit = h('button', { type: 'button', class: 'hn-odkaz hn-odkaz--tichy' }, ['Zobrazit cenu bez animace']);
       // Malé hejno (dekorace, úkol 56) popisuje jen to, co kalkulace opravdu udělala: plochy zadal zákazník (nic se
       // neměřilo), cena je z ceníku, vstupy prošly kontrolou, výsledek je zapečetěný. Doběhne do 1,2 s, nic nezdrží.

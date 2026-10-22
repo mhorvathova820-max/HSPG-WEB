@@ -27,6 +27,11 @@
   --apex-pismo: Manrope, Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --apex-zaobleni: 22px;
   --apex-krivka: cubic-bezier(.2, .8, .2, 1);
+  /* Pojmenované křivky pohybu (rada AI 22. 10., Gemini) – aliasy pro choreografii obálky, pečeti a hejna */
+  --apex-krivka-lux: cubic-bezier(.22, 1, .36, 1);
+  --apex-krivka-expo: cubic-bezier(.16, 1, .3, 1);
+  --apex-krivka-pruzina: cubic-bezier(.34, 1.45, .64, 1);
+  --apex-krivka-pecet: cubic-bezier(.5, 0, .15, 1);
 }
 
 /* Obsidiánové sklo */

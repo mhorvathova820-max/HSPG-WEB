@@ -75,6 +75,7 @@ Pravidla, která sada dodržuje a která při nasazení nesmíš porušit:
 - [ ] `npm test` (vč. `apex-prvky`) a `npm run test:e2e` (vč. `apex-prvky` + všechny dotčené e2e) zelené;
       `node scripts/build-hbot.mjs --kontrola` OK.
 - [ ] `apex-prvky.css` obsahuje jen tokeny `--apex-*` (test), žádné CDN, písma ani skripty; CSP beze změny.
+- [ ] Vysvětlivky (`ap-napoveda`, `<details>` v kalkulaci): Enter/mezerník otevře, Escape zavře jen vysvětlivku a vrátí fokus na `<summary>` – **nesmí zároveň zavřít H-BOT** (rada AI 22. 10., GPT); stavová nit `ap-nit` bez falešných procent, s `aria-busy` na obsahu.
 - [ ] Každý prvek z tabulky je na uvedeném místě; žádné `id`/`name`/`aria-*` z úkolů 48, 49, 56 se nezměnilo; e2e
       testy těchto úkolů procházejí beze změny.
 - [ ] axe (wcag2a/aa, 2.1) bez vážných a kritických chyb na HOLUB 360, panelu H-BOT s kalkulací a `/standard-holub/`;

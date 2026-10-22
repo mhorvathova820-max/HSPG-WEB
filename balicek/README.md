@@ -11,6 +11,7 @@
 | [ukoly/PORADI.md](ukoly/PORADI.md) | pořadí úkolů 00–27 a 48–53 |
 | [ZADANI-CLAUDE-DESIGN-HOLUB360.md](ZADANI-CLAUDE-DESIGN-HOLUB360.md) | **prompt pro Claude Design** – vzhled stránky HOLUB 360 a postup exportu do `navrhy/` |
 | [RADA-AI-2026-10-22.md](RADA-AI-2026-10-22.md) | závěry rady 5 AI (OpenRouter) k ceně, smlouvě, záruce a textům; co čeká na majitele |
+| [RADA-VYSLEDKY-VIZUAL-2026-10-22.md](RADA-VYSLEDKY-VIZUAL-2026-10-22.md) | kolo 2 rady AI (vizuál, cesta zákazníka, kritika, komponenty, texty): co je přijaté a kde, co odmítnuté a proč |
 | [RADA-ZADANI-2026-10-22.md](RADA-ZADANI-2026-10-22.md) | zadání, které se vkládá do pole OpenRouter Chat (rada 5 AI) – vzor pro další kola |
 | [AGENTI-OPENROUTER.md](AGENTI-OPENROUTER.md) | role modelů, nulové uchovávání dat (ZDR), pseudonymizace, rada AI z terminálu |
 | `sablony/github/` | šablony pro spolupráci Claude Code + GitHub Copilot ve webHSPGH (úkol 53) |
