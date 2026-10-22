@@ -1,6 +1,6 @@
 # Rada 5 AI (OpenRouter) – kolo 2 „vizuální a zákaznická dokonalost celého webu“: výsledky a rozhodnutí (22. 10. 2026)
 
-Zadání: `RADA-ZADANI-VIZUAL-2026-10-22.md`. Odpověděly Gemini Pro (art direction, choreografie), Claude Opus (cesta zákazníka a partnera, panel majitele), Grok (kritika živého webu a prototypu, právo), GPT Astra (komponenty; přečetl si PORADI.md, úkol 57, `apex-tokens.css` a `hspg-zazitek.js`) a Muse Wonder (texty). Cena kola ≈ 1,3 USD. Koordinátor (Claude Code) odpovědi posoudil proti KONTEXT §3–4; níže je, co se **přijímá a kde je to zapracované**, co se **odmítá a proč**, a co **čeká na majitele**. Kolo 3 (`RADA-ZADANI-DOKONALOST`) nebylo odesláno – jeho otázky z větší části pokrylo toto kolo a balíček; případné další kolo až nad prototypem v9.
+Zadání: `RADA-ZADANI-VIZUAL-2026-10-22.md`. Odpověděly Gemini Pro (art direction, choreografie), Claude Opus (cesta zákazníka a partnera, panel majitele), Grok (kritika živého webu a prototypu, právo), GPT Astra (komponenty; přečetl si PORADI.md, úkol 57, `apex-tokens.css` a `hspg-zazitek.js`) a Muse Wonder (texty). Cena kola ≈ 1,3 USD. Koordinátor (Claude Code) odpovědi posoudil proti KONTEXT §3–4; níže je, co se **přijímá a kde je to zapracované**, co se **odmítá a proč**, a co **čeká na majitele**. První verze zadání kola 3 (`RADA-ZADANI-DOKONALOST`, ranní) odeslána nebyla – kolo 3 šlo až v přepracované podobě nad prototypem v9; výsledky v `RADA-VYSLEDKY-DOKONALOST-2026-10-22.md`.
 
 ## 1. Shoda všech pěti (přijato)
 | Bod | Kdo | Kde zapracováno |
@@ -14,7 +14,7 @@ Zadání: `RADA-ZADANI-VIZUAL-2026-10-22.md`. Odpověděly Gemini Pro (art direc
 
 ## 2. Přijato z jednotlivých rolí
 **Gemini – art direction**
-- Křivky pohybu jako tokeny (`--apex-ease-out-expo`, `--apex-ease-lux`, `--apex-ease-spring`, `--apex-ease-seal`) – doplnit do `assets/apex-tokens.css` jako aliasy k `--apex-krivka` (úkol 57; nic se nepřepisuje).
+- Křivky pohybu jako tokeny (`--apex-ease-out-expo`, `--apex-ease-lux`, `--apex-ease-spring`, `--apex-ease-seal`) – **doplněno** do `assets/apex-tokens.css` jako `--apex-krivka-expo / -lux / -pruzina / -pecet` (aliasy k `--apex-krivka`; nic se nepřepisuje).
 - Tabulka „prvek · spouštěč · ms · křivka · co bez pohybu“ – přijata jako kontrolní seznam pro úkoly 48/49/56 (každá animace má statickou variantu při `prefers-reduced-motion`; v balíčku už platí a testuje se).
 - Chybový stav bez agresivní červené (jantarový pulz rámečku) – odpovídá Apexu; `hn-chyba` zůstává zlatý/jantarový.
 
@@ -34,7 +34,7 @@ Zadání: `RADA-ZADANI-VIZUAL-2026-10-22.md`. Odpověděly Gemini Pro (art direc
 - „Otevřít trasu v mapě“ → „**Navigovat k nám**“ (odkaz zůstává; slovo z embarga pryč).
 - Neplátce DPH stejně čitelně jako mezisoučet (obálka, karta ceny, partner) – `hn-cena-dph` ≥ 12,5 px.
 - Řádek dopravy musí být jedna srozumitelná věta („64 km od Hradce Králové: prvních 30 km zdarma, 34 km × 12 Kč = 408 Kč“), ne „zdarma × 12 Kč“.
-- Právní rámec: směrnice 2024/825 není k 22. 10. 2026 v českém právu vyhlášená (sněmovní tisk 53) – argumentovat § 4, 5, 5a a přílohou č. 1 zákona č. 634/1992 Sb.; § 1732 odst. 2 OZ platí už dnes.
+- Právní rámec: podle Groka směrnice 2024/825 není k 22. 10. 2026 v českém právu vyhlášená (sněmovní tisk 53 – **ověřit na psp.cz**, nedoloženo) – do vyhlášení argumentovat § 4, 5, 5a a přílohou č. 1 zákona č. 634/1992 Sb.; § 1732 odst. 2 OZ platí už dnes.
 - Kontrast zlata a LCP na 390 px měřit, ne odhadovat – e2e axe + Lighthouse v CI (úkol 53).
 
 **GPT Astra – komponenty**

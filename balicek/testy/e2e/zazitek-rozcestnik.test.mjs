@@ -225,12 +225,12 @@ test("zvuk a vibrace: výchozí vypnuto; otevření ukáže pozvánku „Zapnout
   await p.waitForSelector("#hbot .hb-zazitek:not(.hb-zazitek--ceka)");
   const tl = "#hbot .hb-head .hb-zazitek";
   assert.equal(await p.getAttribute(tl, "aria-pressed"), "false", "výchozí stav vypnuto – zapíná zákazník");
-  assert.equal(await p.getAttribute(tl, "aria-label"), "Zvuk a vibrace");
+  assert.equal(await p.getAttribute(tl, "aria-label"), "Zvuk", "počítač bez dotyku: žádný slib vibrací");
   assert.equal(await p.evaluate(() => localStorage.getItem("hspg-zazitek")), null, "bez rozhodnutí zákazníka se nic neukládá");
   // Pozvánka pod přepínačem: text, Zapnout, ✕; nic zatím nezaznělo ani nezavibrovalo.
   const poz = "#hbot .hb-head-akce .hz-pozvanka";
   await p.waitForSelector(poz);
-  assert.equal(await p.textContent(`${poz} .hz-pozvanka-text`), "Zvuk a jemné vibrace jsou vypnuté.");
+  assert.equal(await p.textContent(`${poz} .hz-pozvanka-text`), "Zvuk je vypnutý.");
   assert.equal(await p.getAttribute(poz, "role"), "group");
   assert.equal(await p.getAttribute(`${poz} .hz-pozvanka-ne`, "aria-label"), "Nechat vypnuté");
   assert.deepEqual(await p.evaluate(() => window.__zaz), { kontexty: 0, zdroje: 0, vibrace: [] }, "vypnuto: otevření je tiché");
@@ -240,11 +240,11 @@ test("zvuk a vibrace: výchozí vypnuto; otevření ukáže pozvánku „Zapnout
   assert.equal(z1.kontexty, 1);
   assert.deepEqual(z1.vibrace, [8], "Zapnout = zvuk otevření + ťuknutí 8 ms");
   assert.equal(await p.getAttribute(tl, "aria-pressed"), "true");
-  assert.equal(await p.getAttribute(tl, "title"), "Zvuk a vibrace: zapnuto");
+  assert.equal(await p.getAttribute(tl, "title"), "Zvuk: zapnuto");
   assert.equal(await p.evaluate(() => localStorage.getItem("hspg-zazitek")), "1");
   assert.equal(await p.evaluate(() => sessionStorage.getItem("hspg-zazitek-pozvanka")), "1", "rozhodnutí zákazníka se zapíše do relace");
   assert.equal(await p.locator(poz).count(), 0, "pozvánka po rozhodnutí zmizí");
-  assert.equal(await p.textContent("#hbot .hb-head-akce .hz-stav"), "Zapnuto. Vypnete stejným tlačítkem.", "krátké potvrzení (role=status)");
+  await p.waitForFunction(() => document.querySelector("#hbot .hb-head-akce .hz-stav")?.textContent === "Zvuk zapnut. Vypnete stejným tlačítkem.", null, { timeout: 2000 });
   assert.equal(await p.getAttribute("#hbot .hb-head-akce .hz-stav", "role"), "status");
   // Přepínač stojí v hlavičce hned vedle zavírání (potvrzení je jen absolutně umístěný text mezi nimi); cíle ≥ 44 px se ověřují níže.
   assert.equal(await p.evaluate(() => { let e = document.querySelector("#hbot .hb-zazitek").nextElementSibling; while (e && e.tagName !== "BUTTON") e = e.nextElementSibling; return e.classList.contains("hb-close"); }), true);
@@ -443,8 +443,8 @@ test("HOLUB 360: přepínač „Zvuk a vibrace“ v hlavičce (sdílený s H-BOT
   const tl = "#h3a-zazitek";
   await p.waitForSelector(`${tl}:not([hidden])`);
   assert.equal(await p.getAttribute(tl, "aria-pressed"), "true", "zákazník si zvuk zapnul dříve");
-  assert.equal(await p.getAttribute(tl, "aria-label"), "Zvuk a vibrace");
-  assert.match(await p.textContent(tl), /Zvuk a vibrace/);
+  assert.equal(await p.getAttribute(tl, "aria-label"), "Zvuk");
+  assert.match(await p.textContent(tl), /Zvuk/);
   assert.equal(await p.evaluate(() => !!document.querySelector("#h3a-zazitek").closest(".h3a-hlavicka")), true);
   await zmer(p);
   pust(MERENI);
@@ -482,10 +482,13 @@ test("HOLUB 360: výchozí vypnuto; start zaměření ukáže pozvánku u přep�
   const tl = "#h3a-zazitek";
   await p.waitForSelector(`${tl}:not([hidden])`);
   assert.equal(await p.getAttribute(tl, "aria-pressed"), "false");
-  assert.equal(await p.locator(".h3a-hlavicka-akce .hz-pozvanka").count(), 0, "před vědomou akcí nic");
+  assert.equal(await p.locator(".hz-pozvanka").count(), 0, "před vědomou akcí nic");
   await zmer(p);
-  const poz = ".h3a-hlavicka-akce .hz-pozvanka";
+  const poz = "#h3a-adresa-karta .h3a-zazitek-radek .hz-pozvanka";
   await p.waitForSelector(poz);
+  // Pozvánka je v kartě adresy (hlavička je nad výřezem) a celá ve výřezu okna.
+  const r = await p.evaluate((sel) => { const b = document.querySelector(sel).getBoundingClientRect(); return { top: b.top, bottom: b.bottom, left: b.left, right: b.right, h: innerHeight, w: innerWidth }; }, poz);
+  assert.ok(r.top >= 0 && r.bottom <= r.h && r.left >= 0 && r.right <= r.w, `pozvánka ve výřezu: ${JSON.stringify(r)}`);
   assert.deepEqual(await p.evaluate(() => window.__zaz), { kontexty: 0, zdroje: 0, vibrace: [] }, "vypnuto: křídla nezazní");
   pust(MERENI);
   await p.waitForSelector("#h3a-vysledek:not([hidden])");
@@ -495,6 +498,7 @@ test("HOLUB 360: výchozí vypnuto; start zaměření ukáže pozvánku u přep�
   assert.equal(await p.evaluate(() => localStorage.getItem("hspg-zazitek")), "1");
   assert.deepEqual(await p.evaluate(() => JSON.parse(JSON.stringify(window.__zaz.vibrace))), [8]);
   assert.equal(await p.locator(poz).count(), 0);
-  assert.deepEqual(await axeVazne(p, ".h3a-hlavicka"), []);
+  assert.equal(await p.getAttribute("#h3a-zazitek-karta", "aria-pressed"), "true", "oba přepínače HOLUB 360 ukazují totéž");
+  assert.deepEqual(await axeVazne(p, "#h3a-adresa-karta"), []);
   assert.deepEqual(chyby, []);
 });

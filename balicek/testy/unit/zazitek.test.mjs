@@ -65,7 +65,7 @@ function falesneTlacitko(tag = "button") {
 }
 
 const ZAPNUTO = () => pametoveUloziste({ [KLIC]: "1" }); // zákazník si zvuk už zapnul
-function prostredi({ audio = true, vibrace = true, aktivni = true, skryto = false, uloziste = pametoveUloziste(), relace = pametoveUloziste(), dokument = true, bezAktivaceApi = false } = {}) {
+function prostredi({ audio = true, vibrace = true, dotyk = true, aktivni = true, skryto = false, uloziste = pametoveUloziste(), relace = pametoveUloziste(), dokument = true, bezAktivaceApi = false } = {}) {
   const z = { kontexty: 0, osc: 0, buf: 0, probuzeni: 0, uspani: 0, starty: [], stopy: [], vibrace: [] };
   const posluchaciOkna = {};
   const document = dokument ? {
@@ -74,6 +74,7 @@ function prostredi({ audio = true, vibrace = true, aktivni = true, skryto = fals
     createElement: (tag) => falesneTlacitko(tag),
   } : undefined;
   const navigator = bezAktivaceApi ? {} : { userActivation: { isActive: aktivni, hasBeenActive: aktivni } };
+  navigator.maxTouchPoints = dotyk ? 5 : 0;
   if (vibrace) navigator.vibrate = (v) => { z.vibrace.push(v); return true; };
   const ctx = {
     module: { exports: {} }, document, navigator, localStorage: uloziste, sessionStorage: relace, Float32Array,
@@ -248,6 +249,8 @@ test("pozvánka „Zapnout zvuk?“: jednou za relaci u přepínače, jen bez ul
   const stav = hlavicka.najdi("hz-stav");
   assert.ok(stav, "krátké potvrzení na místě pozvánky");
   assert.equal(stav.getAttribute("role"), "status");
+  assert.equal(stav.textContent, "", "živá oblast se vloží prázdná, text až v dalším tiku (čtečky)");
+  await new Promise((ok) => setTimeout(ok, 60));
   assert.equal(stav.textContent, "Zapnuto. Vypnete stejným tlačítkem.");
   await pockej();
   assert.equal(z.kontexty, 1);
@@ -275,8 +278,8 @@ test("pozvánka „Zapnout zvuk?“: jednou za relaci u přepínače, jen bez ul
   const tl4 = falesneTlacitko(); falesneTlacitko("div").appendChild(tl4);
   assert.ok(r.Z.pozvanka(tl4));
   assert.equal(r.Z.pozvanka(tl4), null);
-  // iPhone (bez navigator.vibrate): nikde slovo „vibrace“.
-  const i = prostredi({ vibrace: false, relace: pametoveUloziste() });
+  // iPhone (dotyk, bez navigator.vibrate): nikde slovo „vibrace“.
+  const i = prostredi({ vibrace: false, dotyk: true, relace: pametoveUloziste() });
   const tl5 = falesneTlacitko(); const hl5 = falesneTlacitko("div"); hl5.appendChild(tl5);
   i.Z.prepinac(tl5);
   assert.equal(tl5.getAttribute("aria-label"), "Zvuk");
@@ -284,8 +287,19 @@ test("pozvánka „Zapnout zvuk?“: jednou za relaci u přepínače, jen bez ul
   const box5 = i.Z.pozvanka(tl5);
   assert.equal(box5.najdi("hz-pozvanka-text").textContent, "Zvuk je vypnutý.");
   box5.najdi("hz-pozvanka-ano").klikni();
+  await new Promise((ok) => setTimeout(ok, 60));
   assert.equal(hl5.najdi("hz-stav").textContent, "Zvuk zapnut. V tichém režimu telefonu ho neuslyšíte.");
   assert.deepEqual(i.z.vibrace, []);
+  // Stolní Chrome: navigator.vibrate existuje, motor ne (bez dotyku) → jen „Zvuk“, bez věty o telefonu.
+  const pc = prostredi({ vibrace: true, dotyk: false, relace: pametoveUloziste() });
+  const tl6 = falesneTlacitko(); const hl6 = falesneTlacitko("div"); hl6.appendChild(tl6);
+  pc.Z.prepinac(tl6);
+  assert.equal(tl6.getAttribute("aria-label"), "Zvuk");
+  const box6 = pc.Z.pozvanka(tl6);
+  assert.equal(box6.najdi("hz-pozvanka-text").textContent, "Zvuk je vypnutý.");
+  box6.najdi("hz-pozvanka-ano").klikni();
+  await new Promise((ok) => setTimeout(ok, 60));
+  assert.equal(hl6.najdi("hz-stav").textContent, "Zvuk zapnut. Vypnete stejným tlačítkem.");
 });
 
 test("druhé načtení souboru (stránka i panel) nevytvoří druhý stav", () => {

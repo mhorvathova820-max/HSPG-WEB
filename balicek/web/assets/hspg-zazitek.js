@@ -32,8 +32,11 @@
   var HLASITOST = 0.15; // hlavní hlasitost 0–1: zvuky jsou jen jemný doprovod
   var MAX_DELKA = 0.45; // s – žádný zvuk není delší
   var USNOUT_PO = 30000; // ms bez zvuku → zvukový výstup se uspí (baterie)
-  // iPhone a jiné prohlížeče bez navigator.vibrate: nikde neslibovat vibrace (rada AI 22. 10., kolo 3).
-  var NAZEV = (nav && typeof nav.vibrate === 'function') ? 'Zvuk a vibrace' : 'Zvuk';
+  // Vibrace se slibují jen tam, kde je motor: dotykové zařízení s navigator.vibrate (Android). Stolní Chrome funkci má,
+  // ale motor ne; iPhone funkci nemá – tam i na počítači se mluví jen o zvuku (rada AI 22. 10., kolo 3).
+  var DOTYK = !!(nav && nav.maxTouchPoints > 0);
+  var NABIZI_VIBRACE = !!(nav && typeof nav.vibrate === 'function') && DOTYK;
+  var NAZEV = NABIZI_VIBRACE ? 'Zvuk a vibrace' : 'Zvuk';
   var casovac = typeof setTimeout === 'function' ? setTimeout : function () { return 0; };
   var zrusCasovac = typeof clearTimeout === 'function' ? clearTimeout : function () {};
 
@@ -305,14 +308,16 @@
     zrusCasovac(pozvankaCasovac);
     pozvankaCasovac = casovac(function () { if (pozvankaEl && !fokusUvnitr(pozvankaEl)) zrusPozvanku(); }, POZVANKA_TRVANI);
   }
-  // Krátké potvrzení po „Zapnout“ (role=status, 3 s) na místě pozvánky.
+  // Krátké potvrzení po „Zapnout“ (role=status, 3 s) na místě pozvánky. Text se vloží až v dalším tiku – živou
+  // oblast vloženou rovnou s textem čtečky většinou neohlásí.
   function ukazStav(tl, text) {
     zrusStav();
     if (!tl || !tl.parentNode) return null;
-    var el = prvek('p', 'hz-stav', text);
+    var el = prvek('p', 'hz-stav', '');
     el.setAttribute('role', 'status');
     tl.parentNode.insertBefore(el, tl.nextSibling || null);
     stavEl = el;
+    casovac(function () { if (stavEl === el) el.textContent = text; }, 30);
     stavCasovac = casovac(zrusStav, STAV_TRVANI);
     return el;
   }
@@ -329,7 +334,7 @@
     var ne = prvek('button', 'hz-pozvanka-ne', '✕');
     ne.type = 'button';
     ne.setAttribute('aria-label', 'Nechat vypnuté');
-    box.appendChild(prvek('span', 'hz-pozvanka-text', maVibrace() ? 'Zvuk a jemné vibrace jsou vypnuté.' : 'Zvuk je vypnutý.'));
+    box.appendChild(prvek('span', 'hz-pozvanka-text', NABIZI_VIBRACE ? 'Zvuk a jemné vibrace jsou vypnuté.' : 'Zvuk je vypnutý.'));
     box.appendChild(ano);
     box.appendChild(ne);
     // „Zapnout“ je vědomá akce: uloží volbu, potvrdí ji zvukem otevření a ťuknutím a 3 s ukáže stav.
@@ -337,7 +342,7 @@
       pozvankaRozhodnuta();
       nastav(true); // zruší pozvánku
       zvuk('otevrit'); haptika('tuk');
-      ukazStav(tl, maVibrace() ? 'Zapnuto. Vypnete stejným tlačítkem.' : 'Zvuk zapnut. V tichém režimu telefonu ho neuslyšíte.');
+      ukazStav(tl, NABIZI_VIBRACE ? 'Zapnuto. Vypnete stejným tlačítkem.' : DOTYK ? 'Zvuk zapnut. V tichém režimu telefonu ho neuslyšíte.' : 'Zvuk zapnut. Vypnete stejným tlačítkem.');
     });
     ne.addEventListener('click', function () { pozvankaRozhodnuta(); zrusPozvanku(); });
     // Odpočet zmizení se zastaví, dokud je na pozvánce ukazatel nebo fokus.

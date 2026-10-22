@@ -27,18 +27,19 @@
 #hbot .hb-head-akce{position:relative;margin-left:auto;flex:none;display:flex;gap:6px}
 /* Pozvánka „Zvuk a jemné vibrace jsou vypnuté – Zapnout“ (hspg-zazitek.js): jednou za relaci pod přepínačem, sama zmizí */
 #hbot .hz-pozvanka{position:absolute;top:calc(100% + 10px);right:0;z-index:2;display:flex;align-items:center;gap:8px;max-width:min(300px,calc(100vw - 60px));padding:8px 8px 8px 12px;border-radius:14px;border:1px solid var(--hb-linka-silna);background:linear-gradient(180deg,rgba(17,24,39,.97),rgba(5,7,15,.98));box-shadow:0 18px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);font-size:12.5px;line-height:1.35;color:var(--hb-text)}
-#hbot .hz-pozvanka::before{content:"";position:absolute;top:-6px;right:14px;width:10px;height:10px;transform:rotate(45deg);border-left:1px solid var(--hb-linka-silna);border-top:1px solid var(--hb-linka-silna);background:#111827}
+#hbot .hz-pozvanka::before{content:"";position:absolute;top:-6px;right:63px;width:10px;height:10px;transform:rotate(45deg);border-left:1px solid var(--hb-linka-silna);border-top:1px solid var(--hb-linka-silna);background:#111827}
 #hbot .hz-pozvanka-text{flex:1 1 auto;min-width:0}
 #hbot .hz-pozvanka-ano{flex:none;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--hb-tlacitko);color:#17120a;font-weight:700;cursor:pointer}
 #hbot .hz-pozvanka-ne{flex:none;width:44px;height:44px;padding:0;border-radius:50%;border:1px solid rgba(244,241,232,.18);background:transparent;color:var(--hb-tlumeny);cursor:pointer}
 #hbot .hz-stav{position:absolute;top:calc(100% + 10px);right:0;z-index:2;margin:0;max-width:min(300px,calc(100vw - 60px));padding:8px 12px;border-radius:12px;border:1px solid var(--hb-linka);background:rgba(11,15,25,.97);font-size:12.5px;line-height:1.35;color:var(--hb-text)}
 #hbot .hz-pozvanka-ne:hover,#hbot .hz-pozvanka-ano:hover{filter:brightness(1.08)}
+@media (forced-colors:active){#hbot .hz-pozvanka-ano,#hbot .hz-pozvanka-ne{border:1px solid ButtonText}}
 @media (prefers-reduced-motion:no-preference){#hbot .hz-pozvanka{animation:hz-pozvanka .32s var(--hb-krivka) both}@keyframes hz-pozvanka{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}}
-#hbot .hb-close{flex:none;width:40px;height:40px;border-radius:12px;border:1px solid rgba(244,241,232,.18);background:rgba(255,255,255,.03);cursor:pointer;font-size:15px;transition:border-color .25s,background .25s}
+#hbot .hb-close{flex:none;width:44px;height:44px;border-radius:12px;border:1px solid rgba(244,241,232,.18);background:rgba(255,255,255,.03);cursor:pointer;font-size:15px;transition:border-color .25s,background .25s}
 #hbot .hb-ai-znacka:not([hidden])+.hb-head-akce{margin-left:6px}
 #hbot .hb-close:hover{border-color:var(--hb-linka-silna);background:rgba(212,175,55,.08)}
 /* Přepínač „Zvuk a vibrace“ (hspg-zazitek.js, úkol 56): ikona reproduktoru, stav v aria-pressed */
-#hbot .hb-zazitek{flex:none;width:40px;height:40px;display:grid;place-items:center;padding:0;border-radius:12px;border:1px solid rgba(244,241,232,.18);background:rgba(255,255,255,.03);color:var(--hb-tlumeny);cursor:pointer;transition:border-color .25s,background .25s,color .25s}
+#hbot .hb-zazitek{flex:none;width:44px;height:44px;display:grid;place-items:center;padding:0;border-radius:12px;border:1px solid rgba(244,241,232,.18);background:rgba(255,255,255,.03);color:var(--hb-tlumeny);cursor:pointer;transition:border-color .25s,background .25s,color .25s}
 #hbot .hb-zazitek[hidden]{display:none}
 #hbot .hb-zazitek--ceka{visibility:hidden}
 #hbot .hb-zazitek:hover{border-color:var(--hb-linka-silna);background:rgba(212,175,55,.08)}

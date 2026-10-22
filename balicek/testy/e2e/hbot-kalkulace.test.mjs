@@ -116,6 +116,9 @@ test("Cena hned: kalkulace se načte až po kliknutí; obálka s pečetí; cena 
   assert.ok(pdf.text.includes("ORIENTAČNÍ CENOVÁ KALKULACE"));
   assert.ok(pdf.text.includes(mezery(kc(n.vysledna))), "cena v PDF");
   assert.ok(pdf.text.includes("Používejte biocidy bezpečným způsobem"));
+  // Záruka v PDF stejně jako na kartě: podmínka SENTINEL BASE u cesty A a věta k barevné renovaci (cesta B).
+  assert.ok(/SENTINEL BASE/.test(pdf.text), "podmínka záruky u cesty A v PDF");
+  assert.ok(/Barevná renovace: platí zákonná práva z vadného plnění/.test(pdf.text.replace(/\s+/g, " ")), "věta k cestě B v PDF kalkulace");
   assert.ok(pozadavky.some((r) => r.url.includes("/assets/vendor/pdfmake/pdfmake.min.js")), "pdfmake hostovaný u sebe");
   assert.ok(!pozadavky.some((r) => /cdn|cdnjs|jsdelivr|unpkg/.test(r.url)), "žádné CDN");
   assert.deepEqual(chyby, []);
@@ -136,6 +139,7 @@ test("NÁVRH smlouvy o dílo: vznikne jen v prohlížeči (údaje se neodešlou)
   assert.deepEqual(odeslane, [], "jméno ani adresa nikam neodešly");
   const pdf = await textPdf(await dl.path());
   for (const s of ["NÁVRH SMLOUVY O DÍLO", "NEJDE O NABÍDKU", "§ 1732", "§ 2586", "Jana Testovací", "Zkušební 7, Kolín", "Příloha č. 2"]) assert.ok(pdf.text.includes(s), s);
+  assert.ok(/Barevná renovace: platí zákonná práva z vadného plnění/.test(pdf.text.replace(/\s+/g, " ")), "čl. 7: věta k cestě B v návrhu smlouvy");
   assert.ok(pdf.stran >= 2);
   assert.deepEqual(chyby, []);
 });

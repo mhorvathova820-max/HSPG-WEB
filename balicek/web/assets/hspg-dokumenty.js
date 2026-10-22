@@ -139,8 +139,13 @@
     if (barvy.length) obsah.push({ text: T('Zvolený odstín – ' + barvy.join('; ') + '. Přesný odstín potvrdí vzorník při zaměření.'), fontSize: 9, margin: [0, 4, 0, 0] });
     return obsah;
   }
+  // Věta k záruce u barevné renovace (cesta B) – stejná jako na kartě ceny a v čl. 7 návrhu smlouvy (R21).
+  var VETA_ZARUKA_B = 'Barevná renovace: platí zákonná práva z vadného plnění; smluvní záruku k nátěrovému systému výrobce barvy stanoví konečná smlouva.';
+  function maCestu(n, c) { return n.radky.some(function (r) { return r.cesta === c; }); }
   function sentinel(n, k) {
-    if (!n.radky.some(function (r) { return r.cesta === 'A'; }) || !(k.tarify || []).length) return [];
+    var jenB = !maCestu(n, 'A') && maCestu(n, 'B');
+    if (jenB) return [{ text: 'ZÁRUKA', style: 'sekce' }, { text: T(VETA_ZARUKA_B), fontSize: 9, margin: [0, 0, 0, 6] }];
+    if (!maCestu(n, 'A') || !(k.tarify || []).length) return [];
     var telo = [[{ text: 'TARIF', style: 'th' }, { text: 'ROČNĚ', style: 'th', alignment: 'right' }, { text: 'CO OBSAHUJE', style: 'th' }]];
     k.tarify.forEach(function (t) {
       telo.push([
@@ -152,8 +157,9 @@
     return [
       { text: 'PÉČE SENTINEL A ZÁRUKA', style: 'sekce' },
       { text: T(k.podminkaZaruky || ''), fontSize: 9, margin: [0, 0, 0, 6] },
+      maCestu(n, 'B') ? { text: T(VETA_ZARUKA_B), fontSize: 9, margin: [0, 0, 0, 6] } : null,
       { table: { headerRows: 1, widths: [96, 56, '*'], body: telo }, layout: { hLineWidth: function (i) { return i === 0 ? 0 : 0.6; }, vLineWidth: function () { return 0; }, hLineColor: function () { return BARVY.linka; }, paddingTop: function () { return 5; }, paddingBottom: function () { return 5; } } }
-    ];
+    ].filter(Boolean);
   }
   function typObjektu(n, k) { return T(n.typObjektuNazev + (k.obec ? ' · obec ' + k.obec : '')); }
 
@@ -199,7 +205,7 @@
     k = k || {};
     var f = firmaZ(k), o = k.objednatel || {}, a = (k.cenik && k.cenik.addons) || {}, pl = (k.cenik && k.cenik.platby) || {};
     var misto = o.adresa || (k.obec ? k.obec + ', ' + CARY : CARY);
-    var maA = n.radky.some(function (r) { return r.cesta === 'A'; });
+    var maA = n.radky.some(function (r) { return r.cesta === 'A'; }), maB = n.radky.some(function (r) { return r.cesta === 'B'; });
     var platba = n.platba.zalohaNutna
       ? 'Před zahájením prací uhradí objednatel zálohu ' + Math.round((pl.zaloha_nad_hranici || 0.3) * 100) + ' % ceny na materiál ve výši ' + kc(n.platba.zaloha) + '; zbytek ceny je splatný do ' + n.platba.splatnostDni + ' dnů od předání díla.'
       : 'Zálohu zhotovitel nepožaduje. Cena je splatná do ' + n.platba.splatnostDni + ' dnů od předání díla.';
@@ -257,6 +263,7 @@
         ]))
         .concat(clanek(7, 'Záruka a odpovědnost za vady', [
           maA ? 'Na ochrannou vrstvu H-STONE poskytuje zhotovitel smluvní záruku za jakost 10 let od předání díla. ' + (k.podminkaZaruky ? k.podminkaZaruky + ' ' : '') + 'Smluvní záruka zaniká, jestliže objednatel péči SENTINEL BASE ukončí nebo ji neuhradí; neprovede-li zhotovitel sjednanou kontrolu, záruka trvá. Podmínky péče SENTINEL BASE (roční kontrola s fotodokumentací, cena podle ceníku) a rozsah záruky stanoví konečné znění smlouvy.' : null,
+          maB ? VETA_ZARUKA_B : null,
           'Střešní tašku, která byla podle úvodní fotodokumentace bez viditelného poškození a praskla v souvislosti s pracemi zhotovitele, zhotovitel vymění na vlastní náklady; tím nejsou dotčena další práva objednatele na náhradu škody.',
           'Smluvní záruka nezužuje zákonná práva objednatele z vadného plnění (§ 2615 a násl. občanského zákoníku). Vadu díla objednatel vytkne zhotoviteli bez zbytečného odkladu poté, co ji zjistil – písemně na adresu sídla, e-mailem na ' + f.email + ' nebo telefonicky na ' + f.telefon + '. Zhotovitel vydá potvrzení o uplatnění reklamace a reklamaci vyřídí, u spotřebitele nejpozději do 30 dnů od jejího uplatnění, nedohodnou-li se strany na delší lhůtě.'
         ]))

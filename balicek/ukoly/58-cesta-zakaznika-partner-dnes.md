@@ -12,7 +12,7 @@ Orientační cena → Předběžná rezervace → Předání a Pas domu → Pé�
 - **Péči SENTINEL nabízet jen 3×:** u volby ochrany (cesta A), na kartě ceny (věta o záruce) a po předání (Pas domu). Ne ve formuláři rezervace, ne v potvrzení.
 - **Slova:** „předběžná rezervace“ (nikdy „objednávka“), „orientační cena“ (nikdy „nabídka“), „předávací list“ (nikdy „certifikát“).
 - **Nové stavy:** offline („Jste offline. Ruční zadání a výpočet ceny fungují dál.“ – kalkulace je v prohlížeči), termín mezitím obsazen („Tento den se mezitím obsadil. Nejbližší volné dny: …“ – plánovač vrátí tři nejbližší), selhání animace/pečeti → cena se ukáže hned bez obálky (platí, `KLID` větev v `hbot-nabidka.js`).
-- **E-mail po rezervaci** (`submission-created.mjs`, šablona z úkolu 03): předmět „Předběžná rezervace · [datum] · HSPG“; rozsah, orientační cena, věta „Termín je předběžný. Závazný bude po ověření ploch a podpisu smlouvy.“, co připravit (přístup, voda, parkování), kontakt, zrušení jedním odkazem (`/planovac/?zrusit=<kód>` – kód z rezervace, bez osobních údajů v adrese).
+- **E-mail po rezervaci** (`submission-created.mjs`, šablona z úkolu 03): předmět „Předběžná rezervace · [datum] · HSPG“; rozsah, orientační cena, věta „Termín je předběžný. Závazný bude po ověření ploch a podpisu smlouvy.“, co připravit (přístup, voda, parkování), kontakt, zrušení odkazem na potvrzovací stránku (`/planovac/zrusit/?kod=<kód>` zobrazí tlačítko „Zrušit rezervaci“, teprve POST ji zruší – skenery pošty a prefetch odkaz otevřou, ale rezervaci nezruší; kód bez osobních údajů).
 - **Měření cesty:** jen agregované počty kroků 1→7 přes GTM po souhlasu (úkol 10), bez vlastních cookies.
 
 ## 2. Stránka `/partner/` – HOLUB Partner
@@ -22,7 +22,7 @@ Vstup z menu a patičky; H-BOT ji nabídne na slova „SVJ“, „správce“, �
 | Správci SVJ | orientační cena pro více domů v jednom výpočtu (bytový dům, slevy od 1 000 / 2 500 m² z ceníku); PDF podklad pro shromáždění (rozsah, 5 kroků, orientační cena, podmínky záruky); Pas domu pro každý objekt; jeden kontakt | „Připravit podklad pro shromáždění“ |
 | Developeři | ošetření před předáním, termíny podle harmonogramu, předávací list s fotodokumentací pro kupující | „Domluvit ošetření před předáním“ |
 | Architekti a projektanti | popis 5 kroků do technické zprávy, vzorník RAL pro cestu B, technický list H-STONE `[DOPLNIT: majitel]` | „Vyžádat technické podklady“ |
-| Dodavatelé | formulář obor · region · kontakt (Netlify form `hspg-partner`, honeypot, bez políčka souhlasu – R21) | „Nabídnout spolupráci“ |
+| Dodavatelé | formulář obor · region · kontakt (Netlify form `hspg-partner`, honeypot, bez políčka souhlasu – R21; právní základ u kontaktní osoby firmy čl. 6 odst. 1 písm. f) GDPR – oprávněný zájem, rec. 47; písm. b) jen u fyzických osob podnikajících; informační věta to uvede a odkáže na zásady) | „Nabídnout spolupráci“ |
 **Zakázané:** provize, slevy nad ceník, „exkluzivita“, počty partnerů a reference bez písemného potvrzení majitele (KONTEXT §4.1, 2024/825 / zák. 634/1992 Sb.). Po odeslání: „Děkujeme. Ozveme se do `[DOPLNIT: majitel – lhůta]`.“ Neplátce DPH uvést v první větě stránky.
 
 ## 3. Panel majitele – první obrazovka „Dnes“

@@ -60,7 +60,7 @@
 ## Testy
 ```
 npm install
-npm test                                                      # 200 jednotkových testů
+npm test                                                      # 210 jednotkových testů
 HSPG_MIRROR=/cesta/k/webu CHROMIUM=/cesta/k/chromium npm run test:e2e   # 102 testů v prohlížeči (bez HSPG_MIRROR na zástupných stránkách testy/fixtures/web)
 HSPG_MIRROR=/cesta/k/webu node balicek/testy/server.mjs       # ruční prohlížení na http://127.0.0.1:8787
 ```

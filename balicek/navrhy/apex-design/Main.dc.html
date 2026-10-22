@@ -197,7 +197,7 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 <button type="button" class="tl-zlate tep-tlacitko" onClick="{{zamerit}}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>Zaměřit na dálku</button>
 </sc-if>
 <sc-if value="{{jeBeh}}" hint-placeholder-val="{{false}}">
-<button type="button" class="tl-ghost" onClick="{{preskocit}}" style="min-height: 44px">Přeskočit animaci → rovnou k orientační ceně</button>
+<button type="button" class="tl-ghost" onClick="{{preskocit}}" style="min-height: 44px">Přeskočit animaci → k volbě ochrany a ceně</button>
 <button type="button" class="tl-zlate" disabled="disabled"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.2 2.2M16.2 16.2l2.2 2.2M5.6 18.4l2.2-2.2M16.2 7.8l2.2-2.2"/></svg>Holubi pracují…</button>
 </sc-if>
 <sc-if value="{{jeHotovo}}" hint-placeholder-val="{{false}}">
@@ -268,7 +268,7 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 <div style="position: relative; display: flex; flex-direction: column; gap: 14px; min-width: 0">
 <div style="position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px">
 <div style="display: flex; flex-direction: column; gap: 6px">
-<h2 style="font-size: 30px; line-height: 1.05; color: #f4f1e8">Dům zaměříme na dálku. <em style="color: #f6e7a8">Hejno to zvládne za pár vteřin.</em></h2>
+<h2 style="font-size: 30px; line-height: 1.05; color: #f4f1e8">Dům zaměříme na dálku. <em style="color: #f6e7a8">Hejno ukáže obrys a odhad ploch.</em></h2>
 <p role="status" aria-live="polite" class="sedy" style="margin: 0; font-size: 14px">{{stavText}}</p>
 </div>
 <button type="button" class="prepinac" aria-pressed="{{zvukText}}" onClick="{{prepniZvuk}}" aria-label="Zvuk a vibrace"><svg class="vyp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M23 9l-6 6M17 9l6 6"/></svg><svg class="zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg><span>Zvuk a vibrace</span></button>
@@ -441,7 +441,7 @@ class Component extends DCLogic {
     this.po(7300, function () { self.setState({ faze: 5 }); self.zvuk('tuk'); });
   }
   // Přeskočení animace: stejné plochy, stejná cena – jen bez čekání (shoda rady AI 22. 10.).
-  preskocit() { if (this.state.faze < 1 || this.state.faze > 4) return; this.vycisti(); this.setState({ faze: 5, strecha: 190, fasada: 340, sklon: 38, overeni: 3 }); this.zvuk('tuk'); }
+  preskocit() { if (this.state.faze < 1 || this.state.faze > 4) return; this.vycisti(); this.setState({ faze: 5, strecha: 190, fasada: 340, sklon: 38, overeni: 3 }); this.zvuk('tuk'); if (this.state.pozvanka) { var self = this; this.po(9000, function () { self.setState({ pozvanka: false }); }); } }
   zapnoutZvuk() { var self = this; this.setState({ zvuk: true, pozvanka: false, zvukRozhodnuto: true }); setTimeout(function () { self.zvuk('kridla'); self.zvuk('tuk'); }, 0); }
   nechatVypnuto() { this.setState({ pozvanka: false, zvukRozhodnuto: true }); }
   zapecetit() { if (this.state.faze !== 5) return; this.setState({ faze: 6 }); this.zvuk('tuk'); }

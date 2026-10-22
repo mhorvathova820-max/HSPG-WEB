@@ -180,7 +180,7 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 </div>
 
 
-<sc-if value="{{jeBeh}}" hint-placeholder-val="{{false}}"><button type="button" class="tl-zlate" disabled="disabled">Holubi pracují…</button><button type="button" class="tl-ghost" onClick="{{preskocit}}" style="min-height: 44px">Přeskočit animaci → rovnou k orientační ceně</button></sc-if>
+<sc-if value="{{jeBeh}}" hint-placeholder-val="{{false}}"><button type="button" class="tl-zlate" disabled="disabled">Holubi pracují…</button><button type="button" class="tl-ghost" onClick="{{preskocit}}" style="min-height: 44px">Přeskočit animaci → k ceně</button></sc-if>
 <sc-if value="{{jeObalka}}" hint-placeholder-val="{{false}}">
 <div class="obalka"><div class="obalka-klopa"></div><button type="button" class="pecet" aria-label="Rozlomit pečeť a zobrazit orientační cenu" onClick="{{rozlomit}}"><svg viewBox="-60 -78 110 112" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg></button><div class="obalka-text"><span class="pf" style="font-size: 15px; color: #f6e7a8">Orientační cena je zapečetěná</span><span class="sedy" style="font-size: 12.5px">Klepněte na pečeť – otevřením nic neobjednáváte. Orientační výpočet z ceníku HSPG, ne nabídka. Ukázka: střecha cesta A, fasáda cesta B.</span></div></div>
 </sc-if>
@@ -276,7 +276,7 @@ class Component extends DCLogic {
   rozlomit() { if (this.state.faze !== 5) return; this.zvuk('pecet'); var self = this; this.setState({ faze: 6 }); this.po(380, function () { self.pocitej('cena', 128790, 1400, function () { self.zvuk('cena'); }); }); }
   znovu() { this.vycisti(); this.setState({ faze: 0, strecha: 0, fasada: 0, sklon: 0, overeni: 0, cena: 0 }); }
   prepniZvuk() { var z = !this.state.zvuk; this.setState({ zvuk: z, pozvanka: false, zvukRozhodnuto: true }); if (z) { var self = this; setTimeout(function () { self.zvuk('tuk'); }, 0); } }
-  preskocit() { if (this.state.faze < 1 || this.state.faze > 4) return; this.vycisti(); this.setState({ faze: 5, strecha: 190, fasada: 340, sklon: 38, overeni: 3 }); this.zvuk('tuk'); }
+  preskocit() { if (this.state.faze < 1 || this.state.faze > 4) return; this.vycisti(); this.setState({ faze: 5, strecha: 190, fasada: 340, sklon: 38, overeni: 3 }); this.zvuk('tuk'); if (this.state.pozvanka) { var self = this; this.po(9000, function () { self.setState({ pozvanka: false }); }); } }
   zapnoutZvuk() { var self = this; this.setState({ zvuk: true, pozvanka: false, zvukRozhodnuto: true }); setTimeout(function () { self.zvuk('kridla'); self.zvuk('tuk'); }, 0); }
   nechatVypnuto() { this.setState({ pozvanka: false, zvukRozhodnuto: true }); }
   stahnout() { this.zvuk('fajfka'); }

@@ -103,7 +103,7 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 </div>
 <div class="karta">
 <h3>Pozvánka „Zapnout zvuk?“</h3>
-<div class="pozvanka" role="group" aria-label="Zvuk a vibrace"><span>Zvuk a jemné vibrace jsou vypnuté.</span><button type="button" class="ano" onClick="{{zapnoutZvuk}}">Zapnout</button><button type="button" class="ne" aria-label="Nechat vypnuté" onClick="{{tuk}}">✕</button></div>
+<div class="pozvanka" role="group" aria-label="Zvuk a vibrace"><span>Zvuk a jemné vibrace jsou vypnuté.</span><button type="button" class="ano" onClick="{{zapnoutZvuk}}">Zapnout</button><button type="button" class="ne" aria-label="Nechat vypnuté" onClick="{{nic}}">✕</button></div>
 <span class="hap">haptika <i style="width: 8px"></i> 8 ms · zvuk „otevřít“ + „tuk“ (jen po Zapnout)</span>
 <span class="pop">Jednou za relaci po první vědomé akci (otevření H-BOTa, start zaměření), pod přepínačem; po 9 s zmizí sama – odpočet stojí, dokud je na ní ukazatel nebo fokus. Cíle 44 px. „Zapnout“ uloží volbu, potvrdí ji zvukem a 3 s ukáže „Zapnuto. Vypnete stejným tlačítkem.“ ✕ volbu neukládá. Na iPhonu bez slova „vibrace“: „Zvuk je vypnutý.“</span>
 </div>
@@ -154,7 +154,7 @@ class Component extends DCLogic {
     this.state = { zvuk: false, fajfka: false, srdce: false, pecet: 'tep', puls: false };
     this._ac = null; this._t = [];
     var self = this;
-    ['prepniZvuk', 'tuk', 'prepniFajfku', 'prepniSrdce', 'rozlomit', 'obnov', 'spustPuls', 'chyba', 'zapnoutZvuk'].forEach(function (k) { self[k] = self[k].bind(self); });
+    ['prepniZvuk', 'tuk', 'prepniFajfku', 'prepniSrdce', 'rozlomit', 'obnov', 'spustPuls', 'chyba', 'zapnoutZvuk', 'nic'].forEach(function (k) { self[k] = self[k].bind(self); });
   }
   componentDidMount() { if (this.props.zvukVychozi === true) this.setState({ zvuk: true }); }
   componentWillUnmount() { this._t.forEach(clearTimeout); }
@@ -188,6 +188,7 @@ class Component extends DCLogic {
   }
   prepniZvuk() { var z = !this.state.zvuk; this.setState({ zvuk: z }); if (z) { var self = this; setTimeout(function () { self.zvuk('tuk'); }, 0); } }
   zapnoutZvuk() { var self = this; this.setState({ zvuk: true }); setTimeout(function () { self.zvuk('otevrit'); self.zvuk('tuk'); }, 0); }
+  nic() {}
   tuk() { this.zvuk('tuk'); }
   chyba() { this.zvuk('chyba'); }
   prepniFajfku() { var f = !this.state.fajfka; this.setState({ fajfka: f }); this.zvuk(f ? 'fajfka' : 'tuk'); }
@@ -198,7 +199,7 @@ class Component extends DCLogic {
   renderVals() {
     var s = this.state;
     return { zvukText: s.zvuk ? 'true' : 'false', fajfkaText: s.fajfka ? 'true' : 'false', srdceText: s.srdce ? 'true' : 'false', pecetTrida: s.pecet, pulsTrida: s.puls ? 'puls' : '',
-      prepniZvuk: this.prepniZvuk, tuk: this.tuk, prepniFajfku: this.prepniFajfku, prepniSrdce: this.prepniSrdce, rozlomit: this.rozlomit, obnov: this.obnov, spustPuls: this.spustPuls, chyba: this.chyba, zapnoutZvuk: this.zapnoutZvuk };
+      prepniZvuk: this.prepniZvuk, tuk: this.tuk, prepniFajfku: this.prepniFajfku, prepniSrdce: this.prepniSrdce, rozlomit: this.rozlomit, obnov: this.obnov, spustPuls: this.spustPuls, chyba: this.chyba, zapnoutZvuk: this.zapnoutZvuk, nic: this.nic };
   }
 }
 </script>

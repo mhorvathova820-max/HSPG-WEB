@@ -128,7 +128,8 @@
            data-limit="Měření na dálku je teď vytížené. Plochy můžete zadat sami níže, nebo nám nechte adresu a&nbsp;telefon – cenu pošleme do 24&nbsp;hodin."
            data-chyba="Měření teď není dostupné. Plochy můžete zadat sami níže, nebo nám nechte adresu a&nbsp;telefon – cenu pošleme do 24&nbsp;hodin."
            data-ukazka="Ukázka se smyšleným domem – nic jsme neměřili. Pro skutečnou cenu zadejte svou adresu."></p>
-        <p class="h3a-mini"><button class="h3a-tl-mini" type="button" id="h3a-rucne">Plochy znám – zadám je sám</button></p>
+        <!-- Druhý přepínač „Zvuk a vibrace“ přímo v kartě (hlavička je nad výřezem, když zákazník klikne „Změřit na dálku“): sem se vkládá pozvánka „Zapnout“ v toku stránky. Oba přepínače drží hspg-zazitek.js synchronně. -->
+        <p class="h3a-mini h3a-zazitek-radek"><button class="h3a-tl-mini" type="button" id="h3a-rucne">Plochy znám – zadám je sám</button><button class="h3a-tl-mini h3a-zazitek" type="button" id="h3a-zazitek-karta" aria-label="Zvuk a vibrace" aria-pressed="false" hidden></button></p>
       </div>
     </div>
   </section>

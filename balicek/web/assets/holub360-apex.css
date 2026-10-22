@@ -37,11 +37,20 @@
 .h3a-hlavicka-akce { position: relative; display: flex; align-items: center; gap: 8px; flex: none; }
 /* Pozvánka „Zvuk a jemné vibrace jsou vypnuté – Zapnout“ (hspg-zazitek.js): jednou za relaci pod přepínačem, sama zmizí */
 .h3a-hlavicka-akce .hz-pozvanka { position: absolute; top: calc(100% + 10px); right: 0; z-index: 3; display: flex; align-items: center; gap: 8px; max-width: min(300px, calc(100vw - 32px)); padding: 8px 8px 8px 12px; border-radius: 14px; border: 1px solid var(--apex-linka-silna); background: rgba(11, 15, 25, .97); box-shadow: var(--apex-sklo-stin); font: 500 12.5px/1.35 var(--apex-pismo); color: var(--apex-text); }
-.h3a-hlavicka-akce .hz-pozvanka::before { content: ""; position: absolute; top: -6px; right: 44px; width: 10px; height: 10px; transform: rotate(45deg); border-left: 1px solid var(--apex-linka-silna); border-top: 1px solid var(--apex-linka-silna); background: #0b0f19; }
+.h3a-hlavicka-akce .hz-pozvanka::before { content: ""; position: absolute; top: -6px; right: 17px; width: 10px; height: 10px; transform: rotate(45deg); border-left: 1px solid var(--apex-linka-silna); border-top: 1px solid var(--apex-linka-silna); background: #0b0f19; }
 .h3a-hlavicka-akce .hz-pozvanka-text { flex: 1 1 auto; min-width: 0; }
 .h3a-hlavicka-akce .hz-pozvanka-ano { flex: none; min-height: 44px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--apex-tlacitko, linear-gradient(135deg, #f6e7a8 0%, #d4af37 42%, #9c7b16 100%)); color: #17120a; font: 700 12.5px/1 var(--apex-pismo); cursor: pointer; }
 .h3a-hlavicka-akce .hz-pozvanka-ne { flex: none; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid var(--apex-linka); background: transparent; color: var(--apex-tlumene); font: 600 13px/1 var(--apex-pismo); cursor: pointer; }
 .h3a-hlavicka-akce .hz-stav { position: absolute; top: calc(100% + 10px); right: 0; z-index: 3; margin: 0; max-width: min(300px, calc(100vw - 32px)); padding: 8px 12px; border-radius: 12px; border: 1px solid var(--apex-linka); background: rgba(11, 15, 25, .97); font: 500 12.5px/1.35 var(--apex-pismo); color: var(--apex-text); }
+/* Přepínač v kartě adresy: pozvánka i potvrzení v toku řádku (nic nepřekrývají, na 390 px se zalomí pod tlačítka) */
+.h3a-zazitek-radek { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.h3a-zazitek-radek .hz-pozvanka { flex: 1 1 100%; display: flex; align-items: center; gap: 8px; max-width: 100%; padding: 8px 8px 8px 12px; border-radius: 14px; border: 1px solid var(--apex-linka-silna); background: rgba(11, 15, 25, .97); font: 500 12.5px/1.35 var(--apex-pismo); color: var(--apex-text); }
+.h3a-zazitek-radek .hz-pozvanka-text { flex: 1 1 auto; min-width: 0; }
+.h3a-zazitek-radek .hz-pozvanka-ano { flex: none; min-height: 44px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--apex-tlacitko, linear-gradient(135deg, #f6e7a8 0%, #d4af37 42%, #9c7b16 100%)); color: #17120a; font: 700 12.5px/1 var(--apex-pismo); cursor: pointer; }
+.h3a-zazitek-radek .hz-pozvanka-ne { flex: none; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid var(--apex-linka); background: transparent; color: var(--apex-tlumene); font: 600 13px/1 var(--apex-pismo); cursor: pointer; }
+.h3a-zazitek-radek .hz-stav { flex: 1 1 100%; margin: 0; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--apex-linka); background: rgba(11, 15, 25, .97); font: 500 12.5px/1.35 var(--apex-pismo); color: var(--apex-text); }
+@media (forced-colors: active) { .hz-pozvanka-ano, .hz-pozvanka-ne { border: 1px solid ButtonText !important; } }
+@media (prefers-reduced-motion: no-preference) { .h3a-zazitek-radek .hz-pozvanka { animation: hz-pozvanka .32s var(--apex-krivka, cubic-bezier(.2, .8, .2, 1)) both; } }
 @media (prefers-reduced-motion: no-preference) { .h3a-hlavicka-akce .hz-pozvanka { animation: hz-pozvanka .32s var(--apex-krivka, cubic-bezier(.2, .8, .2, 1)) both; } @keyframes hz-pozvanka { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } } }
 /* Přepínač „Zvuk a vibrace“ (hspg-zazitek.js, úkol 56): na úzkém displeji jen ikona, název zůstává v aria-label */
 .h3a-zazitek .hz-ikona { display: block; width: 18px; height: 18px; }

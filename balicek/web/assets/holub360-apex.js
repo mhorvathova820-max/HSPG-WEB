@@ -166,11 +166,12 @@ function zazitek(zvuk, haptika) {
   try { if (zvuk) z.zvuk(zvuk); if (haptika) z.haptika(haptika); } catch { /* bez zvuku */ }
 }
 function nastavZazitek() {
-  const tl = $("h3a-zazitek");
+  const tl = $("h3a-zazitek"), tlKarta = $("h3a-zazitek-karta");
   const pripoj = () => {
     const z = zazitekModul();
     if (!z || !tl) return;
     z.prepinac(tl);
+    if (tlKarta) z.prepinac(tlKarta); // druhý přepínač v kartě adresy – u něj se ukazuje pozvánka (hlavička je mimo výřez)
     z.naZmenu((zap) => { if (!zap && stav.zvuk?.on) prepniKulisu(false); });
   };
   if (zazitekModul()) pripoj();
@@ -408,7 +409,7 @@ function nastavAdresu() {
     $("h3a-zmerit").disabled = true;
     stav.hejno.start(); // holub „Měří“: požadavek právě odchází
     zazitek("kridla");
-    zazitekModul()?.pozvanka($("h3a-zazitek")); // první vědomá akce: pozvánka „Zapnout zvuk?“ (jednou za relaci)
+    zazitekModul()?.pozvanka($("h3a-zazitek-karta") || $("h3a-zazitek")); // první vědomá akce: pozvánka „Zapnout zvuk?“ v kartě adresy (ve výřezu)
     try {
       const r = await ziskej(API_MERENI, { method: "POST", telo: { kod: volba.kod, adresa: volba.adresa }, signal: c.signal, limit: 25000 });
       if (mereniCtrl !== c) return;

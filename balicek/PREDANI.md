@@ -11,7 +11,7 @@ Jedna stránka: co je hotové, kdo co dělá a v jakém pořadí, co zbývá na 
 | Ochrana kreditů Netlify | rozpočet AI za období kreditů (11.–10.) s rezervací před voláním, podíl zákazníků (výchozí polovina), nouzový vypínač v panelu, při výpadku úložiště AI vypnutá, pojistka nasazení `scripts/nasadit.mjs` (náhled zdarma, produkce jen se schválením, max. 1× denně) |
 | Bezpečnost | přihlášení majitele tokenem (heslo jen v Netlify), zámek pokusů, tajemství podpisu na serveru, žádné klíče v kódu |
 | Ověření vyhledávačů | soubory a meta tagy Seznamu a Bingu v `web/overeni/` (úkol 20; všechny vygenerované kódy najednou) |
-| Testy | 200 jednotkových + 94 v prohlížeči (Chromium; kopie živého webu nebo zástupné stránky), všechny prochází (22. 10. 2026) |
+| Testy | 210 jednotkových + 102 v prohlížeči (Chromium; kopie živého webu nebo zástupné stránky), všechny prochází (22. 10. 2026) |
 | **H-BOT v5 a „Cena hned“** (úkol 48) | zlatý 3D origami holub nad střechou, hejno, oznámení AI; orientační cena z ceníku v zapečetěné obálce, PDF kalkulace, NÁVRH smlouvy o dílo (nezávazný, jen v prohlížeči), porovnání s cizí nabídkou |
 | **HOLUB 360** (úkol 49) | `/holub-360/`: průlet nad Prahou, zaměření na dálku, 3D model, cesta A/B, kalkulace, kalendář s technologickým oknem, rezervace |
 | **Standard HOLUB, SENTINEL, cenové jádro** (úkol 50) | `/standard-holub/` z dat, tarify BASE / PLUS / PRESTIGE, jedna cena pro všechny části webu |
@@ -21,7 +21,7 @@ Jedna stránka: co je hotové, kdo co dělá a v jakém pořadí, co zbývá na 
 | **Štít obsahu** (úkol 54) | `web/.well-known/tdmrep.json`, šablony meta/patička/robots pro AI boty v `sablony/stit/`, postup proti kopiím; ochranné známky podává majitel (podklady v souboru „HSPG – dokumenty k odeslání“) |
 | **Opravy živého webu** (úkol 55) | audit Claude v Chrome 22. 10. (`AUDIT-WEB-2026-10-22.md`, 96 nálezů): embargo slov, záruka, tarify, 5 kroků, jedna cesta „Cena hned“, mobil |
 | **Puls, rozcestník, zvuk a haptika, hejno** (úkol 56) | plaketa pulzuje v dávkách a nabízí celý web (8 dlaždic z `content/hbot-rozcestnik.json`), `hspg-zazitek.js` (syntéza zvuku + vibrace, vypínač „Zvuk a vibrace“), hejno 4 holubů při zaměření v HOLUB 360 (`holub360-hejno.js`) |
-| **Prototyp v Claude Design** | projekt „HSPG Apex – kompletní návrh“ v9 (5 desek: zaměření s hejnem a pečetí, pulzující plaketa + rozcestník, Cena hned 01–05, mobil 390, mikrointerakce; zdroje v `navrhy/apex-design/`) – vzor pro úkoly 48, 49, 56 |
+| **Prototyp v Claude Design** | projekt „HSPG Apex – kompletní návrh“ v10 (5 desek: zaměření s hejnem a pečetí, pulzující plaketa + rozcestník, Cena hned 01–05, mobil 390, mikrointerakce; zdroje v `navrhy/apex-design/`) – vzor pro úkoly 48, 49, 56 |
 | **Rada AI, kolo 2** | `RADA-VYSLEDKY-VIZUAL-2026-10-22.md` – co je přijaté (a kde), co odmítnuté; z toho úkol 58 (jedna cesta zákazníka, HOLUB Partner, obrazovka „Dnes“) |
 | **Rozhodnutí svěřená agentovi** (R21, 22. 10.) | zvuk a vibrace výchozí vypnuté s pozvánkou „Zapnout“; formuláře bez políčka souhlasu (čl. 6/1/b GDPR); minimum 4 900 Kč = celková cena vč. dopravy; záruka u cesty B bez čísla; `/nase-prace/` bez „přesně 76 %“; dodavatel FHB neoslovovat |
 | **Dodavatelé bez zastoupení v ČR** | `DODAVATELE-2026-10-22.md` + CSV: 14 e-mailů odesláno 22. 10., 12 jde 23. 10. 09:00 (naplánováno), 2 vyřazeni; texty a tabulka „Odesláno“ v dokumentu „HSPG – dokumenty k odeslání“; odpovědi třídit do štítků Gmailu `HSPG Dodavatelé/…` |

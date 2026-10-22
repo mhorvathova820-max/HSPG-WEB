@@ -83,7 +83,7 @@
     "n3": {
       "x": 0,
       "y": 2020,
-      "text": "v10 (22. 10. 2026, po kole 3 rady AI): zvuk a vibrace výchozí vypnuté s pozvánkou „Zapnout“ (cíle 44 px, odpočet stojí při fokusu) · „Přeskočit animaci → rovnou k orientační ceně“ · „otevřením nic neobjednáváte“ už na obálce · karta ceny „není nabídka ani objednávka“ + „ukázkový dům – čísla se na vaši adresu nepřenášejí“ · záruka u cesty B bez čísla · bublina bez sklonu · „Požádat o termín“",
+      "text": "v10 (22. 10. 2026, po kole 3 rady AI a nezávislé revizi): zvuk a vibrace výchozí vypnuté s pozvánkou „Zapnout“ (cíle 44 px; v prototypu pevných 9 s – zastavení odpočtu při fokusu je jen v produkčním modulu) · „Přeskočit animaci → k volbě ochrany a ceně“ · „otevřením nic neobjednáváte“ už na obálce · karta ceny „není nabídka ani objednávka“ + „ukázkový dům – čísla se na vaši adresu nepřenášejí“ · záruka u cesty B bez čísla · nadpis bez slibu rychlosti · „Požádat o termín“",
       "kind": "title1",
       "maxW": 2960,
       "size": "l"

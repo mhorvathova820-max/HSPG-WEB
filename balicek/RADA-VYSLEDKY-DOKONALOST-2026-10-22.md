@@ -6,8 +6,10 @@ Zadání: `RADA-ZADANI-DOKONALOST-2026-10-22.md` (odesláno 22. 10. dopoledne, c
 | Bod | Kdo | Kde |
 |---|---|---|
 | Cíle pozvánky **≥ 44 px** (ne 32) | Claude, GPT, Grok | `hbot.css`, `holub360-apex.css`, prototyp (`.pozvanka .ano/.ne`), e2e test měří |
-| Odpočet 9 s se **zastaví při ukazateli nebo fokusu** na pozvánce (WCAG 2.2.1); při skrytí se fokus vrátí na přepínač | Claude, GPT | `hspg-zazitek.js` (`naplanujZmizeni`, `fokusUvnitr`), e2e test „s ukazatelem nezmizí“ |
-| **iPhone / bez `navigator.vibrate`:** nikde slovo „vibrace“ – přepínač „Zvuk“, pozvánka „Zvuk je vypnutý.“, potvrzení „Zvuk zapnut. V tichém režimu telefonu ho neuslyšíte.“ | Claude, Grok, Muse | `hspg-zazitek.js` (`NAZEV`, texty), unit test |
+| Odpočet 9 s se **zastaví při ukazateli nebo fokusu** na pozvánce (WCAG 1.4.13; ✕ ji vypne kdykoli); při skrytí se fokus vrátí na přepínač | Claude, GPT | `hspg-zazitek.js` (`naplanujZmizeni`, `fokusUvnitr`), e2e test „s ukazatelem nezmizí“ |
+| **Vibrace jen na dotykovém zařízení s `navigator.vibrate`** (Android); iPhone i stolní prohlížeče: přepínač „Zvuk“, pozvánka „Zvuk je vypnutý.“, potvrzení bez slova vibrace | Claude, Grok, Muse (+ nezávislá revize) | `hspg-zazitek.js` (`NABIZI_VIBRACE`, texty), unit + e2e test |
+| Pozvánka na HOLUB 360 **v kartě adresy** (druhý přepínač `#h3a-zazitek-karta`, v toku) – v hlavičce byla při kliknutí na „Změřit“ mimo výřez | nezávislá revize | `holub-360/index.html`, `holub360-apex.js`, CSS, e2e test měří polohu ve výřezu |
+| Věta k cestě B i v **PDF kalkulace a čl. 7 návrhu smlouvy** (karta, PDF a smlouva si neodporují) | nezávislá revize | `hspg-dokumenty.js`, e2e test čte PDF |
 | `aria-label` přepínače stálý, stav jen v `aria-pressed`; **`title` „Zvuk a vibrace: vypnuto/zapnuto“** | Claude, Muse | `vykresliPrepinac` |
 | Po „Zapnout“ **3 s potvrzení** `role="status"` „Zapnuto. Vypnete stejným tlačítkem.“ | Claude | `ukazStav`, `.hz-stav` |
 | **Zápis do `sessionStorage` až po rozhodnutí zákazníka** („Zapnout“ nebo ✕); samo zmizení se pamatuje jen do nového načtení (ePrivacy čl. 5(3), § 89 odst. 3 ZEK) | Grok (přísnější výklad než Claude) | `pozvankaRozhodnuta`, unit + e2e test „zobrazení samo nic nezapíše“ |
@@ -34,7 +36,7 @@ Zadání: `RADA-ZADANI-DOKONALOST-2026-10-22.md` (odesláno 22. 10. dopoledne, c
 | Věta „ne nabídka“ nad částkou **stejně velká jako součet** | Grok | **Částečně:** věta je na obálce i na kartě hned u částky (12,5 px, plný kontrast); stejná velikost jako částka by rozbila hierarchii – test čitelnosti v e2e (axe) trvá. |
 | Pozvánka na mobilu „v toku, ne jako toast“ | Grok | **Ponecháno:** pozvánka je ukotvená pod přepínačem v hlavičce panelu (ne přes cenu, ne přes lištu); na 390 px je uvnitř panelu H-BOTa. |
 | Při zapnutém zvuku v reduced-motion jen potvrzovací zvuky (ne křídla) | Claude | **Odmítnuto:** zvuk není pohyb; křídla zní jen při skutečném startu zaměření a jen po opt-in. |
-| 48 px cíle | GPT | Projektové pravidlo je 44 px (WCAG 2.5.8 + KONTEXT); použito 44 px. |
+| 48 px cíle | GPT | Projektové pravidlo je 44 px (WCAG 2.5.5 AAA; 2.5.8 AA žádá 24 px); použito 44 px. |
 | Druhé tlačítko pozvánky „Ne, děkuji“ textem | Muse | V hlavičce H-BOTa není místo; ✕ má `aria-label` „Nechat vypnuté“. |
 
 ## 4. Čeká na majitele / advokáta
