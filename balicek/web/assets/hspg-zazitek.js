@@ -32,7 +32,8 @@
   var HLASITOST = 0.15; // hlavní hlasitost 0–1: zvuky jsou jen jemný doprovod
   var MAX_DELKA = 0.45; // s – žádný zvuk není delší
   var USNOUT_PO = 30000; // ms bez zvuku → zvukový výstup se uspí (baterie)
-  var NAZEV = 'Zvuk a vibrace';
+  // iPhone a jiné prohlížeče bez navigator.vibrate: nikde neslibovat vibrace (rada AI 22. 10., kolo 3).
+  var NAZEV = (nav && typeof nav.vibrate === 'function') ? 'Zvuk a vibrace' : 'Zvuk';
   var casovac = typeof setTimeout === 'function' ? setTimeout : function () { return 0; };
   var zrusCasovac = typeof clearTimeout === 'function' ? clearTimeout : function () {};
 
@@ -242,6 +243,7 @@
   function vykresliPrepinac(tl) {
     var z = zapnuto();
     tl.setAttribute('aria-pressed', z ? 'true' : 'false');
+    tl.setAttribute('title', NAZEV + ': ' + (z ? 'zapnuto' : 'vypnuto')); // aria-label zůstává stejný, stav nese aria-pressed
     var ik = tl.querySelector && tl.querySelector('.hz-ikona');
     if (ik) ik.innerHTML = z ? IKONA_ZAP : IKONA_VYP;
   }
@@ -264,53 +266,91 @@
   }
 
   // --- pozvánka „Zapnout zvuk?“ ----------------------------------------------------------------------------------
-  // Ukáže se u přepínače jednou za relaci (sessionStorage), jen dokud zákazník nic nezvolil, a po 9 s sama zmizí.
+  // Ukáže se u přepínače jednou za relaci, jen dokud zákazník nic nezvolil, a po 9 s sama zmizí (odpočet se zastaví,
+  // dokud na ní je ukazatel nebo fokus – WCAG 2.2.1). Do sessionStorage se zapíše až po rozhodnutí zákazníka
+  // („Zapnout“ nebo ✕; ePrivacy čl. 5(3) – rada AI 22. 10.); samo zmizení se pamatuje jen do nového načtení stránky.
   // Volá ji stránka po první vědomé akci; bez dokumentu, bez zvuku i vibrací nebo ve skryté kartě nic.
-  var POZVANKA_KLIC = 'hspg-zazitek-pozvanka', POZVANKA_TRVANI = 9000;
-  var pozvankaEl = null, pozvankaCasovac = null, pozvankaByla = false;
+  var POZVANKA_KLIC = 'hspg-zazitek-pozvanka', POZVANKA_TRVANI = 9000, STAV_TRVANI = 3000;
+  var pozvankaEl = null, pozvankaCasovac = null, pozvankaByla = false, pozvankaPrepinac = null, stavEl = null, stavCasovac = null;
   function pozvankaUkazana() {
     if (pozvankaByla) return true;
     try { return W.sessionStorage.getItem(POZVANKA_KLIC) === '1'; } catch (e) { return false; }
   }
-  function pozvankaZapis() {
-    pozvankaByla = true;
+  function pozvankaRozhodnuta() {
     try { W.sessionStorage.setItem(POZVANKA_KLIC, '1'); } catch (e) { /* bez úložiště platí jen do nového načtení */ }
   }
-  function zrusPozvanku() {
-    zrusCasovac(pozvankaCasovac);
-    if (!pozvankaEl) return;
-    var el = pozvankaEl; pozvankaEl = null;
+  function odeber(el) {
     try { if (typeof el.remove === 'function') el.remove(); else if (el.parentNode) el.parentNode.removeChild(el); } catch (e) { /* nic */ }
   }
+  function fokusUvnitr(el) {
+    var a = d && d.activeElement;
+    return !!(a && el && typeof el.contains === 'function' && el.contains(a));
+  }
+  function zrusPozvanku() {
+    zrusCasovac(pozvankaCasovac); pozvankaCasovac = null;
+    if (!pozvankaEl) return;
+    var el = pozvankaEl, tl = pozvankaPrepinac; pozvankaEl = null; pozvankaPrepinac = null;
+    // Fokus nesmí zmizet s prvkem – vrátí se na přepínač.
+    if (fokusUvnitr(el) && tl && typeof tl.focus === 'function') { try { tl.focus({ preventScroll: true }); } catch (e) { /* nic */ } }
+    odeber(el);
+  }
+  function zrusStav() { zrusCasovac(stavCasovac); stavCasovac = null; if (stavEl) { odeber(stavEl); stavEl = null; } }
   function prvek(tag, trida, text) {
     var el = d.createElement(tag);
     el.className = trida;
     if (text) el.textContent = text;
     return el;
   }
+  function naplanujZmizeni() {
+    zrusCasovac(pozvankaCasovac);
+    pozvankaCasovac = casovac(function () { if (pozvankaEl && !fokusUvnitr(pozvankaEl)) zrusPozvanku(); }, POZVANKA_TRVANI);
+  }
+  // Krátké potvrzení po „Zapnout“ (role=status, 3 s) na místě pozvánky.
+  function ukazStav(tl, text) {
+    zrusStav();
+    if (!tl || !tl.parentNode) return null;
+    var el = prvek('p', 'hz-stav', text);
+    el.setAttribute('role', 'status');
+    tl.parentNode.insertBefore(el, tl.nextSibling || null);
+    stavEl = el;
+    stavCasovac = casovac(zrusStav, STAV_TRVANI);
+    return el;
+  }
   /** Pozvánka vedle přepínače tl (vloží se za něj). Vrací prvek pozvánky, nebo null, když se neukazuje. */
   function pozvanka(tl) {
     if (!d || typeof d.createElement !== 'function' || !tl || !tl.parentNode) return null;
     if (volba !== null || pozvankaUkazana() || (!maZvuk() && !maVibrace()) || skryto()) return null;
-    zrusPozvanku();
+    zrusPozvanku(); zrusStav();
     var box = prvek('div', 'hz-pozvanka');
     box.setAttribute('role', 'group');
-    box.setAttribute('aria-label', NAZEV);
+    box.setAttribute('aria-label', 'Nabídka: ' + NAZEV);
     var ano = prvek('button', 'hz-pozvanka-ano', 'Zapnout');
     ano.type = 'button';
     var ne = prvek('button', 'hz-pozvanka-ne', '✕');
     ne.type = 'button';
     ne.setAttribute('aria-label', 'Nechat vypnuté');
-    box.appendChild(prvek('span', 'hz-pozvanka-text', 'Zvuk a jemné vibrace jsou vypnuté.'));
+    box.appendChild(prvek('span', 'hz-pozvanka-text', maVibrace() ? 'Zvuk a jemné vibrace jsou vypnuté.' : 'Zvuk je vypnutý.'));
     box.appendChild(ano);
     box.appendChild(ne);
-    // „Zapnout“ je vědomá akce: uloží volbu a hned ji potvrdí zvukem otevření a ťuknutím.
-    ano.addEventListener('click', function () { nastav(true); zvuk('otevrit'); haptika('tuk'); });
-    ne.addEventListener('click', zrusPozvanku);
+    // „Zapnout“ je vědomá akce: uloží volbu, potvrdí ji zvukem otevření a ťuknutím a 3 s ukáže stav.
+    ano.addEventListener('click', function () {
+      pozvankaRozhodnuta();
+      nastav(true); // zruší pozvánku
+      zvuk('otevrit'); haptika('tuk');
+      ukazStav(tl, maVibrace() ? 'Zapnuto. Vypnete stejným tlačítkem.' : 'Zvuk zapnut. V tichém režimu telefonu ho neuslyšíte.');
+    });
+    ne.addEventListener('click', function () { pozvankaRozhodnuta(); zrusPozvanku(); });
+    // Odpočet zmizení se zastaví, dokud je na pozvánce ukazatel nebo fokus.
+    if (typeof box.addEventListener === 'function') {
+      box.addEventListener('pointerenter', function () { zrusCasovac(pozvankaCasovac); pozvankaCasovac = null; });
+      box.addEventListener('focusin', function () { zrusCasovac(pozvankaCasovac); pozvankaCasovac = null; });
+      box.addEventListener('pointerleave', naplanujZmizeni);
+      box.addEventListener('focusout', function () { casovac(function () { if (pozvankaEl === box && !fokusUvnitr(box)) naplanujZmizeni(); }, 0); });
+    }
     tl.parentNode.insertBefore(box, tl.nextSibling || null);
-    pozvankaEl = box;
-    pozvankaZapis();
-    pozvankaCasovac = casovac(zrusPozvanku, POZVANKA_TRVANI);
+    pozvankaEl = box; pozvankaPrepinac = tl;
+    pozvankaByla = true; // samo zmizení = jen do nového načtení; rozhodnutí zákazníka se zapíše do sessionStorage
+    naplanujZmizeni();
     return box;
   }
 
@@ -324,8 +364,7 @@
     if (!tl._hspgZazitek) {
       tl._hspgZazitek = true;
       tl.type = 'button';
-      if (!tl.getAttribute('aria-label')) tl.setAttribute('aria-label', NAZEV);
-      if (!tl.getAttribute('title')) tl.setAttribute('title', NAZEV);
+      tl.setAttribute('aria-label', NAZEV);
       if (tl.classList) tl.classList.add('hz-prepinac');
       tl.innerHTML = '<span class="hz-ikona" aria-hidden="true"></span><span class="hz-text">' + NAZEV + '</span>';
       tl.addEventListener('click', function () {
@@ -361,7 +400,7 @@
   }
 
   return {
-    verze: '1.1.0',
+    verze: '1.2.0',
     zvuk: zvuk,
     haptika: haptika,
     zapnuto: zapnuto,

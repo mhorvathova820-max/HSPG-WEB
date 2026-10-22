@@ -26,8 +26,8 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 .tl-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 18px;border-radius:999px;border:1px solid rgba(212,175,55,.5);background:transparent;color:var(--apex-zlato-svetle,#f6e7a8);font:700 14px Manrope,sans-serif;text-decoration:none;cursor:pointer}
 .tl-zlate:focus-visible,.tl-ghost:focus-visible,.pecet:focus-visible,.lista button:focus-visible,.lista a:focus-visible,.prepinac:focus-visible{outline:2px solid var(--apex-zlato-svetle,#f6e7a8);outline-offset:2px}
 .pozvanka{position:absolute;top:calc(100% + 8px);right:0;z-index:6;display:flex;align-items:center;gap:8px;max-width:calc(390px - 32px);padding:8px 8px 8px 12px;border-radius:14px;border:1px solid rgba(212,175,55,.42);background:rgba(11,15,25,.97);box-shadow:0 18px 40px rgba(0,0,0,.5);font:500 12.5px/1.35 Manrope,sans-serif;color:#f4f1e8}
-.pozvanka .ano{min-height:32px;padding:0 12px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6e7a8 0%,#d4af37 42%,#9c7b16 100%);color:#17120a;font:700 12.5px Manrope,sans-serif;cursor:pointer}
-.pozvanka .ne{width:30px;height:30px;padding:0;border-radius:50%;border:1px solid rgba(244,241,232,.18);background:transparent;color:#a3a9b5;font:600 13px Manrope,sans-serif;cursor:pointer}
+.pozvanka .ano{min-height:44px;padding:0 16px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6e7a8 0%,#d4af37 42%,#9c7b16 100%);color:#17120a;font:700 12.5px Manrope,sans-serif;cursor:pointer}
+.pozvanka .ne{width:44px;height:44px;padding:0;border-radius:50%;border:1px solid rgba(244,241,232,.18);background:transparent;color:#a3a9b5;font:600 13px Manrope,sans-serif;cursor:pointer}
 @media (prefers-reduced-motion:no-preference){.pozvanka{animation:pozvanka .32s cubic-bezier(.2,.8,.2,1) both}@keyframes pozvanka{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}}
 .prepinac{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid rgba(212,175,55,.35);background:rgba(11,15,25,.7);color:var(--apex-text,#f4f1e8);cursor:pointer}
 .prepinac svg{width:18px;height:18px}
@@ -180,13 +180,13 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 </div>
 
 
-<sc-if value="{{jeBeh}}" hint-placeholder-val="{{false}}"><button type="button" class="tl-zlate" disabled="disabled">Holubi pracují…</button><button type="button" class="tl-ghost" onClick="{{preskocit}}" style="min-height: 44px">Přeskočit animaci → rovnou k ceně</button></sc-if>
+<sc-if value="{{jeBeh}}" hint-placeholder-val="{{false}}"><button type="button" class="tl-zlate" disabled="disabled">Holubi pracují…</button><button type="button" class="tl-ghost" onClick="{{preskocit}}" style="min-height: 44px">Přeskočit animaci → rovnou k orientační ceně</button></sc-if>
 <sc-if value="{{jeObalka}}" hint-placeholder-val="{{false}}">
 <div class="obalka"><div class="obalka-klopa"></div><button type="button" class="pecet" aria-label="Rozlomit pečeť a zobrazit orientační cenu" onClick="{{rozlomit}}"><svg viewBox="-60 -78 110 112" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg></button><div class="obalka-text"><span class="pf" style="font-size: 15px; color: #f6e7a8">Orientační cena je zapečetěná</span><span class="sedy" style="font-size: 12.5px">Klepněte na pečeť – otevřením nic neobjednáváte. Orientační výpočet z ceníku HSPG, ne nabídka. Ukázka: střecha cesta A, fasáda cesta B.</span></div></div>
 </sc-if>
 <sc-if value="{{jeCena}}" hint-placeholder-val="{{false}}">
 <div class="sklo cena-karta" style="padding: 16px; display: flex; flex-direction: column; gap: 8px; border-color: rgba(246,231,168,.45)">
-<span class="stitek">Orientační cena · jednorázově · neplátce DPH · ukázka</span>
+<span class="stitek">Orientační výpočet · není nabídka ani objednávka · neplátce DPH</span>
 <div class="cena-velka">{{cenaText}}</div>
 <div style="display: flex; flex-direction: column">
 <div class="radek"><div><div class="n">Střecha · A · neviditelný štít</div><div class="d">190&nbsp;m² × 178&nbsp;Kč</div></div><div class="c">33&nbsp;820&nbsp;Kč</div></div>
@@ -196,8 +196,8 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 <div class="radek"><div><div class="n">Zaokrouhlení na desítky</div></div><div class="c">−1&nbsp;Kč</div></div>
 <div class="radek celkem"><div class="n">Celkem (orientačně)</div><div class="c">128&nbsp;790&nbsp;Kč</div></div>
 </div>
-<p class="sedy" style="margin: 0; font-size: 12.5px; line-height: 1.5">Orientační výpočet z ceníku, ne nabídka. Přesnou cenu potvrdíme po ověření rozsahu na místě. Záloha 30&nbsp;% jen u zakázek nad 100&nbsp;000&nbsp;Kč. Záruka 10&nbsp;let se vztahuje na neviditelný štít H-STONE (zde střecha) při péči SENTINEL BASE; zákonná práva z vadného plnění tím nejsou dotčena. Barevná renovace (zde fasáda): platí zákonná práva z vadného plnění; smluvní záruku k nátěrovému systému výrobce barvy stanoví konečná smlouva.</p>
-<div style="display: flex; flex-direction: column; gap: 8px"><button type="button" class="tl-zlate" onClick="{{stahnout}}">Stáhnout kalkulaci (PDF)</button><a href="#termin" class="tl-ghost">Rezervovat termín</a><button type="button" class="tl-ghost" onClick="{{znovu}}">Zaměřit znovu</button></div>
+<p class="sedy" style="margin: 0; font-size: 12.5px; line-height: 1.5">Ukázkový dům – tato čísla se na vaši adresu nepřenášejí. Orientační výpočet z ceníku, ne nabídka. Přesnou cenu potvrdíme po ověření rozsahu na místě. Záloha 30&nbsp;% jen u zakázek nad 100&nbsp;000&nbsp;Kč. Záruka 10&nbsp;let se vztahuje na neviditelný štít H-STONE (zde střecha) při péči SENTINEL BASE; zákonná práva z vadného plnění tím nejsou dotčena. Barevná renovace (zde fasáda): platí zákonná práva z vadného plnění; smluvní záruku k nátěrovému systému výrobce barvy stanoví konečná smlouva.</p>
+<div style="display: flex; flex-direction: column; gap: 8px"><button type="button" class="tl-zlate" onClick="{{stahnout}}">Stáhnout kalkulaci (PDF)</button><a href="#termin" class="tl-ghost">Požádat o termín</a><button type="button" class="tl-ghost" onClick="{{znovu}}">Zaměřit znovu</button></div>
 </div>
 </sc-if>
 </div>

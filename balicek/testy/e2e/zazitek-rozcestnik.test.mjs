@@ -240,9 +240,14 @@ test("zvuk a vibrace: výchozí vypnuto; otevření ukáže pozvánku „Zapnout
   assert.equal(z1.kontexty, 1);
   assert.deepEqual(z1.vibrace, [8], "Zapnout = zvuk otevření + ťuknutí 8 ms");
   assert.equal(await p.getAttribute(tl, "aria-pressed"), "true");
+  assert.equal(await p.getAttribute(tl, "title"), "Zvuk a vibrace: zapnuto");
   assert.equal(await p.evaluate(() => localStorage.getItem("hspg-zazitek")), "1");
+  assert.equal(await p.evaluate(() => sessionStorage.getItem("hspg-zazitek-pozvanka")), "1", "rozhodnutí zákazníka se zapíše do relace");
   assert.equal(await p.locator(poz).count(), 0, "pozvánka po rozhodnutí zmizí");
-  assert.equal(await p.evaluate(() => document.querySelector("#hbot .hb-zazitek").nextElementSibling.classList.contains("hb-close")), true);
+  assert.equal(await p.textContent("#hbot .hb-head-akce .hz-stav"), "Zapnuto. Vypnete stejným tlačítkem.", "krátké potvrzení (role=status)");
+  assert.equal(await p.getAttribute("#hbot .hb-head-akce .hz-stav", "role"), "status");
+  // Přepínač stojí v hlavičce hned vedle zavírání (potvrzení je jen absolutně umístěný text mezi nimi); cíle ≥ 44 px se ověřují níže.
+  assert.equal(await p.evaluate(() => { let e = document.querySelector("#hbot .hb-zazitek").nextElementSibling; while (e && e.tagName !== "BUTTON") e = e.nextElementSibling; return e.classList.contains("hb-close"); }), true);
   // Vypnutí přepínačem: ticho, uloží se „0“.
   await p.click(tl);
   assert.equal(await p.getAttribute(tl, "aria-pressed"), "false");
@@ -273,6 +278,13 @@ test("pozvánka: ✕ = nechat vypnuté (nic se neuloží), podruhé v téže rel
   await p.waitForSelector(poz);
   assert.equal(await p.evaluate(() => document.querySelector("#hbot .hz-pozvanka").getAnimations().length), 0, "omezení pohybu: žádný vjezd");
   assert.deepEqual(await axeVazne(p, "#hbot .hb-head"), []);
+  const cile = await p.$$eval(`${poz} button`, (b) => b.map((x) => { const r = x.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; }));
+  assert.ok(cile.every(([w, h]) => w >= 44 && h >= 44), `cíle ≥ 44 px: ${JSON.stringify(cile)}`);
+  assert.equal(await p.evaluate(() => sessionStorage.getItem("hspg-zazitek-pozvanka")), null, "zobrazení samo nic nezapíše (ePrivacy)");
+  // Ukazatel na pozvánce zastaví odpočet (WCAG 2.2.1): po 9,5 s je pořád vidět.
+  await p.hover(`${poz} .hz-pozvanka-text`);
+  await p.waitForTimeout(9500);
+  assert.equal(await p.locator(poz).count(), 1, "s ukazatelem na pozvánce nezmizí");
   await p.click(`${poz} .hz-pozvanka-ne`);
   assert.equal(await p.locator(poz).count(), 0);
   assert.equal(await p.evaluate(() => localStorage.getItem("hspg-zazitek")), null);

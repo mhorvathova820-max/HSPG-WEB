@@ -20,8 +20,8 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 .stitek{font:800 11px/1 Manrope,sans-serif;letter-spacing:.26em;text-transform:uppercase;color:var(--apex-zlato,#d4af37)}
 .sedy{color:var(--apex-tlumene,#b9b3a4)}
 .pozvanka{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 12px;border-radius:14px;border:1px solid rgba(212,175,55,.42);background:rgba(11,15,25,.97);box-shadow:0 18px 40px rgba(0,0,0,.5);font:500 12.5px/1.35 Manrope,sans-serif;color:#f4f1e8}
-.pozvanka .ano{min-height:32px;padding:0 12px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6e7a8 0%,#d4af37 42%,#9c7b16 100%);color:#17120a;font:700 12.5px Manrope,sans-serif;cursor:pointer}
-.pozvanka .ne{width:30px;height:30px;padding:0;border-radius:50%;border:1px solid rgba(244,241,232,.18);background:transparent;color:#a3a9b5;font:600 13px Manrope,sans-serif;cursor:pointer}
+.pozvanka .ano{min-height:44px;padding:0 16px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6e7a8 0%,#d4af37 42%,#9c7b16 100%);color:#17120a;font:700 12.5px Manrope,sans-serif;cursor:pointer}
+.pozvanka .ne{width:44px;height:44px;padding:0;border-radius:50%;border:1px solid rgba(244,241,232,.18);background:transparent;color:#a3a9b5;font:600 13px Manrope,sans-serif;cursor:pointer}
 .karta{display:flex;flex-direction:column;gap:12px;padding:18px;border-radius:20px;border:1px solid rgba(212,175,55,.22);background:linear-gradient(180deg,rgba(17,24,39,.74),rgba(5,7,15,.92));box-shadow:0 30px 60px -30px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.07)}
 .karta h3{font-size:17px;color:var(--apex-zlato-svetle,#f6e7a8)}
 .karta .pop{font:500 12px/1.45 Manrope,sans-serif;color:var(--apex-tlumene,#b9b3a4)}
@@ -105,7 +105,7 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 <h3>Pozvánka „Zapnout zvuk?“</h3>
 <div class="pozvanka" role="group" aria-label="Zvuk a vibrace"><span>Zvuk a jemné vibrace jsou vypnuté.</span><button type="button" class="ano" onClick="{{zapnoutZvuk}}">Zapnout</button><button type="button" class="ne" aria-label="Nechat vypnuté" onClick="{{tuk}}">✕</button></div>
 <span class="hap">haptika <i style="width: 8px"></i> 8 ms · zvuk „otevřít“ + „tuk“ (jen po Zapnout)</span>
-<span class="pop">Jednou za relaci po první vědomé akci (otevření H-BOTa, start zaměření), pod přepínačem; po 9 s zmizí sama. „Zapnout“ uloží volbu a hned ji potvrdí zvukem. ✕ nic neukládá.</span>
+<span class="pop">Jednou za relaci po první vědomé akci (otevření H-BOTa, start zaměření), pod přepínačem; po 9 s zmizí sama – odpočet stojí, dokud je na ní ukazatel nebo fokus. Cíle 44 px. „Zapnout“ uloží volbu, potvrdí ji zvukem a 3 s ukáže „Zapnuto. Vypnete stejným tlačítkem.“ ✕ volbu neukládá. Na iPhonu bez slova „vibrace“: „Zvuk je vypnutý.“</span>
 </div>
 <div class="karta">
 <h3>Srdíčko pro odstín RAL</h3>

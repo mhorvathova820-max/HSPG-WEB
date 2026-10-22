@@ -15,3 +15,6 @@ Revize a seznam dalších změn: `../../REVIZE-APEX-2026-10-22.md` (20 změn; S/
 
 ## v9 (22. 10. 2026)
 Zvuk a vibrace výchozí vypnuté s pozvánkou „Zapnout“ (R21) · „Přeskočit animaci → rovnou k ceně“ ve fázích 1–4 (stejná cena) · na obálce „otevřením nic neobjednáváte, orientační výpočet, ne nabídka“ (§ 1732/2 OZ) · záruka u cesty B bez čísla · bublina bez sklonu · dlaždice „IČO 09291881 · od roku 2020“ místo nedoložených čísel · Mikro: karta Pozvánka, políčko jen pro newsletter · řádek dopravy jednou větou.
+
+## v10 (22. 10. 2026, po kole 3 rady AI)
+Pozvánka: cíle 44 px, odpočet stojí při ukazateli/fokusu, stav po zapnutí · bublina „Zaměření z obrysu je hotové… zkontrolovat a upravit“ · „Přeskočit animaci → rovnou k orientační ceně“ · karta ceny „Orientační výpočet · není nabídka ani objednávka“ + „Ukázkový dům – tato čísla se na vaši adresu nepřenášejí“ · „Požádat o termín“ místo „Rezervovat termín“ · Mikro: popis pozvánky vč. iPhonu.

@@ -34,8 +34,8 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 .prepinac svg{width:18px;height:18px}
 .pozvanka{position:absolute;top:calc(100% + 10px);right:0;z-index:6;display:flex;align-items:center;gap:8px;max-width:320px;padding:8px 8px 8px 12px;border-radius:14px;border:1px solid rgba(212,175,55,.42);background:rgba(11,15,25,.97);box-shadow:0 18px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);font:500 12.5px/1.35 Manrope,sans-serif;color:#f4f1e8}
 .pozvanka::before{content:"";position:absolute;top:-6px;right:22px;width:10px;height:10px;transform:rotate(45deg);border-left:1px solid rgba(212,175,55,.42);border-top:1px solid rgba(212,175,55,.42);background:#0b0f19}
-.pozvanka .ano{min-height:32px;padding:0 12px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6e7a8 0%,#d4af37 42%,#9c7b16 100%);color:#17120a;font:700 12.5px Manrope,sans-serif;cursor:pointer}
-.pozvanka .ne{width:30px;height:30px;padding:0;border-radius:50%;border:1px solid rgba(244,241,232,.18);background:transparent;color:#a3a9b5;font:600 13px Manrope,sans-serif;cursor:pointer}
+.pozvanka .ano{min-height:44px;padding:0 16px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6e7a8 0%,#d4af37 42%,#9c7b16 100%);color:#17120a;font:700 12.5px Manrope,sans-serif;cursor:pointer}
+.pozvanka .ne{width:44px;height:44px;padding:0;border-radius:50%;border:1px solid rgba(244,241,232,.18);background:transparent;color:#a3a9b5;font:600 13px Manrope,sans-serif;cursor:pointer}
 @media (prefers-reduced-motion:no-preference){.pozvanka{animation:pozvanka .32s cubic-bezier(.2,.8,.2,1) both}@keyframes pozvanka{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}}
 .prepinac .zap{display:none}.prepinac[aria-pressed="true"] .zap{display:inline}.prepinac[aria-pressed="true"] .vyp{display:none}
 /* posádka */
@@ -197,7 +197,7 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 <button type="button" class="tl-zlate tep-tlacitko" onClick="{{zamerit}}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>Zaměřit na dálku</button>
 </sc-if>
 <sc-if value="{{jeBeh}}" hint-placeholder-val="{{false}}">
-<button type="button" class="tl-ghost" onClick="{{preskocit}}" style="min-height: 44px">Přeskočit animaci → rovnou k ceně</button>
+<button type="button" class="tl-ghost" onClick="{{preskocit}}" style="min-height: 44px">Přeskočit animaci → rovnou k orientační ceně</button>
 <button type="button" class="tl-zlate" disabled="disabled"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.2 2.2M16.2 16.2l2.2 2.2M5.6 18.4l2.2-2.2M16.2 7.8l2.2-2.2"/></svg>Holubi pracují…</button>
 </sc-if>
 <sc-if value="{{jeHotovo}}" hint-placeholder-val="{{false}}">
@@ -246,7 +246,7 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 
 <sc-if value="{{jeCena}}" hint-placeholder-val="{{false}}">
 <div class="sklo cena-karta" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; border-color: rgba(246,231,168,.45)">
-<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px"><span class="stitek">Orientační cena · jednorázově</span><span class="sedy" style="font-size: 12.5px">neplátce DPH · ukázka</span></div>
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px"><span class="stitek">Orientační výpočet · není nabídka ani objednávka</span><span class="sedy" style="font-size: 12.5px">neplátce DPH</span></div>
 <div class="cena-velka">{{cenaText}}</div>
 <div style="display: flex; flex-direction: column">
 <sc-for list="{{polozky}}" as="r" hint-placeholder-count="2">
@@ -257,9 +257,9 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 <div class="radek"><div><div class="n">Zaokrouhlení na desítky</div></div><div class="c">{{zaokrText}}</div></div>
 <div class="radek celkem"><div class="n">Celkem (orientačně)</div><div class="c">{{celkemText}}</div></div>
 </div>
-<p class="sedy" style="margin: 0; font-size: 12.5px; line-height: 1.5">Orientační výpočet z ceníku, ne nabídka. Přesnou cenu potvrdíme po ověření rozsahu na místě. {{zalohaText}}</p>
+<p class="sedy" style="margin: 0; font-size: 12.5px; line-height: 1.5">Ukázkový dům – tato čísla se na vaši adresu nepřenášejí. Orientační výpočet z ceníku, ne nabídka. Přesnou cenu potvrdíme po ověření rozsahu na místě. {{zalohaText}}</p>
 <p class="sedy" style="margin: 0; font-size: 12.5px; line-height: 1.5">{{zarukaText}}</p>
-<div style="display: flex; gap: 10px; flex-wrap: wrap"><button type="button" class="tl-zlate" style="min-height: 48px; padding: 0 20px; font-size: 14px" onClick="{{stahnout}}">Stáhnout kalkulaci (PDF)</button><a href="#termin" class="tl-ghost">Rezervovat termín</a></div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap"><button type="button" class="tl-zlate" style="min-height: 48px; padding: 0 20px; font-size: 14px" onClick="{{stahnout}}">Stáhnout kalkulaci (PDF)</button><a href="#termin" class="tl-ghost">Požádat o termín</a></div>
 </div>
 </sc-if>
 </div>
@@ -345,7 +345,7 @@ a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
 <g class="holub h-overuje {{letO}}"><g transform="scale(-.58,.58)"><use class="p1" href="#h-nahoru" x="-60" y="-78" width="110" height="112"/><use class="p2" href="#h-stred" x="-60" y="-78" width="110" height="112"/><use class="p3" href="#h-dolu" x="-60" y="-78" width="110" height="112"/></g></g>
 <g class="holub h-komunikuje {{letK}}"><g transform="scale(-.62,.62)"><use class="p1" href="#h-nahoru" x="-60" y="-78" width="110" height="112"/><use class="p2" href="#h-stred" x="-60" y="-78" width="110" height="112"/><use class="p3" href="#h-dolu" x="-60" y="-78" width="110" height="112"/></g></g>
 </svg>
-<div class="bublina" aria-hidden="true"><b>Holub Komunikuje</b>Hotovo: střecha ≈ 190 m², fasáda ≈ 340 m² – odhad z obrysu. Předávám do kalkulace, vyberte cestu ochrany.</div>
+<div class="bublina" aria-hidden="true"><b>Holub Komunikuje</b>Zaměření z obrysu je hotové. Odhad pro váš dům: střecha ≈ 190 m², fasáda ≈ 340 m². Údaje předávám do kalkulace, kde si je můžete zkontrolovat a upravit.</div>
 <span class="stitek" style="position: absolute; right: 22px; bottom: 16px; color: #a3a9b5; letter-spacing: .16em">Ilustrační model · ukázka</span>
 </div>
 

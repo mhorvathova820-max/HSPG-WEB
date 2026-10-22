@@ -30,3 +30,6 @@
 - [ ] Porovnání: 11. kontrola za hodinu z jedné IP → 429; text nabídky se neukládá ani neloguje.
 - [ ] **Před produkcí:** majitel jednou větou potvrdil ceník od 1. 10. 2026 (citace v hlášení) – jinak v `content/cenik-potvrzeni.json` smaž `datum` (ceny, sazby ani slevy se pak neukážou).
 - [ ] Hlášení se snímky (desktop + mobil: plaketa, panel, obálka, výsledek, PDF) a stop.
+
+## Doplněk 22. 10. 2026 (rada AI, kolo 3 – GPT Astra)
+Při příštím přepracování obálky použít nativní `<details class="hs-obalka">` se `<summary>` jako pečetí: funguje bez JavaScriptu (Enter/mezerník), pečeť ze dvou polovin (`clip-path`) s prasknutím 360 ms a klopou `rotateX(180deg)`; pečeť tepe nejvýš 2×; věta „Otevřením nic neobjednáváte. Jde o orientační výpočet.“ je součástí `<summary>` (vidět před otevřením – § 1732 odst. 2 OZ); přeskočení = `open = true` + třída `is-bez-pohybu` nad **týmž** výsledkem (žádný druhý výpočet). Kontrolní body: neutrální obrys, fajfka (stroke-dashoffset) až po skutečné kontrole, popisek „Kontrolní body obrysu“, nikdy „certifikát“. Celý návrh je v `RADA-VYSLEDKY-DOKONALOST-2026-10-22.md` (odkaz na odpověď v místnosti OpenRouter).

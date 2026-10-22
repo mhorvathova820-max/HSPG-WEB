@@ -83,7 +83,7 @@
     "n3": {
       "x": 0,
       "y": 2020,
-      "text": "v9 (22. 10. 2026): zvuk a vibrace výchozí vypnuté s pozvánkou „Zapnout“ · „Přeskočit animaci → rovnou k ceně“ · „otevřením nic neobjednáváte“ už na obálce · záruka u cesty B bez čísla · dlaždice IČO/od 2020 místo nedoložených čísel",
+      "text": "v10 (22. 10. 2026, po kole 3 rady AI): zvuk a vibrace výchozí vypnuté s pozvánkou „Zapnout“ (cíle 44 px, odpočet stojí při fokusu) · „Přeskočit animaci → rovnou k orientační ceně“ · „otevřením nic neobjednáváte“ už na obálce · karta ceny „není nabídka ani objednávka“ + „ukázkový dům – čísla se na vaši adresu nepřenášejí“ · záruka u cesty B bez čísla · bublina bez sklonu · „Požádat o termín“",
       "kind": "title1",
       "maxW": 2960,
       "size": "l"

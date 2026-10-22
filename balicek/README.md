@@ -12,6 +12,7 @@
 | [ZADANI-CLAUDE-DESIGN-HOLUB360.md](ZADANI-CLAUDE-DESIGN-HOLUB360.md) | **prompt pro Claude Design** – vzhled stránky HOLUB 360 a postup exportu do `navrhy/` |
 | [RADA-AI-2026-10-22.md](RADA-AI-2026-10-22.md) | závěry rady 5 AI (OpenRouter) k ceně, smlouvě, záruce a textům; co čeká na majitele |
 | [RADA-VYSLEDKY-VIZUAL-2026-10-22.md](RADA-VYSLEDKY-VIZUAL-2026-10-22.md) | kolo 2 rady AI (vizuál, cesta zákazníka, kritika, komponenty, texty): co je přijaté a kde, co odmítnuté a proč |
+| [RADA-VYSLEDKY-DOKONALOST-2026-10-22.md](RADA-VYSLEDKY-DOKONALOST-2026-10-22.md) | kolo 3 rady AI (pozvánka na zvuk, úložiště, choreografie, pečeť, texty): zapracováno v `hspg-zazitek.js` 1.2.0 a prototypu v10 |
 | [RADA-ZADANI-2026-10-22.md](RADA-ZADANI-2026-10-22.md) | zadání, které se vkládá do pole OpenRouter Chat (rada 5 AI) – vzor pro další kola |
 | [AGENTI-OPENROUTER.md](AGENTI-OPENROUTER.md) | role modelů, nulové uchovávání dat (ZDR), pseudonymizace, rada AI z terminálu |
 | `sablony/github/` | šablony pro spolupráci Claude Code + GitHub Copilot ve webHSPGH (úkol 53) |
@@ -60,7 +61,7 @@
 ```
 npm install
 npm test                                                      # 200 jednotkových testů
-HSPG_MIRROR=/cesta/k/webu CHROMIUM=/cesta/k/chromium npm run test:e2e   # 94 testů v prohlížeči (bez HSPG_MIRROR na zástupných stránkách testy/fixtures/web)
+HSPG_MIRROR=/cesta/k/webu CHROMIUM=/cesta/k/chromium npm run test:e2e   # 102 testů v prohlížeči (bez HSPG_MIRROR na zástupných stránkách testy/fixtures/web)
 HSPG_MIRROR=/cesta/k/webu node balicek/testy/server.mjs       # ruční prohlížení na http://127.0.0.1:8787
 ```
 Testy nevolají žádnou skutečnou AI a nic neodesílají ven. `HSPG_MIRROR` = složka webHSPGH nebo kopie živého webu (`wget --mirror https://hspg.cz`).
