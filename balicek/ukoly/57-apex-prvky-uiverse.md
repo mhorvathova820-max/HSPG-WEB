@@ -71,6 +71,9 @@ Pravidla, která sada dodržuje a která při nasazení nesmíš porušit:
 9. Náhled zdarma (`node scripts/nasadit.mjs` bez parametrů), snímky (desktop + 390 px: tlačítka, přepínač v H-BOTovi,
    segment v „Cena hned“, srdce u vzorníku, kóty s vysvětlivkou, pole adresy, karta ceny), hlášení.
 
+## Jeden holub pro celý web (revize 22. 10. 2026, položka L)
+Tvary zlatého origami holuba jsou v jednom souboru `assets/hspg-holub.svg` (symboly `#h-nahoru`, `#h-stred`, `#h-dolu`, `#h-klid`, viewBox `-60 -78 110 112`) – stejné jako v prototypu Apex (`navrhy/apex-design/Main.dc.html`). Kde je holub **statický** (pečeť obálky v kalkulaci, malé hejno u obálky, ikony dlaždic, hlavička HOLUB 360), použij `<svg viewBox="-60 -78 110 112" aria-hidden="true"><use href="/assets/hspg-holub.svg#h-klid"/></svg>` místo vlastního `HOLUB_SVG` v `hbot.js` / `hbot-nabidka.js`; animovaný holub plakety zůstává na plátně (`hbot.js`, `Z.holub.kresli`) a hejno HOLUB 360 na plátně (`holub360-hejno.js`) – obojí má stejné proporce. Pečeť je CSS (`.hn-pecet`, `.pecet` v prototypu) s holubem uvnitř – jeden vzhled: zlatý radiální přechod, reliéf, puls jen do rozlomení. Soubor nesmí jít přes CDN; `<use>` s absolutní cestou funguje ze stejného původu (CSP `img-src 'self'`).
+
 ## Akceptace
 - [ ] `npm test` (vč. `apex-prvky`) a `npm run test:e2e` (vč. `apex-prvky` + všechny dotčené e2e) zelené;
       `node scripts/build-hbot.mjs --kontrola` OK.

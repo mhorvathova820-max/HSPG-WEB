@@ -21,8 +21,11 @@ Jedna stránka: co je hotové, kdo co dělá a v jakém pořadí, co zbývá na 
 | **Štít obsahu** (úkol 54) | `web/.well-known/tdmrep.json`, šablony meta/patička/robots pro AI boty v `sablony/stit/`, postup proti kopiím; ochranné známky podává majitel (podklady v souboru „HSPG – dokumenty k odeslání“) |
 | **Opravy živého webu** (úkol 55) | audit Claude v Chrome 22. 10. (`AUDIT-WEB-2026-10-22.md`, 96 nálezů): embargo slov, záruka, tarify, 5 kroků, jedna cesta „Cena hned“, mobil |
 | **Puls, rozcestník, zvuk a haptika, hejno** (úkol 56) | plaketa pulzuje v dávkách a nabízí celý web (8 dlaždic z `content/hbot-rozcestnik.json`), `hspg-zazitek.js` (syntéza zvuku + vibrace, vypínač „Zvuk a vibrace“), hejno 4 holubů při zaměření v HOLUB 360 (`holub360-hejno.js`) |
-| **Prototyp v Claude Design** | projekt „HSPG Apex – kompletní návrh“ (5 desek: zaměření s hejnem a pečetí, pulzující plaketa + rozcestník, Cena hned 01–05, mobil 390, mikrointerakce) – vzor pro úkoly 48, 49, 56 |
-| Zadání pro agenta ve VS Code | úkoly 00–27 a 48–56 v `ukoly/` |
+| **Prototyp v Claude Design** | projekt „HSPG Apex – kompletní návrh“ v9 (5 desek: zaměření s hejnem a pečetí, pulzující plaketa + rozcestník, Cena hned 01–05, mobil 390, mikrointerakce; zdroje v `navrhy/apex-design/`) – vzor pro úkoly 48, 49, 56 |
+| **Rada AI, kolo 2** | `RADA-VYSLEDKY-VIZUAL-2026-10-22.md` – co je přijaté (a kde), co odmítnuté; z toho úkol 58 (jedna cesta zákazníka, HOLUB Partner, obrazovka „Dnes“) |
+| **Rozhodnutí svěřená agentovi** (R21, 22. 10.) | zvuk a vibrace výchozí vypnuté s pozvánkou „Zapnout“; formuláře bez políčka souhlasu (čl. 6/1/b GDPR); minimum 4 900 Kč = celková cena vč. dopravy; záruka u cesty B bez čísla; `/nase-prace/` bez „přesně 76 %“; dodavatel FHB neoslovovat |
+| **Dodavatelé bez zastoupení v ČR** | `DODAVATELE-2026-10-22.md` + CSV: 14 e-mailů odesláno 22. 10., 12 jde 23. 10. 09:00 (naplánováno), 2 vyřazeni; texty a tabulka „Odesláno“ v dokumentu „HSPG – dokumenty k odeslání“; odpovědi třídit do štítků Gmailu `HSPG Dodavatelé/…` |
+| Zadání pro agenta ve VS Code | úkoly 00–27 a 48–58 v `ukoly/` |
 | Zadání pro Claude Design | `ZADANI-CLAUDE-DESIGN-HOLUB360.md` (vzhled HOLUB 360) |
 | Zadání pro Claude v Chrome | `ZADANI-CHROME.md` (C1–C14) |
 | Zadání pro Claude Pro | `ZADANI-CLAUDE-PRO.md` (P1–P7) |
@@ -61,6 +64,10 @@ Pořadí úkolů agenta: **00 → 20 → 01 → 02 → 21 → 22 → 23 → 24 �
 - [ ] Doložit, nebo zmírnit tvrzení o měděném hřebenovém prvku (biocidy, EU 528/2012); ochranné známky podle `RADA-AI-2026-10-22.md` (rešerše ÚPV/TMview před podáním).
 - [ ] Claude Design: vložit prompt ze `ZADANI-CLAUDE-DESIGN-HOLUB360.md`, export nahrát do `balicek/navrhy/` (postup v souboru).
 - [ ] GitHub: zapnout Copilot coding agent pro repozitář webu (úkol 53).
+- [ ] Claude Console: vytvořit klíč `hspg-netlify` (workspace „HSPG web“, limit 25 USD/měsíc) a vložit **sami** do Netlify jako `HSPG_KLIC_ANTHROPIC` (`CONSOLE-TEST-HBOT-2026-10-22.md`).
+- [ ] Ochranné známky (ÚPV): podání podle podkladů v dokumentu „HSPG – dokumenty k odeslání“ (úkol 54) – podává majitel.
+- [ ] Dodavatelé: číst odpovědi v Gmailu (štítky `HSPG Dodavatelé/…`), schvalovat navržené odpovědi; los `/akce/` – zrušit, nebo dodat úplné podmínky (R11, rada AI).
+- [ ] `/nase-prace/`: k číslům 2 000+ / 450+ / 489 / 36 uchovat evidenci zakázek (doložitelnost tvrzení); počet členů skupiny na Facebooku se uvede z veřejné stránky skupiny v den nasazení (úkol 55).
 
 **Rozhodnutí (Claude Pro, úkol P1)**
 - [ ] Doba uchování poptávek, newsletter Holubí pošta, stav technologií HYDRA / MAST / RAIL / SCAN / SENTINEL, pojištění, doklady H-BIO, slib reakční doby, tvrzení z Facebooku („25 let zkušeností“, „Technologie z Velké Británie“).
