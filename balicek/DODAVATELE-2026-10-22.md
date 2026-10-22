@@ -10,6 +10,8 @@ Stav ověření: 22. 10. 2026. Rešerše bez jakéhokoli kontaktu s firmami.
 
 **Souhrn:** 28 ověřených firem s veřejným e-mailem, 8 firem jen s formulářem, 7 k ověření (mimo CSV).
 
+**Stav oslovení (22. 10. 2026):** 1. dávka – 14 e-mailů odesláno 22. 10. 2026 z Gmailu majitele (č. 1–3, 5–15: Faber, Safeguard, STAIN-PROOF, Azichem, Diasen, Isaval, Durostick, Bradite, Copernit, Barbot, Algimouss, V-TUF, Restorative Techniques, Larius), štítek „HSPG Dodavatelé/1 Odesláno“. 2. dávka – 12 e-mailů (č. 16–21, 23–28) naplánována na 23. 10. 2026 09:00. **Neoslovovat:** č. 4 Nanotol (kontaktován už 27. 9. 2026 jako cenano.de) a č. 22 FHB (rozhodnuto 22. 10. 2026, R21: prodává i přes české e-shopy – hraniční vůči kritériu „bez zastoupení v ČR“). Follow-up bez odpovědi: 29. 10. a 5. 11. 2026. Texty e-mailů a tabulka „Odesláno“: dokument „HSPG – dokumenty k odeslání“.
+
 ## 1 Impregnace / hydrofobizace / nano ochrana
 
 | # | Firma (země) | Co nabízí | E-mail | Telefon | Jazyk |
@@ -250,7 +252,7 @@ Stav ověření: 22. 10. 2026. Rešerše bez jakéhokoli kontaktu s firmami.
 - Proč HSPG: Odolné pracovní oděvy pro pokrývače a řemeslníky – vybavení týmu HSPG i aplikátorské sítě.
 - Osobní věta: *Na webu nabízíte pracovní oděvy pro řemeslníky a možnost stát se vaším obchodním partnerem („Händler werden“).*
 - Ověření „bez ČR“: zbozi.cz „FHB Zunftbekleidung“ – 0. Vyhledávač prodejců na webu (dynamický) – ČR neuvedena. Hledání „FHB pracovní oblečení pokrývač tesař Česko prodejce“ – jen pan-EU e-shop tooler.eu.
-- Poznámka: FHB prodává i přes pan-EU e-shop třetí strany tooler.eu – oficiální CZ partner nenalezen.
+- Poznámka: FHB prodává i přes pan-EU e-shop třetí strany tooler.eu – oficiální CZ partner nenalezen. **Rozhodnutí 22. 10. 2026: neoslovovat** (hraniční; majitel rozhodnutí svěřil agentovi, R21).
 
 **23. Ets Guy Cotten SAS (Francie, Trégunc)**
 - Zdroj e-mailu: https://www.guycotten.com/fr/contactez-nous
