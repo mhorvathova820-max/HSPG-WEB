@@ -14,7 +14,17 @@ Zákazník tak vidí jiný postup a jiné tarify než v kalkulaci, PDF a smlouv�
 3. **Úvodní stránka:** sekce postupu = 5 kroků z `standard.kroky` (build-hbot generuje `assets/hspg-cenik.json`; text brát odtud, ne natvrdo); věta „Pět kroků ochrany povrchu, které nezkracujeme. Samotné čištění končí krokem 04.“; tarify ze `sentinel.tarify` (BASE/PLUS/PRESTIGE, ceny, body) a podmínka záruky `sentinel.podminka_zaruky`. Všechny výskyty „START“, „PREMIUM“ u tarifů odstranit; stránka `/cenik.html#sentinel` totéž.
 4. **Texty u záruky:** všude „Záruka 10 let na impregnaci H-STONE při péči SENTINEL BASE“ – nikde bez podmínky (úkol 05 je zdroj pravdy).
 5. Výsledek kalkulace nikde nenazývat „nabídka“ – „orientační cena“ / „orientační kalkulace“ (R15).
-6. Doplnit nálezy z auditu Claude v Chrome (`balicek/AUDIT-WEB-2026-10-22.md`, až bude): odkazy, kontrast, konzole, mobil 375 px, SEO – každý nález jako položka s přesným textem a selektorem; opravit v tomtéž úkolu, pokud je to text/CSS; kód a výkon → úkol 07/16.
+6. **Audit Claude v Chrome 22. 10.** (`balicek/AUDIT-WEB-2026-10-22.md`, surová data `balicek/audit/nalezy-2026-10-22.json`: 96 nálezů, 30 vysoká) – projít všech 15 položek „Top 15“ a tabulky po stránkách; v tomto úkolu opravit vše, co je text, data (`content/*.json`) nebo CSS; výkon a kód → úkoly 07/16. Zejména:
+   - embargo slov i v šabloně 231 okresních stránek, v H-BOTovi (`assets/hbot-znalosti.json` + JSON-LD FAQPage), na `/cena-ihned/`, `/kalkulace-online` a `/en`; klíčové slovo Messengeru „SATELIT“ → „ZAMĚŘENÍ“ (i v automatické odpovědi na Facebooku – udělá majitel);
+   - záruka: `content/firma.json → zaruka` má starou podmínku (kontrola 1× za 24 měsíců, START zdarma) → nová věta z `sentinel.podminka_zaruky`; odznaky „10 let záruka“ bez podmínky doplnit; `/zaruka/` doplnit „Zákonná práva z vadného plnění tím nejsou dotčena.“;
+   - tarify v `assets/ceny.js` (START 0 / PLUS 2 490 / PREMIUM 4 490) → z `content/sentinel.json`;
+   - Standard HOLUB: úvod a H-BOT 4 kroky, `/nase-prace/` 6 kroků, ceník bez oplachu → všude 5 kroků z jádra; značku biocidu H-BIO zákazníkům neuvádět (úkol 13);
+   - `/nase-prace/`: čísla 2 000+ ČR · 450+ Anglie · 489 Německo · 36 Polsko · 4 000+ řemeslníků **majitel potvrdil jako ověřená (10/2026) – nechat**; „přesně 76 %“ a rozpor „4 000+ řemeslníků“ × patička „96 tisíc členů“ → `[DOPLNIT: majitel]`;
+   - „®“ u H-STONE a CopperGuard jen po zápisu známky (úkol 54); tvrzení o účinku mědi a „garantováno“ / „Garantovaný certifikát“ přeformulovat podle auditu;
+   - tři různé cesty „Cena ihned“ (tlačítka „Chci cenu“/„CHCI NABÍDKU“ → soutěž `/akce/`; `/kalkulace-online` v cizím iframe; `/cena-ihned/` slibuje ihned, ale „do 24 hodin“) → jedna cesta: panel Cena hned z jádra, jeden název tlačítka;
+   - mobil 375 px: `input#rz-adresa` přetéká (`box-sizing:border-box;width:100%`), `/cena-ihned/` překryv textu a H1 pod lištou; desktop do ~1100 px: SPOT a plaketa zakrývají text (padding-left obsahu nebo přesun);
+   - patička: „Vstup pro majitele“ → „Administrace“ nebo skrýt; písmo ≥ 12 px; kontrast šipek `/nase-prace/` a hvězd `/recenze/` ≥ 3 : 1; cíle v akční liště ≥ 24 px;
+   - `/holub-360/`, `/standard-holub/`, `/pas-domu/trezor.html` zatím 404 – nasadit v úkolech 49/50/51.
 
 ## Akceptace
 - [ ] `git grep` z bodu 1 nenajde nic v textech pro zákazníky; `node scripts/build-hbot.mjs --kontrola` prošel (kontrola embarga).
