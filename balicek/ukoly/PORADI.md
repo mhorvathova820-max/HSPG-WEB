@@ -1,7 +1,9 @@
 # Pořadí úkolů
 
 **Pořadí provádění (agent ve VS Code jde přesně takto):**
-00 → 20 → 01 → 02 → 21 → 22 → 23 → 24 → 25 → 27 → 26 → 17 → 03 → 04 → 05 → 13 → 09 → 06 → 07 → 08 → 16 → 10 → 11 → 18 → 19 → 15 → 14 → 12
+00 → 20 → 01 → 02 → 21 → 22 → 23 → 24 → 25 → 27 → **50 → 48 → 52 → 49** → 26 → 17 → 03 → 04 → 05 → 13 → 09 → 06 → 07 → 08 → 16 → 10 → 11 → 18 → 19 → **53** → 15 → 14 → **51** → 12
+
+**Úkoly 48–53 (rozhodnutí majitele 22. 10. 2026, R15–R19; čísla 28–47 nejsou obsazená):** pokud už jsi v pořadí za úkolem 27, udělej hned jako další **50 → 48 → 52 → 49** (48 a 52 nasaď ve stejné dávce – kalkulace volá `/api/konkurence`), pak pokračuj tam, kde jsi skončil. **53** až po 19 (CI), **51** až po 14 (přístupové kódy pasů). Kód je v balíčku na větvi `claude/apex-48-53` (obsahuje i vše z `claude/peaceful-johnson-juqa6w`). Závěry rady AI k textům a smlouvě: `balicek/RADA-AI-2026-10-22.md`.
 
 Důvod: nejdřív bezpečí a záloha (00), malé ověření webu v Seznamu a Bingu (20 – soubory jedou s nejbližším schváleným nasazením), asistent (01), poptávky (02), plánovač s počasím a rychlou rezervací (21 – zároveň odstraňuje licenční riziko stávajícího počasí z Open-Meteo) a chyba, kvůli které se návštěvník nedostane k formuláři (17), pak právní a pravdivostní rizika (03–05, 13, 09), pak technika a kvalita (06–08, 16, 10, 11, 18, 19, 15) a nakonec věci čekající na data (14, 12).
 
@@ -38,3 +40,9 @@ zbývajících oblastí auditu se může zpřesnit (před každým úkolem `git 
 | 25 | [Konzole v9 za „Vše ve tvých rukách“ a H-BOT v3 pro zákazníky (části a–d)](25-konzole-v9-hbot-v3.md) | P1 | 01, 21, 22 A, 23, 24 (nahrazuje 22 B) | export z Claude Design do `balicek/navrhy/`, potvrzení ceníku, podmínky kuponu, technický list H-STONE, klíče v Netlify, zapnutí Perplexity, druhý faktor přihlášení |
 | 26 | [Mapa příležitostí: střechy a fasády obce/ulice, riziko mechu, letáky a sousedské kupony](26-mapa-prilezitosti.md) | P2 | 21, 23, 25 | potvrzení ceníku, souhlas zákazníka se zmínkou o zakázce na letáku |
 | 27 | [Okamžitá cena z adresy: sken domu z H-BOT v3, cena do 24 h, plánovač a kupon (navazuje na 25 d)](27-cena-z-adresy.md) | P2 | 02, 09, 21, 23, 25 d | potvrzení ceníku (`content/cenik-potvrzeni.json`), slib „cena do 24 hodin“ |
+| 48 | [H-BOT v5: zlatý holub, „Cena hned“, PDF kalkulace, NÁVRH smlouvy o dílo, porovnání nabídek](48-hbot-v5-cena-hned.md) | P1 | 01, 50, 52 (stejná dávka) | advokát (smlouva, podmínky), lhůta 60 dnů, 12 Kč/km za jednu cestu, doklad k měděnému prvku |
+| 49 | [HOLUB 360 (`/holub-360/`) a technologické okno v plánovači (R17)](49-holub-360.md) | P1 | 21, 50, 48, 27 (měření; bez něj ruční plochy) | jedna cena vs. pásmo, slib „do 24 hodin“, podmínky slevy 10 %, export z Claude Design |
+| 50 | [Cenové jádro, Standard HOLUB, péče SENTINEL a stránka `/standard-holub/`](50-cenove-jadro-standard.md) | P1 | 00 (05 a 08 ideálně dřív, ne nutně) | – |
+| 51 | [Pas domu – trezor](51-pas-domu-trezor.md) | P2 | 14, 50 | přístupové kódy k pasům, TEST pas |
+| 52 | [Rada AI přes OpenRouter, pseudonymizace, `/api/konkurence`](52-rada-ai-openrouter.md) | P1 | 01, 22 | `HSPG_KLIC_OPENROUTER` v Netlify, kredit OpenRouter |
+| 53 | [Spolupráce agentů: Claude Code + GitHub Copilot (AGENTS.md, issue, PR, CI), rada AI z terminálu](53-spoluprace-agentu.md) | P1 | 00, 19, 52 | zapnout Copilot coding agent, GitHub Pro (ochrana větve) |
