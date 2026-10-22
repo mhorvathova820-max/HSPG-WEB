@@ -1,0 +1,20 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-22T04:06:00Z" },
+  "title": "HSPG Apex – kompletní návrh",
+  "launch": { "view": "focused", "file": "Main.dc.html" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1440, "h": 1000, "title": "HOLUB 360 · Zaměření na dálku (hejno 4 holubů → pečeť → cena)", "is_interactive": true, "radius": 24 },
+    "Tlacitko.dc.html": { "x": 1520, "y": 0, "w": 1440, "h": 1000, "title": "Pulzující tlačítko · celý web na jednom místě", "is_interactive": true, "radius": 24 },
+    "CenaHned.dc.html": { "x": 0, "y": 1120, "w": 1440, "h": 1000, "title": "Cena hned · celý postup 01–05", "is_interactive": true, "radius": 24 },
+    "Mobil.dc.html": { "x": 1520, "y": 1120, "w": 390, "h": 844, "title": "Mobil 390 · zaměření a cena", "is_interactive": true, "radius": 40 },
+    "Mikro.dc.html": { "x": 1990, "y": 1120, "w": 970, "h": 844, "title": "Mikrointerakce · zvuk · haptika", "is_interactive": true, "radius": 24 }
+  },
+  "order": ["Main.dc.html", "Tlacitko.dc.html", "CenaHned.dc.html", "Mobil.dc.html", "Mikro.dc.html"],
+  "notes": {
+    "n1": { "x": 0, "y": -300, "text": "HSPG Apex · zaměření na dálku, pečeť, orientační cena a celý web v jednom tlačítku", "kind": "title1", "maxW": 2960 },
+    "n2": { "x": 0, "y": 1050, "text": "Řada 2: Cena hned (celý Standard HOLUB), mobil 390 px a mikrointerakce se zvukem a haptikou", "kind": "title1", "maxW": 2960, "size": "l" }
+  },
+  "designSystems": []
+}

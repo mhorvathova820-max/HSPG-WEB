@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<title>Pulzující plaketa H-BOT – celý web na jednom místě</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+:root{--apex-cern-0:#05070f;--apex-cern-1:#0b0f19;--apex-zlato:#d4af37;--apex-zlato-svetle:#f6e7a8;--apex-zlato-tmave:#8a6a12;--apex-na-zlate:#17120a;--apex-tlumene:#b9b3a4;--apex-text:#f4f1e8;--apex-linka:rgba(212,175,55,.22);--apex-linka-silna:rgba(212,175,55,.45);--apex-zaobleni:22px;--apex-krivka:cubic-bezier(.2,.8,.2,1)}
+body{margin:0;background:var(--apex-cern-0,#05070f)}
+a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
+.apex{position:relative;overflow:hidden;background:var(--apex-cern-0,#05070f);color:var(--apex-text,#f4f1e8);font-family:Manrope,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.apex *{box-sizing:border-box}
+.apex h1,.apex h2,.apex h3,.apex .pf{font-family:"Playfair Display",Georgia,"Times New Roman",serif;font-variant-numeric:lining-nums;margin:0;font-weight:600}
+.zare{position:absolute;inset:0;pointer-events:none;background:radial-gradient(900px 560px at 68% 30%,rgba(212,175,55,.12),transparent 62%),radial-gradient(520px 380px at 10% 95%,rgba(212,175,55,.1),transparent 60%)}
+.stitek{font:800 11px/1 Manrope,sans-serif;letter-spacing:.26em;text-transform:uppercase;color:var(--apex-zlato,#d4af37)}
+.sedy{color:var(--apex-tlumene,#b9b3a4)}
+.nav a{font:700 14px Manrope,sans-serif;color:#d9d3c3;text-decoration:none;padding:14px 4px}
+.nav a:hover{color:var(--apex-zlato-svetle,#f6e7a8)}
+.tl-zlate{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 26px;border:0;border-radius:999px;background:linear-gradient(135deg,var(--apex-zlato-svetle,#f6e7a8) 0%,var(--apex-zlato,#d4af37) 42%,#9c7b16 100%);color:var(--apex-na-zlate,#17120a);font:800 15px Manrope,sans-serif;cursor:pointer;text-decoration:none;box-shadow:0 14px 34px -12px rgba(212,175,55,.6),inset 0 1px 0 rgba(255,255,255,.6);transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .3s}
+.tl-zlate:hover{transform:translateY(-1px)}
+.tl-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 24px;border-radius:999px;border:1px solid rgba(212,175,55,.5);background:transparent;color:var(--apex-zlato-svetle,#f6e7a8);font:700 15px Manrope,sans-serif;text-decoration:none;cursor:pointer}
+.tl-ghost:hover{border-color:var(--apex-zlato-svetle,#f6e7a8);background:rgba(212,175,55,.08)}
+.cislo{display:flex;flex-direction:column;gap:4px;padding:14px 18px;border-radius:16px;border:1px solid rgba(212,175,55,.18);background:rgba(11,15,25,.6)}
+.cislo b{font:600 26px/1 "Playfair Display",Georgia,serif;font-variant-numeric:lining-nums;color:var(--apex-zlato-svetle,#f6e7a8)}
+.cislo span{font:600 12px Manrope,sans-serif;color:var(--apex-tlumene,#b9b3a4)}
+/* plaketa */
+.plaketa{position:absolute;left:28px;bottom:28px;z-index:5;display:flex;align-items:center;gap:6px;min-height:62px;padding:6px 18px 6px 6px;border-radius:18px;border:1px solid rgba(212,175,55,.42);background:linear-gradient(180deg,rgba(17,24,39,.82),rgba(5,7,15,.95));-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);color:var(--apex-text,#f4f1e8);cursor:pointer;isolation:isolate;box-shadow:0 22px 48px -16px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.08);transition:box-shadow .35s,border-color .35s,transform .25s cubic-bezier(.2,.8,.2,1)}
+.plaketa:hover,.plaketa:focus-visible{border-color:rgba(246,231,168,.7);box-shadow:0 0 0 1px rgba(212,175,55,.25),0 0 30px rgba(212,175,55,.28),0 22px 48px -16px rgba(0,0,0,.9);transform:translateY(-1px)}
+.plaketa:focus-visible{outline:2px solid var(--apex-zlato-svetle,#f6e7a8);outline-offset:3px}
+.plaketa .znak{width:64px;height:48px;display:block}
+.plaketa .text{display:flex;flex-direction:column;align-items:flex-start;gap:4px;font:600 15px/1.2 "Playfair Display",Georgia,serif;white-space:nowrap}
+.plaketa .text small{font:800 11px/1 Manrope,sans-serif;letter-spacing:.26em;text-transform:uppercase;color:var(--apex-zlato,#d4af37);transition:color .3s}
+.plaketa.puls .text small{color:var(--apex-zlato-svetle,#f6e7a8)}
+.kruh{position:absolute;inset:-2px;border-radius:inherit;border:1.5px solid rgba(246,231,168,.9);opacity:0;pointer-events:none;z-index:-1}
+@media (prefers-reduced-motion:no-preference){
+ .plaketa.puls .kruh{animation:kruh 1.5s cubic-bezier(.2,.6,.3,1) 3}
+ .plaketa.puls .kruh.k2{animation-delay:.45s}
+ .plaketa.puls .znak{animation:poskok 1.5s ease-in-out 3}
+ .panel{animation:vyjed .45s cubic-bezier(.2,.8,.2,1) both}
+ .dlazdice{animation:objev .5s cubic-bezier(.2,.8,.2,1) both}
+ .d1{animation-delay:.06s}.d2{animation-delay:.12s}.d3{animation-delay:.18s}.d4{animation-delay:.24s}.d5{animation-delay:.3s}.d6{animation-delay:.36s}.d7{animation-delay:.42s}
+ .plaketa:hover .kruh,.plaketa:focus-visible .kruh{animation:none}
+}
+@keyframes kruh{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(1.55)}}
+@keyframes poskok{0%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+@keyframes vyjed{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes objev{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* panel */
+.panel{position:absolute;left:28px;bottom:104px;z-index:6;width:448px;display:flex;flex-direction:column;border-radius:22px;border:1px solid rgba(212,175,55,.3);background:linear-gradient(180deg,rgba(17,24,39,.86),rgba(5,7,15,.96));-webkit-backdrop-filter:blur(22px) saturate(1.3);backdrop-filter:blur(22px) saturate(1.3);box-shadow:0 40px 80px -30px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);overflow:hidden}
+.hlava{display:flex;align-items:center;gap:12px;padding:14px 14px 12px 16px;border-bottom:1px solid rgba(212,175,55,.18)}
+.hlava .znak{width:52px;height:40px}
+.hlava h2{font-size:18px;color:var(--apex-zlato-svetle,#f6e7a8);letter-spacing:.02em}
+.hlava p{margin:0;font:500 12px Manrope,sans-serif;color:var(--apex-tlumene,#b9b3a4)}
+.ai{display:inline-flex;align-items:center;padding:6px 9px;border-radius:999px;border:1px solid rgba(212,175,55,.3);font:800 11px/1 Manrope,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--apex-zlato,#d4af37);white-space:nowrap}
+.ikona-tl{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid rgba(212,175,55,.3);background:rgba(11,15,25,.7);color:var(--apex-text,#f4f1e8);cursor:pointer}
+.ikona-tl svg{width:18px;height:18px}
+.ikona-tl[aria-pressed="true"]{border-color:var(--apex-zlato-svetle,#f6e7a8);color:var(--apex-zlato-svetle,#f6e7a8);box-shadow:0 0 18px rgba(212,175,55,.3)}
+.ikona-tl .zap{display:none}.ikona-tl[aria-pressed="true"] .zap{display:inline}.ikona-tl[aria-pressed="true"] .vyp{display:none}
+.ikona-tl:focus-visible,.dlazdice:focus-visible,.cip:focus-visible,.pole:focus-within,.poslat:focus-visible{outline:2px solid var(--apex-zlato-svetle,#f6e7a8);outline-offset:2px}
+.bublina{align-self:flex-start;max-width:92%;padding:12px 14px;border-radius:4px 16px 16px 16px;background:rgba(31,41,55,.7);border:1px solid rgba(212,175,55,.18);font:500 14px/1.45 Manrope,sans-serif}
+.dlazdice{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 12px;border-radius:16px;border:1px solid rgba(212,175,55,.2);background:rgba(11,15,25,.62);color:var(--apex-text,#f4f1e8);text-decoration:none;cursor:pointer;text-align:left;transition:transform .25s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .25s,background .25s}
+.dlazdice:hover{transform:translateY(-2px);border-color:rgba(246,231,168,.7);box-shadow:0 14px 30px -16px rgba(212,175,55,.5),0 0 0 1px rgba(212,175,55,.2);background:rgba(212,175,55,.08)}
+.dlazdice .ik{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:rgba(212,175,55,.1);color:var(--apex-zlato-svetle,#f6e7a8)}
+.dlazdice .ik svg{width:20px;height:20px}
+.dlazdice b{display:block;font:600 15px "Playfair Display",Georgia,serif;color:var(--apex-zlato-svetle,#f6e7a8)}
+.dlazdice span{display:block;font:500 12px/1.35 Manrope,sans-serif;color:var(--apex-tlumene,#b9b3a4)}
+.dlazdice.hlavni{grid-column:1/-1;border-color:transparent;background:linear-gradient(135deg,var(--apex-zlato-svetle,#f6e7a8) 0%,var(--apex-zlato,#d4af37) 48%,#a8841e 100%);color:var(--apex-na-zlate,#17120a);box-shadow:0 14px 34px -12px rgba(212,175,55,.6),inset 0 1px 0 rgba(255,255,255,.6)}
+.dlazdice.hlavni b,.dlazdice.hlavni span{color:var(--apex-na-zlate,#17120a)}
+.dlazdice.hlavni .ik{background:rgba(23,18,10,.12);color:var(--apex-na-zlate,#17120a)}
+.cip{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid rgba(212,175,55,.35);background:transparent;color:var(--apex-text,#f4f1e8);font:700 13px Manrope,sans-serif;cursor:pointer}
+.cip:hover{border-color:var(--apex-zlato-svetle,#f6e7a8);background:rgba(212,175,55,.08)}
+.pole{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 16px;border-radius:999px;border:1px solid rgba(212,175,55,.3);background:rgba(5,7,15,.6)}
+.pole input{flex:1;min-width:0;border:0;background:transparent;color:var(--apex-text,#f4f1e8);font:500 15px Manrope,sans-serif;outline:none}
+.pole input::placeholder{color:#8f8a7c}
+.poslat{min-height:44px;padding:0 18px;border:0;border-radius:999px;background:linear-gradient(135deg,var(--apex-zlato-svetle,#f6e7a8),var(--apex-zlato,#d4af37) 60%,#9c7b16);color:var(--apex-na-zlate,#17120a);font:800 14px Manrope,sans-serif;cursor:pointer}
+.pata{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;border-top:1px solid rgba(212,175,55,.18);font:500 12px Manrope,sans-serif;color:var(--apex-tlumene,#b9b3a4)}
+.zavrit{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid transparent;background:transparent;color:var(--apex-text,#f4f1e8);cursor:pointer}
+.zavrit:hover{border-color:rgba(212,175,55,.35)}
+.zavrit svg{width:18px;height:18px}
+.sklo{background:linear-gradient(180deg,rgba(17,24,39,.74),rgba(5,7,15,.92));border:1px solid rgba(212,175,55,.22);border-radius:22px;-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);box-shadow:0 30px 60px -30px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.07)}
+</style>
+</helmet>
+<div class="apex" style="width: 1440px; height: 1000px; position: relative">
+<div class="zare"></div>
+<svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+<defs>
+<symbol id="h-klid" viewBox="-60 -78 110 112"><g stroke="#fff0be" stroke-opacity=".32" stroke-width=".5" stroke-linejoin="round"><polygon points="16.7,-32.8 1.6,-52.9 -6,-29" fill="#f1d988"/><polygon points="-14.8,-2.9 -39.4,-17.2 -28,-18.2" fill="#c39d2e"/><polygon points="-19.8,-14 -28,-18.2 -39.4,-17.2" fill="#cba534"/><polygon points="-13.7,-10.8 -14.8,-2.9 -28,-18.2" fill="#e6c767"/><polygon points="-19.8,-14 -13.7,-10.8 -28,-18.2" fill="#9f7c1e"/><polygon points="15,-13.8 16.7,-32.8 -6,-29" fill="#e8c96a"/><polygon points="15,-13.8 -6,-29 -9.7,-14.7" fill="#e3c35e"/><polygon points="3.3,10 -14.8,-2.9 -13.7,-10.8" fill="#e3c35e"/><polygon points="15.3,-8.4 3.3,10 -13.7,-10.8" fill="#fff3c4"/><polygon points="-14.8,-2.9 -45.3,-10 -39.4,-17.2" fill="#caa434"/><polygon points="-19.8,-14 -39.4,-17.2 -45.3,-10" fill="#dbb747"/><polygon points="0.9,-16.8 15.3,-8.4 -13.7,-10.8" fill="#503b0b"/><polygon points="0.9,-16.8 -13.7,-10.8 -19.8,-14" fill="#503b0b"/><polygon points="3.3,10 -19.5,-7.5 -14.8,-2.9" fill="#503b0b"/><polygon points="-19.5,-7.5 -45.3,-10 -14.8,-2.9" fill="#503b0b"/><polygon points="-19.8,-14 -45.3,-10 -19.5,-7.5" fill="#ddba4d"/><polygon points="0.9,-16.8 -19.8,-14 -19.5,-7.5" fill="#eed47e"/><polygon points="25.3,0.4 3.3,10 15.3,-8.4" fill="#e1bf56"/><polygon points="20.4,-19.7 15.3,-8.4 0.9,-16.8" fill="#503b0b"/><polygon points="4.9,-0.9 -19.5,-7.5 3.3,10" fill="#503b0b"/><polygon points="32.6,-17.9 25.3,0.4 15.3,-8.4" fill="#cfa937"/><polygon points="20.4,-19.7 32.6,-17.9 15.3,-8.4" fill="#503b0b"/><polygon points="0.9,-16.8 -19.5,-7.5 4.9,-0.9" fill="#f5df96"/><polygon points="25.3,0.4 4.9,-0.9 3.3,10" fill="#503b0b"/><polygon points="20.4,-19.7 0.9,-16.8 4.9,-0.9" fill="#f1d988"/><polygon points="11,-11 -33.1,-16.1 -13.8,-12.4" fill="#503b0b"/><polygon points="44.2,-14.6 25.3,0.4 32.6,-17.9" fill="#d0aa38"/><polygon points="33.1,-24.1 32.6,-17.9 20.4,-19.7" fill="#503b0b"/><polygon points="29.2,-15.3 4.9,-0.9 25.3,0.4" fill="#503b0b"/><polygon points="20.4,-19.7 4.9,-0.9 29.2,-15.3" fill="#edd27a"/><polygon points="44.2,-14.6 29.2,-15.3 25.3,0.4" fill="#5e460c"/><polygon points="44.2,-14.6 32.6,-17.9 33.1,-24.1" fill="#5a430c"/><polygon points="33.1,-24.1 20.4,-19.7 29.2,-15.3" fill="#e5c562"/><polygon points="44.2,-14.6 33.1,-24.1 29.2,-15.3" fill="#e2c25b"/><polygon points="11,-11 -8.5,-19.3 -33.1,-16.1" fill="#503b0b"/><polygon points="-8.5,-19.3 -53.5,-34.6 -33.1,-16.1" fill="#503b0b"/></g></symbol>
+<symbol id="strecha-znak" viewBox="-40 -14 80 32"><polygon points="-34,10 0,-8 34,10 34,14 -34,14" fill="#141a28"/><polyline points="-34,10 0,-8 34,10" fill="none" stroke="#f0d68a" stroke-width="1.6" stroke-linejoin="round"/><line x1="-30" y1="14" x2="30" y2="14" stroke="#d4af37" stroke-opacity=".6" stroke-width="1.2"/></symbol>
+</defs>
+</svg>
+
+<!-- Pozadí: úvod webu hspg.cz ve vzhledu Apex -->
+<div style="position: absolute; inset: 0; padding: 36px 64px; display: flex; flex-direction: column; gap: 0">
+<div class="nav" style="display: flex; align-items: center; justify-content: space-between; gap: 24px">
+<div style="display: flex; align-items: center; gap: 10px"><svg viewBox="-60 -78 110 112" width="40" height="40" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg><span class="pf" style="font-size: 20px; color: #f6e7a8">HOLUB</span><span class="stitek" style="margin-left: 4px">Surface Protection Group</span></div>
+<div style="display: flex; align-items: center; gap: 26px"><a href="#sluzby">Služby</a><a href="#standard">Standard HOLUB</a><a href="#holub-360">HOLUB 360</a><a href="#sentinel">Péče SENTINEL</a><a href="#pas-domu">Pas domu</a><a href="#kontakt">Kontakt</a><a href="#cena" class="tl-ghost" style="min-height: 44px; padding: 0 18px; font-size: 14px">Cena hned</a></div>
+</div>
+<div style="display: grid; grid-template-columns: 640px 1fr; gap: 48px; align-items: center; flex: 1; padding-top: 24px">
+<div style="display: flex; flex-direction: column; gap: 22px">
+<span class="stitek">Čištění a ochrana povrchů staveb · celá ČR</span>
+<h1 style="font-size: 62px; line-height: 1.02; letter-spacing: -.01em">Povrch domu. Čistý. Chráněný. <em style="color: #f6e7a8">V klidu.</em></h1>
+<p class="sedy" style="margin: 0; font: 500 18px/1.5 Manrope, sans-serif; max-width: 560px">Střechy, fasády, dlažby a fotovoltaika podle Standardu HOLUB – pět kroků, které nezkracujeme. Orientační cenu znáte za minutu, termín si vyberete v kalendáři.</p>
+<div style="display: flex; gap: 12px; flex-wrap: wrap"><a href="#cena" class="tl-zlate">Spočítat orientační cenu</a><a href="#holub-360" class="tl-ghost">Zaměřit dům na dálku</a></div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-width: 560px">
+<div class="cislo"><b>5</b><span>kroků Standardu HOLUB, které nezkracujeme</span></div>
+<div class="cislo"><b>10&nbsp;let</b><span>záruka na H-STONE při péči SENTINEL BASE</span></div>
+<div class="cislo"><b>2&nbsp;000+</b><span>ošetřených objektů v ČR <small style="display:block;font:600 11px Manrope,sans-serif;color:#a3a9b5">[DOPLNIT: evidence zakázek]</small></span></div>
+</div>
+</div>
+<div class="sklo" style="height: 520px; display: grid; place-items: center; position: relative; overflow: hidden">
+<svg viewBox="-60 -78 110 112" width="300" height="300" aria-hidden="true" focusable="false" style="filter: drop-shadow(0 30px 40px rgba(212,175,55,.25))"><use href="#h-klid"/></svg>
+<svg viewBox="-40 -14 80 32" width="420" height="168" aria-hidden="true" focusable="false" style="position: absolute; left: 50%; bottom: 36px; margin-left: -210px"><use href="#strecha-znak"/></svg>
+<span class="stitek" style="position: absolute; left: 22px; top: 20px">Standard HOLUB · 01 Čištění · 02 Odmaštění · 03 Ošetření biocidy · 04 Oplach · 05 Ochranná vrstva</span>
+</div>
+</div>
+</div>
+
+<!-- Plaketa H-BOT (pulzuje v dávkách a nabízí celý web) -->
+<button type="button" class="plaketa {{pulsTrida}}" aria-expanded="{{otevrenoText}}" aria-haspopup="dialog" aria-label="Budoucnost ve Vašich rukách – holub H-BOT: celý web na jednom místě, cena hned a odpovědi na otázky" onClick="{{prepni}}">
+<span class="kruh k1"></span><span class="kruh k2"></span>
+<svg class="znak" viewBox="-60 -78 110 112" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg>
+<span class="text"><small>{{stitekText}}</small>Budoucnost ve Vašich rukách</span>
+</button>
+
+<sc-if value="{{otevreno}}" hint-placeholder-val="{{true}}">
+<section class="panel" role="dialog" aria-modal="false" aria-labelledby="hb-titulek">
+<div class="hlava">
+<svg class="znak" viewBox="-60 -78 110 112" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg>
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0"><h2 id="hb-titulek">H-SPG CORE</h2><p>Budoucnost ve Vašich rukách</p></div>
+<span class="ai">AI asistent</span>
+<button type="button" class="ikona-tl" aria-pressed="{{zvukText}}" aria-label="Zvuk a vibrace" onClick="{{prepniZvuk}}"><svg class="vyp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M23 9l-6 6M17 9l6 6"/></svg><svg class="zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg></button>
+<button type="button" class="zavrit" aria-label="Zavřít pomocníka" onClick="{{prepni}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 14px 16px">
+<div class="bublina">Dobrý den, jsem holub H-BOT. Vyberte, kam chcete jít, nebo se zeptejte. Na vlastní otázky odpovídá asistent s umělou inteligencí jen z ověřených informací HSPG – nejste ve spojení s člověkem. Okamžitou cenu počítá ceník, ne AI.</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{dlazdice}}" as="t" hint-placeholder-count="8">
+<a class="dlazdice {{t.trida}} d{{$index}}" href="{{t.href}}" onClick="{{t.klik}}"><span class="ik"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="{{t.ikona}}"/></svg></span><span style="min-width: 0"><b>{{t.nazev}}</b><span>{{t.popis}}</span></span></a>
+</sc-for>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" class="cip" onClick="{{tuk}}">Jaký je postup?</button><button type="button" class="cip" onClick="{{tuk}}">Co je neviditelný štít?</button><button type="button" class="cip" onClick="{{tuk}}">Jak dlouho to trvá?</button></div>
+<form class="pole" onSubmit="{{odeslat}}"><label for="hb-q" style="position: absolute; left: -9999px">Vaše otázka</label><input id="hb-q" type="text" placeholder="Napište otázku…" autocomplete="off"><button type="submit" class="poslat">Poslat</button></form>
+</div>
+<div class="pata"><span>Po–So 7:00–19:00 · <a href="tel:+420736618486">+420 736 618 486</a></span><span>Výpočet ceny běží z ceníku HSPG, ne z AI.</span></div>
+</section>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"pulsZaMs":{"editor":"int","default":1500,"min":0,"max":10000,"step":100,"section":"Puls"},"zvukVychozi":{"editor":"boolean","default":true,"section":"Zvuk"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { otevreno: false, puls: false, zvuk: true, otevrel: false };
+    this._t = []; this._ac = null;
+    this.prepni = this.prepni.bind(this); this.prepniZvuk = this.prepniZvuk.bind(this); this.tuk = this.tuk.bind(this); this.odeslat = this.odeslat.bind(this);
+  }
+  componentDidMount() {
+    if (this.props.zvukVychozi === false) this.setState({ zvuk: false });
+    var self = this, za = this.props.pulsZaMs == null ? 1500 : this.props.pulsZaMs;
+    // Puls v dávkách (WCAG 2.2.2): 3 obíhající kruhy ≈ 4,5 s, druhá dávka po 14 s, žádná po otevření.
+    this._t.push(setTimeout(function () { self.davka(); }, za));
+    this._t.push(setTimeout(function () { self.davka(); }, za + 14000));
+  }
+  componentWillUnmount() { this._t.forEach(clearTimeout); }
+  davka() {
+    if (this.state.otevrel || this.state.otevreno) return;
+    var self = this;
+    this.setState({ puls: true });
+    this._t.push(setTimeout(function () { self.setState({ puls: false }); }, 4600));
+  }
+  ac() {
+    if (!this.state.zvuk) return null;
+    try { if (!this._ac) { var C = window.AudioContext || window.webkitAudioContext; if (!C) return null; this._ac = new C(); if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } if (this._ac.state === 'suspended') this._ac.resume(); return this._ac; } catch (e) { return null; }
+  }
+  ton(f0, f1, t0, dur, typ, g) {
+    var a = this.ac(); if (!a) return;
+    var o = a.createOscillator(), v = a.createGain(); o.type = typ || 'sine';
+    o.frequency.setValueAtTime(f0, a.currentTime + t0); o.frequency.exponentialRampToValueAtTime(f1 || f0, a.currentTime + t0 + dur);
+    v.gain.setValueAtTime(0.0001, a.currentTime + t0); v.gain.exponentialRampToValueAtTime(g || 0.07, a.currentTime + t0 + 0.012); v.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + t0 + dur);
+    o.connect(v); v.connect(a.destination); o.start(a.currentTime + t0); o.stop(a.currentTime + t0 + dur + 0.02);
+  }
+  zvuk(n) {
+    if (n === 'tuk') this.ton(420, 300, 0, 0.07, 'sine', 0.06);
+    else if (n === 'otevrit') { this.ton(380, 760, 0, 0.22, 'sine', 0.05); this.ton(570, 1140, 0.04, 0.2, 'triangle', 0.025); }
+    else if (n === 'zavrit') this.ton(620, 320, 0, 0.16, 'sine', 0.045);
+    var v = { tuk: [8], otevrit: [10, 30, 14] }[n];
+    if (v && this.state.zvuk && navigator.vibrate) { try { navigator.vibrate(v); } catch (e) {} }
+  }
+  prepni() { var o = !this.state.otevreno; this.setState({ otevreno: o, otevrel: true, puls: false }); this.zvuk(o ? 'otevrit' : 'zavrit'); }
+  prepniZvuk() { var z = !this.state.zvuk; this.setState({ zvuk: z }); if (z) { var self = this; setTimeout(function () { self.zvuk('tuk'); }, 0); } }
+  tuk() { this.zvuk('tuk'); }
+  odeslat(e) { if (e && e.preventDefault) e.preventDefault(); this.zvuk('tuk'); }
+  renderVals() {
+    var s = this.state, self = this;
+    var ik = {
+      cena: 'M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8zM7.5 7.5h.01',
+      h360: 'M12 2v4M12 18v4M2 12h4M18 12h4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
+      standard: 'M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01',
+      sentinel: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z M9 12l2 2 4-4',
+      pas: 'M4 5h16v14H4z M4 11h16 M9 15h2',
+      termin: 'M4 5h16v15H4z M4 10h16 M8 3v4M16 3v4',
+      poptavka: 'M4 6h16v12H4z M4 7l8 6 8-6',
+      zavolat: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2'
+    };
+    var d = [
+      ['cena', 'Cena hned', 'Orientační cena z ceníku HSPG za minutu', '#cena', 'hlavni'],
+      ['h360', 'HOLUB 360', 'Zaměření na dálku a ilustrační 3D model domu', '#holub-360', ''],
+      ['standard', 'Standard HOLUB', 'Pět kroků ochrany povrchu, které nezkracujeme', '#standard', ''],
+      ['sentinel', 'Péče SENTINEL', 'BASE · PLUS · PRESTIGE – pravidelná péče o dům', '#sentinel', ''],
+      ['pas', 'Pas domu', 'Trezor dokumentů a historie péče', '#pas-domu', ''],
+      ['termin', 'Volný termín', 'Kalendář technologicky vhodných dnů', '#planovac', ''],
+      ['poptavka', 'Nezávazná poptávka', 'Popište zakázku, ozveme se do dalšího pracovního dne', '#akce', ''],
+      ['zavolat', 'Zavolejte mi', 'Po–So 7:00–19:00', 'tel:+420736618486', '']
+    ].map(function (x) { return { ikona: ik[x[0]], nazev: x[1], popis: x[2], href: x[3], trida: x[4], klik: function () { self.zvuk('tuk'); } }; });
+    return {
+      otevreno: s.otevreno, otevrenoText: s.otevreno ? 'true' : 'false', pulsTrida: s.puls ? 'puls' : '',
+      stitekText: s.puls ? 'Celý web na jednom místě' : 'H-BOT · cena hned',
+      zvukText: s.zvuk ? 'true' : 'false', dlazdice: d,
+      prepni: this.prepni, prepniZvuk: this.prepniZvuk, tuk: this.tuk, odeslat: this.odeslat
+    };
+  }
+}
+</script>
+</body>
+</html>

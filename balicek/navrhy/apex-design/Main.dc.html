@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<title>HOLUB 360 – zaměření na dálku, pečeť a orientační cena</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+:root{--apex-cern-0:#05070f;--apex-cern-1:#0b0f19;--apex-zlato:#d4af37;--apex-zlato-svetle:#f6e7a8;--apex-zlato-tmave:#8a6a12;--apex-na-zlate:#17120a;--apex-tlumene:#b9b3a4;--apex-text:#f4f1e8;--apex-linka:rgba(212,175,55,.22);--apex-linka-silna:rgba(212,175,55,.45);--apex-zaobleni:22px;--apex-krivka:cubic-bezier(.2,.8,.2,1)}
+body{margin:0;background:var(--apex-cern-0,#05070f)}
+a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
+.apex{position:relative;overflow:hidden;background:var(--apex-cern-0,#05070f);color:var(--apex-text,#f4f1e8);font-family:Manrope,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.apex *{box-sizing:border-box}
+.apex h1,.apex h2,.apex h3,.apex .pf{font-family:"Playfair Display",Georgia,"Times New Roman",serif;font-variant-numeric:lining-nums;margin:0;font-weight:600}
+.zare{position:absolute;inset:0;pointer-events:none;background:radial-gradient(820px 520px at 70% 36%,rgba(212,175,55,.13),transparent 62%),radial-gradient(520px 380px at 12% 92%,rgba(79,143,202,.09),transparent 60%)}
+.mrizka{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(246,231,168,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(246,231,168,.05) 1px,transparent 1px);background-size:48px 48px;-webkit-mask-image:radial-gradient(900px 700px at 70% 40%,#000 25%,transparent 78%);mask-image:radial-gradient(900px 700px at 70% 40%,#000 25%,transparent 78%)}
+.sklo{background:linear-gradient(180deg,rgba(17,24,39,.74),rgba(5,7,15,.92));border:1px solid rgba(212,175,55,.22);border-radius:22px;-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);box-shadow:0 30px 60px -30px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.07)}
+.stitek{font:800 11px/1 Manrope,sans-serif;letter-spacing:.26em;text-transform:uppercase;color:var(--apex-zlato,#d4af37)}
+.sedy{color:var(--apex-tlumene,#b9b3a4)}
+.pole{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 16px;border-radius:14px;border:1px solid rgba(212,175,55,.3);background:rgba(5,7,15,.6);color:var(--apex-text,#f4f1e8);font:600 15px Manrope,sans-serif}
+.tl-zlate{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 26px;border:0;border-radius:999px;background:linear-gradient(135deg,var(--apex-zlato-svetle,#f6e7a8) 0%,var(--apex-zlato,#d4af37) 42%,#9c7b16 100%);color:var(--apex-na-zlate,#17120a);font:800 15px Manrope,sans-serif;cursor:pointer;box-shadow:0 14px 34px -12px rgba(212,175,55,.6),inset 0 1px 0 rgba(255,255,255,.6);transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .3s,opacity .3s}
+.tl-zlate:hover{transform:translateY(-1px);box-shadow:0 18px 40px -12px rgba(212,175,55,.75),inset 0 1px 0 rgba(255,255,255,.6)}
+.tl-zlate:active{transform:translateY(1px)}
+.tl-zlate[disabled]{opacity:.5;cursor:default;transform:none}
+.tl-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:999px;border:1px solid rgba(212,175,55,.5);background:transparent;color:var(--apex-zlato-svetle,#f6e7a8);font:700 14px Manrope,sans-serif;text-decoration:none;cursor:pointer}
+.tl-ghost:hover{border-color:var(--apex-zlato-svetle,#f6e7a8);background:rgba(212,175,55,.08)}
+.tl-zlate:focus-visible,.tl-ghost:focus-visible,.prepinac:focus-visible,.pecet:focus-visible{outline:2px solid var(--apex-zlato-svetle,#f6e7a8);outline-offset:3px}
+.prepinac{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid rgba(212,175,55,.35);background:rgba(11,15,25,.7);color:var(--apex-text,#f4f1e8);font:700 13px Manrope,sans-serif;cursor:pointer}
+.prepinac[aria-pressed="true"]{border-color:var(--apex-zlato-svetle,#f6e7a8);color:var(--apex-zlato-svetle,#f6e7a8);box-shadow:0 0 0 1px rgba(212,175,55,.25),0 0 22px rgba(212,175,55,.25)}
+.prepinac svg{width:18px;height:18px}
+.prepinac .zap{display:none}.prepinac[aria-pressed="true"] .zap{display:inline}.prepinac[aria-pressed="true"] .vyp{display:none}
+/* posádka */
+.posadka{display:flex;flex-direction:column;gap:8px}
+.clen{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:12px;min-height:58px;padding:8px 12px;border-radius:16px;border:1px solid rgba(212,175,55,.14);background:rgba(11,15,25,.55);transition:border-color .4s,background .4s,box-shadow .4s}
+.clen.bezi{border-color:rgba(246,231,168,.7);background:rgba(212,175,55,.1);box-shadow:0 0 0 1px rgba(212,175,55,.2),0 0 26px rgba(212,175,55,.22)}
+.clen.hotovo{border-color:rgba(212,175,55,.4)}
+.clen .jmeno{font:600 16px "Playfair Display",Georgia,serif;color:var(--apex-zlato-svetle,#f6e7a8)}
+.clen .ukol{font:500 12px/1.35 Manrope,sans-serif;color:var(--apex-tlumene,#b9b3a4)}
+.clen .stav{font:800 11px/1 Manrope,sans-serif;letter-spacing:.18em;text-transform:uppercase;padding:7px 10px;border-radius:999px;border:1px solid rgba(212,175,55,.3);color:var(--apex-tlumene,#b9b3a4)}
+.clen.bezi .stav{color:var(--apex-na-zlate,#17120a);background:linear-gradient(135deg,var(--apex-zlato-svetle,#f6e7a8),var(--apex-zlato,#d4af37));border-color:transparent}
+.clen.hotovo .stav{color:var(--apex-zlato-svetle,#f6e7a8);border-color:rgba(212,175,55,.6)}
+.clen .mini{width:44px;height:44px;display:block}
+.clen.ceka .mini{opacity:.55}
+/* holub – 4 fáze mávnutí přepínáním póz */
+.holub .p1,.holub .p3{opacity:0}
+.holub .p2{opacity:1}
+.kontrola,.kota,.kota-text,.sken,.obrys,.bublina{opacity:0}
+.m .obrys,.m .sken{opacity:1}
+.p .kota,.p .kota-text{opacity:1}
+.o .kontrola{opacity:1}
+.k .bublina{opacity:1}
+.holub{transition:opacity .35s var(--apex-krivka)}
+/* Klid: celé hejno sedí na hřebeni; do úkolu vzlétne vždy jeden a vrátí se. */
+.h-meri{transform:translate(300px,170px)}
+.h-pocita{transform:translate(450px,166px)}
+.h-overuje{transform:translate(600px,164px)}
+.h-komunikuje{transform:translate(737px,160px)}
+.m .h-meri{transform:translate(207px,182px)}
+.o .h-overuje{transform:translate(637px,108px)}
+.k .h-komunikuje{transform:translate(120px,96px)}
+.odhad{display:inline-block;margin-left:6px;padding:3px 7px;border-radius:999px;border:1px solid rgba(212,175,55,.45);font:800 11px/1 Manrope,sans-serif;letter-spacing:.18em;color:var(--apex-zlato,#d4af37);vertical-align:middle}
+.obrys{stroke-dasharray:1;stroke-dashoffset:0}
+.kota{stroke-dasharray:1;stroke-dashoffset:0}
+.mech{transition:opacity 1.2s}
+.c .mech{opacity:0}
+.kapka{opacity:0;transition:opacity .8s}
+.c .kapka{opacity:1}
+.fasada-b{opacity:0;transition:opacity 1.4s}
+.c .fasada-b{opacity:1}
+.bublina{transition:opacity .5s,transform .5s cubic-bezier(.2,.8,.2,1);transform:translateY(8px)}
+.k .bublina{transform:translateY(0)}
+@media (prefers-reduced-motion:no-preference){
+ .leti .p1{animation:mav1 .44s steps(1) infinite}
+ .leti .p2{animation:mav2 .44s steps(1) infinite}
+ .leti .p3{animation:mav3 .44s steps(1) infinite}
+ .klidny .p2{animation:vanek 3.2s ease-in-out infinite}
+ .aktivni-m .h-meri{transform:none;offset-path:path("M207,182 L772,168 L884,316 L346,349 Z");offset-rotate:0deg;animation:let-meri 2.5s cubic-bezier(.33,0,.2,1) forwards}
+ .aktivni-m .obrys{animation:kresli 2.5s linear forwards}
+ .aktivni-m .sken{animation:sken 2.5s linear forwards}
+ .p .kota{animation:kresli .7s ease-out forwards}
+ .p .kota-text{animation:objev .5s ease-out .5s both}
+ .aktivni-o .h-overuje{animation:let-overuje 1.4s cubic-bezier(.33,0,.2,1) forwards}
+ .o .kontrola{animation:razitko .45s cubic-bezier(.2,1.4,.3,1) both}
+ .o .kontrola.k1{animation-delay:.52s}.o .kontrola.k2{animation-delay:.98s}.o .kontrola.k3{animation-delay:1.4s}
+ .aktivni-k .h-komunikuje{animation:let-komunikuje 1.3s cubic-bezier(.33,0,.2,1) forwards}
+ .z .pecet{animation:tep 2.4s cubic-bezier(.2,.8,.2,1) infinite}
+ .z .obalka{animation:objev .6s ease-out both}
+ .c .cena-karta{animation:vyjed .7s cubic-bezier(.2,.8,.2,1) both}
+ .c .pecet{animation:prasknuti .55s ease-out forwards}
+ .clen.bezi .mini{animation:poskok 1.1s ease-in-out infinite}
+ .tep-tlacitko{animation:tep-tl 2.1s var(--apex-krivka) 2}
+}
+@media (prefers-reduced-motion:reduce){
+ .obrys,.kota{stroke-dashoffset:0}
+ .sken{opacity:0}
+}
+@keyframes mav1{0%,24%{opacity:1}25%,100%{opacity:0}}
+@keyframes mav2{0%,24%{opacity:0}25%,49%{opacity:1}50%,74%{opacity:0}75%,100%{opacity:1}}
+@keyframes mav3{0%,49%{opacity:0}50%,74%{opacity:1}75%,100%{opacity:0}}
+@keyframes vanek{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes let-meri{from{offset-distance:0%}to{offset-distance:100%}}
+@keyframes let-overuje{0%{transform:translate(600px,164px)}37%{transform:translate(552px,254px)}70%{transform:translate(595px,422px)}100%{transform:translate(637px,108px)}}
+@keyframes let-komunikuje{0%{transform:translate(737px,160px)}55%{transform:translate(420px,100px)}100%{transform:translate(120px,96px)}}
+@keyframes kresli{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes sken{from{transform:translateX(-.05px)}to{transform:translateX(1px)}}
+@keyframes objev{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes razitko{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+@keyframes tep{0%,100%{box-shadow:0 10px 24px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,250,230,.6),inset 0 -6px 10px rgba(80,58,8,.55),0 0 0 0 rgba(212,175,55,.5)}60%{box-shadow:0 10px 24px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,250,230,.6),inset 0 -6px 10px rgba(80,58,8,.55),0 0 0 18px rgba(212,175,55,0)}}
+@keyframes vyjed{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes prasknuti{to{transform:scale(1.3) rotate(-14deg);opacity:0}}
+@keyframes poskok{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes tep-tl{0%,100%{box-shadow:0 14px 34px -12px rgba(212,175,55,.6),inset 0 1px 0 rgba(255,255,255,.6),0 0 0 0 rgba(212,175,55,.55)}70%{box-shadow:0 14px 34px -12px rgba(212,175,55,.6),inset 0 1px 0 rgba(255,255,255,.6),0 0 0 22px rgba(212,175,55,0)}}
+/* obálka a pečeť */
+.obalka{position:relative;height:214px;border-radius:18px;background:linear-gradient(180deg,#151c2e,#0a0e19);border:1px solid rgba(212,175,55,.35);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.obalka-klopa{position:absolute;left:0;right:0;top:0;height:118px;background:linear-gradient(180deg,#1c2538,#111828);clip-path:polygon(0 0,100% 0,50% 100%);box-shadow:0 10px 20px rgba(0,0,0,.35)}
+.obalka-linka{position:absolute;left:0;right:0;top:0;height:118px;clip-path:polygon(0 0,100% 0,50% 100%);background:linear-gradient(180deg,rgba(212,175,55,.35),rgba(212,175,55,0) 70%)}
+.obalka-text{position:absolute;left:20px;right:20px;bottom:16px;display:flex;flex-direction:column;gap:4px}
+.pecet{position:absolute;left:50%;top:78px;width:78px;height:78px;margin-left:-39px;border-radius:46% 54% 50% 50%/52% 48% 52% 48%;border:0;background:radial-gradient(circle at 35% 30%,#fff3c4 0,#e6c767 18%,var(--apex-zlato,#d4af37) 42%,var(--apex-zlato-tmave,#8a6a12) 82%,#5a430c 100%);box-shadow:0 10px 24px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,250,230,.6),inset 0 -6px 10px rgba(80,58,8,.55);cursor:pointer;display:grid;place-items:center;z-index:2}
+.pecet svg{width:50px;height:50px;filter:brightness(.52) sepia(.4) drop-shadow(0 1px 0 rgba(255,243,196,.5))}
+.pecet:hover{box-shadow:0 10px 24px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,250,230,.6),inset 0 -6px 10px rgba(80,58,8,.55),0 0 0 6px rgba(212,175,55,.3),0 0 34px rgba(212,175,55,.45)}
+/* cena */
+.radek{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:baseline;padding:9px 0;border-bottom:1px solid rgba(212,175,55,.14)}
+.radek .n{font:600 13px/1.3 Manrope,sans-serif}
+.radek .d{font:500 12.5px/1.5 Manrope,sans-serif;color:var(--apex-tlumene,#b9b3a4)}
+.radek .c{font:600 14px "Playfair Display",Georgia,serif;font-variant-numeric:lining-nums tabular-nums;white-space:nowrap}
+.radek.celkem{border-bottom:0;padding-top:12px}
+.radek.celkem .n{font:600 15px "Playfair Display",Georgia,serif;color:var(--apex-zlato-svetle,#f6e7a8)}
+.radek.celkem .c{font-size:18px;color:var(--apex-zlato-svetle,#f6e7a8)}
+.cena-velka{font:600 44px/1 "Playfair Display",Georgia,serif;font-variant-numeric:lining-nums tabular-nums;color:var(--apex-zlato-svetle,#f6e7a8);letter-spacing:-.01em;text-shadow:0 0 30px rgba(212,175,55,.35)}
+/* scéna */
+.scena-obal{position:relative}
+.scena-svg{display:block;width:100%;height:auto}
+.scena-svg text{font-family:Manrope,"Segoe UI",system-ui,sans-serif;font-weight:700}
+.kota{stroke:var(--apex-zlato-svetle,#f6e7a8);stroke-width:1.2;fill:none}
+.kota-text{fill:var(--apex-zlato-svetle,#f6e7a8);font-size:15px}
+.kontrola circle{fill:var(--apex-cern-1,#0b0f19);stroke:var(--apex-zlato-svetle,#f6e7a8);stroke-width:1.5}
+.kontrola path{fill:none;stroke:var(--apex-zlato-svetle,#f6e7a8);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.kontrola{transform-box:fill-box;transform-origin:center}
+.c .obalka{height:118px}
+.c .obalka-text{opacity:0}
+.c .obalka-klopa,.c .obalka-linka{clip-path:polygon(0 0,100% 0,50% 58%)}
+.c .pecet{pointer-events:none}
+.obalka,.obalka-text{transition:height .5s cubic-bezier(.2,.8,.2,1),opacity .3s}
+.bublina{position:absolute;left:18px;top:150px;width:300px;padding:14px 16px;border-radius:18px 18px 18px 4px;background:linear-gradient(180deg,rgba(31,41,55,.95),rgba(11,15,25,.98));border:1px solid rgba(212,175,55,.45);box-shadow:0 20px 40px -20px rgba(0,0,0,.9);font:500 13px/1.45 Manrope,sans-serif}
+.bublina b{display:block;font:600 15px "Playfair Display",Georgia,serif;color:var(--apex-zlato-svetle,#f6e7a8);margin-bottom:4px}
+.udaj{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:16px;border:1px solid rgba(212,175,55,.18);background:rgba(11,15,25,.55)}
+.udaj .h{font:600 26px/1 "Playfair Display",Georgia,serif;font-variant-numeric:lining-nums tabular-nums;color:var(--apex-zlato-svetle,#f6e7a8)}
+.udaj .h small{font:600 13px Manrope,sans-serif;color:var(--apex-tlumene,#b9b3a4);margin-left:4px}
+.ai{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid rgba(212,175,55,.3);font:800 11px/1 Manrope,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--apex-zlato,#d4af37)}
+</style>
+</helmet>
+<div class="apex {{tridy}}" style="width: 1440px; height: 1000px; padding: 36px; display: grid; grid-template-columns: 404px 1fr; gap: 28px; position: relative">
+<div class="zare"></div>
+<div class="mrizka"></div>
+<svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+<defs>
+<symbol id="h-nahoru" viewBox="-60 -78 110 112"><g stroke="#fff0be" stroke-opacity=".32" stroke-width=".5" stroke-linejoin="round"><polygon points="-14.8,-2.9 -39.4,-17.2 -28,-18.2" fill="#c39d2e"/><polygon points="-19.8,-14 -28,-18.2 -39.4,-17.2" fill="#cba534"/><polygon points="-13.7,-10.8 -14.8,-2.9 -28,-18.2" fill="#e6c767"/><polygon points="-19.8,-14 -13.7,-10.8 -28,-18.2" fill="#9f7c1e"/><polygon points="14.1,-41.3 -7,-72.7 -8.1,-37.1" fill="#c8a232"/><polygon points="14.9,-14.9 14.1,-41.3 -8.1,-37.1" fill="#ecd077"/><polygon points="3.3,10 -14.8,-2.9 -13.7,-10.8" fill="#e3c35e"/><polygon points="15.3,-8.4 3.3,10 -13.7,-10.8" fill="#fff3c4"/><polygon points="14.9,-14.9 -8.1,-37.1 -9.7,-15.7" fill="#fef1bf"/><polygon points="-14.8,-2.9 -45.3,-10 -39.4,-17.2" fill="#caa434"/><polygon points="-19.8,-14 -39.4,-17.2 -45.3,-10" fill="#dbb747"/><polygon points="0.9,-16.8 15.3,-8.4 -13.7,-10.8" fill="#503b0b"/><polygon points="0.9,-16.8 -13.7,-10.8 -19.8,-14" fill="#503b0b"/><polygon points="3.3,10 -19.5,-7.5 -14.8,-2.9" fill="#503b0b"/><polygon points="-19.5,-7.5 -45.3,-10 -14.8,-2.9" fill="#503b0b"/><polygon points="-19.8,-14 -45.3,-10 -19.5,-7.5" fill="#ddba4d"/><polygon points="0.9,-16.8 -19.8,-14 -19.5,-7.5" fill="#eed47e"/><polygon points="25.3,0.4 3.3,10 15.3,-8.4" fill="#e1bf56"/><polygon points="20.4,-19.7 15.3,-8.4 0.9,-16.8" fill="#503b0b"/><polygon points="4.9,-0.9 -19.5,-7.5 3.3,10" fill="#503b0b"/><polygon points="32.6,-17.9 25.3,0.4 15.3,-8.4" fill="#cfa937"/><polygon points="20.4,-19.7 32.6,-17.9 15.3,-8.4" fill="#503b0b"/><polygon points="0.9,-16.8 -19.5,-7.5 4.9,-0.9" fill="#f5df96"/><polygon points="25.3,0.4 4.9,-0.9 3.3,10" fill="#503b0b"/><polygon points="20.4,-19.7 0.9,-16.8 4.9,-0.9" fill="#f1d988"/><polygon points="11.2,-12.4 -30.7,-27.7 -13.8,-13.5" fill="#503b0b"/><polygon points="44.2,-14.6 25.3,0.4 32.6,-17.9" fill="#d0aa38"/><polygon points="33.1,-24.1 32.6,-17.9 20.4,-19.7" fill="#503b0b"/><polygon points="29.2,-15.3 4.9,-0.9 25.3,0.4" fill="#503b0b"/><polygon points="20.4,-19.7 4.9,-0.9 29.2,-15.3" fill="#edd27a"/><polygon points="44.2,-14.6 29.2,-15.3 25.3,0.4" fill="#5e460c"/><polygon points="44.2,-14.6 32.6,-17.9 33.1,-24.1" fill="#5a430c"/><polygon points="33.1,-24.1 20.4,-19.7 29.2,-15.3" fill="#e5c562"/><polygon points="44.2,-14.6 33.1,-24.1 29.2,-15.3" fill="#e2c25b"/><polygon points="11.2,-12.4 -4.9,-32.6 -30.7,-27.7" fill="#503b0b"/><polygon points="-4.9,-32.6 -40.1,-66.7 -30.7,-27.7" fill="#7c5e13"/></g></symbol>
+<symbol id="h-stred" viewBox="-60 -78 110 112"><g stroke="#fff0be" stroke-opacity=".32" stroke-width=".5" stroke-linejoin="round"><polygon points="17.1,-30.3 2.9,-46.8 -5.8,-26.7" fill="#e8cb6c"/><polygon points="-14.8,-2.9 -39.4,-17.2 -28,-18.2" fill="#c39d2e"/><polygon points="-19.8,-14 -28,-18.2 -39.4,-17.2" fill="#cba534"/><polygon points="-13.7,-10.8 -14.8,-2.9 -28,-18.2" fill="#e6c767"/><polygon points="-19.8,-14 -13.7,-10.8 -28,-18.2" fill="#9f7c1e"/><polygon points="15.1,-13.5 17.1,-30.3 -5.8,-26.7" fill="#e5c562"/><polygon points="15.1,-13.5 -5.8,-26.7 -9.7,-14.4" fill="#e0bf56"/><polygon points="3.3,10 -14.8,-2.9 -13.7,-10.8" fill="#e3c35e"/><polygon points="15.3,-8.4 3.3,10 -13.7,-10.8" fill="#fff3c4"/><polygon points="-14.8,-2.9 -45.3,-10 -39.4,-17.2" fill="#caa434"/><polygon points="-19.8,-14 -39.4,-17.2 -45.3,-10" fill="#dbb747"/><polygon points="0.9,-16.8 15.3,-8.4 -13.7,-10.8" fill="#503b0b"/><polygon points="0.9,-16.8 -13.7,-10.8 -19.8,-14" fill="#503b0b"/><polygon points="3.3,10 -19.5,-7.5 -14.8,-2.9" fill="#503b0b"/><polygon points="-19.5,-7.5 -45.3,-10 -14.8,-2.9" fill="#503b0b"/><polygon points="-19.8,-14 -45.3,-10 -19.5,-7.5" fill="#ddba4d"/><polygon points="0.9,-16.8 -19.8,-14 -19.5,-7.5" fill="#eed47e"/><polygon points="25.3,0.4 3.3,10 15.3,-8.4" fill="#e1bf56"/><polygon points="20.4,-19.7 15.3,-8.4 0.9,-16.8" fill="#503b0b"/><polygon points="4.9,-0.9 -19.5,-7.5 3.3,10" fill="#503b0b"/><polygon points="32.6,-17.9 25.3,0.4 15.3,-8.4" fill="#cfa937"/><polygon points="20.4,-19.7 32.6,-17.9 15.3,-8.4" fill="#503b0b"/><polygon points="0.9,-16.8 -19.5,-7.5 4.9,-0.9" fill="#f5df96"/><polygon points="25.3,0.4 4.9,-0.9 3.3,10" fill="#503b0b"/><polygon points="20.4,-19.7 0.9,-16.8 4.9,-0.9" fill="#f1d988"/><polygon points="10.9,-10.7 -33.3,-13 -13.8,-12.1" fill="#c49e2f"/><polygon points="44.2,-14.6 25.3,0.4 32.6,-17.9" fill="#d0aa38"/><polygon points="33.1,-24.1 32.6,-17.9 20.4,-19.7" fill="#503b0b"/><polygon points="29.2,-15.3 4.9,-0.9 25.3,0.4" fill="#503b0b"/><polygon points="20.4,-19.7 4.9,-0.9 29.2,-15.3" fill="#edd27a"/><polygon points="44.2,-14.6 29.2,-15.3 25.3,0.4" fill="#5e460c"/><polygon points="44.2,-14.6 32.6,-17.9 33.1,-24.1" fill="#5a430c"/><polygon points="33.1,-24.1 20.4,-19.7 29.2,-15.3" fill="#e5c562"/><polygon points="44.2,-14.6 33.1,-24.1 29.2,-15.3" fill="#e2c25b"/><polygon points="10.9,-10.7 -9.1,-15.7 -33.3,-13" fill="#503b0b"/><polygon points="-9.1,-15.7 -55.4,-24.7 -33.3,-13" fill="#503b0b"/></g></symbol>
+<symbol id="h-dolu" viewBox="-60 -78 110 112"><g stroke="#fff0be" stroke-opacity=".32" stroke-width=".5" stroke-linejoin="round"><polygon points="17.2,-12.7 2.2,-5.3 -6.2,-11.4" fill="#503b0b"/><polygon points="15.1,-11.5 17.2,-12.7 -6.2,-11.4" fill="#caa434"/><polygon points="-14.8,-2.9 -39.4,-17.2 -28,-18.2" fill="#c39d2e"/><polygon points="-19.8,-14 -28,-18.2 -39.4,-17.2" fill="#cba534"/><polygon points="-13.7,-10.8 -14.8,-2.9 -28,-18.2" fill="#e6c767"/><polygon points="-19.8,-14 -13.7,-10.8 -28,-18.2" fill="#9f7c1e"/><polygon points="15.1,-11.5 -6.2,-11.4 -9.9,-12.7" fill="#503b0b"/><polygon points="3.3,10 -14.8,-2.9 -13.7,-10.8" fill="#e3c35e"/><polygon points="15.3,-8.4 3.3,10 -13.7,-10.8" fill="#fff3c4"/><polygon points="-14.8,-2.9 -45.3,-10 -39.4,-17.2" fill="#caa434"/><polygon points="-19.8,-14 -39.4,-17.2 -45.3,-10" fill="#dbb747"/><polygon points="0.9,-16.8 15.3,-8.4 -13.7,-10.8" fill="#503b0b"/><polygon points="0.9,-16.8 -13.7,-10.8 -19.8,-14" fill="#503b0b"/><polygon points="3.3,10 -19.5,-7.5 -14.8,-2.9" fill="#503b0b"/><polygon points="-19.5,-7.5 -45.3,-10 -14.8,-2.9" fill="#503b0b"/><polygon points="-19.8,-14 -45.3,-10 -19.5,-7.5" fill="#ddba4d"/><polygon points="0.9,-16.8 -19.8,-14 -19.5,-7.5" fill="#eed47e"/><polygon points="25.3,0.4 3.3,10 15.3,-8.4" fill="#e1bf56"/><polygon points="20.4,-19.7 15.3,-8.4 0.9,-16.8" fill="#503b0b"/><polygon points="4.9,-0.9 -19.5,-7.5 3.3,10" fill="#503b0b"/><polygon points="32.6,-17.9 25.3,0.4 15.3,-8.4" fill="#cfa937"/><polygon points="20.4,-19.7 32.6,-17.9 15.3,-8.4" fill="#503b0b"/><polygon points="0.9,-16.8 -19.5,-7.5 4.9,-0.9" fill="#f5df96"/><polygon points="25.3,0.4 4.9,-0.9 3.3,10" fill="#503b0b"/><polygon points="10.8,-8.5 -32,3.9 -13.5,-10.6" fill="#e2c15a"/><polygon points="20.4,-19.7 0.9,-16.8 4.9,-0.9" fill="#f1d988"/><polygon points="44.2,-14.6 25.3,0.4 32.6,-17.9" fill="#d0aa38"/><polygon points="33.1,-24.1 32.6,-17.9 20.4,-19.7" fill="#503b0b"/><polygon points="29.2,-15.3 4.9,-0.9 25.3,0.4" fill="#503b0b"/><polygon points="20.4,-19.7 4.9,-0.9 29.2,-15.3" fill="#edd27a"/><polygon points="44.2,-14.6 29.2,-15.3 25.3,0.4" fill="#5e460c"/><polygon points="44.2,-14.6 32.6,-17.9 33.1,-24.1" fill="#5a430c"/><polygon points="33.1,-24.1 20.4,-19.7 29.2,-15.3" fill="#e5c562"/><polygon points="10.8,-8.5 -9.6,6 -32,3.9" fill="#dfbc51"/><polygon points="44.2,-14.6 33.1,-24.1 29.2,-15.3" fill="#e2c25b"/><polygon points="-9.6,6 -51,30.9 -32,3.9" fill="#e5c664"/></g></symbol>
+<symbol id="h-klid" viewBox="-60 -78 110 112"><g stroke="#fff0be" stroke-opacity=".32" stroke-width=".5" stroke-linejoin="round"><polygon points="16.7,-32.8 1.6,-52.9 -6,-29" fill="#f1d988"/><polygon points="-14.8,-2.9 -39.4,-17.2 -28,-18.2" fill="#c39d2e"/><polygon points="-19.8,-14 -28,-18.2 -39.4,-17.2" fill="#cba534"/><polygon points="-13.7,-10.8 -14.8,-2.9 -28,-18.2" fill="#e6c767"/><polygon points="-19.8,-14 -13.7,-10.8 -28,-18.2" fill="#9f7c1e"/><polygon points="15,-13.8 16.7,-32.8 -6,-29" fill="#e8c96a"/><polygon points="15,-13.8 -6,-29 -9.7,-14.7" fill="#e3c35e"/><polygon points="3.3,10 -14.8,-2.9 -13.7,-10.8" fill="#e3c35e"/><polygon points="15.3,-8.4 3.3,10 -13.7,-10.8" fill="#fff3c4"/><polygon points="-14.8,-2.9 -45.3,-10 -39.4,-17.2" fill="#caa434"/><polygon points="-19.8,-14 -39.4,-17.2 -45.3,-10" fill="#dbb747"/><polygon points="0.9,-16.8 15.3,-8.4 -13.7,-10.8" fill="#503b0b"/><polygon points="0.9,-16.8 -13.7,-10.8 -19.8,-14" fill="#503b0b"/><polygon points="3.3,10 -19.5,-7.5 -14.8,-2.9" fill="#503b0b"/><polygon points="-19.5,-7.5 -45.3,-10 -14.8,-2.9" fill="#503b0b"/><polygon points="-19.8,-14 -45.3,-10 -19.5,-7.5" fill="#ddba4d"/><polygon points="0.9,-16.8 -19.8,-14 -19.5,-7.5" fill="#eed47e"/><polygon points="25.3,0.4 3.3,10 15.3,-8.4" fill="#e1bf56"/><polygon points="20.4,-19.7 15.3,-8.4 0.9,-16.8" fill="#503b0b"/><polygon points="4.9,-0.9 -19.5,-7.5 3.3,10" fill="#503b0b"/><polygon points="32.6,-17.9 25.3,0.4 15.3,-8.4" fill="#cfa937"/><polygon points="20.4,-19.7 32.6,-17.9 15.3,-8.4" fill="#503b0b"/><polygon points="0.9,-16.8 -19.5,-7.5 4.9,-0.9" fill="#f5df96"/><polygon points="25.3,0.4 4.9,-0.9 3.3,10" fill="#503b0b"/><polygon points="20.4,-19.7 0.9,-16.8 4.9,-0.9" fill="#f1d988"/><polygon points="11,-11 -33.1,-16.1 -13.8,-12.4" fill="#503b0b"/><polygon points="44.2,-14.6 25.3,0.4 32.6,-17.9" fill="#d0aa38"/><polygon points="33.1,-24.1 32.6,-17.9 20.4,-19.7" fill="#503b0b"/><polygon points="29.2,-15.3 4.9,-0.9 25.3,0.4" fill="#503b0b"/><polygon points="20.4,-19.7 4.9,-0.9 29.2,-15.3" fill="#edd27a"/><polygon points="44.2,-14.6 29.2,-15.3 25.3,0.4" fill="#5e460c"/><polygon points="44.2,-14.6 32.6,-17.9 33.1,-24.1" fill="#5a430c"/><polygon points="33.1,-24.1 20.4,-19.7 29.2,-15.3" fill="#e5c562"/><polygon points="44.2,-14.6 33.1,-24.1 29.2,-15.3" fill="#e2c25b"/><polygon points="11,-11 -8.5,-19.3 -33.1,-16.1" fill="#503b0b"/><polygon points="-8.5,-19.3 -53.5,-34.6 -33.1,-16.1" fill="#503b0b"/></g></symbol>
+<linearGradient id="g-strecha" x1="0" y1="0" x2=".3" y2="1"><stop offset="0" stop-color="#3b4458"/><stop offset=".55" stop-color="#1f2637"/><stop offset="1" stop-color="#121725"/></linearGradient>
+<linearGradient id="g-stena" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3142"/><stop offset="1" stop-color="#141a28"/></linearGradient>
+<linearGradient id="g-stit" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1b2131"/><stop offset="1" stop-color="#262d3f"/></linearGradient>
+<linearGradient id="g-ral9001" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3ecdb"/><stop offset="1" stop-color="#d9cfb6"/></linearGradient>
+<linearGradient id="g-ral9001-stit" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#cfc5ab"/><stop offset="1" stop-color="#e9e1cc"/></linearGradient>
+<linearGradient id="g-sken" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f6e7a8" stop-opacity="0"/><stop offset=".5" stop-color="#fff3c4" stop-opacity=".9"/><stop offset="1" stop-color="#d4af37" stop-opacity="0"/></linearGradient>
+<linearGradient id="g-sklo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6d7f9c"/><stop offset=".5" stop-color="#2b364c"/><stop offset="1" stop-color="#4a5a78"/></linearGradient>
+<radialGradient id="g-svetlo" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff3c4" stop-opacity=".9"/><stop offset="1" stop-color="#fff3c4" stop-opacity="0"/></radialGradient>
+<radialGradient id="g-zem" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#0b1020"/><stop offset="1" stop-color="#05070f" stop-opacity="0"/></radialGradient>
+</defs>
+</svg>
+
+<!-- LEVÝ SLOUPEC -->
+<div style="position: relative; display: flex; flex-direction: column; gap: 16px; min-width: 0">
+<div style="display: flex; align-items: center; gap: 12px">
+<svg viewBox="-60 -78 110 112" width="54" height="54" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="font-size: 26px; line-height: 1; color: #f6e7a8">HOLUB&nbsp;360</h1>
+<span class="stitek">HOLUB CORE QUANTUM SENSE · zaměření na dálku</span>
+</div>
+</div>
+
+<div class="sklo" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px">
+<span class="stitek">Adresa domu</span>
+<div class="pole"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 22s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg><span>Ukázkový dům (smyšlený)</span><span class="odhad" style="margin-left: auto">Ukázka</span></div>
+<p class="sedy" style="margin: 0; font-size: 12.5px; line-height: 1.5">Zaměření na dálku vrátí obrys domu a odhad ploch střechy a fasády – bez výšek a sklonu. Přesný rozsah ověříme na místě před potvrzením ceny.</p>
+<sc-if value="{{jeKlid}}" hint-placeholder-val="{{true}}">
+<button type="button" class="tl-zlate tep-tlacitko" onClick="{{zamerit}}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>Zaměřit na dálku</button>
+</sc-if>
+<sc-if value="{{jeBeh}}" hint-placeholder-val="{{false}}">
+<button type="button" class="tl-zlate" disabled="disabled"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.2 2.2M16.2 16.2l2.2 2.2M5.6 18.4l2.2-2.2M16.2 7.8l2.2-2.2"/></svg>Holubi pracují…</button>
+</sc-if>
+<sc-if value="{{jeHotovo}}" hint-placeholder-val="{{false}}">
+<button type="button" class="tl-ghost" onClick="{{znovu}}">Zaměřit znovu</button>
+</sc-if>
+</div>
+
+<sc-if value="{{jePosadka}}" hint-placeholder-val="{{true}}">
+<div class="sklo" style="padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+<span class="stitek">Hejno · každý holub má svůj úkol</span>
+<span class="sedy" style="font-size: 12.5px">zaměření počítá ceník, ne AI</span>
+</div>
+<div class="posadka">
+<sc-for list="{{posadka}}" as="h" hint-placeholder-count="4">
+<div class="clen {{h.trida}}">
+<svg class="mini" viewBox="-60 -78 110 112" aria-hidden="true" focusable="false"><use href="{{h.poza}}"/></svg>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span class="jmeno">{{h.jmeno}}</span><span class="ukol">{{h.ukol}}</span></div>
+<span class="stav">{{h.stav}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{jeVolba}}" hint-placeholder-val="{{false}}">
+<div class="sklo" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+<span class="stitek">Krok 05 · ochranná vrstva</span>
+<div role="group" aria-label="Střecha" style="display: grid; grid-template-columns: 72px 1fr 1fr; gap: 8px; align-items: center"><span class="pf" style="font-size: 15px; color: #f6e7a8">Střecha</span><button type="button" class="tl-ghost" role="radio" aria-checked="{{sA}}" onClick="{{sVolA}}" style="min-height: 44px; padding: 0 12px; font-size: 13px">A · Neviditelný štít</button><button type="button" class="tl-ghost" role="radio" aria-checked="{{sB}}" onClick="{{sVolB}}" style="min-height: 44px; padding: 0 12px; font-size: 13px">B · Renovace RAL</button></div>
+<div role="group" aria-label="Fasáda" style="display: grid; grid-template-columns: 72px 1fr 1fr; gap: 8px; align-items: center"><span class="pf" style="font-size: 15px; color: #f6e7a8">Fasáda</span><button type="button" class="tl-ghost" role="radio" aria-checked="{{fA}}" onClick="{{fVolA}}" style="min-height: 44px; padding: 0 12px; font-size: 13px">A · Neviditelný štít</button><button type="button" class="tl-ghost" role="radio" aria-checked="{{fB}}" onClick="{{fVolB}}" style="min-height: 44px; padding: 0 12px; font-size: 13px">B · Renovace RAL 9001</button></div>
+<p class="sedy" style="margin: 0; font-size: 12.5px; line-height: 1.5">Kroky 01–04 jsou vždy stejné. Cesta A zachová vzhled, cesta B ho změní v odstínu RAL.</p>
+<button type="button" class="tl-zlate" onClick="{{zapecetit}}">Zapečetit orientační cenu</button>
+</div>
+</sc-if>
+
+<sc-if value="{{jeObalka}}" hint-placeholder-val="{{false}}">
+<div class="sklo obalka-karta" style="padding: 18px; display: flex; flex-direction: column; gap: 12px">
+<span class="stitek">Vaše orientační cena je zapečetěná</span>
+<div class="obalka">
+<div class="obalka-klopa"></div><div class="obalka-linka"></div>
+<button type="button" class="pecet" aria-label="Rozlomit pečeť a zobrazit orientační cenu" onClick="{{rozlomit}}"><svg viewBox="-60 -78 110 112" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg></button>
+<div class="obalka-text"><span class="pf" style="font-size: 17px; color: #f6e7a8">{{obalkaTitul}}</span><span class="sedy" style="font-size: 12px">Klepněte na pečeť. Výpočet běží z ceníku HSPG, ne z AI.</span></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{jeCena}}" hint-placeholder-val="{{false}}">
+<div class="sklo cena-karta" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; border-color: rgba(246,231,168,.45)">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px"><span class="stitek">Orientační cena · jednorázově</span><span class="sedy" style="font-size: 12.5px">neplátce DPH · ukázka</span></div>
+<div class="cena-velka">{{cenaText}}</div>
+<div style="display: flex; flex-direction: column">
+<sc-for list="{{polozky}}" as="r" hint-placeholder-count="2">
+<div class="radek"><div><div class="n">{{r.nazev}}</div><div class="d">{{r.detail}}</div></div><div class="c">{{r.castka}}</div></div>
+</sc-for>
+<div class="radek"><div><div class="n">Sleva za dva a více povrchů (5&nbsp;%)</div></div><div class="c">{{slevaText}}</div></div>
+<div class="radek"><div><div class="n">Doprava</div><div class="d">do 30&nbsp;km od základny zdarma, dál 12&nbsp;Kč/km · v&nbsp;ukázce 34&nbsp;km</div></div><div class="c">408&nbsp;Kč</div></div>
+<div class="radek"><div><div class="n">Zaokrouhlení na desítky</div></div><div class="c">{{zaokrText}}</div></div>
+<div class="radek celkem"><div class="n">Celkem (orientačně)</div><div class="c">{{celkemText}}</div></div>
+</div>
+<p class="sedy" style="margin: 0; font-size: 12.5px; line-height: 1.5">Orientační výpočet z ceníku, ne nabídka. Přesnou cenu potvrdíme po ověření rozsahu na místě. {{zalohaText}}</p>
+<p class="sedy" style="margin: 0; font-size: 12.5px; line-height: 1.5">{{zarukaText}}</p>
+<div style="display: flex; gap: 10px; flex-wrap: wrap"><button type="button" class="tl-zlate" style="min-height: 48px; padding: 0 20px; font-size: 14px" onClick="{{stahnout}}">Stáhnout kalkulaci (PDF)</button><a href="#termin" class="tl-ghost">Rezervovat termín</a></div>
+</div>
+</sc-if>
+</div>
+
+<!-- PRAVÝ SLOUPEC: SCÉNA -->
+<div style="position: relative; display: flex; flex-direction: column; gap: 14px; min-width: 0">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 style="font-size: 30px; line-height: 1.05; color: #f4f1e8">Dům zaměříme na dálku. <em style="color: #f6e7a8">Hejno to zvládne za pár vteřin.</em></h2>
+<p role="status" aria-live="polite" class="sedy" style="margin: 0; font-size: 14px">{{stavText}}</p>
+</div>
+<button type="button" class="prepinac" aria-pressed="{{zvukText}}" onClick="{{prepniZvuk}}" aria-label="Zvuk a vibrace"><svg class="vyp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M23 9l-6 6M17 9l6 6"/></svg><svg class="zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg><span>Zvuk a vibrace</span></button>
+</div>
+
+<div class="scena-obal sklo" style="padding: 10px; border-radius: 26px; overflow: hidden">
+<svg class="scena-svg" viewBox="0 0 1000 620" role="img" aria-label="Ilustrační model domu se střechou, fasádou a komínem, kolem kterého létá hejno zlatých origami holubů">
+<ellipse cx="520" cy="560" rx="470" ry="70" fill="url(#g-zem)"/>
+<!-- dům -->
+<polygon points="100,318 207,182 330,330" fill="url(#g-stit)"/>
+<polygon points="100,318 330,330 330,560 100,540" fill="url(#g-stit)"/>
+<g class="fasada-b"><polygon points="100,318 207,182 330,330" fill="url(#g-ral9001-stit)"/><polygon points="100,318 330,330 330,560 100,540" fill="url(#g-ral9001-stit)"/></g>
+<polygon points="330,330 860,300 860,500 330,560" fill="url(#g-stena)"/>
+<g class="fasada-b"><polygon points="330,330 860,300 860,500 330,560" fill="url(#g-ral9001)"/></g>
+<line x1="207" y1="182" x2="88" y2="306" stroke="#0b0f19" stroke-width="6" stroke-linecap="round"/>
+<line x1="207" y1="182" x2="88" y2="306" stroke="#d4af37" stroke-opacity=".55" stroke-width="1.4" stroke-linecap="round"/>
+<polygon points="207,182 772,168 884,316 346,349" fill="url(#g-strecha)"/>
+<path d="M218.3,195.5L781.1,180M229.5,209L790.1,192M240.8,222.6L799.2,204M252,236.1L808.3,215.9M263.3,249.6L817.3,227.9M274.5,263.1L826.4,239.9M285.8,276.7L835.5,251.9M297,290.2L844.6,263.9M308.3,303.7L853.6,275.9M319.6,317.2L862.7,287.8M330.8,330.7L871.8,299.8M342.1,344.3L880.8,311.8" stroke="#05070f" stroke-opacity=".75" stroke-width="2.2" fill="none"/>
+<path d="M216.6,193.5L779.7,178.2M227.8,207L788.8,190.2M239.1,220.6L797.9,202.2M250.4,234.1L806.9,214.2M261.6,247.6L816,226.1M272.9,261.1L825.1,238.1M284.1,274.7L834.1,250.1M295.4,288.2L843.2,262.1M306.6,301.7L852.3,274.1M317.9,315.2L861.3,286.1M329.1,328.7L870.4,298M340.4,342.3L879.5,310" stroke="#8a93a8" stroke-opacity=".35" stroke-width=".8" fill="none"/>
+<path d="M235.3,181.3L245,193.1M263.5,180.6L273.2,192.3M291.8,179.9L301.3,191.5M320,179.2L329.5,190.8M348.3,178.5L357.6,190M376.5,177.8L385.8,189.2M404.8,177.1L413.9,188.5M433,176.4L442.1,187.7M461.3,175.7L470.3,186.9M489.5,175L498.4,186.2M517.8,174.3L526.6,185.4M546,173.6L554.7,184.6M574.3,172.9L582.9,183.9M602.5,172.2L611,183.1M630.8,171.5L639.2,182.3M659,170.8L667.3,181.6M687.3,170.1L695.5,180.8M715.5,169.4L723.6,180M743.8,168.7L751.8,179.3M232.3,195.1L242.1,207M260.5,194.4L270.2,206.1M288.6,193.6L298.2,205.3M316.7,192.8L326.3,204.4M344.9,192L354.3,203.6M373,191.2L382.4,202.7M401.2,190.5L410.4,201.9M429.3,189.7L438.5,201M457.5,188.9L466.5,200.2M485.6,188.1L494.5,199.4M513.7,187.4L522.6,198.5M541.9,186.6L550.6,197.7M570,185.8L578.7,196.8M598.2,185L606.7,196M626.3,184.3L634.8,195.1M654.4,183.5L662.8,194.3M682.6,182.7L690.9,193.4M710.7,181.9L718.9,192.6M738.9,181.1L747,191.8M767,180.4L775,190.9M257.5,208.2L267.3,220M285.6,207.3L295.2,219.1M313.6,206.5L323.2,218.1M341.6,205.6L351.1,217.2M369.7,204.8L379.1,216.3M397.7,203.9L407,215.4M425.7,203.1L434.9,214.4M453.8,202.2L462.9,213.5M481.8,201.4L490.8,212.6M509.8,200.5L518.7,211.7M537.9,199.7L546.7,210.8M565.9,198.8L574.6,209.8M593.9,197.9L602.5,208.9M621.9,197.1L630.5,208M650,196.2L658.4,207.1M678,195.4L686.3,206.2M706,194.5L714.3,205.2M734.1,193.7L742.2,204.3M762.1,192.8L770.2,203.4M254.7,222.1L264.5,233.9M282.6,221.2L292.4,232.9M310.6,220.2L320.2,231.9M338.5,219.3L348,230.9M366.4,218.4L375.8,229.9M394.3,217.4L403.7,228.9M422.3,216.5L431.5,227.9M450.2,215.6L459.3,226.9M478.1,214.7L487.2,225.9M506,213.7L515,224.9M533.9,212.8L542.8,223.9M561.9,211.9L570.6,222.9M589.8,210.9L598.5,221.9M617.7,210L626.3,220.9M645.6,209.1L654.1,219.9M673.6,208.1L681.9,218.9M701.5,207.2L709.8,217.9M729.4,206.3L737.6,217M757.3,205.3L765.4,216M785.2,204.4L793.2,215M279.8,235.1L289.6,246.9M307.6,234.1L317.3,245.8M335.5,233.1L345,244.7M363.3,232.1L372.8,243.6M391.1,231.1L400.5,242.6M418.9,230L428.2,241.5M446.7,229L455.9,240.4M474.5,228L483.6,239.3M502.3,227L511.3,238.3M530.1,226L539.1,237.2M558,225L566.8,236.1M585.8,224L594.5,235M613.6,223L622.2,234M641.4,222L649.9,232.9M669.2,221L677.6,231.8M697,220L705.4,230.7M724.8,219L733.1,229.7M752.6,218L760.8,228.6M780.5,216.9L788.5,227.5M277.1,249.1L286.9,260.9M304.8,248L314.6,259.7M332.5,246.9L342.2,258.6M360.2,245.8L369.8,257.4M387.9,244.7L397.4,256.3M415.6,243.6L425,255.1M443.3,242.6L452.6,254M471.1,241.5L480.2,252.8M498.8,240.4L507.8,251.7M526.5,239.3L535.4,250.5M554.2,238.2L563,249.4M581.9,237.1L590.6,248.2M609.6,236.1L618.2,247.1M637.3,235L645.8,245.9M665,233.9L673.5,244.8M692.7,232.8L701.1,243.6M720.4,231.7L728.7,242.5M748.1,230.6L756.3,241.3M775.8,229.5L783.9,240.2M803.5,228.5L811.5,239M302.1,262L311.9,273.8M329.7,260.8L339.4,272.5M357.3,259.6L366.9,271.3M384.9,258.5L394.4,270.1M412.5,257.3L421.9,268.8M440.1,256.2L449.4,267.6M467.7,255L476.9,266.4M495.3,253.8L504.4,265.2M522.9,252.7L531.9,263.9M550.5,251.5L559.4,262.7M578.1,250.4L586.9,261.5M605.7,249.2L614.4,260.2M633.3,248L641.9,259M660.8,246.9L669.4,257.8M688.4,245.7L696.9,256.6M716,244.5L724.4,255.3M743.6,243.4L751.9,254.1M771.2,242.2L779.4,252.9M798.8,241.1L806.9,251.6M299.5,276L309.3,287.9M327,274.8L336.7,286.5M354.5,273.6L364.1,285.2M382,272.3L391.5,283.9M409.5,271.1L418.9,282.6M437,269.8L446.3,281.3M464.4,268.6L473.7,280M491.9,267.4L501.1,278.7M519.4,266.1L528.5,277.4M546.9,264.9L555.8,276.1M574.4,263.7L583.2,274.8M601.9,262.4L610.6,273.5M629.3,261.2L638,272.2M656.8,259.9L665.4,270.9M684.3,258.7L692.8,269.6M711.8,257.5L720.2,268.3M739.3,256.2L747.6,267M766.8,255L775,265.7M794.3,253.7L802.3,264.3M821.7,252.5L829.7,263M324.4,288.9L334.2,300.6M351.8,287.5L361.5,299.3M379.2,286.2L388.7,297.9M406.5,284.9L416,296.5M433.9,283.6L443.3,295.1M461.3,282.3L470.6,293.7M488.7,281L497.9,292.4M516,279.7L525.1,291M543.4,278.3L552.4,289.6M570.8,277L579.7,288.2M598.2,275.7L607,286.8M625.5,274.4L634.3,285.4M652.9,273.1L661.5,284.1M680.3,271.8L688.8,282.7M707.7,270.4L716.1,281.3M735,269.1L743.4,279.9M762.4,267.8L770.7,278.5M789.8,266.5L797.9,277.1M817.2,265.2L825.2,275.8M321.9,303L331.7,314.8M349.2,301.6L358.9,313.4M376.5,300.2L386.1,311.9M403.7,298.8L413.3,310.4M431,297.4L440.4,309M458.3,296L467.6,307.5M485.5,294.7L494.8,306.1M512.8,293.3L521.9,304.6M540.1,291.9L549.1,303.1M567.3,290.5L576.3,301.7M594.6,289.1L603.4,300.2M621.9,287.7L630.6,298.8M649.1,286.3L657.8,297.3M676.4,284.9L685,295.8M703.7,283.5L712.1,294.4M730.9,282.1L739.3,292.9M758.2,280.7L766.5,291.5M785.5,279.3L793.6,290M812.7,277.9L820.8,288.5M840,276.6L848,287.1M346.7,315.8L356.5,327.5M373.9,314.3L383.5,326M401,312.8L410.6,324.5M428.2,311.3L437.7,322.9M455.3,309.9L464.7,321.4M482.5,308.4L491.8,319.9M509.6,306.9L518.8,318.3M536.8,305.5L545.9,316.8M564,304L573,315.2M591.1,302.5L600,313.7M618.3,301.1L627.1,312.2M645.4,299.6L654.1,310.6M672.6,298.1L681.2,309.1M699.7,296.7L708.3,307.6M726.9,295.2L735.3,306M754.1,293.7L762.4,304.5M781.2,292.2L789.5,303M808.4,290.8L816.5,301.4M835.5,289.3L843.6,299.9M344.3,330L354.1,341.8M371.4,328.4L381.1,340.2M398.4,326.9L408.1,338.6M425.5,325.3L435,336.9M452.5,323.8L462,335.3M479.6,322.2L488.9,333.7M506.6,320.7L515.9,332.1M533.7,319.1L542.8,330.5M560.7,317.6L569.8,328.9M587.8,316.1L596.7,327.3M614.8,314.5L623.7,325.7M641.9,313L650.6,324M668.9,311.4L677.6,322.4M695.9,309.9L704.5,320.8M723,308.3L731.5,319.2M750,306.8L758.4,317.6M777.1,305.2L785.4,316M804.1,303.7L812.3,314.4M831.2,302.1L839.3,312.7M858.2,300.6L866.2,311.1" stroke="#05070f" stroke-opacity=".5" stroke-width=".9" fill="none"/>
+<g class="mech" fill="#4e6b3a" fill-opacity=".75"><ellipse cx="380.7" cy="308.8" rx="26" ry="9"/><ellipse cx="440.2" cy="326.1" rx="34" ry="8"/><ellipse cx="493.1" cy="279.5" rx="22" ry="7"/><ellipse cx="586.6" cy="311.1" rx="40" ry="10"/><ellipse cx="645.3" cy="285.1" rx="28" ry="8"/><ellipse cx="734.6" cy="312.3" rx="36" ry="9"/><ellipse cx="762.4" cy="260.4" rx="20" ry="6"/><ellipse cx="415.8" cy="226.2" rx="18" ry="6"/><ellipse cx="573" cy="236.7" rx="24" ry="6"/><ellipse cx="811.8" cy="295.3" rx="30" ry="8"/><ellipse cx="320.6" cy="263.6" rx="16" ry="6"/><ellipse cx="617.7" cy="206.4" rx="14" ry="5"/></g>
+<g class="mech" fill="#7a8a5a" fill-opacity=".35"><ellipse cx="386" cy="306" rx="12" ry="4"/><ellipse cx="596" cy="308" rx="16" ry="4"/><ellipse cx="740" cy="309" rx="14" ry="4"/></g>
+<!-- kapky cesty A (po rozlomení pečeti) -->
+<g fill="#cfe4ff" fill-opacity=".85"><g class="kapka k0" transform="translate(311.2,238.4)"><ellipse rx="3.4" ry="2.6"/><ellipse class="kl" fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k1" transform="translate(391.9,280.9)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k2" transform="translate(385.9,210.6)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k3" transform="translate(497.5,306)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k0" transform="translate(496.2,247.9)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k1" transform="translate(577.4,285.3)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k2" transform="translate(563.7,217.7)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k3" transform="translate(635.5,258.2)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k0" transform="translate(710,302.5)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k1" transform="translate(694.9,232)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k2" transform="translate(762.7,268.2)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k3" transform="translate(755.3,206.5)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k0" transform="translate(457.7,333.6)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k1" transform="translate(485.9,199.3)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k2" transform="translate(659,316.8)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g><g class="kapka k3" transform="translate(807.9,304.9)"><ellipse rx="3.4" ry="2.6"/><ellipse fill="#fff" cx="-1" cy="-0.9" rx="1.1" ry=".7"/></g></g>
+<!-- okap a hrany -->
+<line x1="346" y1="349" x2="884" y2="316" stroke="#0b0f19" stroke-width="7" stroke-linecap="round"/>
+<line x1="346" y1="349" x2="884" y2="316" stroke="#d4af37" stroke-opacity=".7" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="207" y1="182" x2="772" y2="168" stroke="#f0d68a" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="772" y1="168" x2="884" y2="316" stroke="#d4af37" stroke-opacity=".6" stroke-width="1.4"/>
+<line x1="207" y1="182" x2="346" y2="349" stroke="#d4af37" stroke-opacity=".6" stroke-width="1.4"/>
+<line x1="884" y1="316" x2="884" y2="336" stroke="#8a93a8" stroke-width="3" stroke-linecap="round"/>
+<line x1="860" y1="320" x2="860" y2="500" stroke="#8a93a8" stroke-opacity=".6" stroke-width="2.4"/>
+<!-- komín -->
+<polygon points="626.5,202.9 660.1,201.9 660.1,137.9 626.5,138.9" fill="#2b3245"/>
+<polygon points="660.1,201.9 648.2,186.6 648.2,122.6 660.1,137.9" fill="#1a2030"/>
+<polygon points="614.5,123.6 648.2,122.6 660.1,137.9 626.5,138.9" fill="#3c4559"/>
+<polygon points="622.5,140.9 664.1,139.9 652.2,120.6 610.5,121.6" fill="#454f66"/>
+<path d="M626.5,153L660.1,152M626.5,167L660.1,166M626.5,181L660.1,180M626.5,195L660.1,194" stroke="#05070f" stroke-opacity=".5" stroke-width="1"/>
+<!-- okna boční stěna -->
+<g fill="url(#g-sklo)" stroke="#f6e7a8" stroke-opacity=".55" stroke-width="1.2">
+<polygon points="436,359.8 489,356.4 489,413.8 436,418.1"/><polygon points="552.6,352.2 605.6,348.7 605.6,404.4 552.6,408.7"/><polygon points="669.2,344.5 722.2,341 722.2,395.1 669.2,399.3"/><polygon points="785.8,338.9 828.2,336.1 828.2,386.6 785.8,390"/>
+<polygon points="552.6,439.1 605.6,434.5 605.6,494.5 552.6,500"/><polygon points="669.2,428.8 722.2,424.2 722.2,482.4 669.2,487.9"/><polygon points="785.8,418.6 828.2,414.8 828.2,471.3 785.8,475.7"/><polygon points="436,449.4 489,444.8 489,506.6 436,512.2"/>
+</g>
+<path d="M462.5,358.1L462.5,416M436,389L489,385.1M579.1,350.4L579.1,406.6M552.6,380.4L605.6,376.6M695.7,342.8L695.7,397.2M669.2,371.9L722.2,368.1M807,337.5L807,388.3M785.8,364.4L828.2,361.3M579.1,436.8L579.1,497.3M552.6,469.6L605.6,464.5M695.7,426.5L695.7,485.1M669.2,458.4L722.2,453.3M807,416.7L807,473.5M785.8,447.1L828.2,443.1M462.5,447.1L462.5,509.4M436,480.8L489,475.7" stroke="#0b0f19" stroke-opacity=".8" stroke-width="2"/>
+<path d="M431.8,418.4L493.2,413.5M548.4,409L609.8,404.1M665,399.7L726.4,394.7M782.4,390.2L831.6,386.3M548.4,500.5L609.8,494.1M665,488.3L726.4,481.9M782.4,476.1L831.6,471M431.8,512.6L493.2,506.2" stroke="#d4af37" stroke-opacity=".5" stroke-width="2.4" stroke-linecap="round"/>
+<!-- dveře -->
+<polygon points="351.2,436.3 404.2,431.9 405.3,438.6 350.1,443.3" fill="#d4af37" fill-opacity=".8"/>
+<polygon points="359.2,442.5 396.3,439.4 396.3,552.5 359.2,556.7" fill="#1a2030" stroke="#d4af37" stroke-opacity=".6" stroke-width="1.2"/>
+<polygon points="367.1,455.5 388.3,453.7 388.3,508.1 367.1,510.2" fill="url(#g-sklo)"/>
+<circle cx="377.7" cy="434.1" r="22" fill="url(#g-svetlo)"/>
+<circle cx="391" cy="500" r="1.8" fill="#f6e7a8"/>
+<!-- okna štít -->
+<g fill="url(#g-sklo)" stroke="#f6e7a8" stroke-opacity=".55" stroke-width="1.2"><polygon points="136.8,382.4 196.6,386.1 196.6,458.3 136.8,453.9"/><polygon points="233.4,388.4 293.2,392.1 293.2,465.3 233.4,460.9"/><polygon points="215,238 236,262 215,286 194,262"/></g>
+<path d="M166.7,384.3L166.7,456.1M136.8,418.2L196.6,422.2M263.3,390.3L263.3,463.1M233.4,424.7L293.2,428.7" stroke="#0b0f19" stroke-opacity=".8" stroke-width="2"/>
+<!-- měření: sken, obrys, kóty, kontroly -->
+<g transform="matrix(565,-14,139,167,207,182)"><rect class="sken" x="0" y="0" width=".06" height="1" fill="url(#g-sken)"/></g>
+<path class="obrys" d="M207,182 L772,168 L884,316 L346,349 Z" pathLength="1" fill="none" stroke="#fff3c4" stroke-width="2.2" stroke-linejoin="round"/>
+<path class="obrys" d="M330,330 L860,300 L860,500 L330,560 Z" pathLength="1" fill="none" stroke="#fff3c4" stroke-opacity=".7" stroke-width="1.6" stroke-dasharray=".01 .006" stroke-linejoin="round"/>
+<g class="kota"><path pathLength="1" d="M207,164 L772,150 M207,158 L207,170 M772,144 L772,156"/></g>
+<g class="kota"><path pathLength="1" d="M346,379 L884,346 M346,373 L346,385 M884,340 L884,352"/></g>
+<g class="kota"><path pathLength="1" d="M86,576 L324,588 M86,570 L86,582 M324,582 L324,594"/></g>
+<text class="kota-text" x="489" y="142" text-anchor="middle">délka 14,2 m</text>
+<text class="kota-text" x="615" y="376" text-anchor="middle" transform="rotate(-3.5 615 376)">obvod 47,0 m · půdorys ≈ 132 m²</text>
+<text class="kota-text" x="205" y="610" text-anchor="middle" transform="rotate(2.9 205 610)">šířka 9,3 m</text>
+<g transform="translate(552,254)"><g class="kontrola k1"><circle r="15"/><path d="M-6.5,0.5 L-2,5 L7,-5.5"/></g></g>
+<g transform="translate(595,422)"><g class="kontrola k2"><circle r="15"/><path d="M-6.5,0.5 L-2,5 L7,-5.5"/></g></g>
+<g transform="translate(637,108)"><g class="kontrola k3"><circle r="15"/><path d="M-6.5,0.5 L-2,5 L7,-5.5"/></g></g>
+<!-- hejno -->
+<g class="holub h-meri {{letM}}"><g transform="scale(.6)"><use class="p1" href="#h-nahoru" x="-60" y="-78" width="110" height="112"/><use class="p2" href="#h-stred" x="-60" y="-78" width="110" height="112"/><use class="p3" href="#h-dolu" x="-60" y="-78" width="110" height="112"/></g></g>
+<g class="holub h-pocita klidny"><g transform="scale(.5)"><use class="p2" href="#h-klid" x="-60" y="-78" width="110" height="112"/></g></g>
+<g class="holub h-overuje {{letO}}"><g transform="scale(-.58,.58)"><use class="p1" href="#h-nahoru" x="-60" y="-78" width="110" height="112"/><use class="p2" href="#h-stred" x="-60" y="-78" width="110" height="112"/><use class="p3" href="#h-dolu" x="-60" y="-78" width="110" height="112"/></g></g>
+<g class="holub h-komunikuje {{letK}}"><g transform="scale(-.62,.62)"><use class="p1" href="#h-nahoru" x="-60" y="-78" width="110" height="112"/><use class="p2" href="#h-stred" x="-60" y="-78" width="110" height="112"/><use class="p3" href="#h-dolu" x="-60" y="-78" width="110" height="112"/></g></g>
+</svg>
+<div class="bublina" aria-hidden="true"><b>Holub Komunikuje</b>Hotovo: střecha 190 m², fasáda 340 m², sklon 38°. Předávám do kalkulace – pečeť je připravená.</div>
+<span class="stitek" style="position: absolute; right: 22px; bottom: 16px; color: #a3a9b5; letter-spacing: .16em">Ilustrační model · ukázka</span>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+<div class="udaj"><span class="stitek">Střecha</span><span class="h">{{strechaText}}<small>m²</small><span class="odhad">odhad</span></span><span class="sedy" style="font-size: 12.5px">z obrysu domu</span></div>
+<div class="udaj"><span class="stitek">Fasáda</span><span class="h">{{fasadaText}}<small>m²</small><span class="odhad">odhad</span></span><span class="sedy" style="font-size: 12.5px">z obvodu domu</span></div>
+<div class="udaj"><span class="stitek">Půdorys</span><span class="h">{{pudorysText}}<small>m²</small></span><span class="sedy" style="font-size: 12.5px">14,2 × 9,3 m</span></div>
+<div class="udaj"><span class="stitek">Ověření</span><span class="h">{{overeniText}}</span><span class="sedy" style="font-size: 12.5px">obrys sedí na jednu budovu</span></div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tempo":{"editor":"range","default":1,"min":0.5,"max":2,"step":0.1,"section":"Pohyb"},"zvukVychozi":{"editor":"boolean","default":true,"section":"Zvuk"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { faze: 0, zvuk: true, strecha: 0, fasada: 0, sklon: 0, overeni: 0, cena: 0, strechaCesta: 'A', fasadaCesta: 'B' };
+    this._t = []; this._iv = null; this._ac = null;
+    this.zamerit = this.zamerit.bind(this); this.rozlomit = this.rozlomit.bind(this); this.znovu = this.znovu.bind(this);
+    this.prepniZvuk = this.prepniZvuk.bind(this); this.stahnout = this.stahnout.bind(this);
+    this.zapecetit = this.zapecetit.bind(this);
+    var self = this;
+    this.sVolA = function () { self.setState({ strechaCesta: 'A' }); self.zvuk('fajfka'); };
+    this.sVolB = function () { self.setState({ strechaCesta: 'B' }); self.zvuk('fajfka'); };
+    this.fVolA = function () { self.setState({ fasadaCesta: 'A' }); self.zvuk('fajfka'); };
+    this.fVolB = function () { self.setState({ fasadaCesta: 'B' }); self.zvuk('fajfka'); };
+  }
+  // Orientační cena z ceníku (sazby od 1. 10. 2026): plochy z ukázky, sleva za dva povrchy 5 %, doprava ukázkově 34 km nad 30 km zdarma, zaokrouhlení na desítky.
+  cena() {
+    var s = this.state, SAZBY = { A: { strecha: 178, fasada: 168 }, B: { strecha: 268, fasada: 298 } };
+    var polozky = [], soucet = 0;
+    [['strecha', 'Střecha', 190, s.strechaCesta], ['fasada', 'Fasáda', 340, s.fasadaCesta]].forEach(function (p) {
+      var sazba = SAZBY[p[3]][p[0]], castka = p[2] * sazba; soucet += castka;
+      polozky.push({ nazev: p[1] + ' · cesta ' + p[3] + ' · ' + (p[3] === 'A' ? 'neviditelný štít H-STONE' : 'barevná renovace RAL 9001'), detail: p[2] + '\u00a0m² × ' + sazba + '\u00a0Kč · kroky 01–05', castka: String(Math.round(castka)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0') + '\u00a0Kč' });
+    });
+    var sleva = Math.round(soucet * 0.05), doprava = 408, mezi = soucet - sleva + doprava, celkem = Math.round(mezi / 10) * 10;
+    return { polozky: polozky, sleva: sleva, doprava: doprava, zaokr: celkem - mezi, celkem: celkem };
+  }
+  componentDidMount() { if (this.props.zvukVychozi === false) this.setState({ zvuk: false }); }
+  componentWillUnmount() { this.vycisti(); }
+  vycisti() { this._t.forEach(clearTimeout); this._t = []; if (this._iv) { clearInterval(this._iv); this._iv = null; } }
+  po(ms, f) { var k = 1 / (this.props.tempo || 1); this._t.push(setTimeout(f, ms * k)); }
+  // Zvuk: syntéza Web Audio, bez souborů, jen po akci uživatele a jen když je zapnutý.
+  ac() {
+    if (!this.state.zvuk) return null;
+    try { if (!this._ac) { var C = window.AudioContext || window.webkitAudioContext; if (!C) return null; this._ac = new C(); if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } if (this._ac.state === 'suspended') this._ac.resume(); return this._ac; } catch (e) { return null; }
+  }
+  ton(f0, f1, t0, dur, typ, g) {
+    var a = this.ac(); if (!a) return;
+    var o = a.createOscillator(), v = a.createGain(); o.type = typ || 'sine';
+    o.frequency.setValueAtTime(f0, a.currentTime + t0); o.frequency.exponentialRampToValueAtTime(f1 || f0, a.currentTime + t0 + dur);
+    v.gain.setValueAtTime(0.0001, a.currentTime + t0); v.gain.exponentialRampToValueAtTime(g || 0.08, a.currentTime + t0 + 0.012); v.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + t0 + dur);
+    o.connect(v); v.connect(a.destination); o.start(a.currentTime + t0); o.stop(a.currentTime + t0 + dur + 0.02);
+  }
+  sum(t0, dur, g) {
+    var a = this.ac(); if (!a) return;
+    var n = Math.floor(a.sampleRate * dur), b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0);
+    for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2.2);
+    var s = a.createBufferSource(), f = a.createBiquadFilter(), v = a.createGain(); s.buffer = b; f.type = 'bandpass'; f.frequency.value = 1800; f.Q.value = 0.8;
+    v.gain.value = g || 0.12; s.connect(f); f.connect(v); v.connect(a.destination); s.start(a.currentTime + t0);
+  }
+  zvuk(n) {
+    if (n === 'tuk') this.ton(420, 300, 0, 0.07, 'sine', 0.06);
+    else if (n === 'kridla') { this.sum(0, 0.09, 0.05); this.sum(0.12, 0.09, 0.04); this.sum(0.24, 0.08, 0.03); }
+    else if (n === 'fajfka') { this.ton(660, 660, 0, 0.09, 'sine', 0.07); this.ton(990, 990, 0.1, 0.16, 'sine', 0.07); }
+    else if (n === 'pecet') { this.sum(0, 0.12, 0.16); this.ton(140, 60, 0.02, 0.22, 'triangle', 0.14); }
+    else if (n === 'cena') { [523, 659, 784, 1047].forEach(function (f, i) { this.ton(f, f, i * 0.06, 0.22, 'sine', 0.05); }, this); }
+    var v = { tuk: [8], fajfka: [12, 40, 18], pecet: [18, 30, 42], cena: [10, 50, 10, 50, 24] }[n];
+    if (v && this.state.zvuk && navigator.vibrate) { try { navigator.vibrate(v); } catch (e) {} }
+  }
+  pocitej(klic, cil, ms, hotovo) {
+    var start = performance.now(), self = this;
+    if (this._iv) clearInterval(this._iv);
+    this._iv = setInterval(function () {
+      var u = Math.min(1, (performance.now() - start) / ms), e = 1 - Math.pow(1 - u, 3), s = {};
+      s[klic] = Math.round(cil * e);
+      if (klic === 'strecha') s.fasada = Math.round(340 * e);
+      self.setState(s);
+      if (u >= 1) { clearInterval(self._iv); self._iv = null; if (hotovo) hotovo(); }
+    }, 40);
+  }
+  zamerit() {
+    this.vycisti();
+    this.setState({ faze: 1, strecha: 0, fasada: 0, sklon: 0, overeni: 0, cena: 0 });
+    this.zvuk('kridla');
+    var self = this;
+    this.po(2600, function () { self.setState({ faze: 2 }); self.zvuk('tuk'); self.pocitej('strecha', 190, 1200); self.po(700, function () { self.setState({ sklon: 38 }); }); });
+    this.po(4300, function () { self.setState({ faze: 3 }); self.zvuk('tuk'); self.po(450, function () { self.setState({ overeni: 1 }); }); self.po(850, function () { self.setState({ overeni: 2 }); }); self.po(1250, function () { self.setState({ overeni: 3 }); self.zvuk('fajfka'); }); });
+    this.po(5900, function () { self.setState({ faze: 4 }); self.zvuk('kridla'); });
+    this.po(7300, function () { self.setState({ faze: 5 }); self.zvuk('tuk'); });
+  }
+  zapecetit() { if (this.state.faze !== 5) return; this.setState({ faze: 6 }); this.zvuk('tuk'); }
+  rozlomit() {
+    if (this.state.faze !== 6) return;
+    this.zvuk('pecet');
+    var self = this, cil = this.cena().celkem;
+    this.setState({ faze: 7 });
+    this.po(380, function () { self.pocitej('cena', cil, 1400, function () { self.zvuk('cena'); }); });
+  }
+  znovu() { this.vycisti(); this.setState({ faze: 0, strecha: 0, fasada: 0, sklon: 0, overeni: 0, cena: 0 }); }
+  prepniZvuk() { var z = !this.state.zvuk; this.setState({ zvuk: z }); if (z) { var self = this; setTimeout(function () { self.zvuk('tuk'); }, 0); } }
+  stahnout() { this.zvuk('fajfka'); }
+  kc(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' Kč'; }
+  renderVals() {
+    var s = this.state, f = s.faze, c = this.cena();
+    var tridy = (f >= 1 ? 'm ' : '') + (f >= 2 ? 'p ' : '') + (f >= 3 ? 'o ' : '') + (f >= 4 ? 'k ' : '') + (f === 6 ? 'z ' : '') + (f >= 7 ? 'c ' : '') + (f === 1 ? 'aktivni-m ' : '') + (f === 3 ? 'aktivni-o ' : '') + (f === 4 ? 'aktivni-k ' : '');
+    var stavy = ['Zadejte adresu – hejno vyletí a dům zaměří na dálku.', 'Holub Měří obletává dům a kreslí obrys střechy i fasády.', 'Holub Počítá převádí obrys na odhad ploch střechy a fasády.', 'Holub Ověřuje kontroluje, že obrys sedí na jednu budovu a plochy dávají smysl.', 'Holub Komunikuje předává ověřené plochy do kalkulace.', 'Vyberte cestu ochrany pro střechu a fasádu, pak cenu zapečetíme.', 'Orientační cena je zapečetěná. Rozlomte pečeť.', 'Orientační cena z ceníku HSPG: ' + this.kc(this.cena().celkem) + '.'];
+    function stav(i) { return f === 0 ? 'ceka' : f < i ? 'ceka' : f === i ? 'bezi' : 'hotovo'; }
+    function popis(t) { return t === 'bezi' ? 'pracuje' : t === 'hotovo' ? 'hotovo' : 'čeká'; }
+    var role = [['Měří', 'Obletí dům a vykreslí obrys střechy i fasády', '#h-nahoru'], ['Počítá', 'Z obrysu odhadne plochy střechy a fasády', '#h-klid'], ['Ověřuje', 'Ohlídá, že obrys sedí na jednu budovu a plochy dávají smysl', '#h-stred'], ['Komunikuje', 'Oznámí výsledek a předá ho do kalkulace', '#h-dolu']];
+    var posadka = role.map(function (r, i) { var t = stav(i + 1); return { jmeno: r[0], ukol: r[1], poza: r[2], trida: t, stav: popis(t) }; });
+    return {
+      tridy: tridy,
+      jeKlid: f === 0, jeBeh: f >= 1 && f <= 4, jeHotovo: f >= 5, jeVolba: f === 5, jeObalka: f >= 6, jeCena: f >= 7, jePosadka: f < 6,
+      obalkaTitul: f >= 7 ? 'Pečeť rozlomena' : 'Osobní kalkulace · ukázkový dům',
+      sA: s.strechaCesta === 'A' ? 'true' : 'false', sB: s.strechaCesta === 'B' ? 'true' : 'false', fA: s.fasadaCesta === 'A' ? 'true' : 'false', fB: s.fasadaCesta === 'B' ? 'true' : 'false',
+      polozky: c.polozky, slevaText: this.kc(-c.sleva), zaokrText: this.kc(c.zaokr), celkemText: this.kc(c.celkem), zalohaText: c.celkem > 100000 ? 'Záloha 30 % (' + this.kc(Math.round(c.celkem * 0.3 / 10) * 10) + ') – jen u zakázek nad 100 000 Kč.' : 'Bez zálohy – zakázka do 100 000 Kč.',
+      zarukaText: s.strechaCesta === 'A' || s.fasadaCesta === 'A' ? 'Záruka 10 let se vztahuje na neviditelný štít H-STONE (' + (s.strechaCesta === 'A' && s.fasadaCesta === 'A' ? 'střecha i fasáda' : s.strechaCesta === 'A' ? 'zde střecha' : 'zde fasáda') + ') při péči SENTINEL BASE. Zákonná práva z vadného plnění tím nejsou dotčena.' : 'Záruka na barevnou renovaci: podle konečného znění smlouvy.',
+      posadka: posadka, stavText: stavy[f],
+      strechaText: f >= 2 ? String(s.strecha) : '–', fasadaText: f >= 2 ? String(s.fasada) : '–', pudorysText: s.sklon ? '132' : '–',
+      overeniText: f >= 3 ? (s.overeni >= 3 ? '1 budova' : s.overeni + '/3') : '–',
+      cenaText: this.kc(s.cena),
+      zvukText: s.zvuk ? 'true' : 'false',
+      letM: f === 1 ? 'leti' : '', letO: f === 3 ? 'leti' : '', letK: f === 4 ? 'leti' : '',
+      zamerit: this.zamerit, rozlomit: this.rozlomit, znovu: this.znovu, prepniZvuk: this.prepniZvuk, stahnout: this.stahnout,
+      zapecetit: this.zapecetit, sVolA: this.sVolA, sVolB: this.sVolB, fVolA: this.fVolA, fVolB: this.fVolB
+    };
+  }
+}
+</script>
+</body>
+</html>
