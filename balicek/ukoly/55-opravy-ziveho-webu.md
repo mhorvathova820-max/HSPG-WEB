@@ -25,6 +25,7 @@ Zákazník tak vidí jiný postup a jiné tarify než v kalkulaci, PDF a smlouv�
    - mobil 375 px: `input#rz-adresa` přetéká (`box-sizing:border-box;width:100%`), `/cena-ihned/` překryv textu a H1 pod lištou; desktop do ~1100 px: SPOT a plaketa zakrývají text (padding-left obsahu nebo přesun);
    - patička: „Vstup pro majitele“ → „Administrace“ nebo skrýt; písmo ≥ 12 px; kontrast šipek `/nase-prace/` a hvězd `/recenze/` ≥ 3 : 1; cíle v akční liště ≥ 24 px;
    - `/holub-360/`, `/standard-holub/`, `/pas-domu/trezor.html` zatím 404 – nasadit v úkolech 49/50/51.
+7. **Nové sekce na úvodu** (z posouzení externích návrhů, `POSOUZENI-EXTERNICH-NAVRHU-2026-10-22.md`): sekce „Proč nestačí jen omýt vodou“ ze šablony `sablony/sekce/proc-nestaci-omyt.html` (hodnoty `[DOPLNIT]` jen z technického listu, jinak nechat obecně) a **split slider Před/Po** se skutečnými fotkami realizací (zlaté táhlo s holubem, klávesnice: šipky, `role=slider` s `aria-valuenow`, kapky perlí jen na ošetřené straně; bez reduced-motion animací). Fotky dodá majitel – do té doby zástupný rámeček, ne cizí obrázky.
 
 ## Akceptace
 - [ ] `git grep` z bodu 1 nenajde nic v textech pro zákazníky; `node scripts/build-hbot.mjs --kontrola` prošel (kontrola embarga).
