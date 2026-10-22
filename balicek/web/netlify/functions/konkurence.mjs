@@ -90,7 +90,17 @@ export function vytvorKonkurenci({ env = process.env, adaptery, uloziste, ted = 
   }
 
   return async function handler(req, context = {}) {
-    if (req.method === "GET") return json({ maxZnaku: MAX_ZNAKU, limitZaHodinu: LIMIT_HODINA, ai: Boolean(aiId()) }, 200, { "cache-control": "public, max-age=300" });
+    if (req.method === "GET") {
+      // Zaškrtávátko „shrnutí od AI“ jen tehdy, když ho POST opravdu může dát (vypínač v panelu, rozpočet, klíč).
+      let ai = Boolean(aiId());
+      if (ai) {
+        try {
+          const store = await dejUloziste();
+          ai = (await nactiNastaveni(store)).verejnaAI !== false && !(await rozpocetVycerpan(store, env, ted(), true));
+        } catch { ai = false; }
+      }
+      return json({ maxZnaku: MAX_ZNAKU, limitZaHodinu: LIMIT_HODINA, ai }, 200, { "cache-control": "public, max-age=60" });
+    }
     if (req.method !== "POST") return json({ chyba: "Použijte POST." }, 405, { allow: "GET, POST" });
     if (!povolenyOrigin(req.headers.get("origin"), env)) return json({ chyba: "Nepovolený původ požadavku." }, 403);
 

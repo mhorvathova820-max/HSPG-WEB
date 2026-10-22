@@ -379,20 +379,21 @@ function nastavAdresu() {
     try {
       const r = await ziskej(API_MERENI, { method: "POST", telo: { kod: volba.kod, adresa: volba.adresa }, signal: c.signal, limit: 25000 });
       if (mereniCtrl !== c) return;
-      if (r.status === 429) { hlas(stavEl, "limit", "chyba"); return rucniZadani({ adresa: volba.adresa }); }
-      if (r.status === 404) return hlas(stavEl, "nenalezeno", "chyba");
-      if (!r.ok) { hlas(stavEl, "chyba", "chyba"); return rucniZadani({ adresa: volba.adresa }); }
+      if (r.status === 429) { hlas(stavEl, "limit", "chyba"); zahodMereni(volba.adresa); return rucniZadani({ adresa: volba.adresa }); }
+      if (r.status === 404) { zahodMereni(volba.adresa); return hlas(stavEl, "nenalezeno", "chyba"); }
+      if (!r.ok) { hlas(stavEl, "chyba", "chyba"); zahodMereni(volba.adresa); return rucniZadani({ adresa: volba.adresa }); }
       const m = normalizujMereni(r.j, volba);
       if (m.stav === "vyber" || m.stav === "neni-budova") {
         hlas(stavEl, m.stav === "vyber" ? "vyber" : "neniBudova", "chyba");
+        zahodMereni(volba.adresa);
         vstup.focus();
         return ukaz(m.kandidati);
       }
-      if (m.stav !== "hotovo") { hlas(stavEl, "chyba", "chyba"); return rucniZadani({ adresa: volba.adresa }); }
+      if (m.stav !== "hotovo") { hlas(stavEl, "chyba", "chyba"); zahodMereni(volba.adresa); return rucniZadani({ adresa: volba.adresa }); }
       hlas(stavEl, "hotovo", "ok");
       zobrazMereni(m);
     } catch {
-      if (mereniCtrl === c) { hlas(stavEl, "chyba", "chyba"); rucniZadani({ adresa: volba.adresa }); }
+      if (mereniCtrl === c) { hlas(stavEl, "chyba", "chyba"); zahodMereni(volba.adresa); rucniZadani({ adresa: volba.adresa }); }
     } finally {
       if (mereniCtrl === c) { sense.classList.remove("je-aktivni"); $("h3a-zmerit").disabled = false; }
     }
@@ -405,6 +406,22 @@ function nastavAdresu() {
     hlas(stavEl, "ukazka", "ok");
     zobrazMereni(normalizujMereni(UKAZKOVY_DUM), { posun: false });
   }
+}
+
+// Neúspěšné nové měření nesmí nechat plochy, cenu ani adresu předchozího domu (ručně zadané plochy zůstávají).
+function zahodMereni(adresa = "") {
+  if (!stav.mereni || stav.mereni.stav === "rucne") return;
+  stav.mereni = null;
+  for (const p of ["strecha", "fasada"]) { $("h3a-plocha-" + p).value = ""; $("h3a-chce-" + p).checked = false; }
+  $("h3a-pudorys").hidden = true;
+  $("h3a-licence").hidden = true;
+  $("h3a-licence").textContent = "";
+  $("h3a-model").hidden = true;
+  $("h3a-predpo-obal").hidden = true;
+  $("h3a-vysledek-adresa").textContent = "";
+  $("h3a-f-adresa").value = adresa;
+  $("h3a-obalka-adresa").textContent = adresa;
+  prepocitej();
 }
 
 // Bez měření (výpadek, limit nebo přání zákazníka): plochy zadá sám, model se neukáže.
@@ -616,7 +633,7 @@ function prepocitej() {
     sekce.hidden = true;
     return;
   }
-  info(stavEl, dlazbaB ? typo("Dlažbu ošetřujeme jen cestou A – v nabídce je proto s Neviditelným štítem.") : "");
+  info(stavEl, dlazbaB ? typo("Dlažbu ošetřujeme jen cestou A – v kalkulaci je proto s Neviditelným štítem.") : "");
   sekce.hidden = false;
   vykresliNabidku(stav.nabidka);
   aktualizujFormular();
@@ -696,7 +713,7 @@ function vykresliNabidku(n) {
   }
   if (n.sleva) telo.append(radek(n.sleva.nazev, `${Math.round(n.sleva.sazba * 100)} %`, "", `−${NB}${kc(n.sleva.castka)}`));
   telo.append(radek("Doprava", n.doprava.text, "", n.doprava.znamo ? kc(n.doprava.cena) : "upřesníme"));
-  if (n.minimumPouzito) telo.append(radek("Minimální cena zakázky", "podle ceníku", "", kc(n.minimum)));
+  if (n.minimumPouzito) telo.append(radek("Doplatek do minimální ceny zakázky", `minimum ${stav.C.kc(n.minimum)} podle ceníku`, "", kc(n.minimum - n.predMinimem)));
   if (Math.abs(n.zaokrouhleni) >= 1) telo.append(radek("Zaokrouhlení na desítky", "", "", `${n.zaokrouhleni > 0 ? "+" : "−"}${NB}${kc(Math.abs(n.zaokrouhleni))}`));
   tab.append(telo);
   const soucet = el("tr");

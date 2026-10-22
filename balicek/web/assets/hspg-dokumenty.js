@@ -89,7 +89,7 @@
     return {
       columns: [
         sloupecStrany('ZHOTOVITEL', [f.jmeno, 'IČO ' + f.ico + ' · ' + f.forma + ' zapsaná v živnostenském rejstříku, ' + f.dph, 'Sídlo: ' + f.sidlo, 'Obchodní značka: ' + f.znacka, 'Tel. ' + f.telefon + ' · ' + f.email]),
-        sloupecStrany('OBJEDNATEL', [o.jmeno || CARY, o.ico ? 'IČO ' + o.ico : null, 'Adresa objektu: ' + (o.adresa || (k.obec ? k.obec + ', ' : '') + CARY), o.telefon ? 'Tel. ' + o.telefon : null, o.email ? 'E-mail: ' + o.email : null])
+        sloupecStrany('OBJEDNATEL', [o.jmeno || CARY, o.ico ? 'IČO ' + o.ico : null, 'Bydliště / sídlo: ' + CARY, 'Adresa objektu: ' + (o.adresa || (k.obec ? k.obec + ', ' : '') + CARY), o.telefon ? 'Tel. ' + o.telefon : null, o.email ? 'E-mail: ' + o.email : null])
       ],
       columnGap: 24
     };
@@ -208,15 +208,14 @@
       var veta = String(c.popis || '').split(/\.\s/)[0].replace(/\.$/, '');
       return 'cesta ' + c.id + ' – ' + c.nazev + (veta ? ' (' + veta.charAt(0).toLowerCase() + veta.slice(1) + ')' : '');
     }).join('; ');
-    var podpis = function (strana, jmeno) {
-      return { stack: [{ text: 'V ' + CARY + ' dne ' + CARY, fontSize: 9, margin: [0, 24, 0, 30] }, { text: '______________________________', fontSize: 9 }, { text: T(strana + ': ' + jmeno), fontSize: 9 }] };
-    };
+    // Návrh se nepodepisuje: podpisy patří až na konečné znění (čl. 10.1), jinak by podpisem návrhu mohla vzniknout smlouva.
+    var dnu = k.cenik && k.cenik.smlouva && k.cenik.smlouva.odstoupeni_posun_dnu;
     return {
       pageSize: 'A4', pageMargins: [48, 48, 48, 64], footer: pata(f),
       watermark: { text: 'NÁVRH', color: BARVY.zlato, opacity: 0.1, bold: true, angle: -40 },
       info: { title: 'NÁVRH smlouvy o dílo ' + k.cislo, author: f.znacka, subject: 'Nezávazný návrh z H-BOTa na hspg.cz', creator: 'H-BOT · hspg.cz' },
       content: [
-        hlavicka('NÁVRH SMLOUVY O DÍLO', 'k nabídce č. ' + k.cislo + ' · vytvořeno ' + datum(k.datum)),
+        hlavicka('NÁVRH SMLOUVY O DÍLO', 'ke kalkulaci č. ' + k.cislo + ' · vytvořeno ' + datum(k.datum)),
         linka(),
         ramecek([
           { text: 'NEZÁVAZNÝ NÁVRH – NEJDE O NABÍDKU', bold: true, fontSize: 9.5, color: BARVY.tmava, margin: [0, 0, 0, 3] },
@@ -235,18 +234,18 @@
         .concat(clanek(2, 'Cena díla', [
           'Cena díla je stanovena podle ceníku zhotovitele platného od ' + datumIso(n.platnostCeniku) + ' a podle tohoto návrhu činí orientačně ' + kc(n.vysledna) + ' (rozpis v Příloze č. 1). Zhotovitel není plátcem DPH, DPH se k ceně nepřipočítává.',
           'Výměry vycházejí z údajů objednatele. Cenu díla stanoví konečné znění smlouvy po ověření skutečné plochy a stavu povrchu na místě; liší-li se skutečná plocha, cena se upraví podle sazeb ceníku.',
-          'Doprava se účtuje podle ceníku: prvních ' + ((k.cenik && k.cenik.doprava && k.cenik.doprava.zdarma_km) || 30) + ' km od nejbližší základny zhotovitele (' + (((k.cenik && k.cenik.doprava && k.cenik.doprava.zakladny) || ['Praha', 'Hradec Králové']).join(', ')) + ') zdarma, každý další kilometr jedné cesty ' + ((k.cenik && k.cenik.doprava && k.cenik.doprava.kc_za_km) || 12) + ' Kč. Vzdálenost v tomto návrhu je odhad; konečné znění ji uvede podle skutečné trasy.',
+          'Doprava se účtuje podle ceníku: prvních ' + ((k.cenik && k.cenik.doprava && k.cenik.doprava.zdarma_km) || 30) + ' km od nejbližší základny zhotovitele (' + (((k.cenik && k.cenik.doprava && k.cenik.doprava.zakladny) || ['Praha', 'Hradec Králové']).join(', ')) + ') zdarma, každý další kilometr ' + ((k.cenik && k.cenik.doprava && k.cenik.doprava.kc_za_km) || 12) + ' Kč. V tomto návrhu je doprava odhadnuta za jednu cestu; způsob účtování a skutečnou vzdálenost uvede konečné znění smlouvy.',
           a.heavy_dirt_surcharge_min ? 'Příplatek za silné znečištění (' + a.heavy_dirt_surcharge_min + '–' + a.heavy_dirt_surcharge_max + ' Kč/m²) lze účtovat jen, je-li uveden v konečném znění smlouvy.' : null
         ]))
         .concat(clanek(3, 'Doba plnění', [
           'Termín zahájení prací: ' + CARY + ' (sjedná se písemně).',
           'Práce se provádějí jen za počasí vhodného pro použitou technologii – ochranné vrstvy a barvy vyžadují bezsrážkové klima. Za nevhodný se považuje zejména den s předpovědí pravděpodobnosti srážek nad 30 % nebo s teplotou pod 5 °C v pracovní době 7–19 h.',
-          'Neumožní-li počasí práce, zhotovitel to objednateli oznámí bez zbytečného odkladu, zpravidla nejpozději den předem, a strany se dohodnou na náhradním termínu. Posun z důvodu počasí není prodlením zhotovitele. Přesáhne-li posun 60 dnů od sjednaného termínu zahájení, může kterákoli strana od smlouvy bez sankce odstoupit.'
+          'Neumožní-li počasí práce, zhotovitel to objednateli oznámí bez zbytečného odkladu, zpravidla nejpozději den předem, a strany se dohodnou na náhradním termínu. Posun z důvodu počasí není prodlením zhotovitele. Přesáhne-li posun ' + (dnu ? dnu + ' dnů od sjednaného termínu zahájení' : 'lhůtu uvedenou v konečném znění smlouvy') + ', může kterákoli strana od smlouvy bez sankce odstoupit.'
         ]))
         .concat(clanek(4, 'Platební podmínky', [
           platba,
           'Platba proběhne převodem na účet zhotovitele uvedený na faktuře.',
-          n.platba.zalohaNutna ? 'Neuskuteční-li se práce z důvodů podle čl. 3 nebo odstoupí-li spotřebitel podle čl. 8, zhotovitel zálohu vrátí do 14 dnů (§ 1831 občanského zákoníku), sníženou jen o poměrnou část ceny za již provedené práce podle čl. 8.' : null,
+          n.platba.zalohaNutna ? 'Neuskuteční-li se práce z důvodů podle čl. 3, vrátí zhotovitel zálohu v plné výši do 14 dnů. Odstoupí-li spotřebitel podle čl. 8, vrátí mu zhotovitel zálohu do 14 dnů od odstoupení (§ 1831 občanského zákoníku), sníženou jen o poměrnou část ceny za plnění poskytnuté do odstoupení (§ 1834).' : null,
           n.skipPay ? 'Objednatel může využít ' + n.skipPay.text.replace(/^Skip Pay – /, 'Skip Pay – ') : null
         ]))
         .concat(clanek(5, 'Součinnost objednatele', [
@@ -257,13 +256,13 @@
           'Dílo se předá předávacím protokolem s fotodokumentací stavu před a po ošetření.'
         ]))
         .concat(clanek(7, 'Záruka a odpovědnost za vady', [
-          maA ? 'Na ochrannou vrstvu H-STONE poskytuje zhotovitel smluvní záruku za jakost 10 let od předání díla. ' + (k.podminkaZaruky ? k.podminkaZaruky + ' ' : '') + 'Ukončením péče SENTINEL BASE smluvní záruka zaniká. Rozsah záruky stanoví konečné znění smlouvy.' : null,
-          'Střešní tašku, která byla podle úvodní fotodokumentace bez viditelného poškození a praskla v souvislosti s pracemi zhotovitele, zhotovitel vymění na vlastní náklady.',
-          'Smluvní záruka nezužuje zákonná práva objednatele z vadného plnění. Reklamaci vyřídí zhotovitel podle svého reklamačního řádu, u spotřebitele nejpozději do 30 dnů od jejího uplatnění, nedohodnou-li se strany na delší lhůtě.'
+          maA ? 'Na ochrannou vrstvu H-STONE poskytuje zhotovitel smluvní záruku za jakost 10 let od předání díla. ' + (k.podminkaZaruky ? k.podminkaZaruky + ' ' : '') + 'Smluvní záruka zaniká, jestliže objednatel péči SENTINEL BASE ukončí nebo ji neuhradí; neprovede-li zhotovitel sjednanou kontrolu, záruka trvá. Podmínky péče SENTINEL BASE (roční kontrola s fotodokumentací, cena podle ceníku) a rozsah záruky stanoví konečné znění smlouvy.' : null,
+          'Střešní tašku, která byla podle úvodní fotodokumentace bez viditelného poškození a praskla v souvislosti s pracemi zhotovitele, zhotovitel vymění na vlastní náklady; tím nejsou dotčena další práva objednatele na náhradu škody.',
+          'Smluvní záruka nezužuje zákonná práva objednatele z vadného plnění (§ 2615 a násl. občanského zákoníku). Vadu díla objednatel vytkne zhotoviteli bez zbytečného odkladu poté, co ji zjistil – písemně na adresu sídla, e-mailem na ' + f.email + ' nebo telefonicky na ' + f.telefon + '. Zhotovitel vydá potvrzení o uplatnění reklamace a reklamaci vyřídí, u spotřebitele nejpozději do 30 dnů od jejího uplatnění, nedohodnou-li se strany na delší lhůtě.'
         ]))
         .concat(clanek(8, 'Odstoupení od smlouvy (objednatel – spotřebitel)', [
           'Je-li objednatel spotřebitelem a smlouva se uzavírá distančně nebo mimo obchodní prostory, může od ní odstoupit bez udání důvodu do 14 dnů ode dne jejího uzavření (§ 1829 občanského zákoníku), například vzorovým formulářem v Příloze č. 2.',
-          'Požádá-li objednatel o zahájení prací před uplynutím této lhůty, uhradí při odstoupení poměrnou část ceny za plnění poskytnuté do okamžiku odstoupení (§ 1834). Byla-li služba s jeho předchozím výslovným souhlasem zcela splněna před uplynutím lhůty a byl-li předem poučen, že tím právo na odstoupení ztrácí, právo na odstoupení nevzniká (§ 1837 písm. a).',
+          'Požádá-li objednatel o zahájení prací před uplynutím této lhůty, uhradí při odstoupení poměrnou část ceny za plnění poskytnuté do okamžiku odstoupení (§ 1834). Byla-li služba s jeho předchozím výslovným souhlasem zcela splněna před uplynutím lhůty a byl-li předem poučen, že tím právo na odstoupení ztrácí, nemůže od smlouvy odstoupit (§ 1837 písm. a).',
           '[   ] Žádám o zahájení prací před uplynutím lhůty pro odstoupení a beru na vědomí, že při odstoupení uhradím poměrnou část ceny a že po úplném provedení díla právo na odstoupení ztrácím.'
         ]))
         .concat(clanek(9, 'Mimosoudní řešení sporů a osobní údaje', [
@@ -276,7 +275,7 @@
           'Přílohy: č. 1 Rozpis ceny, č. 2 Vzorový formulář pro odstoupení od smlouvy.'
         ]))
         .concat([
-          { columns: [podpis('Zhotovitel', f.jmeno), podpis('Objednatel', o.jmeno || CARY)], columnGap: 24, unbreakable: true },
+          { text: T('Tento návrh se nepodepisuje. Podpisy obou stran se připojí až ke konečnému znění smlouvy po ověření rozsahu díla na místě.'), fontSize: 9, italics: true, color: BARVY.tmava, margin: [0, 14, 0, 0] },
           { text: 'Příloha č. 1 – Rozpis ceny', style: 'titul', pageBreak: 'before', margin: [0, 0, 0, 4] },
           { text: typObjektu(n, k) + T(' · kalkulace č. ' + k.cislo), fontSize: 9, margin: [0, 0, 0, 8] },
           tabulkaCeny(n),

@@ -42,11 +42,19 @@ test("NÁVRH smlouvy: vodoznak, nezávaznost podle § 1732, zákonné náležito
   const def = D.definiceSmlouvy(rd, kontext({ objednatel: { jmeno: "Jan Novák", adresa: "Lipová 12, Kolín" } }));
   const t = text(def);
   assert.equal(def.watermark.text, "NÁVRH");
-  for (const s of ["NEZÁVAZNÝ NÁVRH – NEJDE O NABÍDKU", "§ 1732", "§ 2586", "§ 1829", "§ 1834", "§ 1837", "www.coi.cz/informace-o-adr", "živnostenském rejstříku", "60\u00a0dnů", "Ukončením péče SENTINEL BASE", "Příloha č. 1 – Rozpis ceny", "Příloha č. 2 – Vzorový formulář pro odstoupení od smlouvy", "Jan Novák", "Lipová 12, Kolín", "neplátce DPH"]) {
+  for (const s of ["NEZÁVAZNÝ NÁVRH – NEJDE O NABÍDKU", "§ 1732", "§ 2586", "§ 1829", "§ 1834", "§ 1837", "www.coi.cz/informace-o-adr", "živnostenském rejstříku", "lhůtu uvedenou v\u00a0konečném znění smlouvy", "objednatel péči SENTINEL BASE ukončí", "Tento návrh se nepodepisuje", "Bydliště / sídlo", "Příloha č. 1 – Rozpis ceny", "Příloha č. 2 – Vzorový formulář pro odstoupení od smlouvy", "Jan Novák", "Lipová 12, Kolín", "neplátce DPH"]) {
     assert.ok(t.includes(s), s);
   }
   assert.match(t, /Záruka 10\slet na impregnaci H-STONE trvá při aktivní péči SENTINEL/, "podmínka záruky z sentinel.json");
-  assert.match(t, /zálohu 30 % ceny na materiál ve výši 38 640 Kč/);
+  assert.match(t, /zálohu 30\s%\sceny na materiál ve výši 38\s640\sKč/);
+  assert.doesNotMatch(t, /k\snabídce č\.|reklamačního řádu|_{10,}/, "návrh není nabídka, nemá podpisové řádky ani odkaz na neexistující řád");
+  assert.match(t, /e-mailem na \S+@\S+ nebo telefonicky/, "způsob a místo reklamace přímo ve smlouvě");
+  assert.match(t, /doprava odhadnuta za jednu cestu/);
+});
+
+test("NÁVRH: lhůta pro odstoupení při posunu kvůli počasí jen z potvrzených dat", () => {
+  const t = text(D.definiceSmlouvy(rd, kontext({ cenik: { ...jadro.cenik, smlouva: { odstoupeni_posun_dnu: 60 } } })));
+  assert.match(t, /Přesáhne-li posun 60\sdnů od sjednaného termínu zahájení/);
 });
 
 test("NÁVRH bez údajů objednatele má prázdná pole k vyplnění, záruka H-STONE jen u cesty A", () => {
@@ -68,6 +76,6 @@ test("dokumenty neobsahují zakázaná a nepravdivá tvrzení ani zdroje měřen
 test("typografie: jednopísmenná předložka a jednotka se nezalomí", () => {
   assert.equal(D.typografie("k nabídce za 268 Kč/m² v odstínu"), "k nabídce za 268 Kč/m² v odstínu");
   const t = text(D.definiceSmlouvy(rd, kontext()));
-  assert.ok(t.includes("k nabídce č. NK-20261022-0001"));
+  assert.match(t, /ke kalkulaci č\.\sNK-20261022-0001/);
   assert.doesNotMatch(t, /\d \d{3} Kč/, "tisíce bez obyčejné mezery");
 });

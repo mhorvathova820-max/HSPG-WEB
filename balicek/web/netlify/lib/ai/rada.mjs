@@ -7,7 +7,7 @@
 // Člen rady: { id, nazev, model, adapter: { dotaz }, zdr: boolean, minTokenu? }
 // Model bez ZDR (Muse Wonder) dotaz s osobními údaji nedostane – ani pseudonymizovaný.
 import { PRAVIDLA_PRAVDIVOSTI } from "./pravidla.mjs";
-import { vytvorPseudonymizaci } from "./pseudonymizace.mjs";
+import { vytvorPseudonymizaci, mozneOsobniUdaje } from "./pseudonymizace.mjs";
 import { sLimitem } from "./poskytovatele.mjs";
 import { odhadTokenu, odhadTokenuKlienta } from "./limity.mjs";
 
@@ -120,7 +120,8 @@ export async function poradaRady({
   if (!Array.isArray(clenove) || !clenove.length) throw new Error("Rada potřebuje aspoň jednoho člena.");
   const [pokynP, ...texty] = pseudonymizace.pseudonymizujVse([String(pokyn || ""), ...zpravy.map((z) => String(z.text ?? ""))]);
   const zpravyP = zpravy.map((z, i) => ({ role: z.role, text: texty[i] }));
-  const osobni = pseudonymizace.pocet > 0;
+  // Modely bez ZDR (Muse) dostanou dotaz jen bez osobních údajů – i bez těch, které pseudonymizace nepozná (jméno bez oslovení, adresa).
+  const osobni = pseudonymizace.pocet > 0 || mozneOsobniUdaje([pokyn, ...zpravy.map((z) => z.text)].join("\n")).length > 0;
   const volby = { casLimitMs, opakovani, rozpocet, signal, pocitadlo: { dotazu: 0 } };
   const systemClen = [system, POKYN_CLEN, pokynP && `Role v této úloze:\n${pokynP}`].filter(Boolean).join("\n\n");
   const vstupTokenu = odhadTokenu(systemClen) + odhadTokenuKlienta(JSON.stringify(zpravyP));

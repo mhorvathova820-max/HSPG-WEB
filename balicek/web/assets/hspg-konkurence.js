@@ -25,6 +25,14 @@
     (deti || []).forEach(function (c) { if (c != null && c !== false) e.appendChild(typeof c === 'string' ? d.createTextNode(T(c)) : c); });
     return e;
   }
+  // Kolik kroků Standardu HOLUB kalkulace obsahuje: s ochrannou vrstvou všech 5, samotné čištění 01–04.
+  function rozsahStandardu(n) {
+    var prace = (n.radky || []).filter(function (r) { return r.druh === 'prace'; });
+    var sVrstvou = prace.filter(function (r) { return r.cesta === 'A' || r.cesta === 'B'; }).length;
+    if (prace.length && sVrstvou === prace.length) return 'Standard HOLUB, všech 5 kroků';
+    if (!sVrstvou) return 'Standard HOLUB, kroky 01–04 – čištění bez ochranné vrstvy';
+    return 'Standard HOLUB, kroky podle zvolené ochrany';
+  }
   function udalost(krok) { try { (window.dataLayer = window.dataLayer || []).push({ event: 'hbot_konkurence', krok: krok }); } catch (e) {} }
 
   // Text z PDF jen v prohlížeči (bez fontů a bez eval), nejvýš 30 stran a 30 000 znaků.
@@ -54,7 +62,7 @@
     var soubor = h('input', { type: 'file', id: 'hk-soubor', accept: 'application/pdf,.pdf,text/plain,.txt', class: 'hk-vstup' });
     var pole = h('textarea', { id: 'hk-text', class: 'hn-pole', rows: '6', maxlength: String(MAX_ZNAKU), placeholder: 'Nebo sem vložte text nabídky (Ctrl+V)…' });
     var aiPrepinac = h('input', { type: 'checkbox', id: 'hk-ai' });
-    var aiRadek = h('label', { class: 'hn-zaskrtavaci', for: 'hk-ai', hidden: true }, [aiPrepinac, h('span', null, ['Přidat krátké shrnutí od AI (dostane jen přehled níže, bez osobních údajů)'])]);
+    var aiRadek = h('label', { class: 'hn-zaskrtavaci', for: 'hk-ai', hidden: true }, [aiPrepinac, h('span', null, ['Přidat krátké shrnutí od AI (dostane jen přehled níže; telefony, e-maily a adresy skryjeme – jména raději předem smažte)'])]);
     var tl = h('button', { type: 'button', class: 'hn-tl hn-tl--zlate' }, ['Porovnat se Standardem HOLUB']);
     var vysledek = h('div', { class: 'hk-vysledek', 'aria-live': 'polite' });
     var obal = h('div', { class: 'hk' }, [
@@ -110,7 +118,7 @@
       });
       var s = j.souhrn || {};
       vysledek.appendChild(h('p', { class: 'hn-paleta-nazev' }, ['Text nabídky zmiňuje ' + (s.uvedeno || 0) + ' z ' + (s.celkem || 0) + ' bodů.']));
-      if (moznosti.nabidka && moznosti.cena) vysledek.appendChild(h('p', { class: 'hn-pozn' }, ['Vaše orientační kalkulace HSPG: ' + moznosti.cena.kc(moznosti.nabidka.vysledna) + ' (Standard HOLUB, všech 5 kroků).']));
+      if (moznosti.nabidka && moznosti.cena) vysledek.appendChild(h('p', { class: 'hn-pozn' }, ['Vaše orientační kalkulace HSPG: ' + moznosti.cena.kc(moznosti.nabidka.vysledna) + ' (' + rozsahStandardu(moznosti.nabidka) + ').']));
       vysledek.appendChild(h('div', { class: 'hk-tabulka-obal' }, [h('table', { class: 'hk-tabulka' }, [
         h('thead', null, [h('tr', null, [h('th', { scope: 'col' }, ['Bod']), h('th', { scope: 'col' }, ['Standard HOLUB']), h('th', { scope: 'col' }, ['Text nabídky'])])]),
         telo

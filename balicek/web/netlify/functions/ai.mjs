@@ -20,7 +20,7 @@ import { POSKYTOVATELE, jeZapnuty, vytvorAdaptery, sModely, nazevAI, mimoKredity
 import { PRAVIDLA_PRAVDIVOSTI } from "../lib/ai/pravidla.mjs";
 import { overPozadavek } from "../lib/ai/autorizace.mjs";
 import { vychoziUloziste, zapisUtratu, odhadKc, rezervuj, odhadTokenu, odhadTokenuKlienta, mesicniLimitKc, nactiNastaveni, pricti } from "../lib/ai/limity.mjs";
-import { vytvorPseudonymizaci, vytvorDoplnovac, STITKY } from "../lib/ai/pseudonymizace.mjs";
+import { vytvorPseudonymizaci, vytvorDoplnovac, STITKY, mozneOsobniUdaje } from "../lib/ai/pseudonymizace.mjs";
 import { poradaRady } from "../lib/ai/rada.mjs";
 
 const MAX_TOKENU = 8000;
@@ -158,6 +158,11 @@ export function vytvorAI({ env = process.env, adaptery, uloziste, ted = () => Da
     if (!jeZapnuty(ai, envM)) return json({ chyba: `Chybí klíč ${POSKYTOVATELE[ai].klic} v Netlify.` }, 400);
     if (POSKYTOVATELE[ai].bezZdr && ps.pocet) {
       return json({ chyba: `${nazevAI(ai, envM)} je jen na neosobní podklady – dotaz obsahuje osobní údaje (${typyUdaju(ps.souhrn().typy)}). Pošlete ho AI se ZDR.` }, 422);
+    }
+    // Model bez ZDR: pseudonymizace nepozná jméno bez oslovení ani každou adresu → přísnější kontrola, raději odmítnout.
+    const podezreni = POSKYTOVATELE[ai].bezZdr ? mozneOsobniUdaje([pokyn, ...zpravy.map((z) => z.text)].join("\n")) : [];
+    if (podezreni.length) {
+      return json({ chyba: `${nazevAI(ai, envM)} je jen na neosobní podklady – text možná obsahuje ${podezreni.join(" a ")}. Napište ho obecně (bez jmen a adres), nebo ho pošlete AI se ZDR.` }, 422);
     }
     const vstup = odhadTokenu(PRAVIDLA_PRAVDIVOSTI) + odhadTokenuKlienta(JSON.stringify(zpravy) + String(pokyn || ""));
     // Vlastní klíč poskytovatele nebo vlastní klíč OpenRouter = mimo kredity Netlify (rozpočet se nerezervuje).

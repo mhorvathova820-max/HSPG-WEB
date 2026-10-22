@@ -163,7 +163,27 @@ test("mobil 390 × 844: lišta „Cena hned“ otevře rovnou kalkulaci; žádn�
 test("bez potvrzeného ceníku se žádná částka neukáže (pravidlo úkolu 27)", async () => {
   const bezPotvrzeni = JSON.stringify({ ...BALICEK, potvrzeni: null });
   const { p } = await stranka({ pred: (ctx) => ctx.route("**/assets/hspg-cenik.json", (r) => r.fulfill({ status: 200, contentType: "application/json", body: bezPotvrzeni })) });
-  await projdi(p);
+  // Ani v průběhu kalkulace žádné sazby, slevy ani ceny doplňků (jen podmínka záruky z péče SENTINEL).
+  await p.click("#hbot-btn");
+  await p.click("#hbot .hb-cena-hned");
+  await p.click("#hbot label[for=hn-typ-rd]");
+  await p.waitForSelector("#hbot label[for=hn-povrch-strecha]");
+  await p.click("#hbot label[for=hn-povrch-strecha]");
+  await p.click("#hbot label[for=hn-povrch-fasada]");
+  assert.doesNotMatch(mezery(await p.textContent("#hbot .hn-telo")), /Kč|%/, "povrchy bez sazeb a slev");
+  await p.click("#hbot .hn-tl--zlate");
+  await p.waitForSelector("#hbot label[for=hn-cesta-fasada-B]");
+  assert.doesNotMatch(mezery(await p.textContent("#hbot .hn-telo")), /Kč\/m²/, "cesty bez sazeb");
+  await p.click("#hbot label[for=hn-cesta-fasada-B]");
+  await p.click("#hbot [data-povrch=fasada] .hn-vzorek >> nth=1");
+  await p.click("#hbot .hn-tl--zlate");
+  await p.waitForSelector("#hn-plocha-strecha");
+  if (await p.locator("#hbot .hn-med").count()) assert.doesNotMatch(mezery(await p.textContent("#hbot .hn-med")), /Kč/, "měděný prvek bez ceny");
+  await p.fill("#hn-plocha-strecha", "190");
+  await p.click("#hbot [data-povrch=fasada] .hn-odkaz");
+  await p.fill("#hn-fasada-obvod", "40");
+  await p.fill("#hn-fasada-vyska", "8,5");
+  await p.click("#hbot .hn-tl--zlate");
   await p.waitForSelector("#hbot .hn-vysledek");
   const t = mezery(await p.textContent("#hbot .hn-vysledek"));
   assert.match(t, /Ceník právě potvrzujeme/);

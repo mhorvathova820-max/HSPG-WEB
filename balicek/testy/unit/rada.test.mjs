@@ -90,6 +90,12 @@ test("rada: model bez ZDR (Muse) nedostane dotaz s osobními údaji; bez nich an
   const w = await poradaRady({ zpravy: [{ role: "user", text: "Rešerše patentů na hydrofobní impregnaci střech" }], clenove: [opus, muse], predseda: opus });
   assert.equal(muse.adapter.volani.length, 1);
   assert.equal(w.clenove[1].ok, true);
+  // Jméno bez oslovení a adresa, které pseudonymizace nepozná, Muse také nedostane.
+  for (const text of ["Napiš e-mail Martinu Kalousovi do firmy", "Nabídka pro dům Bratří Čapků 1234"]) {
+    const x = await poradaRady({ zpravy: [{ role: "user", text }], clenove: [opus, muse], predseda: opus });
+    assert.equal(x.clenove[1].vynechano, "osobni-udaje", text);
+  }
+  assert.equal(muse.adapter.volani.length, 1, "Muse nedostala nic dalšího");
 });
 
 test("rada: rozpočet – bez rezervace se nevolá, odmítnutí poskytovatelem rezervaci vrátí, úspěch vyrovná", async () => {
@@ -197,6 +203,13 @@ test("/api/ai: pseudonymizace i v jednotlivém dotazu, odpověď doplněná zpě
   assert.equal(ad.muse.volani.length, 0);
   const ok = await h(pozadavek("/api/agent/muse", { method: "POST", headers: auth(e), body: { zpravy: [{ role: "user", text: "Shrň trendy v nátěrech střech" }] } }));
   assert.equal(ok.status, 200);
+  // Jméno bez oslovení a adresa mimo běžný tvar: pseudonymizace je nepozná, Muse je přesto nedostane.
+  for (const text of ["Napiš e-mail Martinu Kalousovi do firmy", "Josef Kratochvíl, Tř. Míru 7"]) {
+    const r = await h(pozadavek("/api/agent/muse", { method: "POST", headers: auth(e), body: { zpravy: [{ role: "user", text }] } }));
+    assert.equal(r.status, 422, text);
+    assert.match((await r.json()).chyba, /bez jmen a adres/);
+  }
+  assert.equal(ad.muse.volani.length, 1, "Muse dostala jen neosobní dotaz");
 });
 
 test("/api/ai: role argon s vlastním klíčem OpenRouter neblokuje malý rozpočet kreditů a eviduje se zvlášť", async () => {

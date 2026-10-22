@@ -274,3 +274,30 @@ export function anonymizuj(text) {
 
 // Značky v odpovědi pro veřejnost → obecné štítky (zpětné doplnění je jen pro panel majitele).
 export const znackyNaStitky = (text) => String(text ?? "").replace(ZNACKA_RE, (cela, typ) => (STITKY[typ] ? `[${STITKY[typ]}]` : cela));
+
+// Přísná kontrola pro modely BEZ nulového uchovávání dat (Muse Wonder, R19). Pseudonymizace nepozná jméno bez
+// oslovení ani adresu bez obvyklého tvaru („Martinu Kalousovi“, „Tř. Míru 7“, „Bratří Čapků 1234“), proto se
+// takovému modelu text s čímkoli, co jméno nebo adresu připomíná, nepošle vůbec. Raději odmítnout víc než míň:
+// vrací seznam důvodů ([] = text vypadá neosobně). Výjimky jsou jen značky, názvy modelů a obecná slova s číslem.
+const BEZ_PODEZRENI = new Set([
+  "Claude", "Opus", "Sonnet", "Haiku", "Gemini", "Argon", "Pro", "Grok", "Muse", "Wonder", "Astra", "Latest", "OpenRouter",
+  "Netlify", "Google", "Apple", "Porsche", "Standard", "Holub", "Surface", "Protection", "Group", "Sentinel", "Praha", "Prahy",
+  "Krok", "Kroky", "Cesta", "Bod", "Body", "Čl", "Článek", "Příloha", "Verze", "Tarif", "Varianta", "Kapitola", "Strana", "Úkol",
+  "Rok", "Roky", "Den", "Dny", "Týden", "Měsíc", "Model", "Třída", "Česká", "Republika", "Evropská", "Unie",
+]);
+const DVE_VELKA = /(?<![\p{L}\p{N}])(\p{Lu}\p{Ll}+)[ \t  ]+(\p{Lu}\p{Ll}+)(?![\p{L}\p{N}])/gu;
+const SLOVO_A_CISLO = /(?<![\p{L}\p{N}])(\p{Lu}\p{Ll}*\.?)[ \t  ]+\d{1,4}(?:\/\d{1,4})?[a-z]?(?![\p{L}\p{N}])/gu;
+const ULICE = /(?<![\p{L}])(?:ul\.|ulice|ulici|tř\.|třída|třídě|nám\.|náměstí|nábř\.|nábřeží)(?![\p{L}])/iu;
+export function mozneOsobniUdaje(text) {
+  const t = String(text ?? "").normalize("NFC");
+  const duvody = new Set();
+  for (const m of t.matchAll(DVE_VELKA)) if (!BEZ_PODEZRENI.has(m[1]) && !BEZ_PODEZRENI.has(m[2])) { duvody.add("jméno"); break; }
+  for (const m of t.matchAll(SLOVO_A_CISLO)) {
+    if (BEZ_PODEZRENI.has(m[1].replace(/\.$/, ""))) continue;
+    // Sloveso na začátku věty s číslem („Navrhni 5 sloganů“) adresa není; tvar „10/32“ je adresa vždy.
+    const zacatekVety = /(^|[.!?:;\n])\s*$/.test(t.slice(0, m.index));
+    if (!zacatekVety || m[0].includes("/")) { duvody.add("adresa"); break; }
+  }
+  if (ULICE.test(t)) duvody.add("adresa");
+  return [...duvody];
+}

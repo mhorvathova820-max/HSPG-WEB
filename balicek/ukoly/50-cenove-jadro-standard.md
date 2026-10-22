@@ -29,6 +29,7 @@
 ## Akceptace
 - [ ] `npm test` (unit `cena`, `cenik-prohlizec`, `stranka-standard`) a e2e `standard-holub.test.mjs` zelené; `build-hbot --kontrola` OK.
 - [ ] Bez potvrzeného ceníku stránka ani jádro neukážou žádné Kč/m² (test).
+- [ ] Potvrzení ceníku: datum v `content/cenik-potvrzeni.json` je vyplněné kvůli náhledům; před produkcí ho majitel potvrdí jednou větou v chatu (citace v hlášení), jinak datum smaž.
 - [ ] U každé zmínky „10 let“ je ve stejném bloku podmínka SENTINEL BASE a „Zákonná práva z vadného plnění tím nejsou dotčena.“
 - [ ] Rich Results Test: HowTo a BreadcrumbList bez chyb; Lighthouse mobil LCP ≤ 2,5 s, přístupnost bez chyb; 390 × 844 bez vodorovného posunu (snímky do hlášení).
 - [ ] Hlášení podle KONTEXT §5 a stop.

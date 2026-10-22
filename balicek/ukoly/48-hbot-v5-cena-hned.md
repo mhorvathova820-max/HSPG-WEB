@@ -1,5 +1,5 @@
 # Úkol 48: H-BOT v5 – zlatý holub, „Cena hned“, PDF kalkulace, NÁVRH smlouvy a porovnání nabídek
-> Priorita P1 · Závisí na: 01, 50 (cenové jádro), 52 (`/api/konkurence` – nasadit ve stejné dávce) · Čeká na majitele: advokát (konečné znění smlouvy o dílo, obchodní a reklamační podmínky), potvrzení lhůty 60 dnů (odstoupení při posunu kvůli počasí) a „12 Kč/km za jednu cestu“, doklad k tvrzení o měděném hřebenovém prvku – viz `balicek/RADA-AI-2026-10-22.md`.
+> Priorita P1 · Závisí na: 01, 50 (cenové jádro), 52 (`/api/konkurence` – nasadit ve stejné dávce) · Čeká na majitele: advokát (konečné znění smlouvy o dílo, obchodní a reklamační podmínky), potvrzení lhůty 60 dnů (odstoupení při posunu kvůli počasí) a „12 Kč/km za jednu cestu“, doklad k tvrzení o měděném hřebenovém prvku (text v FAQ je do té doby zmírněný), zda se minimum zakázky 4 900 Kč počítá včetně dopravy (dnes ano), nebo jen za práci – viz `balicek/RADA-AI-2026-10-22.md`.
 
 ## Co to dělá
 - **Vzhled v5 (R18):** plaketa se zlatým 3D origami holubem nad střechou (canvas, žádný robot ani kulaté logo), hejno holubů při otevření, panel Apex. **AI Act čl. 50:** štítek „AI asistent“ a věta o AI v panelu; okamžitou cenu počítá ceník, ne AI.
@@ -27,5 +27,6 @@
 - [ ] Cena v obálce = `HSPGCena.spocitej` (test); bez potvrzeného ceníku žádné Kč; PDF kalkulace obsahuje cenu, „není nabídkou ve smyslu § 1732“ a větu o biocidech; NÁVRH má vodoznak, zaškrtávací pole v čl. 8 a ČOI v čl. 9.
 - [ ] Bez kliknutí na H-BOT se nestahuje nic z kalkulace; pdfmake a pdf.js až po kliknutí na PDF / porovnání (Lighthouse: žádný nárůst JS při načtení stránky).
 - [ ] Mobil 390 × 844 a 375: panel přes celou šířku, bez vodorovného posunu, axe bez vážných chyb; prefers-reduced-motion bez obálky a hejna.
-- [ ] Porovnání: 6. kontrola za hodinu z jedné IP → 429; text nabídky se neukládá ani neloguje.
+- [ ] Porovnání: 11. kontrola za hodinu z jedné IP → 429; text nabídky se neukládá ani neloguje.
+- [ ] **Před produkcí:** majitel jednou větou potvrdil ceník od 1. 10. 2026 (citace v hlášení) – jinak v `content/cenik-potvrzeni.json` smaž `datum` (ceny, sazby ani slevy se pak neukážou).
 - [ ] Hlášení se snímky (desktop + mobil: plaketa, panel, obálka, výsledek, PDF) a stop.

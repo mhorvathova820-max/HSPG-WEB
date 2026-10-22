@@ -280,9 +280,17 @@
     moznosti = moznosti || {};
     var zaklad = moznosti.zaklad || '/content/';
     var f = moznosti.fetch || (typeof fetch === 'function' ? fetch.bind(typeof self !== 'undefined' ? self : this) : null);
+    // Každý soubor nejvýš ~8 s: visící požadavek nesmí nechat kalkulaci navždy na „Načítám ceník…“.
+    var limitMs = moznosti.limitMs || 8000;
     function json(url) {
       if (!f) return Promise.resolve(null);
-      return f(url, { credentials: 'same-origin', cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+      var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+      var dotaz = f(url, { credentials: 'same-origin', cache: 'no-cache', signal: ctrl ? ctrl.signal : undefined })
+        .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+      if (typeof setTimeout !== 'function') return dotaz;
+      var casovac;
+      var limit = new Promise(function (ok) { casovac = setTimeout(function () { if (ctrl) ctrl.abort(); ok(null); }, limitMs); });
+      return Promise.race([dotaz, limit]).then(function (v) { clearTimeout(casovac); return v; });
     }
     var balicek = moznosti.balicek === false ? Promise.resolve(null) : json(moznosti.balicek || '/assets/hspg-cenik.json');
     return balicek.then(function (b) {

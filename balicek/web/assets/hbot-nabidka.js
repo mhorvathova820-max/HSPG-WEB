@@ -67,7 +67,7 @@
 
   var POPIS_TYPU = {
     rd: 'Střecha, fasáda, dlažba kolem domu',
-    bytovy: 'Splatnost 14 dnů, množstevní slevy od 1 000 m²',
+    bytovy: 'Bytové domy a SVJ, hromadné zakázky',
     firma: 'Haly, administrativa, zpevněné plochy',
     jiny: 'Jiná stavba – plochy zadáte sami'
   };
@@ -107,7 +107,8 @@
     var S = {
       krok: 0, hotovo: -1, typ: null,
       povrchy: {}, volba: {}, plochy: {}, zpusob: {}, rozmery: {},
-      med: { zapnuto: false, delka: '' }, obec: null, vysledek: null, cislo: null, otevreno: false
+      med: { zapnuto: false, delka: '' }, obec: null, vysledek: null, cislo: null, otevreno: false,
+      gen: 0 // roste s každým krokem – odložené akce (animace, výběr myší) starého kroku se pak neprovedou
     };
 
     kontejner.innerHTML = '';
@@ -164,6 +165,7 @@
     function jdi(krok, prvni) {
       if (krok === 2 && jenFve()) krok = S.krok > 2 ? 1 : 3; // u samotné fotovoltaiky se ochrana nevybírá
       S.krok = krok;
+      S.gen++;
       chyba.hidden = true;
       telo.innerHTML = '';
       vykresliKroky();
@@ -224,12 +226,12 @@
         mriz.appendChild(karta('radio', 'typ', id, S.typ === id, C.TYPY_OBJEKTU[id], POPIS_TYPU[id], null, IKONY[id], function () {
           S.typ = id; chyba.hidden = true;
           // výběr myší rovnou pokračuje (klávesnice šipkami jen vybírá)
-          if (zadanoMysi) setTimeout(dalsi, 160);
+          if (zadanoMysi) { var gen = S.gen; setTimeout(function () { if (gen === S.gen) dalsi(); }, 160); }
         }));
       });
       sk.appendChild(mriz);
       telo.appendChild(sk);
-      telo.appendChild(h('p', { class: 'hn-pozn' }, ['Bez zadání kontaktu. Orientační cenu počítá ceník HSPG platný od ' + datumCz(J.cenik.platnost_od) + ', ne umělá inteligence; konečnou cenu potvrdíme po ověření rozsahu na místě. Nic se nikam neodesílá, dokud o to sami nepožádáte.']));
+      telo.appendChild(h('p', { class: 'hn-pozn' }, ['Bez zadání kontaktu. Orientační cenu počítá ceník HSPG platný od ' + datumCz(J.cenik.platnost_od) + ', ne umělá inteligence; konečnou cenu potvrdíme po ověření rozsahu na místě. Výpočet běží ve vašem prohlížeči; odešle se jen rozepsaný název obce pro našeptávač.']));
       sledujMys(sk);
     }
     var zadanoMysi = false;
@@ -239,6 +241,7 @@
     }
 
     function sazbaText(povrch) {
+      if (!J.potvrzeno) return ''; // sazby jen s potvrzeným ceníkem (pravidlo úkolu 27)
       var c = J.cenik, k = C.POVRCHY[povrch].klic;
       var vse = [(c.cisteni_only || {})[k], (c.ochrana_hstone || {})[k], (c.renovace_color || {})[k]].filter(function (x) { return x > 0; });
       return vse.length ? 'od ' + Math.min.apply(null, vse) + ' Kč/m²' : '';
@@ -256,7 +259,7 @@
       sk.appendChild(mriz);
       telo.appendChild(sk);
       var sl = J.cenik.discounts || {};
-      if (sl.multi_surface) telo.appendChild(h('p', { class: 'hn-pozn' }, ['Dva a více povrchů: sleva ' + Math.round(sl.multi_surface * 100) + ' %. Slevy se nesčítají – uplatní se nejvýhodnější.']));
+      if (J.potvrzeno && sl.multi_surface) telo.appendChild(h('p', { class: 'hn-pozn' }, ['Dva a více povrchů: sleva ' + Math.round(sl.multi_surface * 100) + ' %. Slevy se nesčítají – uplatní se nejvýhodnější.']));
     }
 
     function krokOchrana() {
@@ -272,7 +275,7 @@
           if (!c.sazba) return;
           var titul = c.id === 'A' ? 'A · ' + c.nazev + ' H-STONE' : c.id === 'B' ? 'B · ' + c.nazev : c.nazev;
           var popis = c.id === 'A' && zarukaKratce() ? c.popis + ' ' + zarukaKratce() : c.popis;
-          mriz.appendChild(karta('radio', 'cesta-' + p, c.id, volba.cesta === c.id, titul, popis, c.sazba + ' Kč/m²', IKONY[c.id], function () {
+          mriz.appendChild(karta('radio', 'cesta-' + p, c.id, volba.cesta === c.id, titul, popis, J.potvrzeno ? c.sazba + ' Kč/m²' : null, IKONY[c.id], function () {
             volba.cesta = c.id; chyba.hidden = true; paleta.hidden = c.id !== 'B';
           }));
         });
@@ -424,7 +427,8 @@
         h('div', { class: 'hn-plocha-hlava' }, [h('span', { class: 'hn-plocha-ikona', svg: ikona(IKONY[p]) }), h('span', { class: 'hn-legenda' }, [nazev])]),
         hlavni, stavZpusobu, h('div', { class: 'hn-plocha-odkazy' }, [prepinac, h('a', { class: 'hn-odkaz hn-odkaz--tichy', href: moznosti.zamereni || moznosti.poptavka || '/akce/' }, ['Plochu neznám – změříme ji na dálku'])]), kalk
       ]);
-      if (p === 'strecha') blok.appendChild(blokMed());
+      var med = p === 'strecha' ? blokMed() : null;
+      if (med) blok.appendChild(med);
       return blok;
     }
     function blokMed() {
@@ -442,7 +446,7 @@
         if (zap.checked) delka.querySelector('input').focus();
       });
       return h('div', { class: 'hn-med' }, [
-        h('label', { class: 'hn-zaskrtavaci', for: 'hn-med' }, [zap, h('span', null, ['Měděný hřebenový prvek s ražbou holuba – ' + C.kc(a.copper_guard_base_4m) + ' do 4 m, každý další metr ' + C.kc(a.copper_guard_per_meter)])]),
+        h('label', { class: 'hn-zaskrtavaci', for: 'hn-med' }, [zap, h('span', null, ['Měděný hřebenový prvek s ražbou holuba' + (J.potvrzeno ? ' – ' + C.kc(a.copper_guard_base_4m) + ' do 4 m, každý další metr ' + C.kc(a.copper_guard_per_meter) : '')])]),
         delka
       ]);
     }
@@ -451,7 +455,7 @@
       var id = 'hn-obec';
       var vstup = h('input', { type: 'text', id: id, class: 'hn-pole', autocomplete: 'off', maxlength: '60', placeholder: 'např. Kolín', role: 'combobox', 'aria-autocomplete': 'list', 'aria-expanded': 'false', 'aria-controls': id + '-navrhy', value: S.obec ? S.obec.obec : '' });
       var navrhy = h('ul', { class: 'hn-navrhy', id: id + '-navrhy', role: 'listbox', hidden: true });
-      var info = h('p', { class: 'hn-napoveda', 'aria-live': 'polite' }, [S.obec ? textDopravy() : 'Bez obce dopravu upřesníme v nabídce.']);
+      var info = h('p', { class: 'hn-napoveda', 'aria-live': 'polite' }, [S.obec ? textDopravy() : 'Bez obce dopravu upřesníme při potvrzení ceny.']);
       var casovac = null, rizeni = null, aktivni = -1, seznam = [];
       function textDopravy() { var x = C.dopravaPro(J.cenik, S.obec.lat, S.obec.lon); return x.text; }
       function zavriNavrhy() { navrhy.hidden = true; navrhy.innerHTML = ''; seznam = []; aktivni = -1; vstup.setAttribute('aria-expanded', 'false'); vstup.removeAttribute('aria-activedescendant'); }
@@ -546,7 +550,11 @@
     }
     function krokNabidka() {
       var n;
-      try { n = J.spocitej(vstupProJadro()); } catch (e) { ukazChybu(e.message); jdi(3); return; }
+      try { n = J.spocitej(vstupProJadro()); } catch (e) {
+        var zprava = e && e.message ? e.message : 'Kalkulaci se nepodařilo spočítat – zkontrolujte prosím plochy.';
+        setTimeout(function () { jdi(3); ukazChybu(zprava); }, 0); // až po dokončení jdi(4), jinak by chybu hned skryl
+        return;
+      }
       S.vysledek = n;
       S.cislo = S.cislo || cisloKalkulace();
       S.hotovo = 4;
@@ -574,12 +582,13 @@
       var vyzva = h('p', { class: 'hn-obalka-vyzva' }, ['Vaše orientační cena je zapečetěná. Rozlomte pečeť.']);
       var preskocit = h('button', { type: 'button', class: 'hn-odkaz hn-odkaz--tichy' }, ['Zobrazit cenu bez animace']);
       telo.appendChild(h('div', { class: 'hn-obrad' }, [obalka, vyzva, preskocit]));
-      var otevreno = false;
+      var otevreno = false, genObalky = S.gen;
       function otevri() {
         if (otevreno) return; otevreno = true; S.otevreno = true;
         obalka.setAttribute('data-stav', 'otevrena');
         if (Z && Z.hejno) Z.hejno(pecet);
         setTimeout(function () {
+          if (genObalky !== S.gen) return; // mezitím jiný krok
           telo.innerHTML = '';
           telo.appendChild(vysledek);
           ukazCenu(vysledek, n, false);

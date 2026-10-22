@@ -838,7 +838,9 @@
 
     function vyprazdni(e) { while (e.firstChild) e.removeChild(e.firstChild); }
 
+    var casOdhaleni = null; // odložené zobrazení pasu – zavření ho musí zrušit
     function zavrit() {
+      if (casOdhaleni) { clearTimeout(casOdhaleni); casOdhaleni = null; }
       vyprazdni(pasEl);
       pasEl.hidden = true;
       pasEl.classList.remove('pdt-odhaleni');
@@ -884,7 +886,8 @@
           if (nadpis) { try { nadpis.focus({ preventScroll: true }); } catch (e) { nadpis.focus(); } }
           ohlasit('Pas domu ' + (pas.kod || '') + ' je otevřený.');
         };
-        if (tichy) zobraz(); else setTimeout(zobraz, 320);
+        if (casOdhaleni) clearTimeout(casOdhaleni);
+        if (tichy) zobraz(); else casOdhaleni = setTimeout(function () { casOdhaleni = null; zobraz(); }, 320);
 
         if (vystup.pocasi && pas.obec) {
           nactiJson(N, N.pocasi + '?q=' + encodeURIComponent(String(pas.obec).slice(0, 80))).then(function (data) {

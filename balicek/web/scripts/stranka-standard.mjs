@@ -59,7 +59,7 @@ export function strankaStandard({ standard, sentinel, ceny, potvrzeni }) {
     step: standard.kroky.map((k, i) => ({ "@type": "HowToStep", position: i + 1, name: `${k.cislo} ${k.nazev}`, text: k.popis })),
   };
   const drobky = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Úvod", item: "https://hspg.cz/" }, { "@type": "ListItem", position: 2, name: "Standard HOLUB", item: "https://hspg.cz/standard-holub/" }] };
-  const popis = "Pět kroků, které u nás nikdy nevynecháme: čištění, odmaštění, ošetření biocidy, oplach a ochranná vrstva – neviditelný štít H-STONE, nebo barevná renovace v odstínu podle vašeho výběru.";
+  const popis = "Pět kroků ochrany povrchu, které nezkracujeme: čištění, odmaštění, ošetření biocidy, oplach a ochranná vrstva – neviditelný štít H-STONE, nebo barevná renovace v odstínu podle vašeho výběru.";
 
   return `<!doctype html>
 <html lang="cs">
@@ -111,7 +111,7 @@ export function strankaStandard({ standard, sentinel, ceny, potvrzeni }) {
   <section class="sh-uvod sh-obal">
     <p class="apex-stitek">${t(`Postup HSPG · verze ${standard.verze} · účinnost od ${datum(standard.ucinnost)}`)}</p>
     <h1 class="sh-nadpis"><span class="apex-zlaty-text">Standard HOLUB</span></h1>
-    <p class="sh-perex">${t("Pět kroků, které u nás nikdy nevynecháme – na střeše, fasádě i dlažbě. Pak si zvolíte ochranu: neviditelný štít H-STONE, nebo barevnou renovaci v odstínu podle vašeho výběru.")}</p>
+    <p class="sh-perex">${t("Pět kroků ochrany povrchu, které nezkracujeme – na střeše, fasádě i dlažbě. Ochranu si zvolíte: neviditelný štít H-STONE, nebo barevnou renovaci v odstínu podle vašeho výběru. Samotné čištění končí krokem 04.")}</p>
     <p class="sh-akce">
       <a class="apex-tlacitko" href="/akce/" data-hbot-cena>Spočítat cenu hned</a>
       <a class="apex-tlacitko apex-tlacitko--duch" href="/planovac/">Vybrat termín</a>

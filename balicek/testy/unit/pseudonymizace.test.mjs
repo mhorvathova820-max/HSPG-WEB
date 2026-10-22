@@ -3,7 +3,7 @@
 // dostává obecné štítky. Jediná implementace: web/netlify/lib/ai/pseudonymizace.mjs.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { vytvorPseudonymizaci, anonymizuj, najdiOsobniUdaje, vytvorDoplnovac, znackyNaStitky } from "../../web/netlify/lib/ai/pseudonymizace.mjs";
+import { vytvorPseudonymizaci, anonymizuj, najdiOsobniUdaje, vytvorDoplnovac, znackyNaStitky, mozneOsobniUdaje } from "../../web/netlify/lib/ai/pseudonymizace.mjs";
 import { maskujKontakty } from "../../web/netlify/functions/asistent.mjs";
 
 const ps = (t) => vytvorPseudonymizaci().pseudonymizuj(t);
@@ -108,5 +108,14 @@ test("odolnost: patologické vstupy do 60 000 znaků doběhnou rychle (žádné 
     const t0 = performance.now();
     vytvorPseudonymizaci().pseudonymizuj(vstup);
     assert.ok(performance.now() - t0 < 1500, `pomalé: ${vstup.slice(0, 6)}…`);
+  }
+});
+
+test("model bez ZDR (Muse): jméno bez oslovení a adresy mimo běžný tvar se poznají jako podezření; obecné zadání projde", () => {
+  for (const t of ["Napiš e-mail Martinu Kalousovi do firmy", "Josef Kratochvíl, Tř. Míru 7", "Bratří Čapků 1234", "Pernerova 10/32, Praha 8", "Bydlí v Lipové 12", "Jan Novák", "dům na náměstí u kostela"]) {
+    assert.ok(mozneOsobniUdaje(t).length > 0, t);
+  }
+  for (const t of ["Navrhni 5 sloganů pro HOLUB 360 v tónu Apple/Porsche", "Odstín RAL 9001 na fasádu, krok 5 a Krok 3", "Claude Opus a Gemini Argon: shrň patenty na měděné pásy", "Ceník od 1. 10. 2026: střecha 178 Kč/m²", "Muse, napiš 3 varianty textu pro obálku s cenou."]) {
+    assert.deepEqual(mozneOsobniUdaje(t), [], t);
   }
 });

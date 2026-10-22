@@ -8,7 +8,8 @@
           # Výstup buildu (dist/) bez interních stránek. Výjimky: zásady ochrany údajů (zdroje dat pravdivě)
           # a řádky s licenčním uvedením zdroje (©) – licence zůstává vždy.
           nalezy=$(grep -rnIiE "letecké mapy|letecký snímek|satelitní snímk|Google Maps|katastr|RÚIAN|z map[ ,.y]|z mapových" dist \
-                     --include=*.html --exclude-dir=ai-centrum --exclude="ochrana-osobnich-udaju*" | grep -v "©" || true)
+                     --include=*.html --include=*.js --include=*.json --exclude-dir=ai-centrum --exclude-dir=vendor \
+                     --exclude="ochrana-osobnich-udaju*" --exclude="obce.json" | grep -v "©" || true)
           if [ -n "$nalezy" ]; then
             echo "$nalezy"
             echo "::error::Zakázané slovo v textu pro zákazníky – měření na dálku = „HOLUB CORE QUANTUM SENSE · zaměření na dálku“."
@@ -16,7 +17,7 @@
           fi
       - name: Kalkulace se nevydává za nabídku (§ 1732 OZ)
         run: |
-          if grep -rnIE "Certifikát nabídky|Osobní nabídka|Stáhnout nabídku" dist --include=*.html --include=*.js; then
+          if grep -rnIE "Certifikát nabídky|Osobní nabídka|Stáhnout nabídku|Vaše nabídka je zapečetěná|k[  ]nabídce č\.|v nabídce je proto" dist --include=*.html --include=*.js; then
             echo "::error::Výsledek kalkulace je „orientační cena“ / „kalkulace“, ne „nabídka“."
             exit 1
           fi

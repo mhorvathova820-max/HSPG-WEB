@@ -432,3 +432,23 @@ test("zdroj stránky: bez embarga slov, bez H-BIO, bez CDN, Three.js z vlastní 
   assert.deepEqual(v.obec, { obec: "Kolín", okres: null });
   await ctx.close();
 });
+
+test("nové měření, které selže (429), nenechá plochy ani adresu předchozího domu", async () => {
+  let volani = 0;
+  const { p, ctx, chyby } = await stranka({ mereni: () => (++volani === 1 ? MERENI : { status: 429 }), ocekavane: /cena-z-adresy/ });
+  await zadejAdresu(p);
+  await p.waitForFunction(() => document.getElementById("h3a-plocha-strecha").value !== "");
+  await p.fill("#h3a-adresa-vstup", "");
+  await p.type("#h3a-adresa-vstup", "Lip", { delay: 25 });
+  await p.waitForSelector("#h3a-navrhy:not([hidden]) li[role=option]");
+  await p.keyboard.press("ArrowDown");
+  await p.keyboard.press("ArrowDown");
+  await p.keyboard.press("Enter");
+  await p.waitForFunction(() => document.getElementById("h3a-f-adresa").value.includes("Lipová 14"));
+  assert.equal(volani, 2);
+  assert.equal(await p.inputValue("#h3a-plocha-strecha"), "", "plocha střechy předchozího domu zmizela");
+  assert.equal(await p.inputValue("#h3a-plocha-fasada"), "");
+  assert.equal(await p.isVisible("#h3a-model"), false, "model předchozího domu se neukazuje");
+  assert.deepEqual(chyby, []);
+  await ctx.close();
+});

@@ -152,3 +152,14 @@ test("AI shrnutí jen na vyžádání: dostane jen řádky s pseudonymizovanými
 test("přehled je deterministický: stejný text → stejný výsledek", () => {
   assert.deepEqual(kontrolujNabidku(NABIDKA), kontrolujNabidku(NABIDKA));
 });
+
+test("GET: nabídka AI shrnutí jen s klíčem a zapnutou veřejnou AI (vypínač v panelu platí i tady)", async () => {
+  const { ulozNastaveni } = await import("../../web/netlify/lib/ai/limity.mjs");
+  const get = async (s) => (await s.h(pozadavek("/api/konkurence", { method: "GET" }))).json();
+  const ad = { claude: falesnyAdapter({ text: "x" }) };
+  const zap = sestav({ adaptery: ad });
+  assert.equal((await get(zap)).ai, true);
+  await ulozNastaveni(zap.ul, { verejnaAI: false }, Date.now());
+  assert.equal((await get(zap)).ai, false, "nouzový vypínač");
+  assert.equal((await get(sestav({ e: env({ AI_ZAPNUTO: "0" }), adaptery: ad }))).ai, false);
+});
