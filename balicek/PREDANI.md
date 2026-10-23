@@ -24,7 +24,7 @@ Jedna stránka: co je hotové, kdo co dělá a v jakém pořadí, co zbývá na 
 | **Prototyp v Claude Design** | projekt „HSPG Apex – kompletní návrh“ v10 (5 desek: zaměření s hejnem a pečetí, pulzující plaketa + rozcestník, Cena hned 01–05, mobil 390, mikrointerakce; zdroje v `navrhy/apex-design/`) – vzor pro úkoly 48, 49, 56 |
 | **Rada AI, kolo 2** | `RADA-VYSLEDKY-VIZUAL-2026-10-22.md` – co je přijaté (a kde), co odmítnuté; z toho úkol 58 (jedna cesta zákazníka, HOLUB Partner, obrazovka „Dnes“) |
 | **Rozhodnutí svěřená agentovi** (R21, 22. 10.) | zvuk a vibrace výchozí vypnuté s pozvánkou „Zapnout“; formuláře bez políčka souhlasu (čl. 6/1/b GDPR); minimum 4 900 Kč = celková cena vč. dopravy; záruka u cesty B bez čísla; `/nase-prace/` bez „přesně 76 %“; dodavatel FHB neoslovovat |
-| **Dodavatelé bez zastoupení v ČR** | `DODAVATELE-2026-10-22.md` + CSV: 14 e-mailů odesláno 22. 10., 12 jde 23. 10. 09:00 (naplánováno), 2 vyřazeni; texty a tabulka „Odesláno“ v dokumentu „HSPG – dokumenty k odeslání“; odpovědi třídit do štítků Gmailu `HSPG Dodavatelé/…` |
+| **Dodavatelé bez zastoupení v ČR** | `DODAVATELE-2026-10-22.md` + CSV: 14 e-mailů odesláno 22. 10., 12 odesláno 23. 10., 2 vyřazeni; první odpověď Algimouss (zájem, koncept odpovědi v Gmailu čeká na „ano“); follow-upy 29./30. 10. a 5./6. 11. (připomínky naplánované); texty a tabulka „Odesláno“ v dokumentu „HSPG – dokumenty k odeslání“; odpovědi třídit do štítků Gmailu `HSPG Dodavatelé/…` |
 | Zadání pro agenta ve VS Code | úkoly 00–27 a 48–58 v `ukoly/` |
 | Zadání pro Claude Design | `ZADANI-CLAUDE-DESIGN-HOLUB360.md` (vzhled HOLUB 360) |
 | Zadání pro Claude v Chrome | `ZADANI-CHROME.md` (C1–C14) |
