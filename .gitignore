@@ -1,3 +1,5 @@
 node_modules/
 .netlify/
 .env
+# Výstupy rady AI z terminálu (scripts/rada.mjs --md) – pseudonymizované, ale do veřejného repozitáře nepatří.
+balicek/rada/

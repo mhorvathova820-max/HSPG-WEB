@@ -9,6 +9,7 @@ import { POSKYTOVATELE, jeZapnuty, vytvorAdaptery, sLimitem, verejneEnv, vlastni
 import { PRAVIDLA_PRAVDIVOSTI, POKYN_ZAKAZNIK, POKYN_KONTROLOR } from "../lib/ai/pravidla.mjs";
 import { povolenyOrigin } from "../lib/ai/autorizace.mjs";
 import { znalostiProAI } from "../lib/ai/znalosti.mjs";
+import { anonymizuj } from "../lib/ai/pseudonymizace.mjs";
 import { vychoziUloziste, otiskKlienta, sitKlienta, povolVerejnyDotaz, zapisUtratu, rozpocetVycerpan, rezervuj, odhadTokenu, odhadTokenuKlienta, nactiNastaveni } from "../lib/ai/limity.mjs";
 
 const MAX_ZPRAV = 8;
@@ -29,7 +30,7 @@ const aiZapnuto = (env) => env.AI_ZAPNUTO !== "0";
 
 export function poradi(env) {
   const chtene = (env.ASISTENT_PORADI || "claude,gemini,gpt,grok").split(",").map((s) => s.trim());
-  return chtene.filter((id) => POSKYTOVATELE[id] && jeZapnuty(id, env));
+  return chtene.filter((id) => POSKYTOVATELE[id] && !POSKYTOVATELE[id].jenMajitel && jeZapnuty(id, env)); // Argon a Muse jen pro majitele
 }
 
 // Z odpovědi kontrolora vytáhne verdikt i tehdy, když ho AI obalí textem nebo ```. Prochází celé objekty
@@ -97,12 +98,9 @@ const CISLOVKA_SLOVY = /\b(dva|dve|dvou|tri|trech|ctyri|ctyr|pet|peti|sest|sesti
 const SLOZENINA = /\b(?:dvou|tri|ctyr|peti|sesti|sedmi|osmi|deviti|deseti|[a-z]+nacti|[a-z]*ceti|padesati|tisici)let[a-z]*/;
 export const cislovkaSlovy = (t) => { const x = bezDiakritiky(t); return CISLOVKA_SLOVY.test(x) || SLOZENINA.test(x); };
 
-// Telefon a e-mail z textu návštěvníka do AI neodchází (patří do formuláře, ne k poskytovateli AI).
-export function maskujKontakty(t) {
-  return t
-    .replace(/[^\s@<>()]+@[^\s@<>()]+\.[a-z]{2,}/gi, "[e-mail]")
-    .replace(/(?:\+|00)?\d[\d \-/().]{7,}\d/g, (m) => (m.replace(/\D/g, "").length >= 9 ? "[telefon]" : m));
-}
+// Osobní údaje z textu návštěvníka do AI neodchází (patří do formuláře, ne k poskytovateli AI): telefon,
+// e-mail, adresa, jméno po oslovení … → obecné štítky. Jediná implementace je v lib/ai/pseudonymizace.mjs.
+export const maskujKontakty = (t) => anonymizuj(t);
 
 function platneZpravy(zpravy) {
   if (!Array.isArray(zpravy) || !zpravy.length || zpravy.length > MAX_ZPRAV) return null;

@@ -75,13 +75,17 @@ test("zákazník bez AI: vlastní otázka → FAQ; neznámá otázka → zavolá
   await p.click("#hbot form.hb-call button[type=submit]");
   await p.waitForSelector("#hbot .hb-chyba:not([hidden]) >> text=/telefonní číslo/");
   await p.fill("#hbot form.hb-call input[name=telefon]", "+420 777 123 456");
-  await p.check("#hbot form.hb-call input[name=souhlas]");
+  // Bez zaškrtávacího políčka souhlasu (čl. 6 odst. 1 písm. b) GDPR) – jen informační věta s odkazem na zásady.
+  assert.equal(await p.locator("#hbot form.hb-call input[type=checkbox]").count(), 0);
+  assert.match(await p.textContent("#hbot form.hb-call .hb-udaje"), /^Jméno a telefon použijeme jen k zavolání zpět k vaší poptávce\. Zásady ochrany osobních údajů$/);
+  assert.equal(await p.getAttribute("#hbot form.hb-call .hb-udaje a", "href"), "/ochrana-osobnich-udaju.html");
   await p.click("#hbot form.hb-call button[type=submit]");
   await p.waitForSelector("#hbot .hb-msg >> text=/Děkujeme. Ozveme se/");
   assert.equal(s.formulare.length, 1);
   assert.equal(s.formulare[0]["form-name"], "hspg-zavolejte");
   assert.equal(s.formulare[0]["Telefon"], "+420777123456");
   assert.equal(s.formulare[0]["Zdroj"], "H-BOT");
+  assert.equal("Souhlas" in s.formulare[0], false, "žádné pole Souhlas");
 });
 
 test("zákazník s AI: upozornění o AI, odpověď ověřená druhou AI, odkazy a další krok", async () => {
@@ -93,7 +97,8 @@ test("zákazník s AI: upozornění o AI, odpověď ověřená druhou AI, odkazy
   await p.waitForSelector("#hbot .hb-stitek >> text=/Odpověď ověřila druhá AI · Claude \\+ Gemini/");
   assert.equal(await p.locator('#hbot .hb-msg a[href="/akce/"]').count() > 0, true, "hspg.cz/akce/ je odkaz");
   assert.equal(await p.locator('#hbot .hb-msg a[href="tel:+420736618486"]').count() > 0, true, "telefon je odkaz");
-  await p.waitForSelector("#hbot .hb-chip.hb-plny >> text=Chci cenu do 24 h");
+  // R16: další krok po odpovědi je okamžitá kalkulace přímo v H-BOTovi.
+  await p.waitForSelector("#hbot .hb-chip.hb-plny >> text=Cena hned");
   assert.deepEqual(chyby, []);
 });
 
@@ -111,7 +116,7 @@ test("mobil 390 px: lišta Zavolat · Zeptat se · Cena, panel jako spodní list
   await p.waitForSelector("#hspg-lista .hl-bot");
   assert.equal(await p.isHidden("#hbot-btn"), true);
   const polozky = await p.$$eval("#hspg-lista > *", (e) => e.map((x) => x.textContent.trim()));
-  assert.deepEqual(polozky, ["Zavolat", "Zeptat se", "Cena do 24 h"]);
+  assert.deepEqual(polozky, ["Zavolat", "Zeptat se", "Cena hned"]);
   await p.evaluate(() => { localStorage.removeItem("hspg-souhlas"); });
   await p.click("#hspg-lista .hl-bot");
   await p.waitForSelector("#hbot:not([hidden]) .hb-chip");
@@ -430,9 +435,11 @@ test("AI centrum: porada se 3 AI = 7 volání /api/ai, závěr ve vlákně; za b
   assert.deepEqual(chyby, []);
 });
 
-test("stříbrné tlačítko: text vidět, po odrolování se sbalí, najetí ho rozbalí", async () => {
+test("zlatá plaketa s holubem: text vidět, po odrolování se sbalí k holubovi, najetí ji rozbalí; žádné kulaté logo", async () => {
   const { p } = await stranka("bez-ai", { sirka: 1280, vyska: 800 });
   await p.waitForSelector("#hbot-btn");
+  assert.equal(await p.locator("#hbot-btn canvas.hb-holub").count(), 1, "holub nad střechou na plátně");
+  assert.equal(await p.locator("#hbot-btn img").count(), 0, "bez kulatého medailonu s logem (R18)");
   const sirka = (podminka) => p.waitForFunction(podminka, null, { timeout: 5000 }).then(() => true, () => false);
   assert.ok(await sirka(() => document.getElementById("hbot-btn").getBoundingClientRect().width > 200), "rozbalené s textem");
   await p.evaluate(() => scrollTo(0, 2000));

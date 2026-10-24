@@ -3,6 +3,9 @@
 //   GET ?navrh=Kol → { navrhy: [{ obec, okres, kod }] } (našeptávač, lokální seznam obcí)
 //   volno: true/false podle kalendáře zakázek (null = kalendář nenastaven → „termín potvrdíme“);
 //   pocasi: fakta z předpovědi (srážky, teplota, vítr, bez deště) jen pro dny v dosahu předpovědi (~9 dní).
+//   okno (R17, jen s potvrzeným pravidlem v pocasi-prace.json): { od, do, pravdepodobnostMax, teplotaMin, nevhodne,
+//   duvody } za pracovní dobu, null za dosahem předpovědi; k tomu technologickeOkno: { text, pravdepodobnostSrazekMax,
+//   teplotaMin, pracovniDoba } – technologicky nevhodný den stránka HOLUB 360 vyšrafuje a nedá vybrat.
 // Bez obce vrátí jen obsazenost. Odpověď je stejná pro všechny → CDN Netlify ji drží 10 minut
 // (Netlify-Vary podle obce a okresu), takže opakované dotazy nestojí výpočet ani volání MET Norway.
 import cfgVychozi from "../../content/planovac.json" with { type: "json" };
@@ -12,6 +15,7 @@ import { vytvorZdroj, ZDROJ } from "../lib/pocasi/zdroj.mjs";
 import { souhrnDne } from "../lib/pocasi/vyhodnoceni.mjs";
 import { vytvorKalendarZakazek, dnyPlanovace, volneDny } from "../lib/planovac/obsazenost.mjs";
 import { vychoziUlozistePlanovac } from "../lib/planovac/kupony.mjs";
+import { pravidloOkna, oknoDne } from "../lib/planovac/okno.mjs";
 
 const json = (data, status = 200, cache = true) =>
   new Response(JSON.stringify(data), {
@@ -69,14 +73,20 @@ export function vytvorPlanovac({ env = process.env, uloziste, fetchFn = fetch, t
       }
     }
     const suchoMm = pravidla.verejne?.suchoMm ?? 0.5;
+    const okno = pravidloOkna(pravidla);
     return json({
       misto,
       ...(obecVstup && !misto && !nejednoznacne ? { nenalezeno: true } : {}),
       ...(nejednoznacne ? { nejednoznacne } : {}),
-      dny: dny.map((d) => ({ ...d, pocasi: pocasi ? souhrnDne(pocasi.rada, d.datum, { suchoMm }) : null })),
+      dny: dny.map((d) => ({
+        ...d,
+        pocasi: pocasi ? souhrnDne(pocasi.rada, d.datum, { suchoMm }) : null,
+        ...(okno ? { okno: pocasi ? oknoDne(pocasi.rada, d.datum, okno) : null } : {}),
+      })),
       kalendar: dny.some((d) => d.volno !== null && d.pracovni),
       ...(pocasi ? { zdrojPocasi: { text: ZDROJ.text, odkaz: ZDROJ.odkaz, licence: ZDROJ.odkazLicence, aktualizovano: pocasi.aktualizovano, obce: ZDROJ_OBCI } } : {}),
       ...(chybaPocasi ? { chybaPocasi } : {}),
+      ...(okno ? { technologickeOkno: okno } : {}),
       ...verejnaNabidka(cfg),
     });
   };
