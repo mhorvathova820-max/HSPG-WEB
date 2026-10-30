@@ -77,6 +77,7 @@ const SIT = "Pas se teď nepodařilo načíst. Zkuste to prosím za chvíli, neb
 const NAPOVEDA = "Kód pasu i přístupový kód najdete na certifikátu. Bez přístupového kódu pas neotevřeme – chráníme údaje o vašem domě.";
 const FIRMA = JSON.parse(readFileSync(new URL("content/firma.json", `file://${WEB}`), "utf8"));
 const SENTINEL = JSON.parse(readFileSync(new URL("content/sentinel.json", `file://${WEB}`), "utf8"));
+const STANDARD = JSON.parse(readFileSync(new URL("content/standard.json", `file://${WEB}`), "utf8"));
 const NIKDY = ["HS", "2026", "0001"].join("-"); // možný skutečný kód (úkol 14) – nesmí být nikde
 
 // Pole, která API nikdy nevrací (úkol 14). Mock je přesto pošle – stránka je nesmí vykreslit.
@@ -497,6 +498,87 @@ if (process.env.PDT_SERVER) {
     await ctx.close();
   });
 
+  test("fotky před/po s jezdcem, postup ošetření a druh objektu (úkol 59), 390 × 844", async () => {
+    const fotky = [
+      { src: "/assets/v/fasada-pred.webp", typ: "pred", misto: "Uliční fasáda", datum: den(-401), alt: "fasáda se zeleným nánosem" },
+      { src: "/assets/v/detail.webp", typ: "po", datum: den(-400) },
+      { src: "/assets/v/fasada-po.webp", typ: "po", misto: "Uliční fasáda", datum: den(-400) },
+      { src: "/assets/v/vstup-pred.webp", typ: "pred", misto: "Vstup" },
+      { src: "https://example.com/cizi-po.jpg", typ: "po", misto: "Vstup" },
+    ];
+    const postup = [
+      { cislo: "05", datum: den(-400) },
+      { cislo: 1, datum: den(-401), text: "Fasáda vyčištěna tlakem a teplou vodou." },
+      { cislo: "03", datum: den(-401) },
+      { cislo: "x9", text: "neplatné číslo kroku se zahodí" },
+    ];
+    const { p, ctx, chyby } = await stranka({
+      sirka: 390, vyska: 844,
+      validate: () => ({ status: 200, body: pasMock({ objekt: "Mateřská škola", povrchy: ["fasada"], cesta: "A", postup, fotky }) }),
+    });
+    await zadat(p);
+    await otevritPas(p);
+    assert.match(bez(await p.innerText(".pdt-pas-meta")), /^Mateřská škola · Testov · ošetřeno /);
+
+    // Pořadí: stav → doklady práce (fotky, postup) → podrobnosti.
+    const poradi = await p.$$eval(".pdt-mrizka > .pdt-modul", (m) => m.map((x) => [...x.classList].find((c) => c.startsWith("pdt-modul--"))));
+    assert.ok(poradi.indexOf("pdt-modul--zaruka") < poradi.indexOf("pdt-modul--fotky"), poradi.join(" "));
+    assert.ok(poradi.indexOf("pdt-modul--fotky") < poradi.indexOf("pdt-modul--postup"), poradi.join(" "));
+    assert.ok(poradi.indexOf("pdt-modul--postup") < poradi.indexOf("pdt-modul--historie"), poradi.join(" "));
+
+    // Dvojice stejného místa → porovnání; zbytek (bez dvojice, cizí adresa zahozena) v mřížce.
+    assert.equal(bez(await p.innerText(".pdt-modul--fotky .pdt-modul-h")), "Fotodokumentace před a po");
+    assert.equal(await p.locator(".pdt-porovnani").count(), 1);
+    assert.equal(bez(await p.innerText(".pdt-porovnani figcaption")), `Uliční fasáda · před ${cesky(den(-401))} · po ${cesky(den(-400))}`);
+    assert.deepEqual(await p.$$eval(".pdt-porovnani img", (i) => i.map((x) => [x.getAttribute("src"), x.alt])), [
+      ["/assets/v/fasada-po.webp", "Po ošetření: Uliční fasáda"],
+      ["/assets/v/fasada-pred.webp", "Před ošetřením: fasáda se zeleným nánosem"],
+    ]);
+    assert.deepEqual(await p.$$eval(".pdt-foto img", (i) => i.map((x) => x.getAttribute("src"))), ["/assets/v/detail.webp", "/assets/v/vstup-pred.webp"]);
+    assert.deepEqual((await p.$$eval(".pdt-foto figcaption", (f) => f.map((x) => x.textContent))).map(bez), [`Po · ${cesky(den(-400))}`, "Vstup · Před"]);
+
+    // Jezdec: skutečný range s popiskem – klávesnice i tažení, horní vrstva „před“ se ořízne podle polohy.
+    const rozsah = p.locator(".pdt-porovnani__rozsah");
+    assert.equal(await p.locator(`label[for="${await rozsah.getAttribute("id")}"]`).count(), 1);
+    assert.equal(await rozsah.getAttribute("aria-valuetext"), "50 % před, 50 % po");
+    await rozsah.focus();
+    for (let i = 0; i < 5; i++) await p.keyboard.press("ArrowRight");
+    assert.equal(await rozsah.getAttribute("aria-valuetext"), "55 % před, 45 % po");
+    assert.equal(await p.$eval(".pdt-porovnani__okno", (e) => e.style.getPropertyValue("--pdt-pozice")), "55%");
+    const okno = await p.locator(".pdt-porovnani__okno").boundingBox();
+    const stred = okno.y + okno.height / 2;
+    await p.mouse.move(okno.x + okno.width * 0.55, stred);
+    await p.mouse.down();
+    await p.mouse.move(okno.x + okno.width * 0.2, stred, { steps: 8 });
+    await p.mouse.up();
+    const hodnota = Number(await rozsah.inputValue());
+    assert.ok(Math.abs(hodnota - 20) <= 3, `poloha po tažení: ${hodnota}`);
+    assert.equal(await p.$eval(".pdt-porovnani__okno", (e) => e.style.getPropertyValue("--pdt-pozice")), `${hodnota}%`);
+    const orez = await p.$eval(".pdt-porovnani__pred", (e) => getComputedStyle(e).clipPath);
+    const vpravo = /^inset\(0px (?:calc\()?([\d.]+)%/.exec(orez);
+    assert.ok(vpravo && Math.abs(Number(vpravo[1]) - (100 - hodnota)) < 0.01, `ořez vrstvy „před“: ${orez}`);
+
+    // Postup: jen zapsané kroky, seřazené; názvy a popisy ze Standardu HOLUB, cesta A u finální vrstvy.
+    const krokStd = (c) => STANDARD.kroky.find((k) => k.cislo === c);
+    assert.deepEqual(await p.$$eval(".pdt-postup-cislo", (e) => e.map((x) => x.textContent)), ["01", "03", "05"]);
+    assert.deepEqual((await p.$$eval(".pdt-postup-nazev", (e) => e.map((x) => x.textContent))).map(bez),
+      ["01", "03", "05"].map((c) => `Krok ${Number(c)}: ${krokStd(c).nazev}`));
+    assert.deepEqual(await p.$$eval(".pdt-postup-datum", (e) => e.map((x) => x.getAttribute("datetime"))), [den(-401), den(-401), den(-400)]);
+    assert.deepEqual((await p.$$eval(".pdt-postup-popis", (e) => e.map((x) => x.textContent))).map(bez),
+      ["Fasáda vyčištěna tlakem a teplou vodou.", krokStd("03").popis, krokStd("05").popis].map(bez));
+    assert.equal(await p.locator(".pdt-postup-cesta").count(), 1);
+    assert.equal(bez(await p.innerText(".pdt-postup-cesta")), bez(`${STANDARD.cesty.A.nazev} – ${STANDARD.cesty.A.popis}`));
+    assert.equal(await p.locator(".pdt-postup-krok:last-child .pdt-postup-cesta").count(), 1);
+
+    await p.waitForTimeout(2600);
+    assert.equal(await bezPosunu(p), true);
+    assert.deepEqual(await preteceni(p), []);
+    assert.deepEqual(await axe(p), []);
+    await snimek(p, "pas-fotky-postup-390.png");
+    assert.deepEqual(chyby, []);
+    await ctx.close();
+  });
+
   test("ukázka: HS-2099-0001 otevře pas bez serveru, jiná kombinace neutrální hláška; axe celé stránky", async () => {
     const { p, ctx, chyby, vsechny, venku } = await stranka({ cesta: "/pas-trezor.html", validate: () => { throw new Error("ukázka nesmí volat server"); } });
     assert.equal(await p.getAttribute('meta[name="robots"]', "content"), "noindex,nofollow");
@@ -571,5 +653,16 @@ if (process.env.PDT_SERVER) {
     assert.equal(T.maskaPristupu("ilo0 uu-abcd efgh").hodnota, "1100-ABCD-EFGH");
     const cisty = JSON.parse(JSON.stringify(T.vycisti({ success: true, ...pasMock(), neznamePole: "x" })));
     assert.deepEqual(Object.keys(cisty).sort(), ["dalsi_kontrola", "datum", "kod", "materialy", "obec", "plocha_m2", "povrchy", "sarze", "srazky", "zaruka"]);
+    // Volitelná pole z úkolu 59 se čistí: druh objektu nejvýš 60 znaků, cesta jen A/B, postup jen platné kroky.
+    const volitelna = JSON.parse(JSON.stringify(T.vycisti({
+      ...pasMock(), objekt: `  Mateřská škola ${"x".repeat(80)}`, cesta: "C",
+      postup: [{ cislo: 2, datum: "2026-10-14", text: "  text  " }, { cislo: "abc" }, "x", null, { cislo: "05", datum: "zítra", text: 5, nazev: "N".repeat(70) }],
+    })));
+    assert.equal(volitelna.objekt.length, 60);
+    assert.ok(volitelna.objekt.startsWith("Mateřská škola x"));
+    assert.equal("cesta" in volitelna, false);
+    assert.deepEqual(volitelna.postup, [{ cislo: "02", nazev: "", datum: "2026-10-14", text: "text" }, { cislo: "05", nazev: "N".repeat(60), datum: null, text: "" }]);
+    const prazdne = JSON.parse(JSON.stringify(T.vycisti({ ...pasMock(), objekt: "   ", postup: [{ cislo: "?" }], cesta: "B" })));
+    assert.deepEqual([prazdne.objekt, prazdne.postup, prazdne.cesta], [undefined, undefined, "B"]);
   });
 }
