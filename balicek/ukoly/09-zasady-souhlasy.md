@@ -134,7 +134,10 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
          "uchovani": { "mesice": null, "text": "[DOPLNIT: 12 měsíců / 3 roky od odeslání, pokud nevznikne zakázka – O1]" } }
      ],
      "uloziste_prohlizece": [
-       { "nazev": "hspg-souhlas", "typ": "localStorage", "ucel": "vaše volba v liště cookies", "doba": "do smazání v prohlížeči", "bez_souhlasu": true }
+       { "nazev": "hspg-souhlas", "typ": "localStorage", "ucel": "vaše volba v liště cookies", "doba": "do smazání v prohlížeči", "bez_souhlasu": true },
+       { "nazev": "hspg-zazitek", "typ": "localStorage", "ucel": "vaše volba, zda chcete zvuk a vibrace (úkol 56)", "doba": "do změny volby nebo smazání v prohlížeči", "bez_souhlasu": true },
+       { "nazev": "hspg-zazitek-pozvanka", "typ": "sessionStorage", "ucel": "že jste nabídku zvuku už rozhodli (zapíše se až po vašem rozhodnutí)", "doba": "do zavření karty", "bez_souhlasu": true },
+       { "nazev": "hspg-hbot-otevreno", "typ": "sessionStorage", "ucel": "že jste asistenta už otevřeli (plaketa dál nepulzuje)", "doba": "do zavření karty", "bez_souhlasu": true }
      ]
    }
    ```
@@ -255,7 +258,7 @@ Zdroj: kopie živého webu z 4. 10. 2026 (zásady na živém webu jsou s kopií 
    |---|---|
    | `hspg-poptavka` (homepage, krok 6) | Odstraň povinné zaškrtávací pole a `state.consent` z validace. Nad tlačítko odeslání dej informační větu: „Údaje použijeme jen k přípravě nabídky a domluvě zakázky. Podrobnosti v [Zásadách ochrany osobních údajů](/ochrana-osobnich-udaju#poptavky).“ V payloadu i v registraci nahraď `Souhlas se zpracováním osobních údajů` polem `Verze zásad`. |
    | `hspg-akce` (`/akce/`) | Zaškrtávací pole „Souhlas se zpracováním osobních údajů“ nahraď stejnou informační větou. Pro pravidla akce přidej samostatné pole `name="Účast v akci" value="ano"` s textem „Přihlašuji poptávku do akce ‚Vypusťte holuba‘ a souhlasím s [pravidly akce](/pravidla-akce/).“ Zatím ho nech `required`, protože bod 1 pravidel zařazuje každou poptávku z `/akce/`; dobrovolnost řeší úkol 18 spolu s 13. Přidej `Verze zásad`. |
-   | `hspg-zavolejte` (H-BOT) | Zaškrtávací pole zůstává (`name="souhlas"` používá e2e test balíčku), mění se text: „Beru na vědomí, že jméno a telefon použijete jen k tomu, abyste mi zavolali ([zásady](/ochrana-osobnich-udaju#hbot)).“ Chybová hláška: „Potvrďte prosím, že berete na vědomí, k čemu údaje použijeme.“ V payloadu nahraď `Souhlas: ano` za `Informace o zpracování: potvrzeno` a přidej `Verze zásad`. Registraci v `index.html` uprav stejně. |
+   | `hspg-zavolejte` (H-BOT) | **Bez zaškrtávacího pole** (R21, 22. 10. 2026 – `hbot-panel.js` už tak dělá, e2e `hbot.test.mjs` hlídá, že checkbox ani pole `Souhlas` neexistují): nad tlačítkem informační věta „Jméno a telefon použijeme jen k zavolání zpět k vaší poptávce.“ s odkazem na [zásady](/ochrana-osobnich-udaju#hbot) (právní základ čl. 6 odst. 1 písm. b) GDPR). V payloadu žádné `Souhlas`; přidej jen `Verze zásad`. Registraci formuláře v `index.html` uprav stejně (pole `Souhlas` odstraň). |
    | `hspg-fotky` | Text ponech, přidej `Verze zásad`. |
    | `hspg-recenze` | Souhlas se zveřejněním ponech (je skutečným titulem), přidej `Verze zásad`. |
    | `hspg-reklamace` (úkol 04) | Pokud má pole „souhlas se zpracováním“, nahraď ho informační větou s odkazem na `#reklamace`. Přidej `Verze zásad`. |

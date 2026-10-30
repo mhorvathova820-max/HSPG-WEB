@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8"><link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HOLUB – HSPG (testovací úvodní stránka)</title>
+<!-- Zástupná úvodní stránka pro e2e testy: hlavní výzva v úvodu skrývá plaketu H-BOTa (třída na <body>, jako na webu). -->
+<style>
+  body{margin:0;background:#05070f;color:#e9edf3;font:16px/1.6 system-ui,sans-serif}
+  .hero{min-height:90vh;display:grid;place-items:center;text-align:center;padding:24px}
+  .hero h1{font:600 48px/1.1 Georgia,serif;color:#f6e7a8}
+  main{max-width:960px;margin:0 auto;padding:24px}
+  a{color:#f6e7a8}
+</style>
+</head>
+<body class="hero-cta-na-obrazovce">
+<main>
+  <section class="hero"><div><h1>Budoucnost ve Vašich rukách</h1><p><a id="hero-cta" href="/akce/">Chci cenu</a></p></div></section>
+  <section style="height:3000px"><h2>Služby</h2><p>Střechy, fasády, dlažby, fotovoltaika.</p></section>
+</main>
+<script>
+  // Jako na webu: dokud je hlavní výzva v úvodu vidět, plovoucí tlačítka jsou schovaná.
+  new IntersectionObserver(function (z) { document.body.classList.toggle('hero-cta-na-obrazovce', z[0].isIntersecting); }).observe(document.getElementById('hero-cta'));
+</script>
+<script src="/assets/hbot.js" defer></script>
+</body>
+</html>

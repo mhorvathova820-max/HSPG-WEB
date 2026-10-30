@@ -1,0 +1,92 @@
+/* =====================================================================
+   Stránka /standard-holub/ (úkol 50, R15 + R18) – vzhled Apex.
+   Navazuje na /assets/brand.css (hlavička, patička) a /assets/apex-tokens.css.
+   Jen třídy s předponou sh- (a body.sh-stranka); nic globálního.
+   ===================================================================== */
+.sh-stranka { background: var(--apex-cern-0, #05070f); color: var(--apex-text, #f4f1e8); }
+.sh {
+  font-family: var(--apex-pismo); color: var(--apex-text); padding-bottom: clamp(56px, 8vw, 104px);
+  /* Zlatá záře úsvitu přes celou šířku okna (ne jen v kontejneru). */
+  background:
+    radial-gradient(55% 640px at 82% 0, rgba(212, 175, 55, .15), transparent 72%),
+    radial-gradient(38% 520px at 0 520px, rgba(122, 221, 255, .045), transparent 70%);
+  background-repeat: no-repeat;
+}
+.sh-obal { box-sizing: border-box; width: 100%; max-width: 1180px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 40px); }
+.sh h1, .sh h2, .sh h3 { font-family: var(--apex-pismo-nadpis); font-weight: 600; color: var(--apex-text); font-variant-numeric: lining-nums; }
+.sh h2 { font-size: clamp(1.7rem, 3.4vw, 2.6rem); line-height: 1.12; margin: 0 0 .5em; }
+.sh h3 { font-size: 1.22rem; line-height: 1.25; margin: 0 0 .35em; }
+.sh p { margin: 0 0 .8em; }
+.sh a:not(.apex-tlacitko) { color: var(--apex-zlato-svetle); text-underline-offset: 3px; }
+.sh :focus-visible { outline: 2px solid var(--apex-zlato-svetle); outline-offset: 3px; }
+
+/* Úvod */
+.sh-uvod { position: relative; padding-top: clamp(48px, 9vw, 120px); padding-bottom: clamp(36px, 6vw, 72px); }
+.sh-nadpis { font-size: clamp(2.6rem, 8vw, 5.6rem); line-height: 1.02; letter-spacing: -.01em; margin: .3em 0 .35em; }
+.sh-perex { font-size: clamp(1.02rem, 1.6vw, 1.22rem); line-height: 1.6; color: #d9dce3; max-width: 46rem; }
+.sh-perex--maly { font-size: 1rem; color: var(--apex-tlumene); }
+.sh-akce { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.sh-linka { max-width: 1100px; margin: 0 auto; }
+
+/* Sekce */
+.sh-sekce { padding-top: clamp(48px, 7vw, 96px); }
+.sh-pozn { font-size: .88rem; line-height: 1.55; color: var(--apex-tlumene); max-width: 52rem; margin-top: 18px; }
+
+/* Pět kroků */
+.sh-kroky { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; counter-reset: none; }
+.sh-krok {
+  position: relative; padding: 26px 20px 22px; border-radius: 18px;
+  background: var(--apex-sklo); border: 1px solid var(--apex-linka); box-shadow: var(--apex-sklo-stin);
+}
+.sh-krok::after { content: ""; position: absolute; left: 20px; right: 20px; top: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--apex-zlato), transparent); opacity: .7; }
+.sh-krok-cislo { display: block; font: italic 600 2.1rem/1 var(--apex-pismo-nadpis); color: var(--apex-zlato); margin-bottom: 14px; font-variant-numeric: lining-nums; }
+.sh-krok p { font-size: .95rem; line-height: 1.5; color: #cfd3db; margin: 0; }
+
+/* Dvě cesty */
+.sh-cesty { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 28px; }
+.sh-cesta { padding: clamp(24px, 3vw, 36px); }
+.sh-cesta h3 { font-size: clamp(1.4rem, 2.4vw, 1.9rem); margin-top: .4em; }
+.sh-cesta p { color: #d9dce3; line-height: 1.55; }
+.sh-povrchy { font-size: .9rem; color: var(--apex-tlumene) !important; }
+.sh-sazby { font: 600 1rem/1.5 var(--apex-pismo); color: var(--apex-zlato-svetle) !important; padding-top: 12px; border-top: 1px solid var(--apex-linka); margin-top: 16px; }
+.sh-zaruka { font-size: .92rem; color: var(--apex-zlato) !important; margin: 0; }
+
+/* Odstíny */
+.sh-palety { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; margin-top: 24px; }
+.sh-paleta { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.sh-paleta li { display: grid; grid-template-columns: 44px 1fr; grid-template-rows: auto auto; column-gap: 12px; align-items: center; font-weight: 600; font-size: .92rem; }
+.sh-paleta small { grid-column: 2; font-weight: 400; font-size: .8rem; color: var(--apex-tlumene); }
+.sh-vzorek { grid-row: span 2; width: 44px; height: 44px; border-radius: 50%; background: var(--vzorek, #333); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18), 0 0 0 1px var(--apex-linka-silna), 0 6px 18px rgba(0, 0, 0, .45); }
+
+/* SENTINEL */
+.sh-tarify { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 26px; }
+.sh-tarif { padding: 26px 24px; }
+.sh-tarif--zaklad { border-color: var(--apex-linka-silna); box-shadow: var(--apex-sklo-stin), 0 0 0 1px rgba(212, 175, 55, .3); }
+.sh-tarif-cena { font: 600 1.5rem/1.2 var(--apex-pismo-nadpis); color: var(--apex-zlato-svetle); font-variant-numeric: lining-nums; }
+.sh-tarif-stitek { display: inline-block; font: 700 11px/1 var(--apex-pismo); letter-spacing: .2em; text-transform: uppercase; color: #17120a; background: var(--apex-tlacitko); border-radius: 999px; padding: 6px 10px; }
+.sh-tarif ul { margin: 12px 0 0; padding-left: 1.1em; display: grid; gap: 6px; font-size: .92rem; color: #cfd3db; }
+
+/* Závěr */
+.sh-zaver { text-align: center; }
+.sh-zaver .sh-perex { margin-inline: auto; }
+.sh-zaver .sh-akce { justify-content: center; }
+
+@media (max-width: 1080px) {
+  .sh-kroky { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sh-krok:last-child { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .sh-cesty, .sh-palety, .sh-tarify { grid-template-columns: 1fr; }
+  .sh-kroky { grid-template-columns: 1fr; }
+  .sh-krok { display: grid; grid-template-columns: 52px 1fr; column-gap: 12px; padding: 20px 18px; }
+  .sh-krok-cislo { grid-row: span 2; margin: 2px 0 0; font-size: 1.8rem; }
+  .sh-akce .apex-tlacitko { flex: 1 1 100%; }
+  /* Místo pro spodní lištu H-BOTa (Zavolat · Zeptat se · Cena hned). */
+  .sh { padding-bottom: 120px; }
+}
+@media print {
+  .sh-stranka { background: #fff; color: #111; }
+  .sh, .sh h1, .sh h2, .sh h3, .sh p, .sh li { color: #111 !important; }
+  .sh-krok, .sh-cesta, .sh-tarif { background: #fff; box-shadow: none; border-color: #c9a227; }
+  .sh-akce, .sh-linka { display: none; }
+}

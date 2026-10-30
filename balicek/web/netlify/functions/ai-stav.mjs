@@ -2,7 +2,7 @@
 //   GET  -> stav;  POST { verejnaAI: true|false } -> nouzový vypínač AI pro zákazníky (okamžitě, bez nasazení)
 //   POST { modely: { claude: "claude-opus-5-5", gpt: "" … } } -> přepínač modelů majitele (Blobs, bez nasazení;
 //   prázdný text = výchozí model). Klíče se nikdy nevrací – jen zda je nastavený vlastní klíč.
-import { POSKYTOVATELE, jeZapnuty, vlastniKlic, nazevAI, sModely, MODEL_RE, PROMENNA_MODELU, VLASTNI_KLICE } from "../lib/ai/poskytovatele.mjs";
+import { POSKYTOVATELE, jeZapnuty, nazevAI, sModely, MODEL_RE, PROMENNA_MODELU, VLASTNI_KLICE, KLIC_OPENROUTER, cestaRole, varovaniRole } from "../lib/ai/poskytovatele.mjs";
 import { overPozadavek } from "../lib/ai/autorizace.mjs";
 import { vychoziUloziste, utrataMesice, mesic, zacatekObdobi, mesicniLimitKc, verejnyLimitKc, kcNaKredity, nactiNastaveni, ulozNastaveni } from "../lib/ai/limity.mjs";
 import { pres_gateway, verejneEnv } from "../lib/ai/poskytovatele.mjs";
@@ -61,8 +61,11 @@ export function vytvorStav({ env = process.env, uloziste, ted = () => Date.now()
         return {
           id, nazev: nazevAI(id, env), zapnuto: jeZapnuty(id, env), model: p.model(envM), modelVychozi: p.model(env),
           prepsano: Boolean(nastaveni?.modely?.[id]), modelZakaznik: p.model(verejneEnv(env)),
-          // Kudy role běží: vlastní klíč majitele (účtuje poskytovatel) / Netlify AI Gateway (kredity).
-          cesta: vlastniKlic(id, env) ? "vlastni-klic" : "gateway", klic: p.klic, vlastniKlicPromenna: VLASTNI_KLICE[id]?.promenna || null,
+          // Kudy role běží: vlastní klíč majitele (účtuje poskytovatel) / vlastní klíč OpenRouter (účtuje
+          // OpenRouter, ZDR vynucené v požadavku) / Netlify AI Gateway (kredity).
+          cesta: cestaRole(id, env), klic: p.klic, vlastniKlicPromenna: VLASTNI_KLICE[id]?.promenna || (p.openrouter ? KLIC_OPENROUTER : null),
+          ...(p.openrouter ? { zdr: !p.bezZdr } : {}), ...(p.jenMajitel ? { jenMajitel: true } : {}),
+          varovani: varovaniRole(id, envM),
         };
       }),
       verejnyAsistent: env.AI_ZAPNUTO !== "0" && nastaveni?.verejnaAI !== false,

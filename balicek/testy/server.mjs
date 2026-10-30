@@ -14,10 +14,11 @@ import { vytvorPocasi } from "../web/netlify/functions/pocasi.mjs";
 import { vytvorKuponApi } from "../web/netlify/functions/kupon.mjs";
 import { vytvorPocasiPrace } from "../web/netlify/functions/pocasi-prace.mjs";
 import { vytvorKalendarPocasi } from "../web/netlify/functions/pocasi-kalendar.mjs";
+import { vytvorKonkurenci } from "../web/netlify/functions/konkurence.mjs";
 import { env as testEnv, falesnyAdapter, pametoveUloziste, HESLO, falesnaPredpoved, falesnyKalendar } from "./pomocne.mjs";
 
 const BALICEK = fileURLToPath(new URL("../web/", import.meta.url));
-const TYPY = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".json": "application/json", ".webp": "image/webp", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".webmanifest": "application/manifest+json" };
+const TYPY = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".json": "application/json", ".webp": "image/webp", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".webmanifest": "application/manifest+json", ".mjs": "text/javascript; charset=utf-8", ".pdf": "application/pdf" };
 
 async function existuje(p) {
   try { return (await stat(p)).isFile(); } catch { return false; }
@@ -27,7 +28,10 @@ async function existuje(p) {
 // zaseknout: { "METODA /cesta": [content-type, začátek těla] } – pošle hlavičky a začátek těla a dál nic
 // (simulace visícího spojení pro testy časových limitů v prohlížeči).
 // kalendar: false = kalendář zakázek nenastaven (plánovač ukáže „termín potvrdíme“).
-export async function spustServer({ rezim = "ai", port = 0, mirror = process.env.HSPG_MIRROR, zaseknout = {}, kalendar = true } = {}) {
+// Bez HSPG_MIRROR se použijí zástupné stránky z testy/fixtures/web (CI, cloud) – jen to, co H-BOT potřebuje.
+// Plné ověření na kopii živého webu: HSPG_MIRROR=/cesta/k/mirror/hspg.cz.
+const ZASTUPNY_WEB = fileURLToPath(new URL("./fixtures/web/", import.meta.url));
+export async function spustServer({ rezim = "ai", port = 0, mirror = process.env.HSPG_MIRROR || ZASTUPNY_WEB, zaseknout = {}, kalendar = true } = {}) {
   if (!mirror) throw new Error("Nastav HSPG_MIRROR na složku s kopií webu (wget --mirror https://hspg.cz).");
   const e = rezim === "bez-ai" ? { HSPG_PANEL_HESLO: HESLO } : testEnv();
   const ul = pametoveUloziste();
@@ -36,7 +40,7 @@ export async function spustServer({ rezim = "ai", port = 0, mirror = process.env
     ? { claude: falesnyAdapter({ chyba: "down" }), gemini: falesnyAdapter({ chyba: "down" }), gpt: falesnyAdapter({ chyba: "down" }), grok: falesnyAdapter({ chyba: "down" }) }
     : {
         claude: falesnyAdapter({
-          text: (p) => (p.zpravy[0].text.includes("NÁVRH ODPOVĚDI") ? '{"ok": true, "odpoved": ""}' : "Čištění střechy začíná od 99 Kč/m². Přesnou cenu spočítáme z mapy do 24 hodin – stačí poslat adresu na hspg.cz/akce/ nebo zavolat +420 736 618 486."),
+          text: (p) => (p.zpravy[0].text.includes("NÁVRH ODPOVĚDI") ? '{"ok": true, "odpoved": ""}' : "Čištění střechy začíná od 99 Kč/m². Přesnou cenu spočítáme po zaměření na dálku do 24 hodin – stačí poslat adresu na hspg.cz/akce/ nebo zavolat +420 736 618 486."),
         }),
         gemini: falesnyAdapter({ text: '{"ok": true, "odpoved": ""}' }),
         gpt: pomale("Návrh od ChatGPT: Dobrý den, děkujeme za poptávku."),
@@ -52,6 +56,7 @@ export async function spustServer({ rezim = "ai", port = 0, mirror = process.env
     "/api/majitel": vytvorPrihlaseni({ env: e, uloziste: ul, zdrzeniMs: 0 }),
     "/api/ai": vytvorAI({ env: e, adaptery, uloziste: ul }),
     "/api/ai-stav": vytvorStav({ env: e, uloziste: ul }),
+    "/api/konkurence": vytvorKonkurenci({ env: e, adaptery, uloziste: ul }),
   };
   // Plánovač, počasí a kupony (úkol 21): falešná předpověď a kalendář, nic nejde ven.
   const ulP = pametoveUloziste();

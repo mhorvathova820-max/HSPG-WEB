@@ -1,0 +1,55 @@
+{
+  "_poznamka": "Standard HOLUB – pětikrokový postup a dvě cesty finální vrstvy. Jediný zdroj textů pro H-BOT, HOLUB 360, nabídky a stránku /standard-holub/. Rozhodnutí majitele 22. 10. 2026 (R15). Značka biocidu se v textech pro zákazníky neuvádí.",
+  "nazev": "Standard HOLUB",
+  "verze": "1.0",
+  "ucinnost": "2026-10-20",
+  "kroky": [
+    { "cislo": "01", "nazev": "Čištění", "popis": "Čištění tlakem a teplotou vody podle materiálu" },
+    { "cislo": "02", "nazev": "Odmaštění", "popis": "Odmaštění povrchu bez usazenin" },
+    { "cislo": "03", "nazev": "Ošetření biocidy", "popis": "Ošetření biocidy v pórech materiálu" },
+    { "cislo": "04", "nazev": "Oplach", "popis": "Důkladný oplach uvolněné biomasy" },
+    { "cislo": "05", "nazev": "Ochranná vrstva", "popis": "Finální ochranná vrstva podle zvolené cesty" }
+  ],
+  "cesty": {
+    "A": {
+      "id": "A",
+      "nazev": "Neviditelný štít",
+      "sluzba": "hstone",
+      "popis": "2× nástřik hydrofobní nano-impregnace H-STONE. Voda perlí, povrch dýchá, vzhled zůstává.",
+      "povrchy": ["strecha", "fasada", "dlazba"]
+    },
+    "B": {
+      "id": "B",
+      "nazev": "Barevná renovace",
+      "sluzba": "renovace",
+      "popis": "Penetrace a 2× strojní airless nástřik ohřívanou barvou v odstínu podle vašeho výběru.",
+      "povrchy": ["strecha", "fasada"]
+    }
+  },
+  "biocidy_veta": "Používejte biocidy bezpečným způsobem. Před použitím si vždy přečtěte označení a informace o přípravku.",
+  "barvy_renovace": {
+    "_poznamka": "Odstíny RAL pro barevnou renovaci. Barvy na obrazovce jsou orientační – přesný odstín potvrdí vzorník při zaměření. Zákazník může zadat i vlastní RAL nebo NCS.",
+    "strecha": [
+      { "ral": "RAL 8004", "nazev": "Měděnohnědá (cihlová)", "hex": "#8E402A" },
+      { "ral": "RAL 3009", "nazev": "Oxidově červená", "hex": "#642424" },
+      { "ral": "RAL 3011", "nazev": "Hnědočervená", "hex": "#781F19" },
+      { "ral": "RAL 8017", "nazev": "Čokoládově hnědá", "hex": "#45322E" },
+      { "ral": "RAL 8019", "nazev": "Šedohnědá", "hex": "#403A3A" },
+      { "ral": "RAL 7016", "nazev": "Antracitová šedá", "hex": "#293133" },
+      { "ral": "RAL 7024", "nazev": "Grafitová šedá", "hex": "#474A51" },
+      { "ral": "RAL 9005", "nazev": "Černá", "hex": "#0A0A0A" },
+      { "ral": "RAL 6005", "nazev": "Mechově zelená", "hex": "#2F4538" }
+    ],
+    "fasada": [
+      { "ral": "RAL 9010", "nazev": "Čistě bílá", "hex": "#F7F5EC" },
+      { "ral": "RAL 9001", "nazev": "Krémově bílá", "hex": "#EFE7D6" },
+      { "ral": "RAL 1013", "nazev": "Perlově bílá", "hex": "#EAE6CA" },
+      { "ral": "RAL 1015", "nazev": "Světlá slonovinová", "hex": "#E6D6A8" },
+      { "ral": "RAL 1001", "nazev": "Béžová", "hex": "#C2B078" },
+      { "ral": "RAL 7044", "nazev": "Hedvábně šedá", "hex": "#CAC4B0" },
+      { "ral": "RAL 7035", "nazev": "Světle šedá", "hex": "#CBD0CC" },
+      { "ral": "RAL 7032", "nazev": "Křemenně šedá", "hex": "#B8B799" },
+      { "ral": "RAL 7016", "nazev": "Antracitová šedá", "hex": "#293133" }
+    ]
+  }
+}

@@ -1,0 +1,1148 @@
+/* =====================================================================
+   HSPG APEX – PRVKY ROZHRANÍ (úkol 57)
+   Dvanáct prvků z Uiverse.io (licence MIT, autoři a plné znění licence
+   v LICENSES-THIRD-PARTY.md) upravených pro vzhled Apex (R18): matná čerň,
+   obsidiánové sklo, tekuté zlato. Čisté CSS – žádný JavaScript, žádná CDN,
+   žádná písma. Třídy mají předponu ap- (nekolidují s apex-* v apex-tokens.css).
+
+   Pravidla, která každý prvek dodržuje:
+   - barvy jen přes tokeny --apex-* (s náhradní hodnotou, pokud tokeny chybí);
+   - cíle dotyku nejméně 44 × 44 px, šířka 100 % na 390 px bez posunu;
+   - nativní vstupy skryté přístupně (ne display:none), fokus viditelný
+     (obrys 2 px světlé zlato, odsazení 3 px);
+   - @media (prefers-reduced-motion: reduce) vypíná smyčkové animace;
+   - nic nepulzuje při načtení – puls spouští až třída ap-puls--aktivni
+     po akci uživatele a doběhne nejvýš 3×.
+
+   Zdroje (uiverse.io, MIT):
+   01 ap-tlacitko        dexter-st/young-newt-20
+   02 ap-prepinac        Galahhad/modern-quail-75
+   03 ap-fajfka          SelfMadeSystem/green-bobcat-29
+   04 ap-srdce           catraco/plastic-moth-91
+   05 ap-nit             xXJollyHAKERXx/lucky-falcon-75
+   06 ap-karta           joe-watson-sbf/honest-bullfrog-6
+   07 ap-napoveda        vnuny/stale-mouse-74
+   08 ap-segment         chase2k25/slimy-chipmunk-97
+   09 ap-volba-seznam    Smit-Prajapati/quick-panther-98
+   10 ap-pole            liyaxu123/warm-eel-62
+   11 ap-tlacitko-obrys  vinodjangid07/pink-cheetah-68
+   12 ap-puls            Li-Deheng/shy-moth-10
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   0. Paleta – jediné místo, kde se objevují konkrétní hodnoty barev.
+   Každá je náhradní hodnotou tokenu z apex-tokens.css.
+   --------------------------------------------------------------------- */
+:root {
+  --ap-cern-0: var(--apex-cern-0, #05070f);
+  --ap-cern-1: var(--apex-cern-1, #0b0f19);
+  --ap-cern-2: var(--apex-cern-2, #111827);
+  --ap-cern-3: var(--apex-cern-3, #1f2937);
+  --ap-zlato: var(--apex-zlato, #d4af37);
+  --ap-zlato-svetle: var(--apex-zlato-svetle, #f6e7a8);
+  --ap-zlato-tmave: var(--apex-zlato-tmave, #8a6a12);
+  --ap-text: var(--apex-text, #f4f1e8);
+  --ap-tlumene: var(--apex-tlumene, #a3a9b5);
+  --ap-chyba: var(--apex-chyba, #ffb4ab);
+  --ap-linka: var(--apex-linka, rgba(212, 175, 55, .22));
+  --ap-linka-silna: var(--apex-linka-silna, rgba(212, 175, 55, .45));
+  --ap-fokus: var(--apex-zlato-svetle, #f6e7a8);
+  --ap-pismo: var(--apex-pismo, Manrope, Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  --ap-pismo-nadpis: var(--apex-pismo-nadpis, "Playfair Display", Georgia, "Times New Roman", serif);
+  --ap-krivka: var(--apex-krivka, cubic-bezier(.2, .8, .2, 1));
+  --ap-zaobleni: var(--apex-zaobleni, 22px);
+  /* Odvozené průhledné odstíny. Zlato = token --apex-zlato (#d4af37) s alfou;
+     světlo a stín jsou neutrální bílá/černá s alfou pro okraje skla.
+     Při podpoře color-mix() se zlaté odstíny počítají z tokenu (níže). */
+  --ap-zlato-a12: rgba(212, 175, 55, .12);
+  --ap-zlato-a25: rgba(212, 175, 55, .25);
+  --ap-zlato-a35: rgba(212, 175, 55, .35);
+  --ap-zlato-a50: rgba(212, 175, 55, .5);
+  --ap-svetlo-a06: rgba(255, 255, 255, .06);
+  --ap-svetlo-a12: rgba(255, 255, 255, .12);
+  --ap-svetlo-a20: rgba(255, 255, 255, .2);
+  --ap-stin-a30: rgba(0, 0, 0, .3);
+  --ap-stin-a50: rgba(0, 0, 0, .5);
+}
+@supports (color: color-mix(in srgb, red 50%, transparent)) {
+  :root {
+    --ap-zlato-a12: color-mix(in srgb, var(--ap-zlato) 12%, transparent);
+    --ap-zlato-a25: color-mix(in srgb, var(--ap-zlato) 25%, transparent);
+    --ap-zlato-a35: color-mix(in srgb, var(--ap-zlato) 35%, transparent);
+    --ap-zlato-a50: color-mix(in srgb, var(--ap-zlato) 50%, transparent);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Pomocné třídy
+   --------------------------------------------------------------------- */
+/* Vizuálně skrytý text (čtečka ho čte) a přístupně skryté nativní vstupy –
+   zůstávají v DOM, dají se ovládat klávesnicí a přijímají fokus. */
+.ap-skryte,
+.ap-prepinac__vstup,
+.ap-fajfka__vstup,
+.ap-srdce__vstup,
+.ap-segment__vstup,
+.ap-volba-seznam__vstup {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Sada voleb (fieldset bez výchozího rámečku) a její název (legend). */
+.ap-sada {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.ap-sada__nazev {
+  display: block;
+  padding: 0 0 .6rem;
+  font: 600 11px/1.2 var(--ap-pismo);
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  color: var(--ap-zlato);
+}
+
+/* ---------------------------------------------------------------------
+   01. ap-tlacitko – skleněné obsidiánové tlačítko s horním leskem
+       a zlatou září zespodu (hlavní CTA „Zaměřit na dálku“)
+       Z originálu vynecháno: animace po písmenech (čtečky četly písmena
+       zvlášť), blikání ikony ve smyčce a přepnutí textu při :focus.
+   --------------------------------------------------------------------- */
+.ap-tlacitko {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  min-height: 48px;
+  padding: .6rem 1.5rem;
+  border: 1px solid var(--ap-svetlo-a12);
+  border-radius: 999px;
+  background: var(--ap-cern-1);
+  color: var(--ap-text);
+  font: 600 1rem/1.2 var(--ap-pismo);
+  letter-spacing: .01em;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow:
+    inset 0 1px 1px var(--ap-svetlo-a20),
+    inset 0 2px 2px var(--ap-svetlo-a12),
+    inset 0 8px 16px var(--ap-svetlo-a06),
+    0 0 0 4px var(--ap-stin-a30),
+    0 0 0 5px var(--ap-svetlo-a06),
+    0 -4px 8px var(--ap-stin-a30),
+    0 12px 24px -8px var(--ap-stin-a50);
+  transition:
+    box-shadow .4s var(--ap-krivka),
+    border-color .4s var(--ap-krivka),
+    background-color .4s var(--ap-krivka);
+}
+/* Zlatý lesk od spodní hrany – objeví se při najetí a stisku. */
+.ap-tlacitko::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(0deg, var(--ap-zlato-svetle), var(--ap-zlato-a50) 10%, transparent 45%);
+  -webkit-mask-image: linear-gradient(0deg, var(--ap-cern-0), transparent);
+  mask-image: linear-gradient(0deg, var(--ap-cern-0), transparent);
+  opacity: 0;
+  transition: opacity .4s var(--ap-krivka);
+}
+.ap-tlacitko__ikona {
+  flex: none;
+  width: 1.25em;
+  height: 1.25em;
+  fill: currentColor;
+  transition: fill .4s var(--ap-krivka), filter .4s var(--ap-krivka);
+}
+.ap-tlacitko:hover {
+  border-color: var(--ap-zlato-a35);
+  box-shadow:
+    inset 0 1px 1px var(--ap-svetlo-a20),
+    inset 0 2px 2px var(--ap-svetlo-a12),
+    inset 0 -10px 16px -8px var(--ap-zlato-a25),
+    0 0 0 4px var(--ap-stin-a30),
+    0 0 0 5px var(--ap-zlato-a12),
+    0 -4px 8px var(--ap-stin-a30),
+    0 10px 24px -6px var(--ap-zlato-a35);
+}
+.ap-tlacitko:hover::after { opacity: .6; }
+.ap-tlacitko:hover .ap-tlacitko__ikona {
+  fill: var(--ap-zlato-svetle);
+  filter: drop-shadow(0 0 3px var(--ap-zlato-a50));
+}
+.ap-tlacitko:active {
+  border-color: var(--ap-zlato-a50);
+  background: var(--ap-cern-2);
+}
+.ap-tlacitko:active::after { opacity: 1; }
+.ap-tlacitko:focus-visible {
+  outline: 2px solid var(--ap-fokus);
+  outline-offset: 3px;
+}
+.ap-tlacitko:disabled,
+.ap-tlacitko[aria-disabled="true"] {
+  opacity: .45;
+  cursor: default;
+  pointer-events: none;
+}
+.ap-tlacitko[aria-busy="true"] { cursor: progress; }
+.ap-tlacitko--velke {
+  min-height: 56px;
+  padding: .7rem 1.9rem;
+  font-size: 1.05rem;
+}
+
+/* ---------------------------------------------------------------------
+   02. ap-prepinac – přepínač „Zvuk a vibrace“ s fajfkou / křížkem v kolečku
+       Dvě varianty se stejným vzhledem:
+       a) <label class="ap-prepinac"><input type="checkbox" role="switch"> …
+       b) <button class="ap-prepinac" aria-pressed="true|false"> … (H-BOT, úkol 56)
+   --------------------------------------------------------------------- */
+.ap-prepinac {
+  --ap-pr-sirka: 56px;
+  --ap-pr-vyska: 30px;
+  --ap-pr-kolecko: 24px;
+  --ap-pr-posun: 2px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  margin: 0;
+  padding: 7px 0;
+  border: 0;
+  background: none;
+  color: var(--ap-text);
+  font: 500 1rem/1.3 var(--ap-pismo);
+  text-align: left;
+  cursor: pointer;
+}
+.ap-prepinac__draha {
+  box-sizing: border-box;
+  position: relative;
+  flex: none;
+  width: var(--ap-pr-sirka);
+  height: var(--ap-pr-vyska);
+  border: 1px solid var(--ap-tlumene);
+  border-radius: 999px;
+  background: var(--ap-cern-3);
+  transition: background-color .2s var(--ap-krivka), border-color .2s var(--ap-krivka);
+}
+/* Krátká světelná stopa za kolečkem. */
+.ap-prepinac__draha::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: calc(var(--ap-pr-posun) + var(--ap-pr-kolecko) / 4);
+  width: calc(var(--ap-pr-kolecko) / 2);
+  height: 5px;
+  border-radius: 2px;
+  background: var(--ap-tlumene);
+  transform: translateY(-50%);
+  transition: left .2s var(--ap-krivka), background-color .2s;
+}
+.ap-prepinac__kolecko {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: var(--ap-pr-posun);
+  display: grid;
+  place-items: center;
+  width: var(--ap-pr-kolecko);
+  height: var(--ap-pr-kolecko);
+  border-radius: 50%;
+  background: var(--ap-text);
+  box-shadow: 1px 1px 2px var(--ap-stin-a50);
+  transform: translateY(-50%);
+  transition: left .2s var(--ap-krivka), background-color .2s;
+}
+.ap-prepinac__kolecko svg {
+  position: absolute;
+  height: auto;
+  transition: transform .2s var(--ap-krivka);
+}
+.ap-prepinac__krizek {
+  width: 7px;
+  color: var(--ap-cern-3);
+}
+.ap-prepinac__fajfka {
+  width: 11px;
+  color: var(--ap-zlato-tmave);
+  transform: scale(0);
+}
+.ap-prepinac__text { flex: 1 1 auto; }
+/* Zapnuto: input:checked (varianta a) nebo aria-pressed="true" (varianta b). */
+.ap-prepinac__vstup:checked ~ .ap-prepinac__draha,
+.ap-prepinac[aria-pressed="true"] .ap-prepinac__draha {
+  border-color: var(--ap-zlato);
+  background: var(--ap-zlato);
+}
+.ap-prepinac__vstup:checked ~ .ap-prepinac__draha::before,
+.ap-prepinac[aria-pressed="true"] .ap-prepinac__draha::before {
+  left: calc(100% - var(--ap-pr-posun) - var(--ap-pr-kolecko) / 4 - var(--ap-pr-kolecko) / 2);
+  background: var(--ap-zlato-svetle);
+}
+.ap-prepinac__vstup:checked ~ .ap-prepinac__draha .ap-prepinac__kolecko,
+.ap-prepinac[aria-pressed="true"] .ap-prepinac__draha .ap-prepinac__kolecko {
+  left: calc(100% - var(--ap-pr-kolecko) - var(--ap-pr-posun));
+  background: var(--ap-zlato-svetle);
+  box-shadow: -1px 1px 2px var(--ap-stin-a50);
+}
+.ap-prepinac__vstup:checked ~ .ap-prepinac__draha .ap-prepinac__fajfka,
+.ap-prepinac[aria-pressed="true"] .ap-prepinac__fajfka { transform: scale(1); }
+.ap-prepinac__vstup:checked ~ .ap-prepinac__draha .ap-prepinac__krizek,
+.ap-prepinac[aria-pressed="true"] .ap-prepinac__krizek { transform: scale(0); }
+.ap-prepinac:hover .ap-prepinac__draha { border-color: var(--ap-zlato-svetle); }
+.ap-prepinac__vstup:focus-visible ~ .ap-prepinac__draha,
+.ap-prepinac:focus-visible .ap-prepinac__draha {
+  outline: 2px solid var(--ap-fokus);
+  outline-offset: 3px;
+}
+.ap-prepinac:focus-visible { outline: none; }
+.ap-prepinac__vstup:disabled ~ *,
+.ap-prepinac:disabled { opacity: .45; cursor: default; }
+
+/* ---------------------------------------------------------------------
+   03. ap-fajfka – zaškrtávací pole: rámeček se překreslí na fajfku
+       (stroke-dasharray / stroke-dashoffset na jediné cestě SVG)
+   --------------------------------------------------------------------- */
+.ap-fajfka {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .75rem;
+  min-height: 44px;
+  padding: 6px 0;
+  color: var(--ap-text);
+  font: 500 1rem/1.35 var(--ap-pismo);
+  cursor: pointer;
+}
+.ap-fajfka__ikona {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  overflow: visible;
+  border-radius: 6px;
+}
+.ap-fajfka__cesta {
+  fill: none;
+  stroke: var(--ap-tlumene);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* Hodnoty patří k pathLength="575.0541381835938" na cestě v HTML. */
+  stroke-dasharray: 241 9999999;
+  stroke-dashoffset: 0;
+  transition: stroke-dasharray .5s var(--ap-krivka), stroke-dashoffset .5s var(--ap-krivka), stroke .3s;
+}
+.ap-fajfka:hover .ap-fajfka__cesta { stroke: var(--ap-zlato-svetle); }
+.ap-fajfka__vstup:checked ~ .ap-fajfka__ikona .ap-fajfka__cesta {
+  stroke: var(--ap-zlato);
+  stroke-dasharray: 70.5096664428711 9999999;
+  stroke-dashoffset: -262.2723388671875;
+}
+.ap-fajfka__vstup:focus-visible ~ .ap-fajfka__ikona {
+  outline: 2px solid var(--ap-fokus);
+  outline-offset: 3px;
+}
+.ap-fajfka__vstup:disabled ~ * { opacity: .45; cursor: default; }
+.ap-fajfka__text a { color: var(--ap-zlato-svetle); }
+
+/* ---------------------------------------------------------------------
+   04. ap-srdce – „Uložit odstín RAL“: srdce se vyplní a zajiskří
+       Oprava proti originálu: display:none uvnitř keyframes nahrazeno
+       visibility; jiskry se při omezení pohybu vůbec nezobrazí.
+   --------------------------------------------------------------------- */
+.ap-srdce {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.ap-srdce__ikony {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transition: transform .3s var(--ap-krivka);
+}
+.ap-srdce:hover .ap-srdce__ikony { transform: scale(1.08); }
+.ap-srdce__obrys,
+.ap-srdce__plne {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  fill: var(--ap-zlato);
+}
+.ap-srdce__plne {
+  opacity: 0;
+  transform: scale(0);
+  transition: opacity .2s, transform .2s var(--ap-krivka);
+}
+.ap-srdce__jiskry {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  stroke: var(--ap-zlato-svetle);
+  fill: var(--ap-zlato-svetle);
+  stroke-width: 2px;
+  opacity: 0;
+  visibility: hidden;
+}
+.ap-srdce__vstup:checked ~ .ap-srdce__ikony .ap-srdce__plne {
+  opacity: 1;
+  transform: scale(1);
+  animation: ap-srdce-plne 1s var(--ap-krivka);
+}
+.ap-srdce__vstup:checked ~ .ap-srdce__ikony .ap-srdce__jiskry {
+  visibility: visible;
+  animation: ap-srdce-jiskry .5s var(--ap-krivka) forwards;
+}
+.ap-srdce__vstup:focus-visible ~ .ap-srdce__ikony {
+  outline: 2px solid var(--ap-fokus);
+  outline-offset: 3px;
+}
+.ap-srdce__vstup:disabled ~ * { opacity: .45; cursor: default; }
+@keyframes ap-srdce-plne {
+  0% { transform: scale(0); }
+  25% { transform: scale(1.2); }
+  50% { transform: scale(1); filter: brightness(1.5); }
+  100% { transform: scale(1); }
+}
+@keyframes ap-srdce-jiskry {
+  0% { transform: scale(0); opacity: 0; }
+  50% { opacity: 1; filter: brightness(1.5); }
+  100% { transform: scale(1.4); opacity: 0; visibility: hidden; }
+}
+
+/* ---------------------------------------------------------------------
+   05. ap-nit – zlatá nit: zářící otáčející se prstenec („Zaměřujeme…“)
+       <div class="ap-nit" role="status"><span class="ap-skryte">Zaměřujeme…</span></div>
+       --ap-nit-pozadi nastav na barvu pozadí, na kterém prstenec leží.
+   --------------------------------------------------------------------- */
+.ap-nit {
+  --ap-nit-velikost: 48px;
+  --ap-nit-sila: 4px;
+  --ap-nit-pozadi: var(--ap-cern-1);
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--ap-nit-velikost);
+  height: var(--ap-nit-velikost);
+  border-radius: 50%;
+  background: linear-gradient(var(--ap-zlato-svetle) 35%, var(--ap-zlato));
+  box-shadow: 0 -4px 14px var(--ap-zlato-a35), 0 4px 14px var(--ap-zlato-a25);
+  animation: ap-nit-otaceni 1.7s linear infinite;
+}
+.ap-nit::before {
+  content: "";
+  position: absolute;
+  inset: var(--ap-nit-sila);
+  border-radius: 50%;
+  background: var(--ap-nit-pozadi);
+  filter: blur(3px);
+}
+.ap-nit--mala {
+  --ap-nit-velikost: 28px;
+  --ap-nit-sila: 3px;
+  box-shadow: 0 -2px 8px var(--ap-zlato-a35), 0 2px 8px var(--ap-zlato-a25);
+}
+.ap-nit--mala::before { filter: blur(2px); }
+/* Prstenec s textem vedle sebe. */
+.ap-nit-radek {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--ap-tlumene);
+  font: 500 .95rem/1.4 var(--ap-pismo);
+}
+@keyframes ap-nit-otaceni { to { transform: rotate(360deg); } }
+
+/* ---------------------------------------------------------------------
+   06. ap-karta – obsidiánová skleněná karta se zlatým odleskem za sklem
+       (ORIENTAČNÍ CENA, dlaždice kót, karty rozcestníku, Pas domu)
+   --------------------------------------------------------------------- */
+.ap-karta {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--ap-karta-max, 100%);
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--ap-linka);
+  border-radius: var(--ap-zaobleni);
+  background: var(--apex-sklo, linear-gradient(180deg, rgba(17, 24, 39, .66), rgba(5, 7, 15, .86)));
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--ap-text);
+  box-shadow: 0 24px 60px var(--ap-stin-a50), inset 0 1px 0 var(--ap-svetlo-a06);
+  transition: box-shadow .3s var(--ap-krivka), border-color .3s var(--ap-krivka);
+}
+/* Zlatý odlesk za sklem (vpravo nahoře). */
+.ap-karta::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -2.5rem;
+  right: -2.5rem;
+  width: 9rem;
+  height: 9rem;
+  border-radius: 50%;
+  background: var(--ap-zlato-a25);
+  filter: blur(28px);
+  pointer-events: none;
+}
+/* Svislá zlatá vlasová linka v rohu (dekorace). */
+.ap-karta::after {
+  content: "";
+  position: absolute;
+  top: 1.25rem;
+  right: 1.5rem;
+  width: 1px;
+  height: 2.5rem;
+  background: var(--ap-linka-silna);
+  pointer-events: none;
+}
+.ap-karta:hover,
+.ap-karta:focus-within {
+  border-color: var(--ap-linka-silna);
+  box-shadow: 0 0 24px var(--ap-zlato-a25), 0 24px 60px var(--ap-stin-a50), inset 0 1px 0 var(--ap-svetlo-a12);
+}
+.ap-karta__stitek {
+  display: block;
+  padding-right: 2rem;
+  font: 600 11px/1.2 var(--ap-pismo);
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  color: var(--ap-zlato);
+}
+.ap-karta__nadpis {
+  margin: .4rem 0 0;
+  font: 400 1.5rem/1.15 var(--ap-pismo-nadpis);
+  color: var(--ap-text);
+}
+.ap-karta__cislo {
+  margin: .6rem 0 0;
+  font: 600 2rem/1.1 var(--ap-pismo);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .01em;
+  color: var(--ap-zlato-svetle);
+}
+.ap-karta__text {
+  margin: .6rem 0 0;
+  font: 400 .95rem/1.5 var(--ap-pismo);
+  color: var(--ap-tlumene);
+}
+.ap-karta__pata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+  margin: 1rem 0 0;
+  padding-top: .9rem;
+  border-top: 1px solid var(--ap-linka);
+  font: 500 .8rem/1.3 var(--ap-pismo);
+  color: var(--ap-tlumene);
+}
+.ap-karta__pata strong { color: var(--ap-text); font-weight: 600; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ap-karta { background: var(--ap-cern-1); }
+}
+
+/* ---------------------------------------------------------------------
+   07. ap-napoveda – vysvětlivka s technickou odkazovou čárou
+       (bod → šikmá linka → podtržený text); kóty v HOLUB 360, položky ceny
+       <span class="ap-napoveda" data-smer="nahoru-vpravo">
+         <button class="ap-napoveda__bod" type="button" aria-describedby="id">…</button>
+         <span class="ap-napoveda__obsah" role="tooltip" id="id">…</span>
+       </span>
+       Zobrazí se při najetí, při fokusu (klávesnice), při aria-expanded="true"
+       na tlačítku (dotyk – přepíná web) nebo trvale s třídou ap-napoveda--stale.
+       data-smer: nahoru-vpravo (výchozí) | nahoru-vlevo | dolu-vpravo | dolu-vlevo
+   --------------------------------------------------------------------- */
+.ap-napoveda {
+  --ap-np-dx: 40px;
+  --ap-np-dy: 40px;
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+.ap-napoveda__bod {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--ap-zlato);
+  border-radius: 999px;
+  background: var(--ap-zlato-a12);
+  color: var(--ap-zlato-svetle);
+  font: 700 .95rem/1 var(--ap-pismo-nadpis);
+  cursor: pointer;
+  transition: background-color .2s var(--ap-krivka), box-shadow .2s var(--ap-krivka), transform .2s var(--ap-krivka);
+}
+/* Bod jako kóta – pilulka s hodnotou („14,2 m“). */
+.ap-napoveda__bod--kota {
+  padding: 0 14px;
+  font: 600 .9rem/1 var(--ap-pismo);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+.ap-napoveda__bod:hover,
+.ap-napoveda__bod[aria-expanded="true"] {
+  background: var(--ap-zlato-a25);
+  box-shadow: 0 0 0 6px var(--ap-zlato-a12);
+}
+.ap-napoveda__bod:focus-visible {
+  outline: 2px solid var(--ap-fokus);
+  outline-offset: 3px;
+}
+.ap-napoveda__obsah {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: 50%;
+  margin: 0 0 var(--ap-np-dy) var(--ap-np-dx);
+  width: max-content;
+  min-width: 9rem;
+  max-width: min(300px, 60vw);
+  padding: 0 0 10px;
+  color: var(--ap-text);
+  font: 400 .9rem/1.45 var(--ap-pismo);
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .35s var(--ap-krivka), visibility .35s;
+}
+/* Podtržení textu – vykreslí se zleva. */
+.ap-napoveda__obsah::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 1px;
+  background: var(--ap-zlato);
+  transition: width .4s var(--ap-krivka);
+}
+/* Šikmá odkazová čára (45°) od rohu textu ke středu bodu. */
+.ap-napoveda__obsah::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: calc(var(--ap-np-dx) * 1.4142);
+  height: 1px;
+  background: var(--ap-zlato);
+  transform-origin: 0 50%;
+  transform: rotate(135deg);
+}
+.ap-napoveda:hover .ap-napoveda__obsah,
+.ap-napoveda:focus-within .ap-napoveda__obsah,
+.ap-napoveda__bod[aria-expanded="true"] + .ap-napoveda__obsah,
+.ap-napoveda--stale .ap-napoveda__obsah {
+  opacity: 1;
+  visibility: visible;
+}
+.ap-napoveda:hover .ap-napoveda__obsah::before,
+.ap-napoveda:focus-within .ap-napoveda__obsah::before,
+.ap-napoveda__bod[aria-expanded="true"] + .ap-napoveda__obsah::before,
+.ap-napoveda--stale .ap-napoveda__obsah::before { width: 100%; }
+/* Směr nahoru-vlevo: text vlevo nad bodem, čára z pravého dolního rohu dolů doprava. */
+.ap-napoveda[data-smer="nahoru-vlevo"] .ap-napoveda__obsah {
+  left: auto;
+  right: 50%;
+  margin: 0 var(--ap-np-dx) var(--ap-np-dy) 0;
+  text-align: right;
+}
+.ap-napoveda[data-smer="nahoru-vlevo"] .ap-napoveda__obsah::before { left: auto; right: 0; }
+.ap-napoveda[data-smer="nahoru-vlevo"] .ap-napoveda__obsah::after {
+  left: auto;
+  right: 0;
+  transform-origin: 100% 50%;
+  transform: rotate(-135deg);
+}
+/* Směr dolů-vpravo: text vpravo pod bodem, linka nad textem, čára nahoru doleva. */
+.ap-napoveda[data-smer="dolu-vpravo"] .ap-napoveda__obsah {
+  bottom: auto;
+  top: 50%;
+  margin: var(--ap-np-dy) 0 0 var(--ap-np-dx);
+  padding: 10px 0 0;
+}
+.ap-napoveda[data-smer="dolu-vpravo"] .ap-napoveda__obsah::before { bottom: auto; top: 0; }
+.ap-napoveda[data-smer="dolu-vpravo"] .ap-napoveda__obsah::after {
+  bottom: auto;
+  top: 0;
+  transform: rotate(-135deg);
+}
+/* Směr dolů-vlevo: text vlevo pod bodem, čára z pravého horního rohu nahoru doprava. */
+.ap-napoveda[data-smer="dolu-vlevo"] .ap-napoveda__obsah {
+  left: auto;
+  right: 50%;
+  bottom: auto;
+  top: 50%;
+  margin: var(--ap-np-dy) var(--ap-np-dx) 0 0;
+  padding: 10px 0 0;
+  text-align: right;
+}
+.ap-napoveda[data-smer="dolu-vlevo"] .ap-napoveda__obsah::before { left: auto; right: 0; bottom: auto; top: 0; }
+.ap-napoveda[data-smer="dolu-vlevo"] .ap-napoveda__obsah::after {
+  left: auto;
+  right: 0;
+  bottom: auto;
+  top: 0;
+  transform-origin: 100% 50%;
+  transform: rotate(135deg);
+}
+
+/* ---------------------------------------------------------------------
+   08. ap-segment – segmentový přepínač ze skla se zlatým jezdcem
+       (cesta A / B / Čištění, Střecha / Fasáda / Obojí, Standard / SENTINEL)
+       Počet segmentů (2–4) nastav proměnnou --ap-segmenty na prvku.
+   --------------------------------------------------------------------- */
+.ap-segment {
+  --ap-segmenty: 3;
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--ap-segment-max, 100%);
+  border-radius: 1rem;
+  background: var(--ap-svetlo-a06);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    inset 1px 1px 4px var(--ap-svetlo-a20),
+    inset -1px -1px 6px var(--ap-stin-a30),
+    0 4px 12px var(--ap-stin-a30);
+}
+.ap-segment__volba {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 1rem;
+  color: var(--ap-tlumene);
+  font: 600 14px/1.25 var(--ap-pismo);
+  letter-spacing: .02em;
+  text-align: center;
+  cursor: pointer;
+  transition: color .3s var(--ap-krivka);
+}
+.ap-segment__volba:hover { color: var(--ap-text); }
+.ap-segment__vstup:checked + .ap-segment__volba { color: var(--ap-cern-0); }
+.ap-segment__vstup:focus-visible + .ap-segment__volba {
+  outline: 2px solid var(--ap-fokus);
+  outline-offset: 3px;
+}
+.ap-segment__vstup:disabled + .ap-segment__volba { opacity: .45; cursor: default; }
+.ap-segment__jezdec {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(100% / var(--ap-segmenty));
+  border-radius: 1rem;
+  background: linear-gradient(135deg, var(--ap-zlato), var(--ap-zlato-svetle));
+  box-shadow: 0 0 18px var(--ap-zlato-a35), inset 0 0 10px var(--ap-svetlo-a20);
+  pointer-events: none;
+  transition: transform .32s var(--ap-krivka);
+}
+/* Úzké displeje (390 px): menší písmo a odsazení, ať se tři volby vejdou na dva řádky. */
+@media (max-width: 430px) {
+  .ap-segment__volba { padding: 10px 8px; font-size: 13px; }
+}
+.ap-segment__vstup:nth-of-type(1):checked ~ .ap-segment__jezdec { transform: translateX(0); }
+.ap-segment__vstup:nth-of-type(2):checked ~ .ap-segment__jezdec { transform: translateX(100%); }
+.ap-segment__vstup:nth-of-type(3):checked ~ .ap-segment__jezdec { transform: translateX(200%); }
+.ap-segment__vstup:nth-of-type(4):checked ~ .ap-segment__jezdec { transform: translateX(300%); }
+
+/* ---------------------------------------------------------------------
+   09. ap-volba-seznam – svislý výběr se zlatou světelnou linkou
+       (postup 01–05 v „Cena hned“, volba cesty, rozcestník)
+       Počet voleb (do 10) nastav proměnnou --ap-volby; řádky mají stejnou výšku.
+   --------------------------------------------------------------------- */
+.ap-volba-seznam {
+  --ap-volby: 3;
+  position: relative;
+  display: grid;
+  grid-auto-rows: 1fr;
+  padding-left: .75rem;
+}
+.ap-volba-seznam__volba {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  min-height: 48px;
+  padding: .75rem 1rem;
+  border-radius: 8px;
+  color: var(--ap-tlumene);
+  font: 500 1rem/1.3 var(--ap-pismo);
+  cursor: pointer;
+  transition: color .3s var(--ap-krivka);
+}
+.ap-volba-seznam__volba:hover { color: var(--ap-text); }
+.ap-volba-seznam__cislo {
+  flex: none;
+  font: 600 .75rem/1 var(--ap-pismo);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .2em;
+  color: var(--ap-zlato);
+}
+.ap-volba-seznam__vstup:checked + .ap-volba-seznam__volba { color: var(--ap-zlato-svetle); }
+.ap-volba-seznam__vstup:focus-visible + .ap-volba-seznam__volba {
+  outline: 2px solid var(--ap-fokus);
+  outline-offset: 3px;
+}
+.ap-volba-seznam__vstup:disabled + .ap-volba-seznam__volba { opacity: .45; cursor: default; }
+.ap-volba-seznam__linka {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: linear-gradient(0deg, transparent, var(--ap-linka-silna) 50%, transparent);
+  pointer-events: none;
+}
+.ap-volba-seznam__jezdec {
+  position: relative;
+  width: 100%;
+  height: calc(100% / var(--ap-volby));
+  background: linear-gradient(0deg, transparent, var(--ap-zlato-svetle) 50%, transparent);
+  transition: transform .3s var(--ap-krivka);
+}
+.ap-volba-seznam__jezdec::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 5px;
+  height: 60%;
+  background: var(--ap-zlato-svetle);
+  transform: translateY(-50%);
+  filter: blur(10px);
+}
+.ap-volba-seznam__jezdec::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 150px;
+  height: 100%;
+  background: linear-gradient(90deg, var(--ap-zlato-a12), transparent);
+}
+.ap-volba-seznam__vstup:nth-of-type(1):checked ~ .ap-volba-seznam__linka .ap-volba-seznam__jezdec { transform: translateY(0); }
+.ap-volba-seznam__vstup:nth-of-type(2):checked ~ .ap-volba-seznam__linka .ap-volba-seznam__jezdec { transform: translateY(100%); }
+.ap-volba-seznam__vstup:nth-of-type(3):checked ~ .ap-volba-seznam__linka .ap-volba-seznam__jezdec { transform: translateY(200%); }
+.ap-volba-seznam__vstup:nth-of-type(4):checked ~ .ap-volba-seznam__linka .ap-volba-seznam__jezdec { transform: translateY(300%); }
+.ap-volba-seznam__vstup:nth-of-type(5):checked ~ .ap-volba-seznam__linka .ap-volba-seznam__jezdec { transform: translateY(400%); }
+.ap-volba-seznam__vstup:nth-of-type(6):checked ~ .ap-volba-seznam__linka .ap-volba-seznam__jezdec { transform: translateY(500%); }
+.ap-volba-seznam__vstup:nth-of-type(7):checked ~ .ap-volba-seznam__linka .ap-volba-seznam__jezdec { transform: translateY(600%); }
+.ap-volba-seznam__vstup:nth-of-type(8):checked ~ .ap-volba-seznam__linka .ap-volba-seznam__jezdec { transform: translateY(700%); }
+.ap-volba-seznam__vstup:nth-of-type(9):checked ~ .ap-volba-seznam__linka .ap-volba-seznam__jezdec { transform: translateY(800%); }
+.ap-volba-seznam__vstup:nth-of-type(10):checked ~ .ap-volba-seznam__linka .ap-volba-seznam__jezdec { transform: translateY(900%); }
+
+/* ---------------------------------------------------------------------
+   10. ap-pole – vstupní pole s podtržením a plovoucím popiskem („Adresa domu“)
+       <div class="ap-pole">
+         <input class="ap-pole__vstup" id="…" type="text" placeholder=" ">
+         <label class="ap-pole__popisek" for="…">Adresa domu</label>
+       </div>
+       placeholder=" " (mezera) je nutný – vyplutí řídí :not(:placeholder-shown),
+       ne :valid, takže funguje i u nepovinných polí.
+   --------------------------------------------------------------------- */
+.ap-pole {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding-top: 14px;
+}
+.ap-pole__vstup {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 2px solid var(--ap-linka-silna);
+  border-radius: 4px 4px 0 0;
+  background: transparent;
+  color: var(--ap-text);
+  font: 500 17px/1.3 var(--ap-pismo);
+  transition: border-color .25s var(--ap-krivka);
+}
+.ap-pole__vstup::placeholder { color: transparent; }
+.ap-pole__vstup:focus {
+  outline: none;
+  border-bottom-color: var(--ap-zlato);
+}
+.ap-pole__vstup:focus-visible {
+  outline: 2px solid var(--ap-fokus);
+  outline-offset: 3px;
+}
+.ap-pole__vstup[aria-invalid="true"] { border-bottom-color: var(--ap-chyba); }
+.ap-pole__vstup:disabled { opacity: .45; }
+.ap-pole__popisek {
+  position: absolute;
+  top: 26px;
+  left: 0;
+  color: var(--ap-tlumene);
+  font: 500 17px/1.3 var(--ap-pismo);
+  transform-origin: 0 0;
+  pointer-events: none;
+  transition: transform .25s var(--ap-krivka), color .25s var(--ap-krivka);
+}
+.ap-pole__vstup:focus + .ap-pole__popisek,
+.ap-pole__vstup:not(:placeholder-shown) + .ap-pole__popisek {
+  color: var(--ap-zlato);
+  transform: translateY(-24px) scale(.75);
+}
+/* Varianta „vlna“: popisek vyplouvá po písmenech. V HTML: celý text ve
+   <span class="ap-skryte"> pro čtečky a písmena ve <span class="ap-pole__pismeno"
+   style="--i: N" aria-hidden="true">. */
+.ap-pole--vlna .ap-pole__popisek { transform: none; }
+.ap-pole--vlna .ap-pole__pismeno {
+  display: inline-block;
+  min-width: .3em;
+  transition: transform .3s var(--ap-krivka), color .3s var(--ap-krivka);
+  transition-delay: calc(var(--i, 0) * 40ms);
+}
+.ap-pole--vlna .ap-pole__vstup:focus + .ap-pole__popisek .ap-pole__pismeno,
+.ap-pole--vlna .ap-pole__vstup:not(:placeholder-shown) + .ap-pole__popisek .ap-pole__pismeno {
+  transform: translateY(-24px) scale(.75);
+}
+.ap-pole__napoveda {
+  margin: 6px 0 0;
+  font: 400 .8rem/1.4 var(--ap-pismo);
+  color: var(--ap-tlumene);
+}
+.ap-pole__chyba {
+  margin: 6px 0 0;
+  font: 500 .8rem/1.4 var(--ap-pismo);
+  color: var(--ap-chyba);
+}
+
+/* ---------------------------------------------------------------------
+   11. ap-tlacitko-obrys – zlaté tlačítko s obvodovým kovovým přechodem
+       (sekundární CTA „Stáhnout kalkulaci (PDF)“, „Upravit plochy“)
+       Text je skutečný obsah tlačítka (v originálu byl v content: pseudoprvku,
+       takže ho čtečka nepřečetla).
+   --------------------------------------------------------------------- */
+.ap-tlacitko-obrys {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 44px;
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(to right,
+    var(--ap-zlato-tmave), var(--ap-zlato-svetle), var(--ap-zlato),
+    var(--ap-zlato-tmave), var(--ap-zlato-svetle), var(--ap-zlato-tmave));
+  background-size: 250% 100%;
+  background-position: left;
+  color: var(--ap-zlato-svetle);
+  font: 600 .95rem/1.2 var(--ap-pismo);
+  letter-spacing: .04em;
+  text-decoration: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background-position .5s var(--ap-krivka), transform .15s var(--ap-krivka);
+}
+/* Obsidiánová výplň – přechod zůstává jen jako 2px rámeček. */
+.ap-tlacitko-obrys::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 2px;
+  border-radius: 10px;
+  background: var(--ap-cern-1);
+}
+.ap-tlacitko-obrys:hover { background-position: right; }
+.ap-tlacitko-obrys:active { transform: scale(.96); }
+.ap-tlacitko-obrys:focus-visible {
+  outline: 2px solid var(--ap-fokus);
+  outline-offset: 3px;
+}
+.ap-tlacitko-obrys:disabled,
+.ap-tlacitko-obrys[aria-disabled="true"] {
+  opacity: .45;
+  cursor: default;
+  pointer-events: none;
+}
+.ap-tlacitko-obrys__ikona {
+  flex: none;
+  width: 1.1em;
+  height: 1.1em;
+  fill: currentColor;
+}
+
+/* ---------------------------------------------------------------------
+   12. ap-puls – zlaté CTA se šipkami a pulzujícím prstencem
+       („Pokračovat na cenu“; prstenec i samostatně kolem jiného prvku)
+       Prstenec (outline + outline-offset, funguje i na kulatých tvarech)
+       běží JEN s třídou ap-puls--aktivni, kterou web přidá po akci uživatele,
+       a doběhne nejvýš 3×. Nikdy při načtení, nikdy při najetí.
+       Fokus má vlastní dvojitý prstenec přes box-shadow (outline patří pulsu).
+   --------------------------------------------------------------------- */
+.ap-puls {
+  --ap-puls-velikost: 1.125rem;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45em;
+  min-height: 48px;
+  padding: .6em 1.4em;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ap-zlato);
+  color: var(--ap-cern-0);
+  font: 700 var(--ap-puls-velikost)/1.2 var(--ap-pismo);
+  letter-spacing: .02em;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 0 .25em 0 var(--ap-zlato-a50);
+  transition: background-color .3s var(--ap-krivka), box-shadow .3s var(--ap-krivka), transform .15s var(--ap-krivka);
+}
+.ap-puls:hover {
+  background: var(--ap-zlato-svetle);
+  box-shadow: 0 0 1em 0 var(--ap-zlato-a50);
+}
+.ap-puls:active { transform: scale(.96); }
+.ap-puls:focus-visible {
+  outline: 2px solid var(--ap-fokus);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--ap-cern-0), 0 0 0 5px var(--ap-fokus);
+}
+.ap-puls:disabled,
+.ap-puls[aria-disabled="true"] {
+  opacity: .45;
+  cursor: default;
+  pointer-events: none;
+}
+/* Tři šipky: dvě zadní jsou zasunuté a při najetí/fokusu vyjedou. */
+.ap-puls__sipky {
+  flex: none;
+  width: auto;
+  height: .8em;
+  fill: currentColor;
+}
+.ap-puls__sipky polygon:nth-child(1) {
+  transform: translateX(-60%);
+  transition: transform .4s var(--ap-krivka);
+}
+.ap-puls__sipky polygon:nth-child(2) {
+  transform: translateX(-30%);
+  transition: transform .5s var(--ap-krivka);
+}
+.ap-puls:hover .ap-puls__sipky polygon,
+.ap-puls:focus-visible .ap-puls__sipky polygon { transform: translateX(0); }
+/* Puls – jen po akci uživatele, nejvýš 3 cykly. */
+.ap-puls--aktivni { animation: ap-puls-vlna 1.2s ease-out 3; }
+@keyframes ap-puls-vlna {
+  0% { outline: 0 solid transparent; outline-offset: -.1em; }
+  50% { outline: .2em solid var(--ap-zlato-a35); outline-offset: .2em; }
+  100% { outline: .4em solid transparent; outline-offset: .4em; }
+}
+
+/* ---------------------------------------------------------------------
+   Omezení pohybu: žádné smyčkové animace, přechody vypnuté.
+   --------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .ap-nit,
+  .ap-puls--aktivni,
+  .ap-srdce__vstup:checked ~ .ap-srdce__ikony .ap-srdce__plne,
+  .ap-srdce__vstup:checked ~ .ap-srdce__ikony .ap-srdce__jiskry { animation: none; }
+  .ap-srdce__vstup:checked ~ .ap-srdce__ikony .ap-srdce__jiskry { visibility: hidden; }
+  .ap-tlacitko,
+  .ap-tlacitko::after,
+  .ap-tlacitko__ikona,
+  .ap-tlacitko-obrys,
+  .ap-prepinac__draha,
+  .ap-prepinac__draha::before,
+  .ap-prepinac__kolecko,
+  .ap-prepinac__kolecko svg,
+  .ap-fajfka__cesta,
+  .ap-srdce__ikony,
+  .ap-srdce__plne,
+  .ap-karta,
+  .ap-napoveda__bod,
+  .ap-napoveda__obsah,
+  .ap-napoveda__obsah::before,
+  .ap-segment__volba,
+  .ap-segment__jezdec,
+  .ap-volba-seznam__volba,
+  .ap-volba-seznam__jezdec,
+  .ap-pole__vstup,
+  .ap-pole__popisek,
+  .ap-pole--vlna .ap-pole__pismeno,
+  .ap-puls,
+  .ap-puls__sipky polygon { transition: none; }
+  .ap-srdce:hover .ap-srdce__ikony { transform: none; }
+}
+
+/* ---------------------------------------------------------------------
+   Vynucené barvy (Windows – vysoký kontrast): stavy musí zůstat vidět
+   i bez vlastních barev a přechodů.
+   --------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  .ap-segment__jezdec,
+  .ap-volba-seznam__linka,
+  .ap-karta::before,
+  .ap-karta::after { display: none; }
+  .ap-segment__vstup:checked + .ap-segment__volba,
+  .ap-volba-seznam__vstup:checked + .ap-volba-seznam__volba {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+    text-decoration: underline;
+  }
+  .ap-prepinac__draha { border-color: ButtonText; }
+  .ap-prepinac__vstup:checked ~ .ap-prepinac__draha,
+  .ap-prepinac[aria-pressed="true"] .ap-prepinac__draha { background: Highlight; }
+  .ap-prepinac__kolecko { border: 1px solid ButtonText; background: ButtonFace; }
+  .ap-fajfka__cesta { stroke: CanvasText; }
+  .ap-srdce__obrys,
+  .ap-srdce__plne { fill: CanvasText; }
+  .ap-tlacitko,
+  .ap-tlacitko-obrys,
+  .ap-puls,
+  .ap-napoveda__bod { border: 1px solid ButtonText; }
+  .ap-nit { border: 2px solid CanvasText; background: none; }
+}
