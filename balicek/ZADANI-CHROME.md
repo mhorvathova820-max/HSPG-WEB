@@ -54,4 +54,10 @@ Majitel si přeje pracovat přes VS Code: **v Netlify nic nenastavuj** (C1, C2 a
 
 **C14 GitHub a Copilot (úkol 53)** – github.com/mhorvathova820-max: ukaž majiteli, kde se pro repozitář webu zapíná **Copilot coding agent** (Settings → Copilot; dostupnost podle tarifu Copilot ověř na stránce), a zapni ho až po jeho „ano“. V repozitáři HSPG-WEB je výchozí větev `claude-design-setup` s prototypem od Copilota (Express server) – nic neslučuj ani nemaž, jen majiteli ukaž, že web hspg.cz běží z webHSPGH na Netlify a balíček je na větvi `claude/apex-48-53`; změnu výchozí větve navrhni, neprováděj.
 
+**C15 HSPG AI Gateway – konektor v claude.ai (úkol 59)** – až agent ve VS Code nahlásí, že `/api/mcp` běží (náhled, nebo po schválení produkce):
+1. Netlify → Project configuration → Environment variables: proveď majitele zadáním volitelných `HSPG_KLIC_YOUCOM` (klíč vytvoří sám na https://you.com/platform) a `HSPG_MCP_TOKEN` (náhodných ≥ 32 znaků, jen pro Claude Code / Desktop bez OAuth). Hodnoty nečti, neopisuj ani nevkládej; ověř jen, že proměnné existují. `HSPG_KLIC_OPENROUTER` podle C12.
+2. https://claude.ai/settings/connectors → **Add custom connector** → název `HSPG AI Gateway`, URL `https://hspg.cz/api/mcp` (na zkoušku adresa náhledu), Authentication **Sign in now**, OAuth client **Use Claude's published identity** (když chybí, **Register automatically**) → **Add**. Claude otevře stránku brány „HSPG AI Gateway“ – heslo panelu píše **majitel sám** (ty ho nečteš ani nezadáváš). Po návratu je konektor „Connected“.
+3. V novém chatu: `+` → Connectors → zapnout HSPG AI Gateway; zeptej se „Zavolej nástroj ai_stav“ – odpověď má vypsat role a rozpočet, **bez** klíčů. Pak „Zeptej se přes ai_zeptat ChatGPT, co je HSPG“ – odpověď končí řádkem s modelem a odhadem Kč. Snímky do hlášení.
+4. Nepřidávat konektor pro Perplexity, Grok ani OpenAI zvlášť (jedou přes bránu). You.com má vlastní oficiální konektor (`https://api.you.com/mcp`, přihlášení OAuth) – přidat jen když majitel řekne „ano“ a nechce klíč You.com v Netlify.
+
 ---

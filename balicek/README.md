@@ -20,6 +20,9 @@
 | `web/overeni/` | ověřovací soubory Seznamu a Bingu – patří do **kořene** publikované složky webu, kopírovat bajt po bajtu; `meta-tagy.html` = dva meta tagy do `<head>` úvodní stránky (úkol 20) |
 | `testy/` | jednotkové testy (`npm test`) a testy v prohlížeči nad kopií webu (`npm run test:e2e`) |
 
+## Novinky 30. 10. 2026 (úkol 59, rozhodnutí R22)
+- **HSPG AI Gateway** – vzdálený MCP server `/api/mcp` pro Claude majitele (claude.ai, Cowork, Chrome, Desktop, Claude Code, Managed Agents): nástroje `ai_zeptat` (ChatGPT, Grok, Gemini, Perplexity, Mistral, DeepSeek, Llama, Argon, Claude), `perplexity_hledat`, `youcom_hledat`, `rada_ai`, `ai_stav`. Stejná cesta jako panel majitele (vlastní klíč OpenRouter se ZDR / Netlify AI Gateway), pseudonymizace, rozpočet a limity. Přihlášení OAuth 2.1 heslem panelu (PKCE, dynamická registrace i „Use Claude's published identity“), nebo token panelu / pevný `HSPG_MCP_TOKEN`. Ověřeno oficiálním klientem `@modelcontextprotocol/sdk` (jen devDependency). Postup pro majitele: `ukoly/59-mcp-brana.md` krok 6, Chrome úloha C15.
+
 ## Novinky 22. 10. 2026 (úkoly 48–53, rozhodnutí R15–R19)
 - **H-BOT v5** – zlatý 3D origami holub nad střechou, hejno, oznámení AI (AI Act čl. 50); **„Cena hned“**: orientační cena z ceníku a ploch zákazníka v zapečetěné obálce, PDF kalkulace a **NÁVRH smlouvy o dílo** (nezávazný, vzniká jen v prohlížeči), neutrální porovnání s cizí nabídkou (`/api/konkurence`).
 - **HOLUB 360** (`/holub-360/`) – průlet nad Starou Prahou, zaměření na dálku, ilustrační 3D model, cesta A/B s odstíny RAL, kalkulace, kalendář s technologickým oknem (R17), rezervace.
@@ -39,6 +42,8 @@
 | `GET /api/ai-stav` | majitel | stav AI, cesta (vlastní klíč / Gateway), útrata, kredity; POST `{ modely }` = přepínač modelů |
 | `submission-created` | Netlify | druhý kanál upozornění na poptávky (ntfy / Telegram / SMTP), směrování na 5 schránek |
 | `POST /api/ai-stav` | majitel | nouzový vypínač AI pro zákazníky (okamžitě, bez nasazení) |
+| `POST /api/mcp` | majitel (token panelu, OAuth brány nebo `HSPG_MCP_TOKEN`) | HSPG AI Gateway – MCP server pro Claude: jiné AI, Perplexity, You.com, rada AI, stav; dlouhá volání jako SSE (úkol 59) |
+| `GET/POST /api/mcp/oauth/*`, `GET /.well-known/oauth-*` | veřejné (limity) | OAuth 2.1 brány: metadata, registrace klienta, stránka s heslem panelu, tokeny |
 | edge `media-limit` | Netlify | brzda rychlého stahování `/media/*` (100 / min na IP; pomalé stahování nezastaví – přenos hlídá úkol 15) |
 
 ## Plánovač termínu a H-WEATHER CONTROL (úkol 21)
@@ -60,7 +65,7 @@
 ## Testy
 ```
 npm install
-npm test                                                      # 210 jednotkových testů
+npm test                                                      # 229 jednotkových testů (včetně 2 s oficiálním klientem MCP)
 HSPG_MIRROR=/cesta/k/webu CHROMIUM=/cesta/k/chromium npm run test:e2e   # 102 testů v prohlížeči (bez HSPG_MIRROR na zástupných stránkách testy/fixtures/web)
 HSPG_MIRROR=/cesta/k/webu node balicek/testy/server.mjs       # ruční prohlížení na http://127.0.0.1:8787
 ```

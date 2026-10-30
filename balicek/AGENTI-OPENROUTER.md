@@ -85,3 +85,20 @@ Veřejné `POST { text, ai? }` – text nabídky vytažený v prohlížeči z PD
 - Netlify AI Gateway pouští přes OpenRouter jen poskytovatele se ZDR: https://www.netlify.com/changelog/2026-08-06-ai-gateway-openrouter/
 
 **Neověřeno** (dokumentace neříká): jakou chybu vrátí OpenRouter, když model nemá dostupný ZDR koncový bod; jak se alias `~…` chová spolu se `zdr: true`; zda Netlify AI Gateway předává pole `provider` a `plugins` (proto je přes Gateway neposíláme); zda nativní hledání na webu spadá pod ZDR poskytovatele.
+
+## Brána MCP pro Claude majitele – HSPG AI Gateway (úkol 59, R22 30. 10. 2026)
+
+Claude (claude.ai, Cowork, Chrome, Desktop, Claude Code, Managed Agents) se ke stejným rolím dostane přes **jeden vzdálený MCP server `/api/mcp`** – žádné samostatné konektory pro Perplexity, Grok či OpenAI a žádné nové klíče. Kód: `web/netlify/functions/mcp.mjs`, `lib/ai/mcp.mjs` (protokol a nástroje), `lib/ai/mcp-oauth.mjs` (OAuth 2.1), `lib/ai/youcom.mjs`. Testy: `testy/unit/mcp.test.mjs`, `mcp-sdk.test.mjs` (oficiální klient `@modelcontextprotocol/sdk`, devDependency balíčku).
+
+| Nástroj | Co dělá | Cesta a účtování |
+|---|---|---|
+| `ai_zeptat` | jeden dotaz roli `gpt`, `grok`, `gemini`, `perplexity`, `mistral`, `deepseek`, `llama`, `argon`, `claude` | jako `/api/ai`: vlastní klíč → OpenRouter (ZDR) → Netlify AI Gateway; rozpočet s rezervací |
+| `perplexity_hledat` | hledání na webu se zdroji (`perplexity/sonar-pro`) | totéž; výsledky = podklad k ověření |
+| `youcom_hledat` | vyhledávač You.com (REST `ydc-index.io/v1/search`) | `HSPG_KLIC_YOUCOM`, účtuje You.com; bez klíče poradí oficiální konektor |
+| `rada_ai` | stejný dotaz více rolím + předseda Claude (shoda, rozdíly, doporučení) | `rada.mjs`, každé volání zvlášť v rozpočtu |
+| `ai_stav` | role, cesta, útrata, limit, You.com | zdarma, bez klíčů |
+
+- **Pseudonymizace** platí stejně jako v panelu: dotaz jde k modelům jen se značkami, odpověď Claudovi se doplní zpět (brána = nástroj majitele). Muse Wonder (bez ZDR) přes bránu není.
+- **Přihlášení:** token panelu, přístupový token OAuth brány (heslo panelu na stránce brány, PKCE S256, 12 h + obnova 90 dní, vše podepsané tajemstvím serveru + heslem – změna hesla odhlásí všechny klienty) nebo pevný `HSPG_MCP_TOKEN` (≥ 32 znaků, jen z proměnné prostředí). Zámek hádání hesla je společný s `/api/majitel`.
+- **Limity:** 120 volání / 10 min (společné s panelem), OAuth endpointy 60 / 10 min na klienta, rozpočet `AI_MESICNI_LIMIT_KC`; dlouhá volání jako SSE s udržovacími řádky; streamovaná funkce Netlify smí běžet nejvýš 60 s, proto jeden dotaz ≤ 45 s (`MCP_LIMIT_MS`, opakování jen do hranice 55 s) a rada 24 s na volání bez opakování (`MCP_RADA_LIMIT_MS`).
+- **Postup připojení** (majitel sám, Claude v Chrome provede – C15): claude.ai → Settings → Connectors → Add custom connector → `https://hspg.cz/api/mcp` → Sign in now → heslo panelu. Claude Code: `claude mcp add --transport http hspg-ai https://hspg.cz/api/mcp`.
