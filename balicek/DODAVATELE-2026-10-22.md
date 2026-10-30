@@ -33,6 +33,8 @@ Stav ověření: 22. 10. 2026. Rešerše bez jakéhokoli kontaktu s firmami.
 
 **Follow-up 1 (29. 10. 09:0x):** odeslán 11 firmám 1. dávky bez reakce – Faber, Azichem, Diasen, Isaval (ES), Durostick, Bradite, Copernit, Barbot, V-TUF, Restorative Techniques, Larius (štítek „2 Follow-up“). Vynecháno: Algimouss (jednání), Safeguard a Dry-Treat (od 27. 10. běží komunikace v jiných vláknech). Follow-up 2: 5. 11. (připomínka naplánována).
 
+**Follow-up 1 pro 2. dávku (30. 10. 09:01):** odeslán 5 firmám bez reakce – Falcon Lifts, HACA (DE), Ramsay & Sons, Lyte Ladders & Towers, Pure Freedom (štítek „2 Follow-up“); ostatních 7 firem 2. dávky odpovědělo nebo je v jednání. Follow-up 2: 6. 11. (připomínka naplánována). **Durostick** (1. dávka) 29. 10. odpověděl na follow-up: komisní sklad odmítá, při platbě předem (před dodáním) je ochoten jednat → štítek 3 Zájem; koncept odpovědi připravuje druhá relace. **ProPERLA:** hovor 29. 10. na žádost majitele posunut z 10:00 na 10:30 (CEO potvrdil), výsledek doplní majitel.
+
 **Koordinace (zjištěno 29. 10.):** od 27. 10. odcházejí ze stejného Gmailu odpovědi i nová oslovení (≈ 25 firem, podpis se spoluprace@hspg.cz) z jiné relace/okna majitele; došlo k duplicitnímu prvnímu oslovení Algimouss a hyCLEANER. Kampaň má vést jedno místo – rozhodne majitel.
 
 ## 1 Impregnace / hydrofobizace / nano ochrana
