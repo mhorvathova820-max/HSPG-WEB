@@ -350,6 +350,71 @@ body.pdt-stranka {
 .pdt-foto img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 14px; border: 1px solid var(--apex-linka); background: var(--apex-cern-2); }
 .pdt-foto figcaption { font-size: 13px; color: var(--apex-tlumene); }
 
+/* Porovnání před / po (úkol 59): spodní vrstva = po, horní = před oříznutá podle jezdce.
+   Jezdec je průhledný <input type="range"> přes celé okno – táhne se prstem i myší,
+   klávesnicí šipkami; viditelná rukojeť je jen ozdoba. */
+.pdt-porovnani-seznam { display: grid; gap: 22px; margin-bottom: 18px; }
+.pdt-porovnani-seznam:last-child { margin-bottom: 0; }
+@media (min-width: 900px) { .pdt-porovnani-seznam--vice { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pdt-porovnani { margin: 0; display: grid; gap: 8px; max-width: 760px; }
+.pdt-porovnani__okno {
+  --pdt-pozice: 50%;
+  position: relative; overflow: hidden; aspect-ratio: 4 / 3;
+  border-radius: 14px; border: 1px solid var(--apex-linka); background: var(--apex-cern-2);
+}
+.pdt-porovnani__okno:focus-within { outline: 2px solid var(--apex-zlato, #c9a962); outline-offset: 3px; }
+.pdt-porovnani__okno img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.pdt-porovnani__pred { position: absolute; inset: 0; clip-path: inset(0 calc(100% - var(--pdt-pozice)) 0 0); }
+.pdt-porovnani__vrstva-po { position: absolute; inset: 0; pointer-events: none; clip-path: inset(0 0 0 var(--pdt-pozice)); }
+.pdt-porovnani__jezdec {
+  position: absolute; z-index: 1; top: 0; bottom: 0; left: var(--pdt-pozice); width: 2px; margin-left: -1px;
+  background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .25); pointer-events: none;
+}
+.pdt-porovnani__jezdec::after {
+  content: ""; position: absolute; z-index: 0; top: 50%; left: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px;
+  border-radius: 50%; border: 2px solid #fff; background: var(--apex-zlato, #c9a962);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .35);
+}
+.pdt-porovnani__jezdec::before {
+  content: "\2039\00a0\203a"; position: absolute; z-index: 1; top: 50%; left: 50%; transform: translate(-50%, -54%);
+  font: 700 17px/1 system-ui, sans-serif; color: #0b1220; white-space: nowrap;
+}
+.pdt-porovnani__stitek {
+  position: absolute; top: 10px; padding: 4px 10px; border-radius: 999px; pointer-events: none;
+  font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+}
+.pdt-porovnani__stitek--pred { left: 10px; background: rgba(11, 18, 32, .78); color: #fff; }
+.pdt-porovnani__stitek--po { right: 10px; background: var(--apex-zlato, #c9a962); color: #0b1220; }
+.pdt-porovnani__rozsah {
+  position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%;
+  margin: 0; padding: 0; opacity: 0; cursor: ew-resize; touch-action: pan-y;
+  -webkit-appearance: none; appearance: none; background: transparent;
+}
+.pdt-porovnani figcaption { font-size: 13px; color: var(--apex-tlumene); }
+
+/* Postup ošetření (úkol 59): kroky Standardu HOLUB, jak je majitel u zakázky zapsal */
+.pdt-postup { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 12px; }
+@media (min-width: 900px) { .pdt-postup { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } }
+.pdt-postup-krok {
+  display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: start;
+  padding: 14px 14px 16px; border-radius: 16px; border: 1px solid var(--apex-linka); background: rgba(255, 255, 255, .025);
+}
+.pdt-postup-cislo { font: 700 22px/1.1 var(--apex-pismo-nadpis, var(--apex-pismo)); color: var(--apex-zlato); font-variant-numeric: tabular-nums; }
+.pdt-postup-telo { display: grid; gap: 4px; min-width: 0; }
+.pdt-postup-nazev { margin: 0; font-weight: 600; color: var(--apex-text); }
+.pdt-postup-datum { font-size: 13px; letter-spacing: .06em; color: var(--apex-zlato); font-variant-numeric: tabular-nums; }
+.pdt-postup-popis, .pdt-postup-cesta { margin: 0; font-size: 14px; line-height: 1.55; color: var(--apex-tlumene); overflow-wrap: anywhere; }
+.pdt-postup-cesta strong { color: var(--apex-text); font-weight: 600; }
+.pdt-bez-zlomu { white-space: nowrap; }
+/* Široká obrazovka: fotky (7/12) a postup (5/12) vedle sebe – jen když jsou obě (bez :has zůstanou pod sebou). */
+@media (min-width: 1100px) {
+  .pdt-mrizka:has(.pdt-modul--postup) .pdt-modul--fotky:has(.pdt-porovnani) { grid-column: span 7; }
+  .pdt-mrizka:has(.pdt-modul--fotky .pdt-porovnani) .pdt-modul--postup { grid-column: span 5; }
+  .pdt-mrizka:has(.pdt-modul--fotky .pdt-porovnani) .pdt-postup { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .pdt-mrizka:has(.pdt-modul--postup) .pdt-porovnani-seznam--vice { grid-template-columns: minmax(0, 1fr); }
+  .pdt-mrizka:has(.pdt-modul--postup) .pdt-porovnani { max-width: none; }
+}
+
 /* Akce pod pasem */
 .pdt-akce { display: flex; flex-wrap: wrap; gap: 12px; margin: 26px 0 12px; }
 .pdt-akce > * { flex: 1 1 200px; }
@@ -452,7 +517,15 @@ body.pdt-stranka {
   .pdt-pas, .pdt-pas * { color: #111 !important; text-shadow: none !important; }
   .pdt-pas .pdt-mini, .pdt-pas .pdt-osa-popis, .pdt-pas .pdt-udaj dt, .pdt-pas .pdt-zdroj, .pdt-pas .pdt-legenda, .pdt-pas .pdt-soukromi, .pdt-pas .pdt-prsten-maly { color: #444 !important; }
   .pdt-pas .pdt-pas-kod, .pdt-pas .apex-zlaty-text { background: none !important; color: #6f5410 !important; -webkit-text-fill-color: #6f5410; }
-  .pdt-pas .pdt-prsten-velky, .pdt-pas .pdt-odpocet-cislo, .pdt-pas .pdt-velke, .pdt-pas .pdt-modul-stitek, .pdt-pas .pdt-osa-datum, .pdt-pas .pdt-tarif-cena, .pdt-pas .apex-stitek { color: #6f5410 !important; }
+  .pdt-pas .pdt-prsten-velky, .pdt-pas .pdt-odpocet-cislo, .pdt-pas .pdt-velke, .pdt-pas .pdt-modul-stitek, .pdt-pas .pdt-osa-datum, .pdt-pas .pdt-tarif-cena, .pdt-pas .apex-stitek,
+  .pdt-pas .pdt-postup-cislo, .pdt-pas .pdt-postup-datum { color: #6f5410 !important; }
+  .pdt-postup-krok { background: #fff !important; border-color: #b9b2a0 !important; break-inside: avoid; }
+  /* Porovnání se v tisku rozloží na dvě fotky vedle sebe: před | po */
+  .pdt-porovnani__okno { aspect-ratio: 8 / 3; }
+  .pdt-porovnani__okno > img { left: 50%; width: 50%; }
+  .pdt-porovnani__pred { right: 50%; clip-path: none; }
+  .pdt-porovnani__vrstva-po { clip-path: none; }
+  .pdt-porovnani__jezdec, .pdt-porovnani__rozsah { display: none !important; }
   .pdt-tarif details, .pdt-upozorneni { background: #fff !important; }
   .pdt-ukazka-hlavicka, .pdt-ukazka-hlavicka * { color: #6f5410 !important; }
   .pdt-ukazka-pata { display: none !important; }
