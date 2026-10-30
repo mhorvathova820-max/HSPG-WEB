@@ -1,22 +1,23 @@
 # Zadání pro VS Code (Claude Code)
 
-Dva bloky. **A** vlož do sezení, které už ve VS Code běží (nové úkoly 48–53). **B** je úplné zadání pro nové sezení
+Dva bloky. **A** vlož do sezení, které už ve VS Code běží (nové úkoly 54–60). **B** je úplné zadání pro nové sezení
 od začátku. Kopíruj vždy celý text mezi čarami. Dál už jen odpovídáš „pokračuj“ nebo „nasaď“.
 
-## A) Doplněk do běžícího sezení – úkoly 48–53 (22. 10. 2026)
+## A) Doplněk do běžícího sezení – úkoly 54–60 (30. 10. 2026)
 
 ---
 
-Nové úkoly od majitele: 48–53 (H-BOT v5 s okamžitou cenou, PDF kalkulace a NÁVRH smlouvy, HOLUB 360, Standard HOLUB, péče SENTINEL, rada AI přes OpenRouter, spolupráce s GitHub Copilotem). Kód je hotový a otestovaný v balíčku na větvi `claude/apex-48-53` (obsahuje vše z dosavadní větve).
+Nové úkoly od majitele: 54–60 (štít obsahu, opravy živého webu, puls a rozcestník, prvky Apex, cesta zákazníka, štítek SENTINEL s Pasem domu, „Cena ihned“ s odečtem oken). Rozhodnutí R20–R23 jsou v `KONTEXT.md`.
 
-1. Přepni balíček na novou větev:
+1. Přepni balíček na větev `claude/apex-48-53` (po sloučení PR #7 a PR s úkolem 60 obsahuje úkoly 48–60):
    `git -C ../hspg-balicek remote set-branches --add origin claude/apex-48-53`
    `git -C ../hspg-balicek fetch --depth 1 origin claude/apex-48-53`
    `git -C ../hspg-balicek checkout -B claude/apex-48-53 origin/claude/apex-48-53`
    `npm ci --prefix ../hspg-balicek`
-2. Přečti v `../hspg-balicek/balicek/`: `KONTEXT.md` (rozhodnutí R15–R19, §4 body 10 a 11), `ukoly/PORADI.md` (odstavec „Úkoly 48–53“), úkoly `50`, `48`, `52`, `49`, `51`, `53`, `RADA-AI-2026-10-22.md` a `AGENTI-OPENROUTER.md`.
-3. Rozdělaný úkol dokonči a podej hlášení. Pak podle PORADI: **50 → 48 → 52 → 49**, úkol **53** až po úkolu 19, **51** až po úkolu 14. Každý úkol: vlastní větev `ukol-NN-…`, kroky a akceptace ze zadání, `npm test`, e2e, `node scripts/build-hbot.mjs --kontrola`, náhled zdarma (`node scripts/nasadit.mjs`), hlášení podle KONTEXT §5 s řádkem „Co potřebuji od majitele: …“ a stop.
-4. Nasazení: 50, 48, 52 a 49 mohou jít v jedné produkční dávce po mém „nasaď“ (15 kreditů, nejvýš 1× denně). 48 a 52 vždy spolu (kalkulace volá `/api/konkurence`).
+   Když v `../hspg-balicek/balicek/ukoly/` chybí `59-stitek-objektu-pas-fotky.md` nebo `60-cena-ihned.md`, majitel ještě nesloučil PR #7 nebo PR s úkolem 60 – nahlas to a do sloučení použij větev `claude/ukol-60-cena-ihned` (obsahuje 59 i 60; stejné tři příkazy git s jejím názvem).
+2. Přečti v `../hspg-balicek/balicek/`: `KONTEXT.md` (rozhodnutí R20–R23, §4 body 10 a 11), `ukoly/PORADI.md` (odstavce „Úkol 59“ a „Úkol 60“) a úkoly `54`–`60`.
+3. Rozdělaný úkol dokonči a podej hlášení. Pak předsunutý blok **14 jen fáze B1 → 51 → 59 → 60** a potom pokračuj podle `PORADI.md` tam, kde jsi skončil. Údaje zakázek a přístupové kódy ke štítkům ti předám soukromě – nikdy do Gitu, commitů, logů ani hlášení. Každý úkol: vlastní větev `ukol-NN-…`, kroky a akceptace ze zadání, `npm test`, e2e, `node scripts/build-hbot.mjs --kontrola`, náhled zdarma (`node scripts/nasadit.mjs`), hlášení podle KONTEXT §5 s řádkem „Co potřebuji od majitele: …“ a stop.
+4. Nasazení jen po mém „nasaď“ přes `nasadit.mjs` (15 kreditů, nejvýš 1× denně); hotové úkoly sdružuj do jedné dávky. Úkol 60 běží v režimu „orientační cena“ – režim „garantovaná cena“ nezapínej.
 5. Rada AI: když potřebuješ druhý názor (texty, smlouva, patenty), spusť `node ../hspg-balicek/balicek/web/scripts/rada.mjs "otázka" --role opus,astra,argon,grok --md` a výsledek shrň v hlášení. Klíč `OPENROUTER_API_KEY` si do terminálu nastavím sám – nikdy ho po mně nechtěj do chatu a nikam ho nezapisuj. Muse (`--role muse`) jen bez osobních údajů.
 6. GitHub Copilot: spolupráce podle úkolu 53 – pravidla v `AGENTS.md`, menší úkoly přes issue se štítkem `copilot`, jeho pull request zkontroluješ ty (testy + pravidla) a sloučí se až po mém „pokračuj“. Copilot nedostane žádné klíče a nenasazuje.
 7. Platí všechna pravidla z KONTEXT §4: žádné klíče v kódu ani chatu, žádná vymyšlená fakta, kalkulace je „orientační cena“ (nikdy „nabídka“), u záruky 10 let vždy podmínka SENTINEL BASE a „Zákonná práva … nejsou dotčena“, embargo slov (HOLUB CORE QUANTUM SENSE · zaměření na dálku), formuláře jen s TEST a mým souhlasem, produkce jen přes `nasadit.mjs` se schválením.
