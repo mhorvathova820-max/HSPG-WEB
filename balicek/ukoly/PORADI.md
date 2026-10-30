@@ -1,11 +1,13 @@
 # Pořadí úkolů
 
 **Pořadí provádění (agent ve VS Code jde přesně takto):**
-00 → 20 → 01 → 02 → 21 → 22 → 23 → 24 → 25 → 27 → **50 → 48 → 52 → 49** → 26 → 17 → 03 → 04 → 05 → 13 → 09 → 06 → 07 → 08 → 16 → 10 → 11 → 18 → 19 → **53** → 15 → **54** → **56** → **57** → 14 → **51** → **59** → 12 → **58**
+00 → 20 → 01 → 02 → 21 → 22 → 23 → 24 → 25 → 27 → **50 → 48 → 52 → 49** → 26 → 17 → 03 → 04 → 05 → 13 → 09 → 06 → 07 → 08 → 16 → 10 → 11 → 18 → 19 → **53** → 15 → **54** → **56** → **57** → 14 → **51** → **59** → **60** → 12 → **58**
 
 **Úkoly 48–53 (rozhodnutí majitele 22. 10. 2026, R15–R19; čísla 28–47 nejsou obsazená):** pokud už jsi v pořadí za úkolem 27, udělej hned jako další **50 → 48 → 52 → 49** (48 a 52 nasaď ve stejné dávce – kalkulace volá `/api/konkurence`), pak pokračuj tam, kde jsi skončil. **53** až po 19 (CI), **54** (štít obsahu) a **56** (puls, rozcestník, zvuk a haptika, hejno při zaměření) po 15 (hlavičky), **51** až po 14 (přístupové kódy pasů). **55** (opravy živého webu podle auditu z 22. 10.) udělej hned po 50 – jsou to texty a pravdivost. Kód je v balíčku na větvi `claude/apex-48-53` (obsahuje i vše z `claude/peaceful-johnson-juqa6w`). Závěry rady AI k textům a smlouvě: `balicek/RADA-AI-2026-10-22.md`.
 
 **Úkol 59 (30. 10. 2026, R22 – štítek SENTINEL na budově zákazníka):** štítek je vytištěný a čeká na montáž, proto ho **předsuň**: hned po rozdělaném úkolu udělej **14 jen fáze B1 → 51 → 59** (panel A, B2 a C počkají) a pak pokračuj tam, kde jsi skončil. Údaje zakázky a přístupový kód předá majitel soukromě – nikdy do Gitu.
+
+**Úkol 60 (30. 10. 2026, R23 – Cena ihned s odečtem oken):** hned po bloku 14 B1 → 51 → 59. Co z úkolů 23, 50, 27, 48 a 49 v `main` chybí, udělej nejdřív v rozsahu nutném pro 60 a nahlas to.
 
 Důvod: nejdřív bezpečí a záloha (00), malé ověření webu v Seznamu a Bingu (20 – soubory jedou s nejbližším schváleným nasazením), asistent (01), poptávky (02), plánovač s počasím a rychlou rezervací (21 – zároveň odstraňuje licenční riziko stávajícího počasí z Open-Meteo) a chyba, kvůli které se návštěvník nedostane k formuláři (17), pak právní a pravdivostní rizika (03–05, 13, 09), pak technika a kvalita (06–08, 16, 10, 11, 18, 19, 15) a nakonec věci čekající na data (14, 12).
 
@@ -54,3 +56,4 @@ zbývajících oblastí auditu se může zpřesnit (před každým úkolem `git 
 | 57 | [Komponenty Apex z Uiverse (MIT): tlačítka, přepínač, fajfka, srdce, nit, karta, nápověda, segment, radio, pole, puls](57-apex-prvky-uiverse.md) | P2 | 08, 56 | – |
 | 58 | [Jedna cesta zákazníka, stránka HOLUB Partner, obrazovka „Dnes“ v panelu majitele](58-cesta-zakaznika-partner-dnes.md) | P3 | 55, 48, 49, 21, 51, 25 | lhůty odpovědí, technický list H-STONE, výběr textů |
 | 59 | [Štítek SENTINEL na objektu: pas otevřený z QR, fotky před/po s jezdcem, postup ošetření](59-stitek-objektu-pas-fotky.md) | P1 | 14 (B1), 51, 50 | soukromé předání údajů zakázky a přístupového kódu, souhlas se zveřejněním fotek, fotky bez osob |
+| 60 | [Cena ihned: přesná cena z měření na dálku, odečet oken, dokonalý vzhled](60-cena-ihned.md) | P1 | 23, 27, 48, 49, 50 | potvrzení `content/otvory.json`, tolerance garance (výchozí 5 %), text advokáta, ANO k režimu „garantovana-cena“ |
