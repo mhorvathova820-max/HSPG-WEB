@@ -45,7 +45,7 @@ Ověřeno 4. 10. 2026 na živém webu (jen GET) a v kopii webu. Čísla nálezů
 
 **Fáze B2 – zadání zakázky**
 7. Formulář „Nová zakázka“ má nejvýš 7 povinných polí. Souhlasy jsou ve výchozím stavu nezaškrtnuté. Fotky odchází zmenšené (≤ 1,5 MB) a bez EXIF a polohy. Majitel zadá zakázku na mobilu do 2 minut (změří a uvede v hlášení).
-8. Po uložení se jednou zobrazí přístupový kód a odkaz. Certifikát k tisku bere záruku z centrálního zdroje.
+8. Po uložení se jednou zobrazí přístupový kód a odkaz. Předávací list k tisku (dříve „certifikát“, úkol 55) bere záruku z centrálního zdroje.
 
 **Fáze C – výstupy**
 9. Export realizací obsahuje jen zakázky se souhlasem, přesně ve schématu z úkolu 12 (+ volitelná pole níže), a nikdy kód pasu, PSČ, kontakt ani jméno.
@@ -58,7 +58,7 @@ ANO:
 - sekce AI v panelu (data z `/api/ai-stav`) a vypínač AI pro zákazníky v Netlify Blobs,
 - odkazy panel ↔ AI centrum, `X-Frame-Options: DENY` pro `/rd-control-panel/*`,
 - registr zakázek (úložiště, schéma, API, validace, migrace stávajících záznamů), zabezpečení `sentinel-validate`, pas domu s přístupovým kódem, odstranění dotazu na registr z `/recenze/`,
-- formulář „Nová zakázka“ s fotkami a souhlasy, certifikát k tisku,
+- formulář „Nová zakázka“ s fotkami a souhlasy, předávací list k tisku,
 - veřejný export realizací pro reference a krajské huby, žádost o hodnocení, šablony odpovědí na recenze,
 - datové pole a test-pojistka pro pojištění, odkazy na podklady pro SVJ v panelu,
 - záznam nového zpracování do registru zpracování z úkolu 09 (`content/zpracovani.json`), pokud existuje,
@@ -167,19 +167,19 @@ Každá fáze má vlastní hlášení a dá se po ověření sloučit do `main` 
 4. **`sentinel-validate`** (cesta `/api/sentinel/validate` se nemění):
    - Přijímá jen `POST {sentinel_code, pristup}`, ostatní metody vrací 405.
    - Omezení pokusů: otisk klienta funkcí `otisk(ul, sitKlienta(ip), ted)` z `netlify/lib/ai/limity.mjs` (úkol 09, krok 8 – `otiskKlienta` už neexistuje; `sitKlienta` počítá IPv6 po sítích /64), vlastní klíč `limit/<den>/pas/<otisk>` (ne `login`) v úložišti `hspg-ai` (`vychoziUloziste()` z `limity.mjs`; jen tam a v `hspg-oznameni` běží úklid z úkolu 09 – otisky ani soli do `hspg-registr*` neukládej). Pokus se započítá **atomicky před ověřením** funkcí `pricti` z `limity.mjs` a po úspěchu se vrátí funkcí `vrat` (vzor `povolPokusOPrihlaseni` / `vratPokusOPrihlaseni`; vlastní podmíněný zápis nepiš, ne „nejdřív přečíst, pak zapsat“). Bez úložiště 503, nikdy průchod. Nejvýš 5 neúspěšných pokusů / 15 min, pak 429 „Příliš mnoho pokusů. Zkuste to za 15 minut, nebo zavolejte +420 736 618 486.“ Navíc nejvýš 30 dotazů za hodinu na klienta (chrání i volání Open-Meteo).
-   - **Každý neúspěch vrací stejný stav 404 a stejné tělo.** Týká se to neexistujícího kódu, chybného nebo chybějícího přístupového kódu, záznamu bez přístupového kódu i zrušeného záznamu. Tělo: `{"success":false,"chyba":"Pas jsme nenašli. Zkontrolujte kód pasu a přístupový kód z certifikátu, nebo zavolejte +420 736 618 486."}`.
+   - **Každý neúspěch vrací stejný stav 404 a stejné tělo.** Týká se to neexistujícího kódu, chybného nebo chybějícího přístupového kódu, záznamu bez přístupového kódu i zrušeného záznamu. Tělo: `{"success":false,"chyba":"Pas jsme nenašli. Zkontrolujte kód pasu a přístupový kód z předávacího listu, nebo zavolejte +420 736 618 486."}`.
    - Úspěch 200 vrací **jen** pole, která pas vykresluje: `kod, obec, povrchy, plocha_m2, datum, materialy, sarze, zaruka{platna, do, zbyva_dni, uplynulo_procent}, dalsi_kontrola, srazky{mm, do}`. Tvar polí zachovej, výpočet srážek (Open-Meteo) neměň.
    - Nikdy nevrací `poznamka`, `psc`, adresu, `kontakt`, `souhlas`, `historie`, `pristup_otisk` ani `verejne_id`.
    - Hlavičky `cache-control: no-store` a `x-robots-tag: noindex`.
 5. **Pas domu** (`pas-domu.html` nebo jeho generátor):
-   - Druhé pole „Přístupový kód“ s `<label>` a nápovědou: „Kód pasu i přístupový kód najdete na certifikátu. Bez přístupového kódu pas neotevřeme – chráníme údaje o vašem domě.“
-   - Odkaz z certifikátu má tvar `<kanonická URL pasu z úkolu 06>#kod=HS-…&pristup=XXXX-XXXX-XXXX`. Fragment se neposílá na server ani v Refereru.
+   - Druhé pole „Přístupový kód“ s `<label>` a nápovědou: „Kód pasu i přístupový kód najdete na předávacím listu. Bez přístupového kódu pas neotevřeme – chráníme údaje o vašem domě.“
+   - Odkaz z předávacího listu má tvar `<kanonická URL pasu z úkolu 06>#kod=HS-…&pristup=XXXX-XXXX-XXXX`. Fragment se neposílá na server ani v Refereru.
    - Inline skript stránky (běží před `souhlas.js`, který má `defer`; pořadí ověř ve zdroji) fragment hned na začátku přečte, vyplní pole, **odstraní ho** přes `history.replaceState(null, '', location.pathname)` a otevře pas.
    - Poznámku nevykresluj (dnes ř. 285).
    - Výsledku pasu a oběma polím přidej `data-clarity-mask="true"` (údaje o domě se nemají nahrávat).
    - Ukázka `#ukazkovy-pas` zůstává beze změny. Odkaz „OHODNOTIT NAŠI PRÁCI“ vede na `/recenze/?kod=<kód>`, **bez** přístupového kódu.
 6. **`/recenze/`:**
-   - Odstraň dotaz na `/api/sentinel/validate` při psaní kódu (ř. 250–268). Formulář kód jen převezme z `?kod=`, zkontroluje jeho tvar a odešle ho s hodnocením. Zakázku ověří majitel v registru, takže věta „Ověříme zakázku podle kódu certifikátu nebo naší evidence“ zůstává pravdivá.
+   - Odstraň dotaz na `/api/sentinel/validate` při psaní kódu (ř. 250–268). Formulář kód jen převezme z `?kod=`, zkontroluje jeho tvar a odešle ho s hodnocením. Zakázku ověří majitel v registru, takže věta „Ověříme zakázku podle kódu pasu domu nebo naší evidence“ zůstává pravdivá (dnes „kódu certifikátu“, slovo mění úkol 55).
    - Placeholder `HS-2026-0001` (ř. 181) změň na `HS-RRRR-ČČČČ`, protože by to mohl být skutečný kód.
    - Přístupový kód nikdy nesmí být ve formuláři (dostal by se do Netlify Forms a do e-mailů).
    - Záložní FormSubmit tu neřeš (úkol 03).
@@ -238,11 +238,11 @@ Každá fáze má vlastní hlášení a dá se po ověření sloučit do `main` 
    - Na iPhonu (HEIC z galerie) a na Androidu to ověří majitel na náhledu. Agent to uvede v hlášení jako bod k ověření.
 4. **Po uložení** se zobrazí obrazovka „Hotovo“:
    - kód pasu, přístupový kód velkým písmem, odkaz na pas (tvar z B1.5) s tlačítkem „Kopírovat“,
-   - tlačítka „Vytisknout certifikát“ a „Zpět na seznam“,
+   - tlačítka „Vytisknout předávací list“ a „Zpět na seznam“,
    - upozornění: „Přístupový kód se už znovu nezobrazí. Když se ztratí, vydejte nový.“
-5. **Certifikát k tisku** (A5 nebo A4, `@media print` tiskne jen kartu). Data vrací `GET /api/registr/<kod>/certifikat`, takže text záruky jde ze serveru z centrálního zdroje (jeden zdroj, žádná kopie v panelu).
+5. **Předávací list k tisku** (A5 nebo A4, `@media print` tiskne jen kartu; slovo „certifikát“ se nepoužívá – úkol 55). Data vrací `GET /api/registr/<kod>/predavaci-list`, takže text záruky jde ze serveru z centrálního zdroje (jeden zdroj, žádná kopie v panelu).
    - Obsah: značka, „Digitální pas domu“, kód pasu, přístupový kód (jen na obrazovce „Hotovo“; z detailu se znovu vytisknout nedá, je potřeba vydat nový), `hspg.cz/pas-domu`, obec, datum, služby a plochy, šarže, věta a podmínka záruky, příští kontrola.
-   - Na certifikátu nesmí být jméno, adresa, pojištění ani hodnocení.
+   - Na předávacím listu nesmí být jméno, adresa, pojištění ani hodnocení.
    - QR kód přidej jen tehdy, když repozitář už generátor má (zjištění z A2). Jinak QR vynech a navrhni ho v hlášení. Novou závislost nepřidávej.
 6. **Testy B2:**
    - formulář má ve výchozím stavu nejvýš 7 polí `required` a souhlasy nejsou `checked`,
@@ -250,7 +250,7 @@ Každá fáze má vlastní hlášení a dá se po ověření sloučit do `main` 
    - server: neplatné PSČ, plocha ≤ 0, neznámý okres a neznámý klíč služby vrátí 400 s názvem pole. Souhlas bez dokladu vrátí 400. Chybějící šarže u H-STONE vrátí 400,
    - fotky: soubor, který není obrázek, soubor > 1,5 MB a JPEG s APP1 / WebP s `EXIF` vrátí 400. Čistý WebP/JPEG vrátí 200. Fixtury sestav v testu z bajtů, ne ze skutečných fotek,
    - detail zakázky přístupový kód nevrací,
-   - certifikát obsahuje větu a podmínku záruky **shodnou** s centrálním zdrojem a neobsahuje „15 let“ ani „pojišt“.
+   - předávací list obsahuje větu a podmínku záruky **shodnou** s centrálním zdrojem a neobsahuje „15 let“ ani „pojišt“.
    - Pokud repozitář má Playwright (zavádí ho úkol 17), přidej e2e testy: zadání zakázky s fiktivními daty na 390 px a mockovaným API, `document.documentElement.scrollWidth <= 390`, axe bez vážných chyb. Jinak udělej ruční kontrolu na náhledu se snímky jen s fiktivními daty a v hlášení uveď, proč e2e chybí.
 7. **Hlášení fáze B2 a zastav se.** Přilož čas zadání jedné zakázky na mobilu (změří majitel na náhledu, data „Testov“) a velikost testovací fotky před a po zmenšení.
 
@@ -339,7 +339,7 @@ Každá fáze má vlastní hlášení a dá se po ověření sloučit do `main` 
 - [ ] Validace serveru (PSČ, plocha, okres, služba, šarže) → 400 s názvem pole (testy).
 - [ ] Fotky: obrázek s EXIF/XMP → 400, > 1,5 MB → 400, čistý WebP/JPEG → 200 (testy).
 - [ ] Přístupový kód se zobrazí jen jednou a detail ho nevrací (test).
-- [ ] Certifikát obsahuje záruku shodnou s centrálním zdrojem a neobsahuje „15 let“ ani „pojišt“ (test).
+- [ ] Předávací list obsahuje záruku shodnou s centrálním zdrojem a neobsahuje „15 let“ ani „pojišt“ (test).
 - [ ] Na 390 px žádný vodorovný posun: e2e (`scrollWidth <= 390`), nebo bez Playwrightu snímek z náhledu s fiktivními daty.
 - [ ] `grep -n "innerHTML"` v nových souborech panelu → 0, nebo jen statické šablony bez dat (seznam v hlášení).
 - [ ] Testy z úkolu 09 (registr zpracování) prošly i s novými záznamy, nebo hlášení uvádí, že registr neexistuje.
@@ -381,14 +381,14 @@ POST na `/api/sentinel/validate` posílej **jen na náhled** a jen s fiktivním 
 Testy, které agent přidá:
 - `rd-stav` a autorizace (A6), vypínač AI (A6),
 - schéma a validace, kód a přístupový kód, `sentinel-validate` (shodné odpovědi, whitelist, 429, 405), výběr úložiště (B1.9),
-- formulář, fotky a EXIF, certifikát (B2.6),
+- formulář, fotky a EXIF, předávací list (B2.6),
 - export a `--kontrola`, žádost o hodnocení, šablony, Google odkaz, Google blok na `/recenze/`, test-pojistka (C5),
 - e2e jen pokud je ve webu Playwright, jinak ruční kontrola se snímky s fiktivními daty.
 
 Lighthouse přístupnost `/pas-domu` (náhled, mobil): stejná nebo lepší než před úkolem, uveď čísla.
 
 ## Bez AI / s AI
-- **Bez AI** funguje všechno: přihlášení, stav webu, registr, pas domu, certifikát, export, žádost o hodnocení (šablona + `mailto:`), šablony odpovědí i podklady pro SVJ. Registr ani pas nikdy nevolají AI a data zákazníků se do AI automaticky neposílají.
+- **Bez AI** funguje všechno: přihlášení, stav webu, registr, pas domu, předávací list, export, žádost o hodnocení (šablona + `mailto:`), šablony odpovědí i podklady pro SVJ. Registr ani pas nikdy nevolají AI a data zákazníků se do AI automaticky neposílají.
 - **S AI:** panel jen ukazuje stav a útratu AI a vede do AI centra. Návrh odpovědi na recenzi vzniká v AI centru (`/ai-centrum/?uloha=recenze`) jako koncept, který majitel ručně upraví a vloží. AI nic nepublikuje ani neodesílá.
 - Vypínač „AI pro zákazníky“ v panelu vypne veřejnou AI bez nasazení. H-BOT pak odpovídá z FAQ (úkol 01).
 
@@ -417,7 +417,7 @@ Formát z `KONTEXT.md` §5 po **každé** fázi. Navíc:
   - přehled API a schéma polí (pro úkol 12 i se zmínkou o `fotovoltaika`),
   - výsledky testů.
 - **Fáze B2:**
-  - snímky formuláře a certifikátu na 390 px (jen fiktivní data),
+  - snímky formuláře a předávacího listu na 390 px (jen fiktivní data),
   - čas zadání změřený majitelem,
   - velikost fotky před a po zmenšení a výsledek kontroly metadat,
   - zjištění k limitu těla funkce a účtování Netlify Blobs,
@@ -444,7 +444,7 @@ Formát z `KONTEXT.md` §5 po **každé** fázi. Navíc:
   - seznam poptávek v panelu přes Netlify Forms API (vyžaduje token, rozhodnutí majitele),
   - SMS brána,
   - mapa realizací na úrovni obce,
-  - generátor QR pro certifikát,
+  - generátor QR pro předávací list,
   - interní poznámka k zakázce, která nikdy neopustí panel,
   - blok ověřených realizací v podkladu pro SVJ,
   - souhrn `/api/provoz-stav` v panelu, pokud ho úkol 15 nezavedl.

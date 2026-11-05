@@ -86,7 +86,7 @@ Veřejné `POST { text, ai? }` – text nabídky vytažený v prohlížeči z PD
 
 **Neověřeno** (dokumentace neříká): jakou chybu vrátí OpenRouter, když model nemá dostupný ZDR koncový bod; jak se alias `~…` chová spolu se `zdr: true`; zda Netlify AI Gateway předává pole `provider` a `plugins` (proto je přes Gateway neposíláme); zda nativní hledání na webu spadá pod ZDR poskytovatele.
 
-## Brána MCP pro Claude majitele – HSPG AI Gateway (úkol 59, R22 30. 10. 2026)
+## Brána MCP pro Claude majitele – HSPG AI Gateway (úkol 61, R24 30. 10. 2026)
 
 Claude (claude.ai, Cowork, Chrome, Desktop, Claude Code, Managed Agents) se ke stejným rolím dostane přes **jeden vzdálený MCP server `/api/mcp`** – žádné samostatné konektory pro Perplexity, Grok či OpenAI a žádné nové klíče. Kód: `web/netlify/functions/mcp.mjs`, `lib/ai/mcp.mjs` (protokol a nástroje), `lib/ai/mcp-oauth.mjs` (OAuth 2.1), `lib/ai/youcom.mjs`. Testy: `testy/unit/mcp.test.mjs`, `mcp-sdk.test.mjs` (oficiální klient `@modelcontextprotocol/sdk`, devDependency balíčku).
 

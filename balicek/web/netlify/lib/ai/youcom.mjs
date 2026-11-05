@@ -1,4 +1,4 @@
-// You.com – hledání na webu přes REST API (úkol 59). Klíč HSPG_KLIC_YOUCOM zadává majitel v Netlify
+// You.com – hledání na webu přes REST API (úkol 61). Klíč HSPG_KLIC_YOUCOM zadává majitel v Netlify
 // (platforma you.com/platform). Bez klíče je nástroj vypnutý a brána poradí oficiální konektor You.com.
 // Dokumentace (ověřeno 30. 10. 2026): POST https://ydc-index.io/v1/search, hlavička X-API-Key, tělo { query,
 // count 1–100, freshness day|week|month|year, country, language, safesearch off|moderate|strict }.

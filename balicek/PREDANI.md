@@ -1,4 +1,4 @@
-# Předání – web hspg.cz (stav k 22. 10. 2026)
+# Předání – web hspg.cz (stav k 5. 11. 2026)
 
 Jedna stránka: co je hotové, kdo co dělá a v jakém pořadí, co zbývá na majiteli. Podrobnosti: `KONTEXT.md` (fakta a pravidla), `ukoly/PORADI.md` (pořadí úkolů), `README.md` (technika).
 
@@ -11,14 +11,16 @@ Jedna stránka: co je hotové, kdo co dělá a v jakém pořadí, co zbývá na 
 | Ochrana kreditů Netlify | rozpočet AI za období kreditů (11.–10.) s rezervací před voláním, podíl zákazníků (výchozí polovina), nouzový vypínač v panelu, při výpadku úložiště AI vypnutá, pojistka nasazení `scripts/nasadit.mjs` (náhled zdarma, produkce jen se schválením, max. 1× denně) |
 | Bezpečnost | přihlášení majitele tokenem (heslo jen v Netlify), zámek pokusů, tajemství podpisu na serveru, žádné klíče v kódu |
 | Ověření vyhledávačů | soubory a meta tagy Seznamu a Bingu v `web/overeni/` (úkol 20; všechny vygenerované kódy najednou) |
-| Testy | 229 jednotkových (30. 10. 2026; z toho 19 pro bránu MCP, 2 s oficiálním klientem) + 102 v prohlížeči (Chromium; kopie živého webu nebo zástupné stránky), všechny prochází |
+| Testy | 230 jednotkových (5. 11. 2026; z toho 19 pro bránu MCP, 2 s oficiálním klientem) + 105 v prohlížeči (Chromium; kopie živého webu nebo zástupné stránky; nově Pas domu se štítkem a test soukromí `pas-soukromi`). V cloudovém kontejneru 5. 11. prošlo 103 ze 105: dva testy H-BOTa citlivé na rychlost stroje (`hbot.test.mjs` – záložní okno do 7 s, posun deníku klávesou PageDown) padaly stejně už před sjednocením |
 | **H-BOT v5 a „Cena hned“** (úkol 48) | zlatý 3D origami holub nad střechou, hejno, oznámení AI; orientační cena z ceníku v zapečetěné obálce, PDF kalkulace, NÁVRH smlouvy o dílo (nezávazný, jen v prohlížeči), porovnání s cizí nabídkou |
 | **HOLUB 360** (úkol 49) | `/holub-360/`: průlet nad Prahou, zaměření na dálku, 3D model, cesta A/B, kalkulace, kalendář s technologickým oknem, rezervace |
 | **Standard HOLUB, SENTINEL, cenové jádro** (úkol 50) | `/standard-holub/` z dat, tarify BASE / PLUS / PRESTIGE, jedna cena pro všechny části webu |
 | **Pas domu – trezor** (úkol 51) | kód pasu + přístupový kód, nic citlivého v adrese |
 | **Rada AI přes OpenRouter** (úkol 52) | Claude, GPT, Gemini (patenty), Grok, Muse; pseudonymizace; závěry rady v `RADA-AI-2026-10-22.md` |
 | **Spolupráce agentů** (úkol 53) | šablony AGENTS.md, Copilot, issue a CI v `sablony/github/` |
-| **HSPG AI Gateway – brána MCP** (úkol 59, R22 30. 10.) | `/api/mcp`: Claude majitele se přes jednu bránu ptá ChatGPT, Groku, Gemini, Perplexity (a dalších rolí), hledá přes You.com a svolává radu AI; OAuth 2.1 heslem panelu, pseudonymizace, rozpočet; postup připojení v `ukoly/59-mcp-brana.md` (krok 6) a Chrome C15 |
+| **HSPG AI Gateway – brána MCP** (úkol 61, R24 30. 10.; do 5. 11. číslovaná 59) | `/api/mcp`: Claude majitele se přes jednu bránu ptá ChatGPT, Groku, Gemini, Perplexity (a dalších rolí), hledá přes You.com a svolává radu AI; OAuth 2.1 heslem panelu, pseudonymizace, rozpočet; postup připojení v `ukoly/61-mcp-brana.md` (krok 6) a Chrome C15 |
+| **Štítek SENTINEL a fotky v Pasu domu** (úkol 59, R22 30. 10.) | QR na objektu otevře pas bez psaní kódů; druh objektu a obec, záruka, péče SENTINEL, fotky před/po s jezdcem, postup ošetření; nikdy název, adresa, kontakty ani osoby na fotkách (`web/assets/pas-trezor.*`, ukázka `ukazky/pas-trezor.html`) |
+| **Cena ihned** (úkol 60, R23 30. 10.) | zadání `ukoly/60-cena-ihned.md`: přesné plochy z měření na dálku po odečtu oken a otvorů, jedna konečná cena (neplátce DPH); režim „garantovaná cena“ připravený, zapíná se až po výslovném ANO majitele a textu advokáta |
 | **Štít obsahu** (úkol 54) | `web/.well-known/tdmrep.json`, šablony meta/patička/robots pro AI boty v `sablony/stit/`, postup proti kopiím; ochranné známky podává majitel (podklady v souboru „HSPG – dokumenty k odeslání“) |
 | **Opravy živého webu** (úkol 55) | audit Claude v Chrome 22. 10. (`AUDIT-WEB-2026-10-22.md`, 96 nálezů): embargo slov, záruka, tarify, 5 kroků, jedna cesta „Cena hned“, mobil |
 | **Puls, rozcestník, zvuk a haptika, hejno** (úkol 56) | plaketa pulzuje v dávkách a nabízí celý web (8 dlaždic z `content/hbot-rozcestnik.json`), `hspg-zazitek.js` (syntéza zvuku + vibrace, vypínač „Zvuk a vibrace“), hejno 4 holubů při zaměření v HOLUB 360 (`holub360-hejno.js`) |
@@ -26,7 +28,7 @@ Jedna stránka: co je hotové, kdo co dělá a v jakém pořadí, co zbývá na 
 | **Rada AI, kolo 2** | `RADA-VYSLEDKY-VIZUAL-2026-10-22.md` – co je přijaté (a kde), co odmítnuté; z toho úkol 58 (jedna cesta zákazníka, HOLUB Partner, obrazovka „Dnes“) |
 | **Rozhodnutí svěřená agentovi** (R21, 22. 10.) | zvuk a vibrace výchozí vypnuté s pozvánkou „Zapnout“; formuláře bez políčka souhlasu (čl. 6/1/b GDPR); minimum 4 900 Kč = celková cena vč. dopravy; záruka u cesty B bez čísla; `/nase-prace/` bez „přesně 76 %“; dodavatel FHB neoslovovat |
 | **Dodavatelé bez zastoupení v ČR** | `DODAVATELE-2026-10-22.md` + CSV: 14 e-mailů odesláno 22. 10., 12 odesláno 23. 10., 2 vyřazeni; follow-up 1 29./30. 10., follow-up 2 (poslední) 5. 11. devíti firmám 1. dávky bez reakce – kampaň 1. dávky ukončena, 2. dávka 6. 11.; v jednání ProPERLA, NanoEnzo, Algimouss, Photokat, Nanoprotect, XSPlatforms, C.M.C., SolarCleano, Guy Cotten, Fallprotec, hyCLEANER, NanoPhos, Larius (hovor 13. 11.), Durostick (zájem); texty a tabulka „Odesláno“ v dokumentu „HSPG – dokumenty k odeslání“; odpovědi třídit do štítků Gmailu `HSPG Dodavatelé/…` |
-| Zadání pro agenta ve VS Code | úkoly 00–27 a 48–59 v `ukoly/` |
+| Zadání pro agenta ve VS Code | úkoly 00–27 a 48–61 v `ukoly/` (62 a 63 jen rezervované pro zadání majitele mimo balíček; číslování v `ukoly/PORADI.md`) |
 | Zadání pro Claude Design | `ZADANI-CLAUDE-DESIGN-HOLUB360.md` (vzhled HOLUB 360) |
 | Zadání pro Claude v Chrome | `ZADANI-CHROME.md` (C1–C15) |
 | Zadání pro Claude Pro | `ZADANI-CLAUDE-PRO.md` (P1–P7) |
@@ -70,7 +72,14 @@ Pořadí úkolů agenta: **00 → 20 → 01 → 02 → 21 → 22 → 23 → 24 �
 - [ ] Dodavatelé: číst odpovědi v Gmailu (štítky `HSPG Dodavatelé/…`), schvalovat navržené odpovědi; los `/akce/` – zrušit, nebo dodat úplné podmínky (R11, rada AI).
 - [ ] `/nase-prace/`: k číslům 2 000+ / 450+ / 489 / 36 uchovat evidenci zakázek (doložitelnost tvrzení); počet členů skupiny na Facebooku se uvede z veřejné stránky skupiny v den nasazení (úkol 55).
 
-**Úkol 59 – HSPG AI Gateway (30. 10. 2026)**
+**Úkol 59 – štítek SENTINEL (30. 10. 2026)**
+- [ ] Údaje zakázky a přístupový kód ke štítku předat agentovi ve VS Code soukromě – nikdy do Gitu, commitů, logů ani hlášení.
+- [ ] Souhlas vlastníka nebo uživatele objektu se zveřejněním fotek v pasu; fotky bez osob.
+
+**Úkol 60 – Cena ihned (30. 10. 2026)**
+- [ ] Potvrdit `content/otvory.json` a toleranci garance (výchozí 5 %); režim „garantovaná cena“ jen po výslovném ANO a textu advokáta.
+
+**Úkol 61 – HSPG AI Gateway (30. 10. 2026)**
 - [ ] Až agent ve VS Code nahlásí náhled/produkci `/api/mcp`: v claude.ai přidat vlastní konektor (https://claude.ai/settings/connectors → Add custom connector → URL `https://hspg.cz/api/mcp`, Sign in now, „Use Claude's published identity“) a přihlásit se heslem panelu – Claude v Chrome provede (C15). Tím jsou propojené ChatGPT, Grok, Gemini, Perplexity i rada AI; stejný konektor jde do Claude Desktop a Claude Code.
 - [ ] Volitelně You.com: klíč z https://you.com/platform vložit **sami** do Netlify jako `HSPG_KLIC_YOUCOM` (jinak jde přidat oficiální konektor You.com `https://api.you.com/mcp`).
 - [ ] Volitelně `HSPG_MCP_TOKEN` (náhodných ≥ 32 znaků) do Netlify – jen pro Claude Code / Managed Agents bez přihlášení OAuth; nikdy do chatu.

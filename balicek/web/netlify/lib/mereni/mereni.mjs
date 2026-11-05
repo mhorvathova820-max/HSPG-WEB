@@ -3,7 +3,9 @@ import { sjtskNaWgs84 } from "./sjtsk.mjs";
 import { spocitej, bodyVzorku, vyskyZVzorku, vyskyZPodlazi, plocha, normalizujPrstenec, cz } from "./geometrie.mjs";
 import { hledejAdresu, adresniMisto, stavebniObjekt, sousedniObjekty, vzorkyVysek, obrysOverpass, obrysNominatim, wgsNaLokalni, ZDROJE, ZPUSOB_VYUZITI, DRUH_KONSTRUKCE } from "./zdroje.mjs";
 
-export const SCHEMA = "Schéma z mapových podkladů, ne geodetické zaměření.";
+// Text pro výstup (zobrazuje se i zákazníkům, stejné znění jako pod náčrty v úkolu 60): bez „z map“ a „katastr“
+// (KONTEXT §4 bod 10); licence zdrojů je v poli zdroje.
+export const SCHEMA = "Schéma, ne geodetické zaměření.";
 const PLATNOST_MS = 180 * 864e5;
 
 export async function vychoziUlozisteMereni() {

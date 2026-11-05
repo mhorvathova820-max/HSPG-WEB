@@ -15,7 +15,7 @@ export function faktaDopisu(z, firma, { kupon, kodOdmitnuti }) {
     adresat: z.nazev, sidlo: z.sidlo, ico: z.ico, osloveni: z.predseda?.osloveni || null,
     dum: {
       podlazi: b.podlazi, panelovy: b.panel, plochaPudorysu: cz(b.plochaPudorysu, "m²"), fasady: cz(b.fasady, "m²"), strecha: cz(b.strecha, "m²"),
-      poznamka: "Rozměry jsou schéma z mapových podkladů (ČÚZK), ne geodetické zaměření.",
+      poznamka: "Rozměry jsou orientační schéma, ne geodetické zaměření.",
     },
     nabidka: "Zaměření domu na místě zdarma a nezávazná cenová nabídka na čištění a ochranu fasády a střechy.",
     kupon: kupon ? { kod: kupon.kod, nabidka: "1 litr impregnace H-STONE zdarma k zakázce", platnostDo: kupon.platnostDo } : null,
@@ -25,10 +25,14 @@ export function faktaDopisu(z, firma, { kupon, kodOdmitnuti }) {
   };
 }
 
+// Embargo slov pro zákazníky (KONTEXT §4 bod 10): text AI s těmito slovy se nepoužije (oprava, jinak šablona).
+// Povinné uvedení zdrojů v části „Odkud máme vaše údaje“ doplňuje kód, ne AI – na ni se kontrola nevztahuje.
+export const EMBARGO_DOPISU = /leteck\S*\s+(?:map|snímk)|satelit|google\s*maps|katastr|rúian|ruian|(?<![\p{L}\p{N}])z\s+map|mapov\S*\s+podklad/iu;
 const SYSTEM_MISTRAL = `${PRAVIDLA_PRAVDIVOSTI}
 Napiš krátký, slušný obchodní dopis (česky, vykání, nejvýš 1 400 znaků, bez oslovení a bez podpisu – ty doplní šablona)
-pro společenství vlastníků jednotek. Použij POUZE fakta z JSON: rozměry domu (jako orientační schéma z map), nabídku zaměření
-zdarma a kupon. Žádné ceny, slevy, termíny, reference, záruky, pojištění ani technologie, které v JSON nejsou. Žádné superlativy.`;
+pro společenství vlastníků jednotek. Použij POUZE fakta z JSON: rozměry domu (jako orientační schéma, ne geodetické zaměření), nabídku zaměření
+zdarma a kupon. Žádné ceny, slevy, termíny, reference, záruky, pojištění ani technologie, které v JSON nejsou. Žádné superlativy.
+Nepiš o mapách, mapových podkladech, katastru, RÚIAN ani leteckých či satelitních snímcích a zdroje údajů neopisuj.`;
 const SYSTEM_KONTROLA = `${PRAVIDLA_PRAVDIVOSTI}
 Zkontroluj dopis proti faktům v JSON. Je v něm cokoli, co fakta neobsahují (čísla, ceny, sliby, záruky, reference, termíny)?
 Odpověz POUZE JSON: {"ok":true|false,"problemy":["…"]}`;
@@ -38,7 +42,7 @@ export function sablonaDopisu(f) {
   const rozmery = [d.fasady && `fasády přibližně ${d.fasady}`, d.strecha && `střecha přibližně ${d.strecha}`].filter(Boolean).join(" a ");
   return [
     `obracím se na vás jako ${f.odesilatel.znacka} – čistíme a chráníme fasády, střechy a zpevněné plochy.`,
-    rozmery ? `Podle veřejných mapových podkladů má váš dům ${rozmery}. ${d.poznamka}` : d.poznamka,
+    rozmery ? `Podle veřejných údajů má váš dům ${rozmery}. ${d.poznamka}` : d.poznamka,
     `Nabízíme vám ${f.nabidka.charAt(0).toLowerCase()}${f.nabidka.slice(1)}`,
     f.kupon ? `S kódem ${f.kupon.kod} k zakázce získáte ${f.kupon.nabidka.replace(/ k zakázce$/, "")} (platí do ${f.kupon.platnostDo}). Termín si můžete vybrat přes QR kód.` : "",
   ].filter(Boolean).join("\n\n");
@@ -56,6 +60,7 @@ export async function napisDopis(fakta, deps) {
     catch { break; }
     text = String(text || "").trim().slice(0, 1600);
     if (!text) break;
+    if (EMBARGO_DOPISU.test(text)) { pripominky = "\n\nOPRAV: nepiš o mapách, mapových podkladech, katastru, RÚIAN ani leteckých či satelitních snímcích; rozměry jsou jen orientační schéma."; continue; }
     let k = null;
     try { k = jsonZTextu(await volejAI({ id: "claude", ...deps, system: SYSTEM_KONTROLA, text: `FAKTA:\n${data}\n\nDOPIS:\n${text}`, maxTokenu: 300 })); } catch { k = null; }
     if (k?.ok === true) return { text, autor: "mistral", kontrola: "claude: ok" };
@@ -85,6 +90,6 @@ ${String(text).split(/\n{2,}/).map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</
 ${qr ? `<div class="qr">${qr}<div>Vyberte si termín zaměření v plánovači:<br>${esc(odkazQR)}</div></div>` : ""}
 <div class="pravni"><b>Odkud máme vaše údaje:</b> ${esc(fakta.zdroje.join("; "))}. Údaje o společenství zpracováváme na základě oprávněného zájmu (nabídka služeb), jen pro toto oslovení.
 <b>Nepřejete si další dopisy?</b> Napište na ${esc(o.email)} nebo zavolejte ${esc(o.telefon)} (kód ${esc(fakta.kodOdmitnuti)}) – zapíšeme vás na seznam „neoslovovat“ a už se neozveme.
-Rozměry domu jsou schéma z mapových podkladů, ne geodetické zaměření.</div>
+Rozměry domu jsou orientační schéma, ne geodetické zaměření.</div>
 </body></html>`;
 }

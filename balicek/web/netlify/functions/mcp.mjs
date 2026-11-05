@@ -1,4 +1,4 @@
-// /api/mcp – HSPG AI Gateway: vzdálený MCP server pro Claude majitele (úkol 59). Streamable HTTP, bezstavový.
+// /api/mcp – HSPG AI Gateway: vzdálený MCP server pro Claude majitele (úkol 61). Streamable HTTP, bezstavový.
 //   POST /api/mcp                      JSON-RPC (initialize, tools/list, tools/call, ping); tools/call s Accept
 //                                      text/event-stream jde jako SSE s udržovacími řádky (dlouhé dotazy, rada)
 //   GET/DELETE /api/mcp                405 (žádný proud od serveru, žádné relace)

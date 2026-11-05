@@ -35,9 +35,13 @@
   var interval = iso(osetreno) < '2026-10-22' ? 24 : 12;
   var kontrola = new Date(osetreno);
   do { kontrola.setMonth(kontrola.getMonth() + interval); } while (kontrola <= den(0));
+  var pred = den(-431);
+  // Ilustrace (ne skutečné fotky) leží vedle ukázky – cesta platí, ať je ukázka otevřená z / i z /ukazky/.
+  var slozka = location.pathname.replace(/[^/]*$/, '');
   var PAS = {
     success: true,
     kod: KOD,
+    objekt: 'Rodinný dům',
     obec: 'Testov',
     povrchy: ['strecha', 'fasada'],
     plocha_m2: 310,
@@ -46,7 +50,20 @@
     sarze: 'UKAZKA-2099-A',
     zaruka: { platna: true, 'do': iso(konec), zbyva_dni: celkem - uplynulo, uplynulo_procent: Math.round(uplynulo / celkem * 1000) / 10 },
     dalsi_kontrola: iso(kontrola),
-    srazky: { mm: 742, 'do': iso(den(-1)) }
+    srazky: { mm: 742, 'do': iso(den(-1)) },
+    // Úkol 59: postup a fotky před/po zapisuje majitel u zakázky; názvy kroků doplní stránka ze Standardu HOLUB.
+    cesta: 'A',
+    postup: [
+      { cislo: '01', datum: iso(pred), text: 'Ukázkový zápis majitele: fasáda omytá tlakem a teplotou vody podle materiálu, sokl ručně dočištěný.' },
+      { cislo: '02', datum: iso(pred) },
+      { cislo: '03', datum: iso(pred) },
+      { cislo: '04', datum: iso(osetreno) },
+      { cislo: '05', datum: iso(osetreno) }
+    ],
+    fotky: [
+      { src: slozka + 'ukazka-fasada-pred.svg', typ: 'pred', misto: 'Uliční fasáda (ilustrace)', datum: iso(pred), alt: 'ilustrace fasády se zeleným nánosem a stékáním pod okny' },
+      { src: slozka + 'ukazka-fasada-po.svg', typ: 'po', misto: 'Uliční fasáda (ilustrace)', datum: iso(osetreno), alt: 'ilustrace čisté fasády' }
+    ]
   };
   var SRAZKY = [0, 0.4, 14.2, 3.1, 0, 0, 1.2], VITR = [3, 4, 12, 6, 3, 2, 3];
   var POCASI = {
@@ -54,7 +71,7 @@
     dny: SRAZKY.map(function (mm, i) { return { datum: iso(den(i + 1)), srazky: mm, pravdepodobnost: null, tmin: 4 + i % 3, tmax: 12 + i % 4, vitr: VITR[i], sucho: mm < 0.5 }; }),
     zdroj: 'MET Norway – v ukázce fiktivní hodnoty', zdrojOdkaz: 'https://api.met.no/'
   };
-  var NENALEZENO = { success: false, chyba: 'Pas jsme nenašli. Zkontrolujte kód pasu a přístupový kód z certifikátu, nebo zavolejte +420 736 618 486.' };
+  var NENALEZENO = { success: false, chyba: 'Pas jsme nenašli. Zkontrolujte kód pasu a přístupový kód z předávacího listu, nebo zavolejte +420 736 618 486.' };
   window.PdtNastaveni = {
     fetch: function (url, volby) {
       var u = String(url);
@@ -83,11 +100,11 @@
     <div class="pdt-uvod">
       <p class="apex-stitek">Digitální pas domu</p>
       <h1 class="pdt-h1" id="pdt-h1"><span class="apex-zlaty-text">Pas domu</span></h1>
-      <p class="pdt-lead">Historie ošetření, materiály a&nbsp;šarže, záruka a&nbsp;termín další kontroly na jednom místě. Pas je chráněný – otevřete ho kódem pasu a&nbsp;přístupovým kódem z&nbsp;certifikátu.</p>
+      <p class="pdt-lead">Historie ošetření, materiály a&nbsp;šarže, záruka a&nbsp;termín další kontroly na jednom místě. Pas je chráněný – otevřete ho kódem pasu a&nbsp;přístupovým kódem z&nbsp;předávacího listu.</p>
       <ul class="pdt-vyhody">
         <li>Kdy a&nbsp;čím jsme dům ošetřili</li>
         <li>Do kdy platí záruka a&nbsp;kdy je další kontrola</li>
-        <li>Bez adresy a&nbsp;kontaktů – jen s&nbsp;kódy z&nbsp;certifikátu</li>
+        <li>Bez adresy a&nbsp;kontaktů – jen s&nbsp;kódy z&nbsp;předávacího listu</li>
       </ul>
       <div class="pdt-ukazka-tip">
         <p>Vyzkoušejte ukázkový pas: kód <code>HS-2099-0001</code>, přístupový kód <code>ABCD-EFGH-JKMN</code>. Jiná kombinace ukáže neutrální hlášku jako na webu.</p>
@@ -134,7 +151,7 @@
         <h2 class="pdt-form-h" id="pdt-form-h">Otevřete svůj pas</h2>
         <noscript><p class="pdt-noscript">Pas domu se otevírá v&nbsp;prohlížeči se zapnutým JavaScriptem. Pomůžeme i&nbsp;po telefonu: <a href="tel:+420736618486">+420&nbsp;736&nbsp;618&nbsp;486</a>.</p></noscript>
         <fieldset class="pdt-sada" id="pdt-sada" disabled>
-          <legend class="pdt-sr">Kódy z&nbsp;certifikátu</legend>
+          <legend class="pdt-sr">Kódy z&nbsp;předávacího listu</legend>
           <div class="pdt-pole-obal">
             <label for="pdt-kod">Kód pasu</label>
             <input class="apex-pole pdt-pole" id="pdt-kod" name="kod" type="text" inputmode="numeric" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="120" placeholder="HS-RRRR-ČČČČ" aria-describedby="pdt-napoveda pdt-chyba" data-clarity-mask="true" required>
@@ -143,11 +160,11 @@
             <label for="pdt-pristup">Přístupový kód</label>
             <input class="apex-pole pdt-pole" id="pdt-pristup" name="pristup" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="120" placeholder="XXXX-XXXX-XXXX" aria-describedby="pdt-napoveda pdt-chyba" data-clarity-mask="true" required>
           </div>
-          <p class="pdt-napoveda" id="pdt-napoveda">Kód pasu i&nbsp;přístupový kód najdete na certifikátu. Bez přístupového kódu pas neotevřeme – chráníme údaje o&nbsp;vašem domě.</p>
+          <p class="pdt-napoveda" id="pdt-napoveda">Kód pasu i&nbsp;přístupový kód najdete na předávacím listu. Bez přístupového kódu pas neotevřeme – chráníme údaje o&nbsp;vašem domě.</p>
           <p class="pdt-chyba" id="pdt-chyba" role="alert"></p>
           <button class="apex-tlacitko pdt-otevrit" id="pdt-otevrit" type="submit">Otevřít pas</button>
         </fieldset>
-        <p class="pdt-pomoc">Ztratili jste certifikát? Zavolejte <a href="tel:+420736618486">+420&nbsp;736&nbsp;618&nbsp;486</a></p>
+        <p class="pdt-pomoc">Ztratili jste předávací list? Zavolejte <a href="tel:+420736618486">+420&nbsp;736&nbsp;618&nbsp;486</a></p>
       </form>
 
       <div class="pdt-otevreno" id="pdt-otevreno" hidden>
@@ -184,7 +201,7 @@
         <p>Tarify pravidelné péče a&nbsp;podmínky záruky.</p>
       </li>
     </ul>
-    <p class="pdt-soukromi-info">Pas nezobrazuje adresu ani kontakty. Údaje ukážeme jen s&nbsp;kódem pasu a&nbsp;přístupovým kódem z&nbsp;certifikátu.</p>
+    <p class="pdt-soukromi-info">Pas nezobrazuje adresu ani kontakty. Údaje ukážeme jen s&nbsp;kódem pasu a&nbsp;přístupovým kódem z&nbsp;předávacího listu.</p>
   </section>
 </main>
 

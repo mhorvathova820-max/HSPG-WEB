@@ -2,8 +2,8 @@
 > Priorita P2 · Závisí na: 14 (přístupové kódy a ochrana `/api/sentinel/validate`), 50 (SENTINEL, podmínky záruky) · Čeká na majitele: přístupové kódy ke stávajícím pasům (úkol 14), TEST pas pro ověření na náhledu.
 
 ## Co to dělá
-- Pas se otevře **kódem pasu `HS-RRRR-ČČČČ` + přístupovým kódem** z certifikátu: `POST /api/sentinel/validate { sentinel_code, pristup }`.
-- Odkaz z certifikátu `…/pas-domu#kod=…&pristup=…`: kód se z adresního řádku smaže dřív, než odejde jakýkoli požadavek (inline skript v `<head>` + pojistka v JS).
+- Pas se otevře **kódem pasu `HS-RRRR-ČČČČ` + přístupovým kódem** z předávacího listu: `POST /api/sentinel/validate { sentinel_code, pristup }`.
+- Odkaz z předávacího listu `…/pas-domu#kod=…&pristup=…`: kód se z adresního řádku smaže dřív, než odejde jakýkoli požadavek (inline skript v `<head>` + pojistka v JS).
 - Vykresluje jen whitelist polí z API (textContent), neznámá pole zahodí; každé selhání = jedna neutrální hláška (neprozradí, který údaj nesedí).
 - Stav péče SENTINEL a podmínka záruky podle data zakázky (nová podmínka R15, nebo původní pro domy před 22. 10. 2026); počasí pro obec. Bez AI, bez externích knihoven a písem.
 

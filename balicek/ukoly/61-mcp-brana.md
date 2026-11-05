@@ -1,7 +1,8 @@
-# Úkol 59: HSPG AI Gateway – vzdálený MCP server `/api/mcp` (Perplexity, You.com, Grok, ChatGPT … pro Claude majitele)
+# Úkol 61: HSPG AI Gateway – vzdálený MCP server `/api/mcp` (Perplexity, You.com, Grok, ChatGPT … pro Claude majitele)
+> Do 5. 11. 2026 číslovaný 59 (`59-mcp-brana.md`, R22) – přečíslování viz `PORADI.md`, odstavec „Číslování“.
 > Priorita P1 · Závisí na: 01 (heslo panelu), 22 (brána AI, vlastní klíče), 52 (rada AI, pseudonymizace) · Čeká na majitele: `HSPG_KLIC_OPENROUTER` v Netlify (R19), volitelně `HSPG_KLIC_YOUCOM` a `HSPG_MCP_TOKEN`; přidání konektoru v claude.ai (dělá sám, viz krok 6).
 
-Rozhodnutí majitele 30. 10. 2026 (R22): propojit Claude s Perplexity, You.com, Grokem a ChatGPT **jednou bránou na Netlify** – jeden klíč OpenRouter, žádné nové klíče xAI/OpenAI, stejný rozpočet a pseudonymizace jako panel majitele, jeden konektor pro všechny relace Clauda (claude.ai, Cowork, Chrome, Desktop, Claude Code, Managed Agents).
+Rozhodnutí majitele 30. 10. 2026 (R24): propojit Claude s Perplexity, You.com, Grokem a ChatGPT **jednou bránou na Netlify** – jeden klíč OpenRouter, žádné nové klíče xAI/OpenAI, stejný rozpočet a pseudonymizace jako panel majitele, jeden konektor pro všechny relace Clauda (claude.ai, Cowork, Chrome, Desktop, Claude Code, Managed Agents).
 
 ## Co to dělá
 - **`/api/mcp`** = MCP server (Streamable HTTP, bezstavový, JSON-RPC 2.0). Nástroje: `ai_zeptat` (jedna role: gpt, grok, gemini, perplexity, mistral, deepseek, llama, argon, claude), `perplexity_hledat`, `youcom_hledat`, `rada_ai` (paralelně + předseda Claude), `ai_stav`. Muse Wonder (bez ZDR) přes bránu **není**.
@@ -14,8 +15,8 @@ Rozhodnutí majitele 30. 10. 2026 (R22): propojit Claude s Perplexity, You.com, 
 `netlify/functions/mcp.mjs`; `netlify/lib/ai/mcp.mjs`, `mcp-oauth.mjs`, `youcom.mjs`. Testy: unit `mcp` (17) a `mcp-sdk` (2 – oficiální klient `@modelcontextprotocol/sdk`, jen devDependency balíčku; do webu se nepřenáší). Žádná nová závislost webu.
 
 ## Postup
-1. Větev `ukol-59-mcp-brana` z aktuální `main`. Přenes soubory; cesty funkce jsou v `config.path` (`/api/mcp`, `/api/mcp/oauth/:akce`, `/.well-known/oauth-authorization-server`, `/.well-known/oauth-protected-resource[/api/mcp]`) – v `netlify.toml` nic navíc. Ověř, že `/.well-known/` z úkolu 54 (`tdmrep.json`, statický soubor) zůstává a nekoliduje (funkce má jen dvě konkrétní cesty).
-2. `npm test` (balíček) – 229 testů zelených, žádné skutečné volání AI.
+1. Větev `ukol-61-mcp-brana` z aktuální `main` (když už existuje `ukol-59-mcp-brana` ze staršího čísla, pokračuj v ní a nepřejmenovávej ji). Přenes soubory; cesty funkce jsou v `config.path` (`/api/mcp`, `/api/mcp/oauth/:akce`, `/.well-known/oauth-authorization-server`, `/.well-known/oauth-protected-resource[/api/mcp]`) – v `netlify.toml` nic navíc. Ověř, že `/.well-known/` z úkolu 54 (`tdmrep.json`, statický soubor) zůstává a nekoliduje (funkce má jen dvě konkrétní cesty).
+2. `npm test` (balíček) – 230 testů zelených, žádné skutečné volání AI.
 3. Náhled: `node scripts/nasadit.mjs` (0 kreditů). Ověř:
    - `curl -s https://<náhled>/.well-known/oauth-authorization-server` → JSON s `issuer` = adresa náhledu; `…/oauth-protected-resource` → `resource` = `<náhled>/api/mcp`.
    - `curl -si -X POST https://<náhled>/api/mcp -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}'` → `401` a hlavička `WWW-Authenticate: Bearer realm="HSPG AI Gateway", resource_metadata="…"`.
