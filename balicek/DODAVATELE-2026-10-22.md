@@ -29,11 +29,14 @@ Stav ověření: 22. 10. 2026. Rešerše bez jakéhokoli kontaktu s firmami.
 | hyCLEANER (DE) | odpověď v novém vlákně („Partnerschaft für Tschechien“), odpovězeno 27. 10. z druhé relace | sledovat vlákno | 4 Jednání |
 | Krautzberger (DE) | má české zastoupení – kontakt je na jejich webu v sekci Kontakte (23. 10.) | majitel rozhodne, zda oslovit české zastoupení (jiné kritérium) | 5 Odmítnuto |
 | NanoPhos (GR/CH) | Teams pozvánka přišla 26. 10. („Nanophos cooperation in Czech Republic“), schůzka plánována út 27. 10. odpoledne; výsledek není v Gmailu | zapsat výstup schůzky | 4 Jednání |
+| Larius (IT, skupina Samoa) | 3. 11. odpověděl Sales Area Manager pro ČR (nabídl hovor 4./5. 11.); 5. 11. z druhé relace navržen hovor **pá 13. 11. 14:00 CET** (volá majitel) | potvrzení termínu; připravit otázky (dealerské podmínky, demo jednotka, dodací lhůty) | 4 Jednání |
 | Wet & Forget UK | registrace jen UK/IE/FR/DE – uzavřeno | – | 5 Odmítnuto |
 
 **Follow-up 1 (29. 10. 09:0x):** odeslán 11 firmám 1. dávky bez reakce – Faber, Azichem, Diasen, Isaval (ES), Durostick, Bradite, Copernit, Barbot, V-TUF, Restorative Techniques, Larius (štítek „2 Follow-up“). Vynecháno: Algimouss (jednání), Safeguard a Dry-Treat (od 27. 10. běží komunikace v jiných vláknech). Follow-up 2: 5. 11. (připomínka naplánována).
 
 **Follow-up 1 pro 2. dávku (30. 10. 09:01):** odeslán 5 firmám bez reakce – Falcon Lifts, HACA (DE), Ramsay & Sons, Lyte Ladders & Towers, Pure Freedom (štítek „2 Follow-up“); ostatních 7 firem 2. dávky odpovědělo nebo je v jednání. Follow-up 2: 6. 11. (připomínka naplánována). **Durostick** (1. dávka) 29. 10. odpověděl na follow-up: komisní sklad odmítá, při platbě předem (před dodáním) je ochoten jednat → štítek 3 Zájem; koncept odpovědi připravuje druhá relace. **ProPERLA:** hovor 29. 10. na žádost majitele posunut z 10:00 na 10:30 (CEO potvrdil), výsledek doplní majitel.
+
+**Follow-up 2 (5. 11. 08:1x, 14. den, poslední):** odeslán 9 firmám 1. dávky bez reakce – Faber, Azichem, Diasen, Isaval (ES), Bradite, Copernit, Barbot, V-TUF, Restorative Techniques (odpověď ve stejném vlákně, text podle šablony; u V-TUF a Restorative Techniques věta „nabídka trvá“ podle původní nabídky – nákup techniky jako referenční zákazník + dealerské podmínky, ne komisní sklad). Štítek „2 Follow-up“ ponechán, nikdo neodmítl. Vynecháni **Durostick** (odpověděl 29. 10., 3 Zájem) a **Larius** (3. 11. odpověděl Sales Area Manager pro ČR, hovor nabídl hned; druhá relace 5. 11. navrhla hovor **pá 13. 11. 14:00 CET**, štítek 4 Jednání). Kampaň 1. dávky tím končí – dál jen firmy v jednání. 2. dávka: follow-up 2 dne 6. 11.
 
 **Koordinace (zjištěno 29. 10.):** od 27. 10. odcházejí ze stejného Gmailu odpovědi i nová oslovení (≈ 25 firem, podpis se spoluprace@hspg.cz) z jiné relace/okna majitele; došlo k duplicitnímu prvnímu oslovení Algimouss a hyCLEANER. Kampaň má vést jedno místo – rozhodne majitel.
 
