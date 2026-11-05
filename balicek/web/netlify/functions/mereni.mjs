@@ -6,7 +6,7 @@
 // Postup: RÚIAN (adresa → adresní místo → stavební objekt s polygonem z katastru, podlaží, zastavěná plocha),
 // výšky z DMP 1G − DMR 5G uvnitř půdorysu; když RÚIAN polygon nemá → OSM Overpass → Nominatim.
 // Když výškopis budovu nezná (stavba po skenování 2009–2013) → odhad z počtu podlaží.
-// Výsledek je vždy „orientační schéma, ne geodetické zaměření“ (SCHEMA). Mezipaměť v Blobs podle kódu adresy (180 dní).
+// Výsledek je vždy „Schéma, ne geodetické zaměření.“ (SCHEMA, stejné znění jako v úkolu 60). Mezipaměť v Blobs podle kódu adresy (180 dní).
 import { overPozadavek, povolenyOrigin } from "../lib/ai/autorizace.mjs";
 import { vychoziUloziste, pricti } from "../lib/ai/limity.mjs";
 import { zmerAdresu, vychoziUlozisteMereni, SCHEMA } from "../lib/mereni/mereni.mjs";
