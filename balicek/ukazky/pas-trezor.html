@@ -35,9 +35,13 @@
   var interval = iso(osetreno) < '2026-10-22' ? 24 : 12;
   var kontrola = new Date(osetreno);
   do { kontrola.setMonth(kontrola.getMonth() + interval); } while (kontrola <= den(0));
+  var pred = den(-431);
+  // Ilustrace (ne skutečné fotky) leží vedle ukázky – cesta platí, ať je ukázka otevřená z / i z /ukazky/.
+  var slozka = location.pathname.replace(/[^/]*$/, '');
   var PAS = {
     success: true,
     kod: KOD,
+    objekt: 'Rodinný dům',
     obec: 'Testov',
     povrchy: ['strecha', 'fasada'],
     plocha_m2: 310,
@@ -46,7 +50,20 @@
     sarze: 'UKAZKA-2099-A',
     zaruka: { platna: true, 'do': iso(konec), zbyva_dni: celkem - uplynulo, uplynulo_procent: Math.round(uplynulo / celkem * 1000) / 10 },
     dalsi_kontrola: iso(kontrola),
-    srazky: { mm: 742, 'do': iso(den(-1)) }
+    srazky: { mm: 742, 'do': iso(den(-1)) },
+    // Úkol 59: postup a fotky před/po zapisuje majitel u zakázky; názvy kroků doplní stránka ze Standardu HOLUB.
+    cesta: 'A',
+    postup: [
+      { cislo: '01', datum: iso(pred), text: 'Ukázkový zápis majitele: fasáda omytá tlakem a teplotou vody podle materiálu, sokl ručně dočištěný.' },
+      { cislo: '02', datum: iso(pred) },
+      { cislo: '03', datum: iso(pred) },
+      { cislo: '04', datum: iso(osetreno) },
+      { cislo: '05', datum: iso(osetreno) }
+    ],
+    fotky: [
+      { src: slozka + 'ukazka-fasada-pred.svg', typ: 'pred', misto: 'Uliční fasáda (ilustrace)', datum: iso(pred), alt: 'ilustrace fasády se zeleným nánosem a stékáním pod okny' },
+      { src: slozka + 'ukazka-fasada-po.svg', typ: 'po', misto: 'Uliční fasáda (ilustrace)', datum: iso(osetreno), alt: 'ilustrace čisté fasády' }
+    ]
   };
   var SRAZKY = [0, 0.4, 14.2, 3.1, 0, 0, 1.2], VITR = [3, 4, 12, 6, 3, 2, 3];
   var POCASI = {

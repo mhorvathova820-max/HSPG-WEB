@@ -165,7 +165,26 @@
   // Pole z kontraktu /api/sentinel/validate (úkol 14). Volitelná pole se
   // vykreslí, jen když je API pošle (tarif, termíny kontrol, fotky se souhlasem).
   var POLE = ['kod', 'obec', 'povrchy', 'plocha_m2', 'datum', 'materialy', 'sarze', 'zaruka', 'dalsi_kontrola', 'srazky'];
-  var VOLITELNA = ['tarif', 'kontroly', 'fotky'];
+  // Úkol 59: objekt (druh budovy, ne název ani adresa), postup (kroky Standardu HOLUB, jak je
+  // majitel u zakázky zapsal) a cesta finální vrstvy (A/B).
+  var VOLITELNA = ['tarif', 'kontroly', 'fotky', 'objekt', 'postup', 'cesta'];
+
+  function cistyPostup(postup) {
+    if (!Array.isArray(postup)) return null;
+    var kroky = postup.slice(0, 12).map(function (k) {
+      if (!k || typeof k !== 'object') return null;
+      var cislo = String(k.cislo == null ? '' : k.cislo).trim();
+      if (/^\d$/.test(cislo)) cislo = '0' + cislo;
+      if (!/^\d{2}$/.test(cislo)) return null;
+      return {
+        cislo: cislo,
+        nazev: typeof k.nazev === 'string' ? k.nazev.trim().slice(0, 60) : '',
+        datum: isoDatum(k.datum) ? String(k.datum).slice(0, 10) : null,
+        text: typeof k.text === 'string' ? k.text.trim().slice(0, 240) : ''
+      };
+    }).filter(Boolean);
+    return kroky.length ? kroky : null;
+  }
 
   function vycisti(data) {
     var zdroj = data && typeof data === 'object' ? (data.pas && typeof data.pas === 'object' ? data.pas : data) : {};
@@ -173,6 +192,12 @@
     POLE.concat(VOLITELNA).forEach(function (k) {
       if (Object.prototype.hasOwnProperty.call(zdroj, k) && zdroj[k] != null) pas[k] = zdroj[k];
     });
+    if (typeof pas.objekt === 'string' && pas.objekt.trim()) pas.objekt = pas.objekt.trim().slice(0, 60);
+    else delete pas.objekt;
+    if (pas.cesta !== 'A' && pas.cesta !== 'B') delete pas.cesta;
+    var postup = cistyPostup(pas.postup);
+    if (postup) pas.postup = postup;
+    else delete pas.postup;
     if (pas.zaruka && typeof pas.zaruka === 'object') {
       pas.zaruka = { platna: pas.zaruka.platna, do: pas.zaruka['do'], zbyva_dni: pas.zaruka.zbyva_dni, uplynulo_procent: pas.zaruka.uplynulo_procent };
     } else delete pas.zaruka;
@@ -535,23 +560,129 @@
     return null;
   }
 
+  // Porovnání před/po jednoho místa (úkol 59): jezdec je skutečný <input type="range">
+  // (klávesnice, čtečka, dotyk); poloha se nastavuje přes style.setProperty (CSSOM),
+  // ne atributem style – projde i přísnou CSP.
+  var porovnaniPoradi = 0;
+  function porovnani(pred, po, misto) {
+    var id = 'pdt-porovnani-' + (++porovnaniPoradi);
+    var nazev = misto || 'Fotografie z ošetření';
+    var obr = function (f, druh) {
+      return el('img', { src: f.src, alt: (druh === 'pred' ? 'Před ošetřením: ' : 'Po ošetření: ') + (f.alt || nazev),
+        loading: 'lazy', decoding: 'async', referrerpolicy: 'no-referrer' });
+    };
+    var rozsah = el('input', { type: 'range', id: id, trida: 'pdt-porovnani__rozsah', min: '0', max: '100', step: '1', value: '50',
+      'aria-valuetext': '50 % před, 50 % po' });
+    // Štítky „Před“/„Po“ se ořezávají spolu se svou stranou – nikdy neleží na fotce té druhé.
+    var okno = el('div', { trida: 'pdt-porovnani__okno' }, [
+      obr(po, 'po'),
+      el('div', { trida: 'pdt-porovnani__vrstva-po', 'aria-hidden': 'true' }, [
+        el('span', { trida: 'pdt-porovnani__stitek pdt-porovnani__stitek--po', text: 'Po' })
+      ]),
+      el('div', { trida: 'pdt-porovnani__pred' }, [
+        obr(pred, 'pred'),
+        el('span', { trida: 'pdt-porovnani__stitek pdt-porovnani__stitek--pred', text: 'Před', 'aria-hidden': 'true' })
+      ]),
+      el('span', { trida: 'pdt-porovnani__jezdec', 'aria-hidden': 'true' }),
+      rozsah
+    ]);
+    var nastav = function () {
+      var v = Math.max(0, Math.min(100, Number(rozsah.value) || 0));
+      okno.style.setProperty('--pdt-pozice', v + '%');
+      rozsah.setAttribute('aria-valuetext', v + ' % před, ' + (100 - v) + ' % po');
+    };
+    rozsah.addEventListener('input', nastav);
+    nastav();
+    var data = [isoDatum(pred.datum) ? 'před ' + datum(pred.datum) : '', isoDatum(po.datum) ? 'po ' + datum(po.datum) : ''].filter(Boolean).join(' · ');
+    return el('figure', { trida: 'pdt-porovnani' }, [
+      el('label', { trida: 'pdt-sr', 'for': id, text: 'Porovnání před a po: ' + nazev }),
+      okno,
+      el('figcaption', { text: typografie(nazev + (data ? ' · ' + data : '')) })
+    ]);
+  }
+
   function modulFotky(pas) {
     var fotky = (Array.isArray(pas.fotky) ? pas.fotky : []).map(function (f) {
       if (typeof f === 'string') f = { src: f };
       if (!f || typeof f !== 'object') return null;
       var src = bezpecnaAdresa(f.src || f.url);
-      return src ? { src: src, alt: String(f.alt || f.popis || ''), typ: f.typ, datum: f.datum } : null;
-    }).filter(Boolean).slice(0, 12);
+      return src ? { src: src, alt: String(f.alt || f.popis || ''), typ: f.typ, datum: f.datum,
+        misto: String(f.misto || '').trim().slice(0, 80) } : null;
+    }).filter(Boolean).slice(0, 24);
     if (!fotky.length) return null;
     var TYP = { pred: 'Před', po: 'Po' };
-    var mrizka = el('div', { trida: 'pdt-fotky' }, fotky.map(function (f) {
-      var popisek = [TYP[f.typ] || '', isoDatum(f.datum) ? datum(f.datum) : ''].filter(Boolean).join(' · ');
+    // Dvojice před/po stejného místa → porovnání s jezdcem; ostatní fotky zůstávají v mřížce.
+    var mista = [], podleMista = {}, pouzite = {};
+    fotky.forEach(function (f, i) {
+      if (!f.misto) return;
+      if (!podleMista[f.misto]) { podleMista[f.misto] = { pred: null, po: null }; mista.push(f.misto); }
+      var s = podleMista[f.misto];
+      if (f.typ === 'pred' && s.pred == null) s.pred = i;
+      if (f.typ === 'po' && s.po == null) s.po = i;
+    });
+    var dvojice = [];
+    mista.forEach(function (m) {
+      var s = podleMista[m];
+      if (s.pred == null || s.po == null) return;
+      pouzite[s.pred] = pouzite[s.po] = true;
+      dvojice.push(porovnani(fotky[s.pred], fotky[s.po], m));
+    });
+    var zbytek = fotky.filter(function (f, i) { return !pouzite[i]; }).slice(0, 12);
+    var mrizka = zbytek.length ? el('div', { trida: 'pdt-fotky' }, zbytek.map(function (f) {
+      var popisek = [f.misto, TYP[f.typ] || '', isoDatum(f.datum) ? datum(f.datum) : ''].filter(Boolean).join(' · ');
       return el('figure', { trida: 'pdt-foto' }, [
         el('img', { src: f.src, alt: f.alt || popisek || 'Fotografie z ošetření', loading: 'lazy', decoding: 'async', referrerpolicy: 'no-referrer' }),
         popisek ? el('figcaption', { text: popisek }) : null
       ]);
+    })) : null;
+    var seznam = el('div', { trida: 'pdt-porovnani-seznam' + (dvojice.length > 1 ? ' pdt-porovnani-seznam--vice' : '') }, dvojice);
+    var obsah = dvojice.length ? [seznam, mrizka] : [mrizka];
+    return modul('pdt-modul--fotky', 'Fotky', dvojice.length ? 'Fotodokumentace před a po' : 'Fotodokumentace', obsah);
+  }
+
+  // Postup ošetření (úkol 59). Názvy a popisy kroků i cesty finální vrstvy jsou jen ze Standardu HOLUB
+  // (content/standard.json přes balíček dat); z registru přijde jen to, co majitel u zakázky zapsal:
+  // číslo kroku, datum a krátký veřejný text. Nezapsané kroky se nedomýšlejí.
+  // Názvy výrobků s pomlčkou (např. H-STONE) se nezalomí uprostřed.
+  function bezZlomu(text) {
+    return typografie(text).split(/(\b[A-Z]{1,3}-[A-Z0-9]{2,}\b)/).map(function (c, i) {
+      return i % 2 ? el('span', { trida: 'pdt-bez-zlomu', text: c }) : c;
+    });
+  }
+
+  function modulPostup(pas, obsah) {
+    var zapsane = Array.isArray(pas.postup) ? pas.postup : [];
+    if (!zapsane.length) return null;
+    var standard = (obsah && obsah.standard) || {};
+    var standardni = (Array.isArray(standard.kroky) ? standard.kroky : []).filter(function (k) { return k && k.cislo; });
+    var podleCisla = {};
+    standardni.forEach(function (k) { podleCisla[String(k.cislo)] = k; });
+    // Cesta finální vrstvy patří k poslednímu kroku standardu (05 Ochranná vrstva).
+    var finalni = standardni.length ? String(standardni[standardni.length - 1].cislo) : '';
+    var cesta = standard.cesty && (pas.cesta === 'A' || pas.cesta === 'B') ? standard.cesty[pas.cesta] : null;
+    var klic = function (k) { return k.cislo + ' ' + (k.datum || ''); };
+    var kroky = zapsane.slice().sort(function (a, b) { return klic(a) < klic(b) ? -1 : klic(a) > klic(b) ? 1 : 0; });
+    var ol = el('ol', { trida: 'pdt-postup' }, kroky.map(function (k) {
+      var s = podleCisla[k.cislo] || {};
+      var nazev = s.nazev || k.nazev || 'Krok ' + Number(k.cislo);
+      var popis = k.text || s.popis || '';
+      var konec = cesta && finalni && k.cislo === finalni;
+      return el('li', { trida: 'pdt-postup-krok' }, [
+        el('span', { trida: 'pdt-postup-cislo', 'aria-hidden': 'true', text: k.cislo }),
+        el('div', { trida: 'pdt-postup-telo' }, [
+          el('p', { trida: 'pdt-postup-nazev' }, [
+            el('span', { trida: 'pdt-sr', text: 'Krok ' + Number(k.cislo) + ': ' }),
+            typografie(nazev)
+          ]),
+          k.datum ? el('time', { trida: 'pdt-postup-datum', datetime: k.datum, text: datum(k.datum) }) : null,
+          popis ? el('p', { trida: 'pdt-postup-popis' }, bezZlomu(popis)) : null,
+          konec && cesta.nazev ? el('p', { trida: 'pdt-postup-cesta' }, [
+            el('strong', { text: typografie(cesta.nazev) })
+          ].concat(cesta.popis ? [' – '].concat(bezZlomu(cesta.popis)) : [])) : null
+        ])
+      ]);
     }));
-    return modul('pdt-modul--fotky', 'Fotky', 'Fotodokumentace', [mrizka]);
+    return modul('pdt-modul--postup', 'Postup', 'Postup ošetření', [ol]);
   }
 
   function ulozPredvyplneni(data) {
@@ -563,6 +694,7 @@
     var kod = pas.kod || moznosti.kod || '';
     var frag = doc.createDocumentFragment();
     var meta = [];
+    if (pas.objekt) meta.push(el('span', { text: pas.objekt }));
     if (pas.obec) meta.push(el('span', { text: pas.obec }));
     if (isoDatum(pas.datum)) meta.push(el('span', { text: 'ošetřeno ' + datum(pas.datum) }));
     if (num(pas.plocha_m2) != null) meta.push(el('span', { text: cislo(num(pas.plocha_m2)) + NB + 'm²' }));
@@ -577,14 +709,16 @@
       }, [])) : null
     ]));
 
+    // Pořadí: stav (záruka, kontrola, péče) → doklady práce (fotky, postup) → podrobnosti.
     var moduly = [
       modulZaruka(pas, obsah, dnesni),
       modulKontrola(pas, dnesni),
       modulSentinel(pas, obsah),
+      modulFotky(pas),
+      modulPostup(pas, obsah),
       modulHistorie(pas, dnesni),
       modulMaterialy(pas),
-      modulPocasi(pas),
-      modulFotky(pas)
+      modulPocasi(pas)
     ].filter(Boolean);
     var mrizka = el('div', { trida: 'pdt-mrizka' }, moduly);
     precislovat(mrizka);
@@ -751,9 +885,9 @@
 
   function nactiObsah(N) {
     return (N.balicek ? nactiJson(N, N.balicek) : Promise.resolve(null)).then(function (b) {
-      if (b && (b.firma || b.sentinel)) return { firma: b.firma || {}, sentinel: b.sentinel || {} };
-      return Promise.all([nactiJson(N, N.obsah + 'firma.json'), nactiJson(N, N.obsah + 'sentinel.json')]).then(function (x) {
-        return { firma: x[0] || {}, sentinel: x[1] || {} };
+      if (b && (b.firma || b.sentinel)) return { firma: b.firma || {}, sentinel: b.sentinel || {}, standard: b.standard || {} };
+      return Promise.all(['firma', 'sentinel', 'standard'].map(function (n) { return nactiJson(N, N.obsah + n + '.json'); })).then(function (x) {
+        return { firma: x[0] || {}, sentinel: x[1] || {}, standard: x[2] || {} };
       });
     });
   }
