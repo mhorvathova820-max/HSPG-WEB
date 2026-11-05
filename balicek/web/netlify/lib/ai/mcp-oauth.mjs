@@ -1,4 +1,4 @@
-// OAuth 2.1 pro bránu HSPG AI Gateway (/api/mcp) – úkol 59. Přihlášení = heslo panelu majitele (HSPG_PANEL_HESLO),
+// OAuth 2.1 pro bránu HSPG AI Gateway (/api/mcp) – úkol 61. Přihlášení = heslo panelu majitele (HSPG_PANEL_HESLO),
 // žádné nové heslo ani účet. Vše je BEZSTAVOVÉ: registrace klienta (DCR), autorizační kód, přístupový i obnovovací
 // token jsou podepsané HMAC-SHA256 (tajemství serveru z Blobs + heslo panelu – změna hesla zneplatní všechny
 // tokeny, stejně jako u tokenů panelu). Jediný zápis do úložiště: použitý autorizační kód (ochrana proti

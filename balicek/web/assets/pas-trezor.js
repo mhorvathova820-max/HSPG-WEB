@@ -1,9 +1,9 @@
 /* =====================================================================
    HSPG – Pas domu · trezor (předpona pdt-, vzhled z apex-tokens.css)
    ---------------------------------------------------------------------
-   • Pas se otevře dvojicí kód pasu + přístupový kód z certifikátu:
+   • Pas se otevře dvojicí kód pasu + přístupový kód z předávacího listu:
      POST /api/sentinel/validate {sentinel_code, pristup}.
-   • Odkaz z certifikátu …/pas-domu#kod=HS-…&pristup=… : kód se z adresního
+   • Odkaz z předávacího listu …/pas-domu#kod=HS-…&pristup=… : kód se z adresního
      řádku odstraní dřív, než odejde jakýkoli požadavek (inline skript
      v <head> a pro jistotu ještě zde).
    • Vykresluje se jen whitelist polí z API, vše přes textContent
@@ -29,7 +29,7 @@
   var TELEFON = '+420' + NB + '736' + NB + '618' + NB + '486';
   var TEL_ODKAZ = 'tel:+420736618486';
 
-  /* ---------- 1. Kód z odkazu certifikátu: převzít a hned odstranit ---------- */
+  /* ---------- 1. Kód z odkazu na předávacím listu: převzít a hned odstranit ---------- */
   // Inline skript v <head> ho mohl odstranit už dřív a předat v __pdtFragment.
   function prectiFragment() {
     var h = '';
@@ -826,11 +826,11 @@
 
   /* ---------- 8. Síť ---------- */
   var TEXT = {
-    nenalezeno: 'Pas jsme nenašli. Zkontrolujte kód pasu a přístupový kód z certifikátu, nebo zavolejte +420 736 618 486.',
+    nenalezeno: 'Pas jsme nenašli. Zkontrolujte kód pasu a přístupový kód z předávacího listu, nebo zavolejte +420 736 618 486.',
     limit: 'Příliš mnoho pokusů. Zkuste to za 15 minut, nebo zavolejte +420 736 618 486.',
     sit: 'Pas se teď nepodařilo načíst. Zkuste to prosím za chvíli, nebo zavolejte +420 736 618 486.',
-    tvarKodu: 'Zadejte kód pasu ve tvaru HS-RRRR-ČČČČ – najdete ho na certifikátu.',
-    tvarPristupu: 'Zadejte přístupový kód z certifikátu – 12 znaků ve tvaru XXXX-XXXX-XXXX.'
+    tvarKodu: 'Zadejte kód pasu ve tvaru HS-RRRR-ČČČČ – najdete ho na předávacím listu.',
+    tvarPristupu: 'Zadejte přístupový kód z předávacího listu – 12 znaků ve tvaru XXXX-XXXX-XXXX.'
   };
 
   function nastaveni() {

@@ -1,5 +1,5 @@
 // Měření budovy (úkol 23) – čistá geometrie v metrech (lokální rovina: x = východ, y = sever).
-// Výsledek je schéma z mapových podkladů, ne geodetické zaměření.
+// Výsledek je orientační schéma, ne geodetické zaměření (SCHEMA v mereni.mjs).
 
 const st = (rad) => (rad * 180) / Math.PI;
 // Česká čísla: desetinná čárka, nezlomitelná mezera před jednotkou.

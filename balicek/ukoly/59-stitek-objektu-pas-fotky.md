@@ -2,7 +2,7 @@
 > Priorita **P1** (štítek visí na veřejné budově – musí fungovat od prvního naskenování) · Závisí na: 14 fáze **B1** (registr, přístupové kódy, `sentinel-validate`), 51 (trezor), 50 (Standard HOLUB) · Rozhodnutí: KONTEXT R22 · Čeká na majitele: **soukromé předání** údajů zakázky (kód pasu, přístupový kód ze štítku, druh objektu, obec, povrchy a plochy, datum, šarže, data kroků), písemný souhlas vlastníka nebo uživatele objektu se zveřejněním fotek v pasu, fotky bez osob, potvrzení záruky (cesta A/B) a tarifu SENTINEL u zakázky.
 
 ## Co to je
-- Na budově zákazníka visí štítek 120 × 80 mm s QR: `https://hspg.cz/pas-domu#kod=<kód pasu>&pristup=<přístupový kód>` – přesně kontrakt odkazu z certifikátu (úkol 14 B1.5). Kdo naskenuje (např. ředitelka školy), uvidí pas bez psaní kódů; kód z adresy zmizí dřív, než odejde jakýkoli požadavek.
+- Na budově zákazníka visí štítek 120 × 80 mm s QR: `https://hspg.cz/pas-domu#kod=<kód pasu>&pristup=<přístupový kód>` – přesně kontrakt odkazu z předávacího listu (úkol 14 B1.5). Kdo naskenuje (např. ředitelka školy), uvidí pas bez psaní kódů; kód z adresy zmizí dřív, než odejde jakýkoli požadavek.
 - Pas objektu ukazuje: **druh objektu a obec** (nikdy název, adresu ani kontakty), stav záruky, další kontrolu, péči SENTINEL, **fotodokumentaci před/po s jezdcem**, **postup ošetření** (kroky Standardu HOLUB s daty a krátkým veřejným zápisem), historii, materiály a šarže, srážky a předpověď.
 - Majitel bude fotky a zápisy posílat průběžně. Data jsou v registru (Netlify Blobs) – **doplnění dat nepotřebuje nasazení** (žádné kredity), stránka je ukáže při dalším otevření.
 

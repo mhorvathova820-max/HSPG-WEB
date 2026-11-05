@@ -11,6 +11,8 @@
 
 **Číslování (sjednoceno 5. 11. 2026):** čísla 59, 60 a R22 vznikla 30. 10. ve dvou větvích dvakrát. Platí: **59 / R22** = štítek SENTINEL (`59-stitek-objektu-pas-fotky.md`), **60 / R23** = Cena ihned (`60-cena-ihned.md`), **61 / R24** = HSPG AI Gateway (`61-mcp-brana.md`, dříve `59-mcp-brana.md`). Čísla **62** a **63** jsou rezervovaná pro zadání majitele mimo balíček. Další volné číslo úkolu je **64**, rozhodnutí **R25**. Větev nebo log, který už vznikl pod starým číslem, nepřejmenovávej: pokračuj v něm a v hlášení uveď nové číslo.
 
+**Opravy balíčku 5. 11. 2026 – převezmi do webu i tam, kde úkol už proběhl** (jednou, v nejbližším úkolu, s testy a hlášením): `netlify/lib/mereni/mereni.mjs` (`SCHEMA` = „Orientační schéma, ne geodetické zaměření.“ – bez „z mapových podkladů“, úkol 23), `netlify/lib/lovec/dopis.mjs` (text AI se slovy z embarga se nepoužije, úkol 24; test `lovec-svj`), texty Pasu domu „předávací list“ místo „certifikát“ (`assets/pas-trezor.js`, `pas-domu/trezor.html`, úkoly 51 a 55; test `pas-trezor`). Liší-li se soubor ve webu od balíčku i jinde, přenes jen tyto změny a rozdíl nahlas.
+
 Důvod: nejdřív bezpečí a záloha (00), malé ověření webu v Seznamu a Bingu (20 – soubory jedou s nejbližším schváleným nasazením), asistent (01), poptávky (02), plánovač s počasím a rychlou rezervací (21 – zároveň odstraňuje licenční riziko stávajícího počasí z Open-Meteo) a chyba, kvůli které se návštěvník nedostane k formuláři (17), pak právní a pravdivostní rizika (03–05, 13, 09), pak technika a kvalita (06–08, 16, 10, 11, 18, 19, 15) a nakonec věci čekající na data (14, 12).
 
 Stav „hotové zadání“ = zadání je kompletní. „v1“ = zadání je napsané z ověřených nálezů, po dokončení

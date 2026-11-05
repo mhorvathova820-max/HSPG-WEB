@@ -71,10 +71,10 @@ export async function spustServer({ port = 0 } = {}) {
 // ---------------------------------------------------------------------------------------------------------------
 const KOD = "HS-2099-0001";
 const PRISTUP = "ABCD-EFGH-JKMN";
-const NENALEZENO = "Pas jsme nenašli. Zkontrolujte kód pasu a přístupový kód z certifikátu, nebo zavolejte +420 736 618 486.";
+const NENALEZENO = "Pas jsme nenašli. Zkontrolujte kód pasu a přístupový kód z předávacího listu, nebo zavolejte +420 736 618 486.";
 const LIMIT = "Příliš mnoho pokusů. Zkuste to za 15 minut, nebo zavolejte +420 736 618 486.";
 const SIT = "Pas se teď nepodařilo načíst. Zkuste to prosím za chvíli, nebo zavolejte +420 736 618 486.";
-const NAPOVEDA = "Kód pasu i přístupový kód najdete na certifikátu. Bez přístupového kódu pas neotevřeme – chráníme údaje o vašem domě.";
+const NAPOVEDA = "Kód pasu i přístupový kód najdete na předávacím listu. Bez přístupového kódu pas neotevřeme – chráníme údaje o vašem domě.";
 const FIRMA = JSON.parse(readFileSync(new URL("content/firma.json", `file://${WEB}`), "utf8"));
 const SENTINEL = JSON.parse(readFileSync(new URL("content/sentinel.json", `file://${WEB}`), "utf8"));
 const STANDARD = JSON.parse(readFileSync(new URL("content/standard.json", `file://${WEB}`), "utf8"));
@@ -255,7 +255,7 @@ if (process.env.PDT_SERVER) {
 
     // Chybný tvar: hláška u pole, nic se neodešle.
     await p.click("#pdt-otevrit");
-    assert.equal(bez(await p.innerText("#pdt-chyba")), "Zadejte kód pasu ve tvaru HS-RRRR-ČČČČ – najdete ho na certifikátu.");
+    assert.equal(bez(await p.innerText("#pdt-chyba")), "Zadejte kód pasu ve tvaru HS-RRRR-ČČČČ – najdete ho na předávacím listu.");
     assert.equal(await p.getAttribute("#pdt-kod", "aria-invalid"), "true");
     assert.equal(await p.evaluate(() => document.activeElement.id), "pdt-kod");
     await p.fill("#pdt-kod", KOD);
@@ -405,7 +405,7 @@ if (process.env.PDT_SERVER) {
     await ctx.close();
   });
 
-  test("odkaz z certifikátu: fragment zmizí z adresy dřív, než odejde požadavek; pas se otevře sám", async () => {
+  test("odkaz z předávacího listu: fragment zmizí z adresy dřív, než odejde požadavek; pas se otevře sám", async () => {
     const { p, ctx, pozadavky, chyby, vsechny } = await (async () => {
       const r = await stranka({
         cesta: `/pas-domu/trezor.html#kod=${KOD}&pristup=${PRISTUP}`,

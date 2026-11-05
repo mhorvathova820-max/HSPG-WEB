@@ -1,4 +1,4 @@
-// HSPG AI Gateway – MCP server (Model Context Protocol, transport Streamable HTTP) pro Claude majitele (úkol 59).
+// HSPG AI Gateway – MCP server (Model Context Protocol, transport Streamable HTTP) pro Claude majitele (úkol 61).
 // Jedna brána = jeden konektor: Claude (claude.ai, Cowork, Chrome, Desktop, Claude Code, Managed Agents)
 // se přes ni ptá ostatních AI – ChatGPT, Grok, Gemini, Perplexity, Mistral, DeepSeek, Llama – a hledá přes
 // You.com. Všechno jde stávající cestou webu: role a klíče z poskytovatele.mjs (vlastní klíč OpenRouter se ZDR,

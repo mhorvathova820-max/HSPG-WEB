@@ -120,7 +120,7 @@ Pravidlo `KONTEXT.md` §4.1: žádná nedoložená tvrzení, technologie ve výv
    | T07 | `do kořene`, `[Ll]ikvidace spor`, `šetrným biocid` | odstranit | Použij F5 a F6. | – |
    | T08 | `HYDRA`, `\bMAST\b`, `\bRAIL\b`, `SCAN ?5` | odstranit | Smaž řádek „Systém RAIL – Na dotaz“ z `/cenik` (ověř, že ho negeneruje `build-ceny.mjs`). V patičce `/` ponech jen označení, která web nabízí („H-STONE a SENTINEL“). Kariéru řeší T12, a to i v meta description. | O1: hotové → popsat jen doložené vlastnosti; ve vývoji → nanejvýš „připravujeme“ bez parametrů a termínů; interní název → nikde |
    | T09 | `\bMASK\b` (velkými písmeny; zachytí „systémem MASK“, „oken MASK“ i „(MASK)“) | preformulovat | Použij F8 „zakrývání oken“. Cena zůstává z `ceny.json`. | O3 |
-   | T10 | `štítk\w* Sentinel`, `indikátor` | odstranit | „Kód najdete na certifikátu.“ V ukázce pasu nahraď událost „Sentinel osazen … indikátor zelený“ textem „Pas domu aktivován“. Tarify SENTINEL neměň. | O2 |
+   | T10 | `štítk\w* Sentinel`, `indikátor` | odstranit | „Kód najdete na předávacím listu.“ V ukázce pasu nahraď událost „Sentinel osazen … indikátor zelený“ textem „Pas domu aktivován“. Tarify SENTINEL neměň. | O2 |
    | T11 | `visení na laně`, `[Žž]ádné výšky`, `bez výšek`, `[Tt]echnika zvládá výšky`, `[Tt]echnika ve výšce` | odstranit | Odstraň. | O6: jednotný popis práce ve výškách na všech stránkách |
    | T12 | `"JobPosting"`, `franšíz`, `dalších 20 let`, `flotil` | odstranit | Viz krok 10. | O8 |
    | T13 | `odpadá lešení`, `platform you avoid`, `lešení se na trhu`, `trh, orientačně`, `tržní sazba`, `VAŠE ÚSPORA` | ceka | Bez zdroje se nezobrazuje, viz krok 9. | O7 |
@@ -134,7 +134,7 @@ Pravidlo `KONTEXT.md` §4.1: žádná nedoložená tvrzení, technologie ve výv
    | T21 | `AggregateRating\|ratingValue\|reviewCount`, `4[,.]9 ?/ ?5`, `[Pp]ojiš[tť]\|[Pp]ojist`, `mil(\.\|ion[a-zů]*) Kč`, `[Ss]atelit`, `[Nn]ejlepší\|č\. ?1\b\|[Ll]ídr`, `až \d+ ?% (úspor\|investic)`, `polymerac`, `ideální klima` | odstranit | Dnes 0×, slouží jako prevence. | Povolit jen s dokladem změnou registru (hodnocení jen ze skutečných recenzí) |
    | T22 | `\[DOPLNIT` ve výstupu | odstranit | Placeholdery smí být jen v nepublikovaných návrzích. | – |
    | T23 | Spot (`reel/index.html` a přepis na `/`) | ceka | Viz krok 13. | O11 |
-   | T24 | `Garantovan[a-zý]* certifikát` | ceka | Neměň (blok certifikátu spravuje úkol 05). | O14: podle odpovědi ponechat, nebo přejmenovat na „Certifikát H-STONE“ (bez změny textu záruky) |
+   | T24 | `Garantovan[a-zý]* certifikát` | ceka | Neměň (blok certifikátu spravuje úkol 05). | O14 rozhodnuta v úkolu 55: „předávací list“ (po 55 má být 0 výskytů; text záruky beze změny) |
 
    **Výchozí schválené formulace.** Jsou převzaté z textů, které na webu už jsou, takže nejde o nová tvrzení. Majitel je může upravit (O6).
 
@@ -217,7 +217,7 @@ Pravidlo `KONTEXT.md` §4.1: žádná nedoložená tvrzení, technologie ve výv
 - **O11** Spot: schválíte nový text? Má spot do nového vykreslení zůstat, nebo ho skrýt?
 - **O12** Působnost „celá ČR, na vyžádání i EU“ (`content/firma.json`): platí? (Údaj předám úkolu 11 pro `/en` a JSON-LD.)
 - **O13** SENTINEL START „Připomenutí kontroly SMS“: kdo a jak SMS posílá? (SMS brána na webu neexistuje.)
-- **O14** Dostává zákazník po ošetření písemný certifikát H-STONE (s kódem pasu domu)? Má se na webu jmenovat „Garantovaný certifikát“, nebo stačí „Certifikát H-STONE“?
+- **O14** Dostává zákazník po ošetření písemný certifikát H-STONE (s kódem pasu domu)? Má se na webu jmenovat „Garantovaný certifikát“, nebo stačí „Certifikát H-STONE“? **Rozhodnuto 22. 10. (úkol 55, R21):** „předávací list“ – znovu se neptej.
 
 ## Akceptační kritéria
 ### Fáze A

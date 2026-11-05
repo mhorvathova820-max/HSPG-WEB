@@ -1,4 +1,4 @@
-// HSPG AI Gateway – /api/mcp (úkol 59): protokol MCP (JSON-RPC, SSE), tokeny (panel, pevný, OAuth), OAuth 2.1
+// HSPG AI Gateway – /api/mcp (úkol 61): protokol MCP (JSON-RPC, SSE), tokeny (panel, pevný, OAuth), OAuth 2.1
 // s PKCE a heslem panelu, pseudonymizace, rozpočet a limity, You.com, rada AI. Bez skutečných volání AI.
 import { test } from "node:test";
 import assert from "node:assert/strict";

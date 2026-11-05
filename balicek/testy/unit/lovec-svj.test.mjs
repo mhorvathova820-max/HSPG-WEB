@@ -55,7 +55,7 @@ function sit() {
   f.volani = volani;
   return f;
 }
-const ai = ({ kontrolaDopisu = true } = {}) => {
+const ai = ({ kontrolaDopisu = true, textDopisu = "nabízíme vám zaměření domu zdarma. Podle veřejných údajů má dům fasády přibližně 1 400 m²." } = {}) => {
   const volani = [];
   const ad = (fn) => ({ async dotaz(p) { volani.push(p); return { text: fn(p), stat: { vstup: 100, vystup: 50 } }; } });
   return {
@@ -68,7 +68,7 @@ const ai = ({ kontrolaDopisu = true } = {}) => {
       { url: "http://127.0.0.1/admin", typ: "email", hodnota: "a@b.cz" },
     ] })),
     claude: ad((p) => (/Zkontroluj dopis/.test(p.system) ? JSON.stringify(kontrolaDopisu ? { ok: true, problemy: [] } : { ok: false, problemy: ["vymyšlená cena"] }) : '{"patri":true,"role":"vybor","duvod":"kontakt výboru"}')),
-    mistral: ad(() => "nabízíme vám zaměření domu zdarma. Podle mapových podkladů má dům fasády přibližně 1 400 m²."),
+    mistral: ad(() => textDopisu),
   };
 };
 const e = env({ OPENROUTER_API_KEY: "test" });
@@ -148,6 +148,19 @@ test("Claude dopis neschválí → šablona z ověřených faktů (bez AI textu)
   const d = await post(h, { akce: "dopis", ico: "12345678" });
   assert.equal(d.headers.get("x-dopis-autor"), "sablona");
   assert.ok(!(await d.text()).includes("1 400 m²"), "text Mistralu se nepoužil");
+});
+
+test("dopis AI se slovy z embarga (mapové podklady, katastr) → šablona; Claude ho ani nekontroluje", async () => {
+  const { h, a } = lovec({ textDopisu: "Podle mapových podkladů a katastru má dům fasády přibližně 1 400 m²." });
+  const s = await (await post(h, { akce: "start", obec: "Kolín", n: 1 })).json();
+  await dobehni(h, s.beh);
+  await post(h, { akce: "schvalit", ico: "12345678" });
+  const pred = a.volani.length;
+  const d = await post(h, { akce: "dopis", ico: "12345678" });
+  assert.equal(d.headers.get("x-dopis-autor"), "sablona");
+  const html = await d.text();
+  assert.doesNotMatch(html.replace(/<div class="pravni">[\s\S]*?<\/div>/, ""), /mapov\S*\s+podklad|katastr|\bz map/i, "embargo slov mimo povinné uvedení zdrojů");
+  assert.ok(!a.volani.slice(pred).some((p) => /Zkontroluj dopis/.test(p.system)), "text s embargem jde rovnou zpět, bez kontroly");
 });
 
 test("neozývat: smaže záznam a příští běh subjekt přeskočí; dopis pro něj nejde", async () => {
