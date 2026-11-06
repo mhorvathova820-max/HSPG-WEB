@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Prvky Apex – ukázka komponent pro hspg.cz</title>
+  <!-- Ukázka pro vývoj (úkol 57). Nikdy se nenasazuje. Odkazy na styly jsou relativní k balíčku. -->
+  <link rel="stylesheet" href="../../web/assets/apex-tokens.css">
+  <link rel="stylesheet" href="../../web/assets/apex-prvky.css">
+  <style>
+    /* Jen rozvržení ukázkové stránky – komponenty stylují výhradně apex-prvky.css a apex-tokens.css. */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(60vw 40vh at 85% -10%, rgba(212, 175, 55, .14), transparent 60%),
+        radial-gradient(50vw 30vh at 10% 110%, rgba(122, 221, 255, .06), transparent 60%),
+        var(--apex-cern-0);
+      color: var(--apex-text);
+      font: 400 16px/1.55 var(--apex-pismo);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--apex-zlato-svetle); }
+    code { font: 500 .9em/1.4 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+    .uk-obal { width: min(1120px, 100% - 32px); margin: 0 auto; padding: 32px 0 64px; }
+    .uk-hlavicka { padding: 24px 0 8px; }
+    .uk-hlavicka h1 { margin: 10px 0 12px; font: 400 clamp(2rem, 5vw, 3.25rem)/1.1 var(--apex-pismo-nadpis); }
+    .uk-hlavicka h1 span { display: block; font-size: .5em; color: var(--apex-tlumene); }
+    .uk-uvod { max-width: 70ch; margin: 0; color: var(--apex-tlumene); }
+    .uk-pravidla { max-width: 70ch; margin: 18px 0 0; padding: 0 0 0 1.1rem; color: var(--apex-tlumene); font-size: .95rem; }
+    .uk-pravidla li { margin: 4px 0; }
+    .uk-obsah { margin: 24px 0 8px; }
+    .uk-obsah ul { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+    .uk-obsah a {
+      display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px;
+      border: 1px solid var(--apex-linka); border-radius: 999px;
+      color: var(--apex-text); font-size: .9rem; text-decoration: none;
+    }
+    .uk-obsah a:hover { border-color: var(--apex-linka-silna); color: var(--apex-zlato-svetle); }
+    .uk-obsah a:focus-visible { outline: 2px solid var(--apex-zlato-svetle); outline-offset: 3px; }
+    main { display: grid; gap: 28px; margin-top: 28px; }
+    .uk-sekce { padding: clamp(18px, 3vw, 32px); scroll-margin-top: 16px; }
+    .uk-sekce h2 { margin: 6px 0 8px; font: 400 clamp(1.4rem, 3vw, 1.9rem)/1.2 var(--apex-pismo-nadpis); }
+    .uk-trida { margin-left: .4em; padding: 2px 8px; border-radius: 8px; background: rgba(212, 175, 55, .12); color: var(--apex-zlato-svetle); font-size: .55em; vertical-align: middle; white-space: nowrap; }
+    .uk-kde { margin: 0 0 20px; max-width: 80ch; color: var(--apex-tlumene); font-size: .95rem; }
+    .uk-mrizka { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; }
+    @media (min-width: 900px) { .uk-mrizka { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); } }
+    .uk-ukazka {
+      display: flex; flex-wrap: wrap; align-items: flex-start; align-content: flex-start; gap: 18px 16px;
+      min-width: 0; padding: 26px 20px; border-radius: 18px;
+      border: 1px dashed var(--apex-linka); background: rgba(5, 7, 15, .45);
+    }
+    .uk-ukazka > .ap-sada, .uk-ukazka > .ap-prepinac, .uk-ukazka > .ap-pole, .uk-ukazka > .ap-karta, .uk-ukazka > .uk-scena, .uk-ukazka > .uk-vzornik, .uk-ukazka > .ap-nit-radek { flex: 1 1 100%; }
+    .uk-kod { min-width: 0; }
+    .uk-kod h3 { margin: 0 0 8px; font: 600 11px/1.2 var(--apex-pismo); letter-spacing: .32em; text-transform: uppercase; color: var(--apex-zlato); }
+    .uk-kod pre {
+      max-width: 100%; margin: 0; padding: 14px 16px; overflow: auto; border-radius: 14px;
+      border: 1px solid var(--apex-linka); background: var(--apex-cern-0);
+      color: var(--apex-text); font-size: 12.5px; line-height: 1.5; tab-size: 2;
+    }
+    .uk-kod pre:focus-visible { outline: 2px solid var(--apex-zlato-svetle); outline-offset: 3px; }
+    .uk-poznamka { margin: 12px 0 0; color: var(--apex-tlumene); font-size: .9rem; }
+    .uk-vzornik { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+    .uk-vzornik li { display: flex; align-items: center; gap: 14px; min-height: 50px; padding: 4px 6px 4px 4px; border-radius: 12px; border: 1px solid var(--apex-linka); }
+    .uk-vzorek { flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--vzorek); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .15); }
+    .uk-vzorek-text { flex: 1 1 auto; font-size: .95rem; color: var(--apex-tlumene); }
+    .uk-vzorek-text strong { display: block; color: var(--apex-text); font-weight: 600; }
+    .uk-scena {
+      position: relative; height: 330px; border-radius: 14px;
+      background: repeating-linear-gradient(0deg, transparent 0 23px, rgba(212, 175, 55, .08) 23px 24px), repeating-linear-gradient(90deg, transparent 0 23px, rgba(212, 175, 55, .08) 23px 24px);
+    }
+    .uk-scena .ap-napoveda { position: absolute; }
+    .uk-scena .ap-napoveda:nth-child(1) { left: 24px; bottom: 32px; }
+    .uk-scena .ap-napoveda:nth-child(2) { left: 32%; top: 24px; }
+    .uk-scena .ap-napoveda:nth-child(3) { right: 24px; bottom: 32px; }
+    @media (max-width: 599px) {
+      .uk-scena .ap-napoveda { --ap-np-dx: 24px; --ap-np-dy: 32px; }
+      .uk-scena .ap-napoveda:nth-child(2) { left: 24px; }
+    }
+    .uk-pata { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--apex-linka); color: var(--apex-tlumene); font-size: .9rem; }
+    .uk-pata p { margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <div class="uk-obal">
+    <header class="uk-hlavicka">
+      <p class="apex-stitek">HSPG Apex · úkol 57 · ukázka pro vývoj</p>
+      <h1>Prvky rozhraní Apex <span>dvanáct prvků z Uiverse.io upravených pro hspg.cz</span></h1>
+      <p class="uk-uvod">Matná čerň, obsidiánové sklo a&nbsp;tekuté zlato (rozhodnutí majitele R18). Každý prvek je čisté HTML + CSS ze souboru <code>web/assets/apex-prvky.css</code> – bez skriptů, bez CDN, bez stahování písem. Tato stránka je jen podklad pro vývoj a&nbsp;nikdy se nenasazuje.</p>
+      <ul class="uk-pravidla">
+        <li>Barvy jen přes tokeny <code>--apex-*</code>; text na skle má kontrast nejméně 4,5:1.</li>
+        <li>Cíle dotyku nejméně 44 × 44&nbsp;px, šířka 100 % na 390&nbsp;px bez vodorovného posunu.</li>
+        <li>Klávesnice: nativní vstupy zůstávají v&nbsp;DOM (jen vizuálně skryté), fokus má zlatý obrys 2&nbsp;px.</li>
+        <li>Omezení pohybu vypíná všechny smyčkové animace; nic nepulzuje při načtení.</li>
+      </ul>
+      <nav class="uk-obsah" aria-label="Obsah">
+        <ul>
+          <li><a href="#tlacitko">01 Skleněné tlačítko</a></li>
+          <li><a href="#prepinac">02 Přepínač</a></li>
+          <li><a href="#fajfka">03 Zaškrtávací pole</a></li>
+          <li><a href="#srdce">04 Uložit odstín</a></li>
+          <li><a href="#nit">05 Zlatá nit (čekání)</a></li>
+          <li><a href="#karta">06 Skleněná karta</a></li>
+          <li><a href="#napoveda">07 Vysvětlivka s odkazovou čárou</a></li>
+          <li><a href="#segment">08 Segmentový přepínač</a></li>
+          <li><a href="#volba-seznam">09 Svislý výběr se světelnou linkou</a></li>
+          <li><a href="#pole">10 Pole s plovoucím popiskem</a></li>
+          <li><a href="#tlacitko-obrys">11 Zlatý kovový rámeček</a></li>
+          <li><a href="#puls">12 CTA s pulzujícím prstencem</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+
+    <section class="uk-sekce apex-sklo" id="tlacitko" aria-labelledby="tlacitko-nadpis">
+      <header class="uk-sekce-hlava">
+        <p class="apex-stitek">01 · dexter-st · young-newt-20 · MIT</p>
+        <h2 id="tlacitko-nadpis">Skleněné tlačítko <code class="uk-trida">.ap-tlacitko</code></h2>
+        <p class="uk-kde">Hlavní CTA „Zaměřit na dálku“ na úvodní stránce a&nbsp;v&nbsp;HOLUB 360, „Rezervovat termín“ v&nbsp;plánovači. Obsidiánové sklo s&nbsp;horním leskem; zlatá záře vystoupí zespodu až při najetí nebo stisku.</p>
+      </header>
+      <div class="uk-mrizka">
+        <div class="uk-ukazka">
+          <button class="ap-tlacitko" type="button">
+            <svg class="ap-tlacitko__ikona" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19zm0 1.8a7.7 7.7 0 1 1 0 15.4 7.7 7.7 0 0 1 0-15.4zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg>
+            Zaměřit na dálku
+          </button>
+          <a class="ap-tlacitko ap-tlacitko--velke" href="#pole">Rezervovat termín</a>
+          <button class="ap-tlacitko" type="button" aria-busy="true">
+            <span class="ap-nit ap-nit--mala" aria-hidden="true"></span>
+            Zaměřujeme…
+          </button>
+        </div>
+        <div class="uk-kod">
+          <h3>Jak použít</h3>
+          <pre tabindex="0"><code>&lt;button class="ap-tlacitko" type="button"&gt;
+  &lt;svg class="ap-tlacitko__ikona" viewBox="0 0 24 24" aria-hidden="true"&gt;&lt;path fill-rule="evenodd" d="…"/&gt;&lt;/svg&gt;
+  Zaměřit na dálku
+&lt;/button&gt;
+&lt;a class="ap-tlacitko ap-tlacitko--velke" href="#pole"&gt;Rezervovat termín&lt;/a&gt;
+&lt;button class="ap-tlacitko" type="button" aria-busy="true"&gt;
+  &lt;span class="ap-nit ap-nit--mala" aria-hidden="true"&gt;&lt;/span&gt;
+  Zaměřujeme…
+&lt;/button&gt;</code></pre>
+          <p class="uk-poznamka">Funguje jako <code>&lt;button&gt;</code> i&nbsp;jako odkaz <code>&lt;a&gt;</code>. Ikona je nepovinná (<code>.ap-tlacitko__ikona</code>). Stav čekání: <code>aria-busy="true"</code> + malá zlatá nit uvnitř (jen dekorace, text tlačítka říká, co se děje).</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="uk-sekce apex-sklo" id="prepinac" aria-labelledby="prepinac-nadpis">
+      <header class="uk-sekce-hlava">
+        <p class="apex-stitek">02 · Galahhad · modern-quail-75 · MIT</p>
+        <h2 id="prepinac-nadpis">Přepínač <code class="uk-trida">.ap-prepinac</code></h2>
+        <p class="uk-kde">„Zvuk a&nbsp;vibrace“ v&nbsp;hlavičce panelu H-BOT a&nbsp;HOLUB 360 (úkol 56). Varianta s&nbsp;<code>&lt;input role="switch"&gt;</code> pro formuláře, varianta <code>&lt;button aria-pressed&gt;</code> pro stávající přepínač, který už obsluhuje <code>hspg-zazitek.js</code>.</p>
+      </header>
+      <div class="uk-mrizka">
+        <div class="uk-ukazka">
+          <label class="ap-prepinac">
+            <input class="ap-prepinac__vstup" type="checkbox" role="switch" checked>
+            <span class="ap-prepinac__draha" aria-hidden="true">
+              <span class="ap-prepinac__kolecko"><svg class="ap-prepinac__krizek" viewBox="0 0 365.696 365.696" aria-hidden="true"><path fill="currentColor" d="M243.188 182.86 356.32 69.726c12.5-12.5 12.5-32.766 0-45.247L341.238 9.398c-12.504-12.503-32.77-12.503-45.25 0L182.86 122.528 69.727 9.374c-12.5-12.5-32.766-12.5-45.247 0L9.375 24.457c-12.5 12.504-12.5 32.77 0 45.25l113.152 113.152L9.398 295.99c-12.503 12.503-12.503 32.769 0 45.25L24.48 356.32c12.5 12.5 32.766 12.5 45.247 0l113.132-113.132L295.99 356.32c12.503 12.5 32.769 12.5 45.25 0l15.081-15.082c12.5-12.504 12.5-32.77 0-45.25zm0 0"/></svg><svg class="ap-prepinac__fajfka" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.707 19.121a.997.997 0 0 1-1.414 0l-5.646-5.647a1.5 1.5 0 0 1 0-2.121l.707-.707a1.5 1.5 0 0 1 2.121 0L9 14.171l9.525-9.525a1.5 1.5 0 0 1 2.121 0l.707.707a1.5 1.5 0 0 1 0 2.121z"/></svg></span>
+            </span>
+            <span class="ap-prepinac__text">Zvuk a vibrace</span>
+          </label>
+          <button class="ap-prepinac" type="button" aria-pressed="false" id="uk-kulisa">
+            <span class="ap-prepinac__draha" aria-hidden="true">
+              <span class="ap-prepinac__kolecko"><svg class="ap-prepinac__krizek" viewBox="0 0 365.696 365.696" aria-hidden="true"><path fill="currentColor" d="M243.188 182.86 356.32 69.726c12.5-12.5 12.5-32.766 0-45.247L341.238 9.398c-12.504-12.503-32.77-12.503-45.25 0L182.86 122.528 69.727 9.374c-12.5-12.5-32.766-12.5-45.247 0L9.375 24.457c-12.5 12.504-12.5 32.77 0 45.25l113.152 113.152L9.398 295.99c-12.503 12.503-12.503 32.769 0 45.25L24.48 356.32c12.5 12.5 32.766 12.5 45.247 0l113.132-113.132L295.99 356.32c12.503 12.5 32.769 12.5 45.25 0l15.081-15.082c12.5-12.504 12.5-32.77 0-45.25zm0 0"/></svg><svg class="ap-prepinac__fajfka" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.707 19.121a.997.997 0 0 1-1.414 0l-5.646-5.647a1.5 1.5 0 0 1 0-2.121l.707-.707a1.5 1.5 0 0 1 2.121 0L9 14.171l9.525-9.525a1.5 1.5 0 0 1 2.121 0l.707.707a1.5 1.5 0 0 1 0 2.121z"/></svg></span>
+            </span>
+            <span class="ap-prepinac__text">Zvuková kulisa v úvodu</span>
+          </button>
+        </div>
+        <div class="uk-kod">
+          <h3>Jak použít</h3>
+          <pre tabindex="0"><code>&lt;label class="ap-prepinac"&gt;
+  &lt;input class="ap-prepinac__vstup" type="checkbox" role="switch" checked&gt;
+  &lt;span class="ap-prepinac__draha" aria-hidden="true"&gt;
+    &lt;span class="ap-prepinac__kolecko"&gt;&lt;svg class="ap-prepinac__krizek" viewBox="0 0 365.696 365.696" aria-hidden="true"&gt;&lt;path fill="currentColor" d="…"/&gt;&lt;/svg&gt;&lt;svg class="ap-prepinac__fajfka" viewBox="0 0 24 24" aria-hidden="true"&gt;&lt;path fill="currentColor" d="…"/&gt;&lt;/svg&gt;&lt;/span&gt;
+  &lt;/span&gt;
+  &lt;span class="ap-prepinac__text"&gt;Zvuk a vibrace&lt;/span&gt;
+&lt;/label&gt;
+&lt;button class="ap-prepinac" type="button" aria-pressed="false" id="uk-kulisa"&gt;
+  &lt;span class="ap-prepinac__draha" aria-hidden="true"&gt;
+    &lt;span class="ap-prepinac__kolecko"&gt;&lt;svg class="ap-prepinac__krizek" viewBox="0 0 365.696 365.696" aria-hidden="true"&gt;&lt;path fill="currentColor" d="…"/&gt;&lt;/svg&gt;&lt;svg class="ap-prepinac__fajfka" viewBox="0 0 24 24" aria-hidden="true"&gt;&lt;path fill="currentColor" d="…"/&gt;&lt;/svg&gt;&lt;/span&gt;
+  &lt;/span&gt;
+  &lt;span class="ap-prepinac__text"&gt;Zvuková kulisa v úvodu&lt;/span&gt;
+&lt;/button&gt;</code></pre>
+          <p class="uk-poznamka">Celý popisek je cíl dotyku (44&nbsp;px). U&nbsp;tlačítkové varianty přepíná <code>aria-pressed</code> skript webu – vzhled se řídí atributem, žádný další kód není potřeba.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="uk-sekce apex-sklo" id="fajfka" aria-labelledby="fajfka-nadpis">
+      <header class="uk-sekce-hlava">
+        <p class="apex-stitek">03 · SelfMadeSystem · green-bobcat-29 · MIT</p>
+        <h2 id="fajfka-nadpis">Zaškrtávací pole <code class="uk-trida">.ap-fajfka</code></h2>
+        <p class="uk-kde">Souhlasy v&nbsp;poptávce a&nbsp;v&nbsp;rezervaci, volby v&nbsp;„Cena hned“. Rámeček se jednou cestou SVG překreslí na fajfku (stroke-dashoffset); stejná technika poslouží razítkům OVĚŘUJE.</p>
+      </header>
+      <div class="uk-mrizka">
+        <div class="uk-ukazka">
+          <label class="ap-fajfka">
+            <input class="ap-fajfka__vstup" type="checkbox" name="souhlas" checked>
+            <svg class="ap-fajfka__ikona" viewBox="0 0 64 64" aria-hidden="true"><path class="ap-fajfka__cesta" pathLength="575.0541381835938" d="M 0 16 V 56 A 8 8 90 0 0 8 64 H 56 A 8 8 90 0 0 64 56 V 8 A 8 8 90 0 0 56 0 H 8 A 8 8 90 0 0 0 8 V 16 L 32 48 L 64 16 V 8 A 8 8 90 0 0 56 0 H 8 A 8 8 90 0 0 0 8 V 56 A 8 8 90 0 0 8 64 H 56 A 8 8 90 0 0 64 56 V 16"/></svg>
+            <span class="ap-fajfka__text">Souhlasím se zpracováním údajů pro vyřízení poptávky</span>
+          </label>
+          <label class="ap-fajfka">
+            <input class="ap-fajfka__vstup" type="checkbox" name="telefon">
+            <svg class="ap-fajfka__ikona" viewBox="0 0 64 64" aria-hidden="true"><path class="ap-fajfka__cesta" pathLength="575.0541381835938" d="M 0 16 V 56 A 8 8 90 0 0 8 64 H 56 A 8 8 90 0 0 64 56 V 8 A 8 8 90 0 0 56 0 H 8 A 8 8 90 0 0 0 8 V 16 L 32 48 L 64 16 V 8 A 8 8 90 0 0 56 0 H 8 A 8 8 90 0 0 0 8 V 56 A 8 8 90 0 0 8 64 H 56 A 8 8 90 0 0 64 56 V 16"/></svg>
+            <span class="ap-fajfka__text">Termín chci potvrdit telefonicky</span>
+          </label>
+        </div>
+        <div class="uk-kod">
+          <h3>Jak použít</h3>
+          <pre tabindex="0"><code>&lt;label class="ap-fajfka"&gt;
+  &lt;input class="ap-fajfka__vstup" type="checkbox" name="souhlas" checked&gt;
+  &lt;svg class="ap-fajfka__ikona" viewBox="0 0 64 64" aria-hidden="true"&gt;&lt;path class="ap-fajfka__cesta" d="…"/&gt;&lt;/svg&gt;
+  &lt;span class="ap-fajfka__text"&gt;Souhlasím se zpracováním údajů pro vyřízení poptávky&lt;/span&gt;
+&lt;/label&gt;
+&lt;label class="ap-fajfka"&gt;
+  &lt;input class="ap-fajfka__vstup" type="checkbox" name="telefon"&gt;
+  &lt;svg class="ap-fajfka__ikona" viewBox="0 0 64 64" aria-hidden="true"&gt;&lt;path class="ap-fajfka__cesta" d="…"/&gt;&lt;/svg&gt;
+  &lt;span class="ap-fajfka__text"&gt;Termín chci potvrdit telefonicky&lt;/span&gt;
+&lt;/label&gt;</code></pre>
+          <p class="uk-poznamka">Atribut <code>pathLength</code> na cestě musí zůstat – hodnoty <code>stroke-dasharray</code> v&nbsp;CSS se k&nbsp;němu vztahují.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="uk-sekce apex-sklo" id="srdce" aria-labelledby="srdce-nadpis">
+      <header class="uk-sekce-hlava">
+        <p class="apex-stitek">04 · catraco · plastic-moth-91 · MIT</p>
+        <h2 id="srdce-nadpis">Uložit odstín <code class="uk-trida">.ap-srdce</code></h2>
+        <p class="uk-kde">Vzorník odstínů RAL u&nbsp;cesty B (Barevná renovace) a&nbsp;uložení dlaždice v&nbsp;Pasu domu. Srdce se vyplní světlým zlatem a&nbsp;jednou zajiskří; při omezení pohybu se jen vyplní.</p>
+      </header>
+      <div class="uk-mrizka">
+        <div class="uk-ukazka">
+          <ul class="uk-vzornik" aria-label="Vzorník odstínů fasády (výběr)">
+            <li><span class="uk-vzorek" style="--vzorek: #EFE7D6" aria-hidden="true"></span><span class="uk-vzorek-text"><strong>RAL 9001</strong> Krémově bílá</span><label class="ap-srdce">
+            <input class="ap-srdce__vstup" type="checkbox" id="ral-9001" aria-label="Uložit odstín RAL 9001">
+            <span class="ap-srdce__ikony" aria-hidden="true">
+              <svg class="ap-srdce__obrys" viewBox="0 0 24 24"><path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Zm-3.585,18.4a2.973,2.973,0,0,1-3.83,0C4.947,16.006,2,11.87,2,8.967a4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,11,8.967a1,1,0,0,0,2,0,4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,22,8.967C22,11.87,19.053,16.006,13.915,20.313Z"/></svg>
+              <svg class="ap-srdce__plne" viewBox="0 0 24 24"><path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Z"/></svg>
+              <svg class="ap-srdce__jiskry" viewBox="0 0 100 100"><polygon points="10,10 20,20"/><polygon points="10,50 20,50"/><polygon points="20,80 30,70"/><polygon points="90,10 80,20"/><polygon points="90,50 80,50"/><polygon points="80,80 70,70"/></svg>
+            </span>
+          </label></li>
+            <li><span class="uk-vzorek" style="--vzorek: #E6D6A8" aria-hidden="true"></span><span class="uk-vzorek-text"><strong>RAL 1015</strong> Světlá slonovinová</span><label class="ap-srdce">
+            <input class="ap-srdce__vstup" type="checkbox" id="ral-1015" aria-label="Uložit odstín RAL 1015">
+            <span class="ap-srdce__ikony" aria-hidden="true">
+              <svg class="ap-srdce__obrys" viewBox="0 0 24 24"><path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Zm-3.585,18.4a2.973,2.973,0,0,1-3.83,0C4.947,16.006,2,11.87,2,8.967a4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,11,8.967a1,1,0,0,0,2,0,4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,22,8.967C22,11.87,19.053,16.006,13.915,20.313Z"/></svg>
+              <svg class="ap-srdce__plne" viewBox="0 0 24 24"><path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Z"/></svg>
+              <svg class="ap-srdce__jiskry" viewBox="0 0 100 100"><polygon points="10,10 20,20"/><polygon points="10,50 20,50"/><polygon points="20,80 30,70"/><polygon points="90,10 80,20"/><polygon points="90,50 80,50"/><polygon points="80,80 70,70"/></svg>
+            </span>
+          </label></li>
+            <li><span class="uk-vzorek" style="--vzorek: #293133" aria-hidden="true"></span><span class="uk-vzorek-text"><strong>RAL 7016</strong> Antracitová šedá</span><label class="ap-srdce">
+            <input class="ap-srdce__vstup" type="checkbox" id="ral-7016" aria-label="Uložit odstín RAL 7016">
+            <span class="ap-srdce__ikony" aria-hidden="true">
+              <svg class="ap-srdce__obrys" viewBox="0 0 24 24"><path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Zm-3.585,18.4a2.973,2.973,0,0,1-3.83,0C4.947,16.006,2,11.87,2,8.967a4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,11,8.967a1,1,0,0,0,2,0,4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,22,8.967C22,11.87,19.053,16.006,13.915,20.313Z"/></svg>
+              <svg class="ap-srdce__plne" viewBox="0 0 24 24"><path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Z"/></svg>
+              <svg class="ap-srdce__jiskry" viewBox="0 0 100 100"><polygon points="10,10 20,20"/><polygon points="10,50 20,50"/><polygon points="20,80 30,70"/><polygon points="90,10 80,20"/><polygon points="90,50 80,50"/><polygon points="80,80 70,70"/></svg>
+            </span>
+          </label></li>
+          </ul>
+        </div>
+        <div class="uk-kod">
+          <h3>Jak použít</h3>
+          <pre tabindex="0"><code>&lt;ul class="uk-vzornik" aria-label="Vzorník odstínů fasády (výběr)"&gt;
+  &lt;li&gt;&lt;span class="uk-vzorek" style="--vzorek: #EFE7D6" aria-hidden="true"&gt;&lt;/span&gt;&lt;span class="uk-vzorek-text"&gt;&lt;strong&gt;RAL 9001&lt;/strong&gt; Krémově bílá&lt;/span&gt;&lt;label class="ap-srdce"&gt;
+  &lt;input class="ap-srdce__vstup" type="checkbox" id="ral-9001" aria-label="Uložit odstín RAL 9001"&gt;
+  &lt;span class="ap-srdce__ikony" aria-hidden="true"&gt;
+    &lt;svg class="ap-srdce__obrys" viewBox="0 0 24 24"&gt;&lt;path d="…"/&gt;&lt;/svg&gt;
+    &lt;svg class="ap-srdce__plne" viewBox="0 0 24 24"&gt;&lt;path d="…"/&gt;&lt;/svg&gt;
+    &lt;svg class="ap-srdce__jiskry" viewBox="0 0 100 100"&gt;&lt;polygon points="10,10 20,20"/&gt;&lt;polygon points="10,50 20,50"/&gt;&lt;polygon points="20,80 30,70"/&gt;&lt;polygon points="90,10 80,20"/&gt;&lt;polygon points="90,50 80,50"/&gt;&lt;polygon points="80,80 70,70"/&gt;&lt;/svg&gt;
+  &lt;/span&gt;
+&lt;/label&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;span class="uk-vzorek" style="--vzorek: #E6D6A8" aria-hidden="true"&gt;&lt;/span&gt;&lt;span class="uk-vzorek-text"&gt;&lt;strong&gt;RAL 1015&lt;/strong&gt; Světlá slonovinová&lt;/span&gt;&lt;label class="ap-srdce"&gt;
+  &lt;input class="ap-srdce__vstup" type="checkbox" id="ral-1015" aria-label="Uložit odstín RAL 1015"&gt;
+  &lt;span class="ap-srdce__ikony" aria-hidden="true"&gt;
+    &lt;svg class="ap-srdce__obrys" viewBox="0 0 24 24"&gt;&lt;path d="…"/&gt;&lt;/svg&gt;
+    &lt;svg class="ap-srdce__plne" viewBox="0 0 24 24"&gt;&lt;path d="…"/&gt;&lt;/svg&gt;
+    &lt;svg class="ap-srdce__jiskry" viewBox="0 0 100 100"&gt;&lt;polygon points="10,10 20,20"/&gt;&lt;polygon points="10,50 20,50"/&gt;&lt;polygon points="20,80 30,70"/&gt;&lt;polygon points="90,10 80,20"/&gt;&lt;polygon points="90,50 80,50"/&gt;&lt;polygon points="80,80 70,70"/&gt;&lt;/svg&gt;
+  &lt;/span&gt;
+&lt;/label&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;span class="uk-vzorek" style="--vzorek: #293133" aria-hidden="true"&gt;&lt;/span&gt;&lt;span class="uk-vzorek-text"&gt;&lt;strong&gt;RAL 7016&lt;/strong&gt; Antracitová šedá&lt;/span&gt;&lt;label class="ap-srdce"&gt;
+  &lt;input class="ap-srdce__vstup" type="checkbox" id="ral-7016" aria-label="Uložit odstín RAL 7016"&gt;
+  &lt;span class="ap-srdce__ikony" aria-hidden="true"&gt;
+    &lt;svg class="ap-srdce__obrys" viewBox="0 0 24 24"&gt;&lt;path d="…"/&gt;&lt;/svg&gt;
+    &lt;svg class="ap-srdce__plne" viewBox="0 0 24 24"&gt;&lt;path d="…"/&gt;&lt;/svg&gt;
+    &lt;svg class="ap-srdce__jiskry" viewBox="0 0 100 100"&gt;&lt;polygon points="10,10 20,20"/&gt;&lt;polygon points="10,50 20,50"/&gt;&lt;polygon points="20,80 30,70"/&gt;&lt;polygon points="90,10 80,20"/&gt;&lt;polygon points="90,50 80,50"/&gt;&lt;polygon points="80,80 70,70"/&gt;&lt;/svg&gt;
+  &lt;/span&gt;
+&lt;/label&gt;&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+          <p class="uk-poznamka">Název pro čtečku dává <code>aria-label</code> na vstupu („Uložit odstín RAL 9001“). Odstíny a&nbsp;jejich kódy jsou z&nbsp;<code>content/standard.json</code>; barva na obrazovce je orientační.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="uk-sekce apex-sklo" id="nit" aria-labelledby="nit-nadpis">
+      <header class="uk-sekce-hlava">
+        <p class="apex-stitek">05 · xXJollyHAKERXx · lucky-falcon-75 · MIT</p>
+        <h2 id="nit-nadpis">Zlatá nit (čekání) <code class="uk-trida">.ap-nit</code></h2>
+        <p class="uk-kde">„Zaměřujeme…“ v&nbsp;HOLUB 360, „Počítáme…“ v&nbsp;„Cena hned“, příprava PDF kalkulace, čekání na odpověď H-BOTa. Dva prvky, žádný obrázek.</p>
+      </header>
+      <div class="uk-mrizka">
+        <div class="uk-ukazka">
+          <div class="ap-nit" role="status"><span class="ap-skryte">Zaměřujeme…</span></div>
+          <p class="ap-nit-radek" role="status"><span class="ap-nit ap-nit--mala" aria-hidden="true"></span>Počítáme orientační cenu…</p>
+          <p class="ap-nit-radek" role="status"><span class="ap-nit ap-nit--mala" aria-hidden="true"></span>Připravujeme PDF kalkulace…</p>
+        </div>
+        <div class="uk-kod">
+          <h3>Jak použít</h3>
+          <pre tabindex="0"><code>&lt;div class="ap-nit" role="status"&gt;&lt;span class="ap-skryte"&gt;Zaměřujeme…&lt;/span&gt;&lt;/div&gt;
+&lt;p class="ap-nit-radek" role="status"&gt;&lt;span class="ap-nit ap-nit--mala" aria-hidden="true"&gt;&lt;/span&gt;Počítáme orientační cenu…&lt;/p&gt;
+&lt;p class="ap-nit-radek" role="status"&gt;&lt;span class="ap-nit ap-nit--mala" aria-hidden="true"&gt;&lt;/span&gt;Připravujeme PDF kalkulace…&lt;/p&gt;</code></pre>
+          <p class="uk-poznamka">Proměnná <code>--ap-nit-pozadi</code> musí odpovídat pozadí, na kterém nit leží (výchozí obsidián <code>--apex-cern-1</code>). <code>role="status"</code> dej na prvek s&nbsp;textem; samotný prstenec bez textu je <code>aria-hidden</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="uk-sekce apex-sklo" id="karta" aria-labelledby="karta-nadpis">
+      <header class="uk-sekce-hlava">
+        <p class="apex-stitek">06 · joe-watson-sbf · honest-bullfrog-6 · MIT</p>
+        <h2 id="karta-nadpis">Skleněná karta <code class="uk-trida">.ap-karta</code></h2>
+        <p class="uk-kde">Karta ORIENTAČNÍ CENA v&nbsp;H-BOTovi, dlaždice kót a&nbsp;ploch v&nbsp;HOLUB 360, karty rozcestníku, moduly Pasu domu. Zlatý odlesk za sklem vpravo nahoře, při najetí zlatá záře.</p>
+      </header>
+      <div class="uk-mrizka">
+        <div class="uk-ukazka">
+          <article class="ap-karta" style="--ap-karta-max: 390px">
+            <span class="ap-karta__stitek">Orientační cena · cesta A</span>
+            <h3 class="ap-karta__nadpis">Střecha rodinného domu</h3>
+            <p class="ap-karta__cislo">178 Kč/m²</p>
+            <p class="ap-karta__text">Sazba z ceníku platného od 1.&nbsp;10.&nbsp;2026 (2× nástřik H-STONE). Částku za celou plochu ukáže kalkulace „Cena hned“ po zadání ploch.</p>
+            <p class="ap-karta__pata"><span>Záloha <strong>0 Kč</strong></span><span>Záruka <strong>10 let</strong> · péče SENTINEL BASE</span><span>Nejsme plátci DPH</span></p>
+          </article>
+        </div>
+        <div class="uk-kod">
+          <h3>Jak použít</h3>
+          <pre tabindex="0"><code>&lt;article class="ap-karta" style="--ap-karta-max: 390px"&gt;
+  &lt;span class="ap-karta__stitek"&gt;Orientační cena · cesta A&lt;/span&gt;
+  &lt;h3 class="ap-karta__nadpis"&gt;Střecha rodinného domu&lt;/h3&gt;
+  &lt;p class="ap-karta__cislo"&gt;178 Kč/m²&lt;/p&gt;
+  &lt;p class="ap-karta__text"&gt;Sazba z ceníku platného od 1.&amp;nbsp;10.&amp;nbsp;2026 (2× nástřik H-STONE). Částku za celou plochu ukáže kalkulace „Cena hned“ po zadání ploch.&lt;/p&gt;
+  &lt;p class="ap-karta__pata"&gt;&lt;span&gt;Záloha &lt;strong&gt;0 Kč&lt;/strong&gt;&lt;/span&gt;&lt;span&gt;Záruka &lt;strong&gt;10 let&lt;/strong&gt; · péče SENTINEL BASE&lt;/span&gt;&lt;span&gt;Nejsme plátci DPH&lt;/span&gt;&lt;/p&gt;
+&lt;/article&gt;</code></pre>
+          <p class="uk-poznamka">Šířka je 100 % rodiče, nejvýš <code>--ap-karta-max</code>. Bez podpory <code>backdrop-filter</code> má karta neprůhledný obsidián. Nadpis je patkový (<code>--apex-pismo-nadpis</code>), čísla mají tabulkové číslice.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="uk-sekce apex-sklo" id="napoveda" aria-labelledby="napoveda-nadpis">
+      <header class="uk-sekce-hlava">
+        <p class="apex-stitek">07 · vnuny · stale-mouse-74 · MIT</p>
+        <h2 id="napoveda-nadpis">Vysvětlivka s&nbsp;odkazovou čárou <code class="uk-trida">.ap-napoveda</code></h2>
+        <p class="uk-kde">Kóty v&nbsp;HOLUB 360 (hřeben, krokev, sklon) a&nbsp;vysvětlivky u&nbsp;položek ceny (záloha, doprava). Bod → šikmá linka → podtržený text, jako na technickém výkresu. Ukázkové hodnoty.</p>
+      </header>
+      <div class="uk-mrizka">
+        <div class="uk-ukazka">
+          <div class="uk-scena" role="group" aria-label="Ukázkové kóty střechy">
+            <span class="ap-napoveda" data-smer="nahoru-vpravo">
+              <button class="ap-napoveda__bod ap-napoveda__bod--kota" type="button" aria-describedby="np-hreben">14,2 m<span class="ap-skryte">, hřeben – vysvětlivka</span></button>
+              <span class="ap-napoveda__obsah" role="tooltip" id="np-hreben">Hřeben – délka nejvyšší hrany střechy. Odhad z obrysu domu, upřesníme při zaměření.</span>
+            </span>
+            <span class="ap-napoveda" data-smer="dolu-vpravo">
+              <button class="ap-napoveda__bod ap-napoveda__bod--kota" type="button" aria-describedby="np-krokev">6,7 m<span class="ap-skryte">, krokev – vysvětlivka</span></button>
+              <span class="ap-napoveda__obsah" role="tooltip" id="np-krokev">Krokev – délka šikmé strany střechy od okapu k hřebeni.</span>
+            </span>
+            <span class="ap-napoveda" data-smer="nahoru-vlevo">
+              <button class="ap-napoveda__bod" type="button" aria-describedby="np-sklon"><span aria-hidden="true">i</span><span class="ap-skryte">Sklon střechy – vysvětlivka</span></button>
+              <span class="ap-napoveda__obsah" role="tooltip" id="np-sklon">Sklon 38° – ovlivňuje spotřebu impregnace a způsob jištění na střeše.</span>
+            </span>
+          </div>
+        </div>
+        <div class="uk-kod">
+          <h3>Jak použít</h3>
+          <pre tabindex="0"><code>&lt;div class="uk-scena" role="group" aria-label="Ukázkové kóty střechy"&gt;
+  &lt;span class="ap-napoveda" data-smer="nahoru-vpravo"&gt;
+    &lt;button class="ap-napoveda__bod ap-napoveda__bod--kota" type="button" aria-describedby="np-hreben"&gt;14,2 m&lt;span class="ap-skryte"&gt;, hřeben – vysvětlivka&lt;/span&gt;&lt;/button&gt;
+    &lt;span class="ap-napoveda__obsah" role="tooltip" id="np-hreben"&gt;Hřeben – délka nejvyšší hrany střechy. Odhad z obrysu domu, upřesníme při zaměření.&lt;/span&gt;
+  &lt;/span&gt;
+  &lt;span class="ap-napoveda" data-smer="dolu-vpravo"&gt;
+    &lt;button class="ap-napoveda__bod ap-napoveda__bod--kota" type="button" aria-describedby="np-krokev"&gt;6,7 m&lt;span class="ap-skryte"&gt;, krokev – vysvětlivka&lt;/span&gt;&lt;/button&gt;
+    &lt;span class="ap-napoveda__obsah" role="tooltip" id="np-krokev"&gt;Krokev – délka šikmé strany střechy od okapu k hřebeni.&lt;/span&gt;
+  &lt;/span&gt;
+  &lt;span class="ap-napoveda" data-smer="nahoru-vlevo"&gt;
+    &lt;button class="ap-napoveda__bod" type="button" aria-describedby="np-sklon"&gt;&lt;span aria-hidden="true"&gt;i&lt;/span&gt;&lt;span class="ap-skryte"&gt;Sklon střechy – vysvětlivka&lt;/span&gt;&lt;/button&gt;
+    &lt;span class="ap-napoveda__obsah" role="tooltip" id="np-sklon"&gt;Sklon 38° – ovlivňuje spotřebu impregnace a způsob jištění na střeše.&lt;/span&gt;
+  &lt;/span&gt;
+&lt;/div&gt;</code></pre>
+          <p class="uk-poznamka">Zobrazí se při najetí a&nbsp;při fokusu z&nbsp;klávesnice. Na dotykových zařízeních tlačítko nedostává fokus – web mu po klepnutí přepne <code>aria-expanded</code> (tři řádky skriptu v&nbsp;ukázce dole). Směr čáry řídí <code>data-smer</code>: nahoru-vpravo, nahoru-vlevo, dolu-vpravo, dolu-vlevo.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="uk-sekce apex-sklo" id="segment" aria-labelledby="segment-nadpis">
+      <header class="uk-sekce-hlava">
+        <p class="apex-stitek">08 · chase2k25 · slimy-chipmunk-97 · MIT</p>
+        <h2 id="segment-nadpis">Segmentový přepínač <code class="uk-trida">.ap-segment</code></h2>
+        <p class="uk-kde">Volba cesty v&nbsp;„Cena hned“ (A&nbsp;· B · Čištění a&nbsp;ošetření), Střecha / Fasáda / Obojí v&nbsp;HOLUB 360, Standard / SENTINEL v&nbsp;péči. Zlatý jezdec klouže pod skleněnými segmenty.</p>
+      </header>
+      <div class="uk-mrizka">
+        <div class="uk-ukazka">
+          <fieldset class="ap-sada">
+            <legend class="ap-sada__nazev">Zvolte cestu</legend>
+            <div class="ap-segment" style="--ap-segmenty: 3">
+              <input class="ap-segment__vstup" type="radio" name="cesta" id="cesta-a" checked>
+              <label class="ap-segment__volba" for="cesta-a">A&nbsp;· Neviditelný štít</label>
+              <input class="ap-segment__vstup" type="radio" name="cesta" id="cesta-b">
+              <label class="ap-segment__volba" for="cesta-b">B&nbsp;· Barevná renovace</label>
+              <input class="ap-segment__vstup" type="radio" name="cesta" id="cesta-c">
+              <label class="ap-segment__volba" for="cesta-c">Čištění a&nbsp;ošetření</label>
+              <span class="ap-segment__jezdec" aria-hidden="true"></span>
+            </div>
+          </fieldset>
+          <fieldset class="ap-sada">
+            <legend class="ap-sada__nazev">Co ošetřit</legend>
+            <div class="ap-segment" style="--ap-segmenty: 3; --ap-segment-max: 420px">
+              <input class="ap-segment__vstup" type="radio" name="povrch" id="povrch-strecha" checked>
+              <label class="ap-segment__volba" for="povrch-strecha">Střecha</label>
+              <input class="ap-segment__vstup" type="radio" name="povrch" id="povrch-fasada">
+              <label class="ap-segment__volba" for="povrch-fasada">Fasáda</label>
+              <input class="ap-segment__vstup" type="radio" name="povrch" id="povrch-oboji">
+              <label class="ap-segment__volba" for="povrch-oboji">Obojí</label>
+              <span class="ap-segment__jezdec" aria-hidden="true"></span>
+            </div>
+          </fieldset>
+        </div>
+        <div class="uk-kod">
+          <h3>Jak použít</h3>
+          <pre tabindex="0"><code>&lt;fieldset class="ap-sada"&gt;
+  &lt;legend class="ap-sada__nazev"&gt;Zvolte cestu&lt;/legend&gt;
+  &lt;div class="ap-segment" style="--ap-segmenty: 3"&gt;
+    &lt;input class="ap-segment__vstup" type="radio" name="cesta" id="cesta-a" checked&gt;
+    &lt;label class="ap-segment__volba" for="cesta-a"&gt;A&amp;nbsp;· Neviditelný štít&lt;/label&gt;
+    &lt;input class="ap-segment__vstup" type="radio" name="cesta" id="cesta-b"&gt;
+    &lt;label class="ap-segment__volba" for="cesta-b"&gt;B&amp;nbsp;· Barevná renovace&lt;/label&gt;
+    &lt;input class="ap-segment__vstup" type="radio" name="cesta" id="cesta-c"&gt;
+    &lt;label class="ap-segment__volba" for="cesta-c"&gt;Čištění a&amp;nbsp;ošetření&lt;/label&gt;
+    &lt;span class="ap-segment__jezdec" aria-hidden="true"&gt;&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/fieldset&gt;
+&lt;fieldset class="ap-sada"&gt;
+  &lt;legend class="ap-sada__nazev"&gt;Co ošetřit&lt;/legend&gt;
+  &lt;div class="ap-segment" style="--ap-segmenty: 3; --ap-segment-max: 420px"&gt;
+    &lt;input class="ap-segment__vstup" type="radio" name="povrch" id="povrch-strecha" checked&gt;
+    &lt;label class="ap-segment__volba" for="povrch-strecha"&gt;Střecha&lt;/label&gt;
+    &lt;input class="ap-segment__vstup" type="radio" name="povrch" id="povrch-fasada"&gt;
+    &lt;label class="ap-segment__volba" for="povrch-fasada"&gt;Fasáda&lt;/label&gt;
+    &lt;input class="ap-segment__vstup" type="radio" name="povrch" id="povrch-oboji"&gt;
+    &lt;label class="ap-segment__volba" for="povrch-oboji"&gt;Obojí&lt;/label&gt;
+    &lt;span class="ap-segment__jezdec" aria-hidden="true"&gt;&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/fieldset&gt;</code></pre>
+          <p class="uk-poznamka">Vstupy a&nbsp;popisky se střídají (<code>input</code>, <code>label</code>, …), jezdec je poslední. Počet segmentů (2–4) nastavuje <code>--ap-segmenty</code>. Vybraná položka má tmavý text na zlatě (kontrast 9:1).</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="uk-sekce apex-sklo" id="volba-seznam" aria-labelledby="volba-seznam-nadpis">
+      <header class="uk-sekce-hlava">
+        <p class="apex-stitek">09 · Smit-Prajapati · quick-panther-98 · MIT</p>
+        <h2 id="volba-seznam-nadpis">Svislý výběr se světelnou linkou <code class="uk-trida">.ap-volba-seznam</code></h2>
+        <p class="uk-kde">Postup 01–05 v&nbsp;„Cena hned“ (Standard HOLUB), volba cesty v&nbsp;levém panelu H-BOTa, rozcestník. Zlatá světelná linka sjede k&nbsp;vybrané položce.</p>
+      </header>
+      <div class="uk-mrizka">
+        <div class="uk-ukazka">
+          <fieldset class="ap-sada">
+            <legend class="ap-sada__nazev">Postup Standardu HOLUB</legend>
+            <div class="ap-volba-seznam" style="--ap-volby: 5">
+              <input class="ap-volba-seznam__vstup" type="radio" name="krok" id="krok-1" checked>
+              <label class="ap-volba-seznam__volba" for="krok-1"><span class="ap-volba-seznam__cislo">01</span>Čištění</label>
+              <input class="ap-volba-seznam__vstup" type="radio" name="krok" id="krok-2">
+              <label class="ap-volba-seznam__volba" for="krok-2"><span class="ap-volba-seznam__cislo">02</span>Odmaštění</label>
+              <input class="ap-volba-seznam__vstup" type="radio" name="krok" id="krok-3">
+              <label class="ap-volba-seznam__volba" for="krok-3"><span class="ap-volba-seznam__cislo">03</span>Ošetření biocidy</label>
+              <input class="ap-volba-seznam__vstup" type="radio" name="krok" id="krok-4">
+              <label class="ap-volba-seznam__volba" for="krok-4"><span class="ap-volba-seznam__cislo">04</span>Oplach</label>
+              <input class="ap-volba-seznam__vstup" type="radio" name="krok" id="krok-5">
+              <label class="ap-volba-seznam__volba" for="krok-5"><span class="ap-volba-seznam__cislo">05</span>Ochranná vrstva</label>
+              <span class="ap-volba-seznam__linka" aria-hidden="true"><span class="ap-volba-seznam__jezdec"></span></span>
+            </div>
+          </fieldset>
+        </div>
+        <div class="uk-kod">
+          <h3>Jak použít</h3>
+          <pre tabindex="0"><code>&lt;fieldset class="ap-sada"&gt;
+  &lt;legend class="ap-sada__nazev"&gt;Postup Standardu HOLUB&lt;/legend&gt;
+  &lt;div class="ap-volba-seznam" style="--ap-volby: 5"&gt;
+    &lt;input class="ap-volba-seznam__vstup" type="radio" name="krok" id="krok-1" checked&gt;
+    &lt;label class="ap-volba-seznam__volba" for="krok-1"&gt;&lt;span class="ap-volba-seznam__cislo"&gt;01&lt;/span&gt;Čištění&lt;/label&gt;
+    &lt;input class="ap-volba-seznam__vstup" type="radio" name="krok" id="krok-2"&gt;
+    &lt;label class="ap-volba-seznam__volba" for="krok-2"&gt;&lt;span class="ap-volba-seznam__cislo"&gt;02&lt;/span&gt;Odmaštění&lt;/label&gt;
+    &lt;input class="ap-volba-seznam__vstup" type="radio" name="krok" id="krok-3"&gt;
+    &lt;label class="ap-volba-seznam__volba" for="krok-3"&gt;&lt;span class="ap-volba-seznam__cislo"&gt;03&lt;/span&gt;Ošetření biocidy&lt;/label&gt;
+    &lt;input class="ap-volba-seznam__vstup" type="radio" name="krok" id="krok-4"&gt;
+    &lt;label class="ap-volba-seznam__volba" for="krok-4"&gt;&lt;span class="ap-volba-seznam__cislo"&gt;04&lt;/span&gt;Oplach&lt;/label&gt;
+    &lt;input class="ap-volba-seznam__vstup" type="radio" name="krok" id="krok-5"&gt;
+    &lt;label class="ap-volba-seznam__volba" for="krok-5"&gt;&lt;span class="ap-volba-seznam__cislo"&gt;05&lt;/span&gt;Ochranná vrstva&lt;/label&gt;
+    &lt;span class="ap-volba-seznam__linka" aria-hidden="true"&gt;&lt;span class="ap-volba-seznam__jezdec"&gt;&lt;/span&gt;&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/fieldset&gt;</code></pre>
+          <p class="uk-poznamka">Řádky mají vždy stejnou výšku (mřížka), takže linka sedí i&nbsp;při zalomení textu na úzkém displeji. <code>--ap-volby</code> = počet položek (do 10).</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="uk-sekce apex-sklo" id="pole" aria-labelledby="pole-nadpis">
+      <header class="uk-sekce-hlava">
+        <p class="apex-stitek">10 · liyaxu123 · warm-eel-62 · MIT</p>
+        <h2 id="pole-nadpis">Pole s&nbsp;plovoucím popiskem <code class="uk-trida">.ap-pole</code></h2>
+        <p class="uk-kde">„Adresa domu“ v&nbsp;HOLUB 360 (jediný vstup před zaměřením), pole poptávky a&nbsp;rezervace, „Zavolejte mi“ v&nbsp;H-BOTovi. Podtržení, popisek vypluje nahoru a&nbsp;zezlátne.</p>
+      </header>
+      <div class="uk-mrizka">
+        <div class="uk-ukazka">
+          <div class="ap-pole">
+            <input class="ap-pole__vstup" id="adresa" name="adresa" type="text" placeholder=" " autocomplete="street-address" aria-describedby="adresa-napoveda">
+            <label class="ap-pole__popisek" for="adresa">Adresa domu</label>
+            <p class="ap-pole__napoveda" id="adresa-napoveda">Ulice a číslo domu, obec – aspoň 3 znaky.</p>
+          </div>
+          <div class="ap-pole ap-pole--vlna">
+            <input class="ap-pole__vstup" id="telefon" name="telefon" type="tel" placeholder=" " autocomplete="tel" inputmode="tel">
+            <label class="ap-pole__popisek" for="telefon"><span class="ap-skryte">Telefon</span><span aria-hidden="true"><span class="ap-pole__pismeno" style="--i: 0">T</span><span class="ap-pole__pismeno" style="--i: 1">e</span><span class="ap-pole__pismeno" style="--i: 2">l</span><span class="ap-pole__pismeno" style="--i: 3">e</span><span class="ap-pole__pismeno" style="--i: 4">f</span><span class="ap-pole__pismeno" style="--i: 5">o</span><span class="ap-pole__pismeno" style="--i: 6">n</span></span></label>
+          </div>
+          <div class="ap-pole">
+            <input class="ap-pole__vstup" id="email" name="email" type="email" placeholder=" " autocomplete="email" aria-invalid="true" aria-describedby="email-chyba" value="jan.novak@">
+            <label class="ap-pole__popisek" for="email">E-mail</label>
+            <p class="ap-pole__chyba" id="email-chyba">Doplňte prosím část za zavináčem.</p>
+          </div>
+        </div>
+        <div class="uk-kod">
+          <h3>Jak použít</h3>
+          <pre tabindex="0"><code>&lt;div class="ap-pole"&gt;
+  &lt;input class="ap-pole__vstup" id="adresa" name="adresa" type="text" placeholder=" " autocomplete="street-address" aria-describedby="adresa-napoveda"&gt;
+  &lt;label class="ap-pole__popisek" for="adresa"&gt;Adresa domu&lt;/label&gt;
+  &lt;p class="ap-pole__napoveda" id="adresa-napoveda"&gt;Ulice a číslo domu, obec – aspoň 3 znaky.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="ap-pole ap-pole--vlna"&gt;
+  &lt;input class="ap-pole__vstup" id="telefon" name="telefon" type="tel" placeholder=" " autocomplete="tel" inputmode="tel"&gt;
+  &lt;label class="ap-pole__popisek" for="telefon"&gt;&lt;span class="ap-skryte"&gt;Telefon&lt;/span&gt;&lt;span aria-hidden="true"&gt;&lt;span class="ap-pole__pismeno" style="--i: 0"&gt;T&lt;/span&gt;&lt;span class="ap-pole__pismeno" style="--i: 1"&gt;e&lt;/span&gt;&lt;span class="ap-pole__pismeno" style="--i: 2"&gt;l&lt;/span&gt;&lt;span class="ap-pole__pismeno" style="--i: 3"&gt;e&lt;/span&gt;&lt;span class="ap-pole__pismeno" style="--i: 4"&gt;f&lt;/span&gt;&lt;span class="ap-pole__pismeno" style="--i: 5"&gt;o&lt;/span&gt;&lt;span class="ap-pole__pismeno" style="--i: 6"&gt;n&lt;/span&gt;&lt;/span&gt;&lt;/label&gt;
+&lt;/div&gt;
+&lt;div class="ap-pole"&gt;
+  &lt;input class="ap-pole__vstup" id="email" name="email" type="email" placeholder=" " autocomplete="email" aria-invalid="true" aria-describedby="email-chyba" value="jan.novak@"&gt;
+  &lt;label class="ap-pole__popisek" for="email"&gt;E-mail&lt;/label&gt;
+  &lt;p class="ap-pole__chyba" id="email-chyba"&gt;Doplňte prosím část za zavináčem.&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+          <p class="uk-poznamka"><code>placeholder=" "</code> (mezera) je nutný – vyplutí řídí <code>:not(:placeholder-shown)</code>, ne <code>:valid</code>, proto funguje i&nbsp;u&nbsp;nepovinných polí. Varianta <code>ap-pole--vlna</code> vyplouvá po písmenech; pro čtečky má celý text ve skrytém spanu.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="uk-sekce apex-sklo" id="tlacitko-obrys" aria-labelledby="tlacitko-obrys-nadpis">
+      <header class="uk-sekce-hlava">
+        <p class="apex-stitek">11 · vinodjangid07 · pink-cheetah-68 · MIT</p>
+        <h2 id="tlacitko-obrys-nadpis">Zlatý kovový rámeček <code class="uk-trida">.ap-tlacitko-obrys</code></h2>
+        <p class="uk-kde">Sekundární tlačítka: „Stáhnout kalkulaci (PDF)“, „Upravit plochy“, „Zobrazit NÁVRH smlouvy o&nbsp;dílo“. Obvodový kovový přechod se při najetí přelije.</p>
+      </header>
+      <div class="uk-mrizka">
+        <div class="uk-ukazka">
+          <button class="ap-tlacitko-obrys" type="button"><svg class="ap-tlacitko-obrys__ikona" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10m0 0 4-4m-4 4-4-4M4 17v3h16v-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Stáhnout kalkulaci (PDF)</button>
+          <button class="ap-tlacitko-obrys" type="button">Upravit plochy</button>
+          <a class="ap-tlacitko-obrys" href="#volba-seznam">Jak pracujeme</a>
+        </div>
+        <div class="uk-kod">
+          <h3>Jak použít</h3>
+          <pre tabindex="0"><code>&lt;button class="ap-tlacitko-obrys" type="button"&gt;&lt;svg class="ap-tlacitko-obrys__ikona" viewBox="0 0 24 24" aria-hidden="true"&gt;&lt;path d="…" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/&gt;&lt;/svg&gt;Stáhnout kalkulaci (PDF)&lt;/button&gt;
+&lt;button class="ap-tlacitko-obrys" type="button"&gt;Upravit plochy&lt;/button&gt;
+&lt;a class="ap-tlacitko-obrys" href="#volba-seznam"&gt;Jak pracujeme&lt;/a&gt;</code></pre>
+          <p class="uk-poznamka">Text je skutečný obsah tlačítka (v&nbsp;originálu byl v&nbsp;<code>content:</code> pseudoprvku, čtečka ho nečetla). Výška 44&nbsp;px, šířka podle textu.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="uk-sekce apex-sklo" id="puls" aria-labelledby="puls-nadpis">
+      <header class="uk-sekce-hlava">
+        <p class="apex-stitek">12 · Li-Deheng · shy-moth-10 · MIT</p>
+        <h2 id="puls-nadpis">CTA s&nbsp;pulzujícím prstencem <code class="uk-trida">.ap-puls</code></h2>
+        <p class="uk-kde">„Pokračovat na cenu“ po rozlomení pečeti, případně hlavní CTA po dokončení zaměření. Prstenec nikdy neběží při načtení – spustí ho až třída <code>ap-puls--aktivni</code> po akci návštěvníka a&nbsp;doběhne nejvýš 3×.</p>
+      </header>
+      <div class="uk-mrizka">
+        <div class="uk-ukazka">
+          <a class="ap-puls" href="#karta" id="uk-puls-cil"><span>Pokračovat na cenu</span><svg class="ap-puls__sipky" viewBox="0 0 66 43" aria-hidden="true"><polygon points="39.58,4.46 44.11,0 66,21.5 44.11,43 39.58,38.54 56.94,21.5"/><polygon points="19.79,4.46 24.32,0 46.21,21.5 24.32,43 19.79,38.54 37.15,21.5"/><polygon points="0,4.46 4.53,0 26.42,21.5 4.53,43 0,38.54 17.36,21.5"/></svg></a>
+          <button class="ap-tlacitko-obrys" type="button" id="uk-puls-spustit">Rozlomit pečeť (spustí puls 3×)</button>
+        </div>
+        <div class="uk-kod">
+          <h3>Jak použít</h3>
+          <pre tabindex="0"><code>&lt;a class="ap-puls" href="#karta" id="uk-puls-cil"&gt;&lt;span&gt;Pokračovat na cenu&lt;/span&gt;&lt;svg class="ap-puls__sipky" viewBox="0 0 66 43" aria-hidden="true"&gt;&lt;polygon points="…"/&gt;&lt;polygon points="…"/&gt;&lt;polygon points="…"/&gt;&lt;/svg&gt;&lt;/a&gt;
+&lt;button class="ap-tlacitko-obrys" type="button" id="uk-puls-spustit"&gt;Rozlomit pečeť (spustí puls 3×)&lt;/button&gt;</code></pre>
+          <p class="uk-poznamka">Spuštění po akci: <code>prvek.classList.add('ap-puls--aktivni')</code>; po doběhnutí třídu odeber v&nbsp;události <code>animationend</code>. Při omezení pohybu se prstenec nespustí vůbec (<code>animation: none</code>). Fokus má vlastní dvojitý prstenec – <code>outline</code> patří pulsu.</p>
+        </div>
+      </div>
+    </section>
+    </main>
+    <footer class="uk-pata">
+      <p>Licence: všech dvanáct prvků pochází z&nbsp;<a href="https://uiverse.io" rel="noopener">uiverse.io</a> a&nbsp;je zveřejněno pod licencí MIT. Autoři, odkazy a&nbsp;plné znění licence: <a href="../../web/LICENSES-THIRD-PARTY.md">LICENSES-THIRD-PARTY.md</a> (na webu <code>/LICENSES-THIRD-PARTY.md</code>, odkaz „Licence“ v&nbsp;patičce).</p>
+      <p>Co bylo změněno: barvy na tokeny Apex, velikosti cílů, přístupné skrytí vstupů, viditelný fokus, texty do skutečného obsahu, omezení pohybu, puls jen po akci. Zdrojové prvky a&nbsp;poznámky k&nbsp;úpravám: <code>balicek/ukoly/57-apex-prvky-uiverse.md</code>.</p>
+    </footer>
+  </div>
+  <script>
+    // Jen pro ukázku – na webu totéž dělá skript stránky. Komponenty samy žádný skript nepotřebují.
+    // 1) Puls po akci návštěvníka: spustí se třídou, po doběhnutí (nejvýš 3×) se třída odebere.
+    var cil = document.getElementById("uk-puls-cil");
+    document.getElementById("uk-puls-spustit").addEventListener("click", function () {
+      cil.classList.remove("ap-puls--aktivni");
+      void cil.offsetWidth;
+      cil.classList.add("ap-puls--aktivni");
+    });
+    cil.addEventListener("animationend", function () { cil.classList.remove("ap-puls--aktivni"); });
+    // 2) Tlačítková varianta přepínače: stav drží aria-pressed.
+    var kulisa = document.getElementById("uk-kulisa");
+    kulisa.addEventListener("click", function () { kulisa.setAttribute("aria-pressed", kulisa.getAttribute("aria-pressed") !== "true"); });
+    // 3) Vysvětlivky na dotykových zařízeních: klepnutí přepne aria-expanded (tlačítko tam nedostává fokus).
+    document.querySelectorAll(".ap-napoveda__bod").forEach(function (b) {
+      b.addEventListener("click", function () { b.setAttribute("aria-expanded", b.getAttribute("aria-expanded") !== "true"); });
+    });
+  </script>
+</body>
+</html>

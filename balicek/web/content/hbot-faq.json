@@ -42,7 +42,7 @@
         "křeh"
       ],
       "q": "Nepoškodí tlaková voda střechu nebo fasádu?",
-      "a": "Ne. Tlak i trysky volíme podle materiálu — beton, pálená taška, omítka i zámková dlažba mají svůj vlastní postup. Křehké povrchy ošetřujeme šetrným biocidním postupem bez tlaku. Proto vždy začínáme obhlídkou z mapy a fotografií."
+      "a": "Ne. Tlak i trysky volíme podle materiálu — beton, pálená taška, omítka i zámková dlažba mají svůj vlastní postup. Křehké povrchy ošetřujeme šetrným biocidním postupem bez tlaku. Proto vždy začínáme zaměřením na dálku (HOLUB CORE QUANTUM SENSE) a fotografiemi."
     },
     {
       "k": [
@@ -74,7 +74,7 @@
         "výšk"
       ],
       "q": "Potřebujete lešení?",
-      "a": "Většinou ne — pracujeme vlastní technikou bez lešení. Přístup posoudíme předem; kdyby bylo lešení výjimečně nutné, uvedeme to v nabídce. Zaměříme na dálku z map a nezávaznou cenu pošleme do 24 hodin."
+      "a": "Většinou ne — pracujeme vlastní technikou bez lešení. Přístup posoudíme předem; kdyby bylo lešení výjimečně nutné, uvedeme to v nabídce. Orientační cenu spočítáte hned tady v H-BOTovi (Cena hned); přesnou potvrdíme do 24 hodin po zaměření na dálku."
     },
     {
       "k": [
@@ -84,7 +84,7 @@
         "hřeben"
       ],
       "q": "K čemu je měděný prvek na střeše?",
-      "a": "Měděné pásy a hřebenové prvky montujeme pod hřebenáče při ošetření střechy — bez lešení. Déšť z mědi uvolňuje stopové ionty a splavuje je po taškách, což pomáhá zpomalit návrat mechů a řas. Výsledek závisí na sklonu, zastínění a údržbě. Funguje jen s deštěm — bez elektřiny a údržby."
+      "a": "Měděný hřebenový prvek s ražbou holuba montujeme pod hřebenáče při ošetření střechy — bez lešení. Je to doplněk k ochraně střechy; zda je pro vaši střechu vhodný, posoudíme na místě podle sklonu, zastínění a materiálu. Cenu doplňku najdete v kalkulaci „Cena hned“."
     },
     {
       "k": [
@@ -107,11 +107,11 @@
         "servis"
       ],
       "q": "Jak funguje trvalá péče?",
-      "a": "Každý dům v záruce má tarif SENTINEL START zdarma — technickou kontrolu jednou za 24 měsíců a digitální pas domu. Tarify PLUS a PREMIUM přidávají servis dvakrát ročně, čištění okapů a lokální obnovu vrstvy.",
       "link": [
         "/cenik.html#sentinel",
         "Tarify SENTINEL"
-      ]
+      ],
+      "typ": "sentinel"
     },
     {
       "k": [
@@ -142,7 +142,7 @@
         "zahranič"
       ],
       "q": "Kde působíte?",
-      "a": "Po celé České republice, na vyžádání i v EU. Zaměříme na dálku z map, takže technik k vám kvůli ceně jezdit nemusí."
+      "a": "Po celé České republice, na vyžádání i v EU. Zaměříme na dálku (HOLUB CORE QUANTUM SENSE), takže technik k vám kvůli ceně jezdit nemusí."
     },
     {
       "k": [
@@ -164,7 +164,38 @@
         "průběh"
       ],
       "q": "Jaký je postup?",
-      "a": "Vždy celý postup: 01 Čištění — tlak i trysky podle materiálu, bez lešení. 02 Odmaštění — aby další vrstvy měly na čem držet. 03 Biocid H-BIO — likvidace spor v hloubce pórů. 04 Impregnace H-STONE — hydrofobní vrstva, neviditelná a prodyšná."
+      "typ": "postup",
+      "link": [
+        "/standard-holub/",
+        "Standard HOLUB"
+      ]
+    },
+    {
+      "k": [
+        "rozdíl",
+        "rozdil",
+        "cesta",
+        "cesty",
+        "cestu",
+        "štít",
+        "stit",
+        "renovac",
+        "barevn",
+        "barva",
+        "barvu",
+        "nátěr",
+        "nater",
+        "impregnac",
+        "vybrat",
+        "zvolit",
+        "kterou"
+      ],
+      "q": "Jaký je rozdíl mezi neviditelným štítem a barevnou renovací?",
+      "a": "Kroky 01–04 Standardu HOLUB jsou vždy stejné: čištění, odmaštění, ošetření biocidy a oplach. Rozdíl je až v kroku 05. Cesta A – neviditelný štít H-STONE: 2× nástřik hydrofobní nano-impregnace, voda perlí, povrch dýchá a vzhled zůstává; hodí se pro střechu, fasádu i dlažbu a při péči SENTINEL BASE platí záruka 10 let. Cesta B – barevná renovace: penetrace a 2× strojní airless nástřik ohřívanou barvou v odstínu RAL nebo NCS podle vašeho výběru; pro střechu a fasádu, když chcete povrchu vrátit nebo změnit barvu. Bez ochranné vrstvy můžete zvolit i samotné čištění a ošetření (kroky 01–04).",
+      "link": [
+        "/standard-holub/",
+        "Standard HOLUB"
+      ]
     },
     {
       "k": [

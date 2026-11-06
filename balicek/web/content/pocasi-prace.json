@@ -76,7 +76,18 @@
   },
   "verejne": {
     "_poznamka": "Pro zákazníky (plánovač, /akce/): den „bez deště“ = srážky za celý den (místní čas) nejvýš suchoMm. Fakta z předpovědi, žádné hodnocení vhodnosti – to rozhoduje technik.",
-    "suchoMm": 0.5
+    "suchoMm": 0.5,
+    "technologickeOkno": {
+      "_poznamka": "Pravidlo pro veřejný kalendář (HOLUB 360, plánovač): rozhodnutí majitele 22. 10. 2026 (R17). Den je technologicky nevhodný, když pravděpodobnost srážek v pracovní době překročí hranici nebo teplota v pracovní době klesne pod minimum. Zákazníkům se den zobrazí šrafovaně a nejde vybrat.",
+      "potvrzeno": true,
+      "pravdepodobnostSrazekMax": 30,
+      "teplotaMin": 5,
+      "pracovniDoba": {
+        "od": 7,
+        "do": 19
+      },
+      "text": "Technologicky nevhodný den (Ochranné vrstvy a barvy vyžadují bezsrážkové klima)"
+    }
   },
   "_zdroje": "Rozsahy z technických listů (Sika, Mapei, Den Braven, Soudal, Remmers, Lithofin, Weber) – seznam s odkazy v balicek/ukoly/21-planovac-pocasi.md. Vítr: žádný list neuvádí číslo – 8 m/s (nárazy 12) je volba majitele. Údaje o dešti po nanesení platí při +20 °C, v chladu déle. Impregnaci plánovat nejdřív 48 h po mytí nebo biocidu."
 }

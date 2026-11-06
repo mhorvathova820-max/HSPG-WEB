@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<title>Cena hned – celý Standard HOLUB, volba cesty a živá orientační cena</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+:root{--apex-cern-0:#05070f;--apex-cern-1:#0b0f19;--apex-zlato:#d4af37;--apex-zlato-svetle:#f6e7a8;--apex-zlato-tmave:#8a6a12;--apex-na-zlate:#17120a;--apex-tlumene:#b9b3a4;--apex-text:#f4f1e8;--apex-linka:rgba(212,175,55,.22);--apex-linka-silna:rgba(212,175,55,.45);--apex-zaobleni:22px;--apex-krivka:cubic-bezier(.2,.8,.2,1)}
+body{margin:0;background:var(--apex-cern-0,#05070f)}
+a{color:var(--apex-zlato-svetle,#f6e7a8)}a:hover{color:#fff3c4}
+.apex{position:relative;overflow:hidden;background:var(--apex-cern-0,#05070f);color:var(--apex-text,#f4f1e8);font-family:Manrope,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.apex *{box-sizing:border-box}
+.apex h1,.apex h2,.apex h3,.apex .pf{font-family:"Playfair Display",Georgia,"Times New Roman",serif;font-variant-numeric:lining-nums;margin:0;font-weight:600}
+.zare{position:absolute;inset:0;pointer-events:none;background:radial-gradient(900px 600px at 50% 40%,rgba(212,175,55,.1),transparent 62%)}
+.stitek{font:800 11px/1 Manrope,sans-serif;letter-spacing:.26em;text-transform:uppercase;color:var(--apex-zlato,#d4af37)}
+.sedy{color:var(--apex-tlumene,#b9b3a4)}
+.panel{position:absolute;left:120px;top:50px;width:1200px;height:900px;display:grid;grid-template-rows:auto 1fr;border-radius:26px;border:1px solid rgba(212,175,55,.3);background:linear-gradient(180deg,rgba(17,24,39,.86),rgba(5,7,15,.97));-webkit-backdrop-filter:blur(22px) saturate(1.3);backdrop-filter:blur(22px) saturate(1.3);box-shadow:0 50px 100px -40px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);overflow:hidden}
+.hlava{display:flex;align-items:center;gap:14px;padding:16px 18px 14px 22px;border-bottom:1px solid rgba(212,175,55,.18)}
+.hlava h2{font-size:22px;color:var(--apex-zlato-svetle,#f6e7a8)}
+.hlava p{margin:0;font:500 13px Manrope,sans-serif;color:var(--apex-tlumene,#b9b3a4)}
+.ikona-tl{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid rgba(212,175,55,.3);background:rgba(11,15,25,.7);color:var(--apex-text,#f4f1e8);cursor:pointer}
+.ikona-tl svg{width:18px;height:18px}
+.ikona-tl[aria-pressed="true"]{border-color:var(--apex-zlato-svetle,#f6e7a8);color:var(--apex-zlato-svetle,#f6e7a8);box-shadow:0 0 18px rgba(212,175,55,.3)}
+.ikona-tl .zap{display:none}.ikona-tl[aria-pressed="true"] .zap{display:inline}.ikona-tl[aria-pressed="true"] .vyp{display:none}
+.kroky{display:flex;align-items:center;gap:0;margin-left:auto;margin-right:12px}
+.krok{display:flex;align-items:center;gap:8px;font:700 12px Manrope,sans-serif;color:#8f8a7c;padding:0 10px}
+.krok i{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1px solid rgba(212,175,55,.35);font-style:normal;font:800 11px Manrope,sans-serif}
+.krok.hotovo{color:#d9d3c3}.krok.hotovo i{background:rgba(212,175,55,.2);border-color:var(--apex-zlato,#d4af37);color:var(--apex-zlato-svetle,#f6e7a8)}
+.krok.aktivni{color:var(--apex-zlato-svetle,#f6e7a8)}.krok.aktivni i{background:linear-gradient(135deg,var(--apex-zlato-svetle,#f6e7a8),var(--apex-zlato,#d4af37));color:var(--apex-na-zlate,#17120a);border-color:transparent;box-shadow:0 0 18px rgba(212,175,55,.45)}
+.cip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid rgba(212,175,55,.35);background:transparent;color:var(--apex-text,#f4f1e8);font:700 14px Manrope,sans-serif;cursor:pointer;transition:background .2s,border-color .2s}
+.cip:hover{border-color:var(--apex-zlato-svetle,#f6e7a8)}
+.cip[aria-pressed="true"]{background:rgba(212,175,55,.14);border-color:var(--apex-zlato-svetle,#f6e7a8);color:var(--apex-zlato-svetle,#f6e7a8)}
+.cip svg{width:16px;height:16px}
+.cip[aria-pressed="true"] .znacka{opacity:1}
+.cip .znacka{opacity:0;transition:opacity .2s}
+.volba{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:14px;min-height:86px;padding:12px 16px;border-radius:18px;border:1px solid rgba(212,175,55,.2);background:rgba(11,15,25,.6);color:var(--apex-text,#f4f1e8);text-align:left;cursor:pointer;transition:border-color .25s,background .25s,box-shadow .25s,transform .25s}
+.volba:hover{border-color:rgba(246,231,168,.6);transform:translateY(-1px)}
+.volba[aria-checked="true"]{border-color:var(--apex-zlato-svetle,#f6e7a8);background:rgba(212,175,55,.1);box-shadow:0 0 0 1px rgba(212,175,55,.25),0 16px 36px -20px rgba(212,175,55,.6)}
+.volba .radio{width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(212,175,55,.6);display:grid;place-items:center}
+.volba .radio i{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--apex-zlato-svetle,#f6e7a8),var(--apex-zlato,#d4af37));opacity:0;transform:scale(.4);transition:opacity .2s,transform .25s cubic-bezier(.2,1.4,.3,1)}
+.volba[aria-checked="true"] .radio i{opacity:1;transform:scale(1)}
+.volba b{display:block;font:600 17px "Playfair Display",Georgia,serif;color:var(--apex-zlato-svetle,#f6e7a8)}
+.volba span{display:block;font:500 13px/1.4 Manrope,sans-serif;color:var(--apex-tlumene,#b9b3a4)}
+.volba .sazba{font:600 15px "Playfair Display",Georgia,serif;font-variant-numeric:lining-nums tabular-nums;color:var(--apex-text,#f4f1e8);white-space:nowrap;text-align:right}
+.volba .sazba small{display:block;font:600 11px Manrope,sans-serif;color:#8f8a7c}
+.standard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.sk{display:flex;flex-direction:column;gap:6px;padding:12px 12px 10px;border-radius:14px;border:1px solid rgba(212,175,55,.18);background:rgba(11,15,25,.5);min-height:92px}
+.sk .c{font:800 11px/1 Manrope,sans-serif;letter-spacing:.22em;color:var(--apex-zlato,#d4af37)}
+.sk b{font:600 14px/1.2 "Playfair Display",Georgia,serif;color:var(--apex-text,#f4f1e8)}
+.sk span{font:500 11px/1.35 Manrope,sans-serif;color:var(--apex-tlumene,#b9b3a4)}
+.sk.pet{border-color:rgba(246,231,168,.55);background:rgba(212,175,55,.1)}
+.sk.pet b{color:var(--apex-zlato-svetle,#f6e7a8)}
+.sk.ticho{opacity:.5}
+.odstiny{display:flex;flex-wrap:wrap;gap:8px}
+.odstin{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:118px;padding:6px;border-radius:14px;border:1px solid rgba(212,175,55,.2);background:rgba(11,15,25,.5);color:var(--apex-text,#f4f1e8);cursor:pointer;text-align:left}
+.odstin[aria-pressed="true"]{border-color:var(--apex-zlato-svetle,#f6e7a8);box-shadow:0 0 0 1px rgba(212,175,55,.3)}
+.odstin .barva{width:100%;height:36px;border-radius:9px;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),inset 0 -8px 12px rgba(0,0,0,.25)}
+.odstin b{font:700 11px Manrope,sans-serif;color:var(--apex-zlato-svetle,#f6e7a8)}
+.odstin span{font:500 10px Manrope,sans-serif;color:var(--apex-tlumene,#b9b3a4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:104px}
+.srdce{position:absolute;right:8px;top:8px;width:28px;height:28px;display:grid;place-items:center;border-radius:50%;border:0;background:rgba(5,7,15,.55);color:var(--apex-zlato-svetle,#f6e7a8);cursor:pointer}
+.srdce svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
+.srdce[aria-pressed="true"] svg{fill:var(--apex-zlato,#d4af37);stroke:var(--apex-zlato-svetle,#f6e7a8)}
+.pole{display:flex;align-items:center;gap:8px;min-height:48px;padding:0 6px 0 14px;border-radius:12px;border:1px solid rgba(212,175,55,.3);background:rgba(5,7,15,.6)}
+.pole input{width:84px;border:0;background:transparent;color:var(--apex-zlato-svetle,#f6e7a8);font:600 18px "Playfair Display",Georgia,serif;font-variant-numeric:lining-nums tabular-nums;outline:none;text-align:right}
+.pole span{font:600 13px Manrope,sans-serif;color:var(--apex-tlumene,#b9b3a4)}
+.pole:focus-within{border-color:var(--apex-zlato-svetle,#f6e7a8);box-shadow:0 0 0 2px rgba(246,231,168,.35)}
+.radek{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:baseline;padding:9px 0;border-bottom:1px solid rgba(212,175,55,.14)}
+.radek .n{font:600 13px/1.3 Manrope,sans-serif}
+.radek .d{font:500 12.5px/1.5 Manrope,sans-serif;color:var(--apex-tlumene,#b9b3a4)}
+.radek .c{font:600 14px "Playfair Display",Georgia,serif;font-variant-numeric:lining-nums tabular-nums;white-space:nowrap}
+.radek.celkem{border-bottom:0;padding-top:12px}
+.radek.celkem .n{font:600 15px "Playfair Display",Georgia,serif;color:var(--apex-zlato-svetle,#f6e7a8)}
+.radek.celkem .c{font-size:20px;color:var(--apex-zlato-svetle,#f6e7a8)}
+.cena-velka{font:600 42px/1 "Playfair Display",Georgia,serif;font-variant-numeric:lining-nums tabular-nums;color:var(--apex-zlato-svetle,#f6e7a8);text-shadow:0 0 30px rgba(212,175,55,.35)}
+.tl-zlate{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 26px;border:0;border-radius:999px;background:linear-gradient(135deg,var(--apex-zlato-svetle,#f6e7a8) 0%,var(--apex-zlato,#d4af37) 42%,#9c7b16 100%);color:var(--apex-na-zlate,#17120a);font:800 15px Manrope,sans-serif;cursor:pointer;text-decoration:none;box-shadow:0 14px 34px -12px rgba(212,175,55,.6),inset 0 1px 0 rgba(255,255,255,.6);transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .3s}
+.tl-zlate:hover{transform:translateY(-1px)}
+.tl-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:999px;border:1px solid rgba(212,175,55,.5);background:transparent;color:var(--apex-zlato-svetle,#f6e7a8);font:700 14px Manrope,sans-serif;text-decoration:none;cursor:pointer}
+.tl-ghost:hover{border-color:var(--apex-zlato-svetle,#f6e7a8);background:rgba(212,175,55,.08)}
+.tl-zlate:focus-visible,.tl-ghost:focus-visible,.cip:focus-visible,.volba:focus-visible,.odstin:focus-visible,.srdce:focus-visible,.ikona-tl:focus-visible{outline:2px solid var(--apex-zlato-svetle,#f6e7a8);outline-offset:3px}
+.vahani{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:14px;padding:12px 14px;border-radius:18px;border:1px solid rgba(246,231,168,.6);background:linear-gradient(135deg,rgba(212,175,55,.16),rgba(11,15,25,.6));box-shadow:0 0 30px rgba(212,175,55,.2)}
+.vahani .holub{width:52px;height:44px}
+.vahani b{display:block;font:600 15px "Playfair Display",Georgia,serif;color:var(--apex-zlato-svetle,#f6e7a8)}
+.vahani span{display:block;font:500 12px/1.4 Manrope,sans-serif;color:#d9d3c3}
+.obalka-mini{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;border:1px dashed rgba(212,175,55,.4);background:rgba(11,15,25,.5)}
+.pecet-mini{flex:none;width:44px;height:44px;border-radius:46% 54% 50% 50%/52% 48% 52% 48%;background:radial-gradient(circle at 35% 30%,#fff3c4 0,#e6c767 18%,var(--apex-zlato,#d4af37) 42%,var(--apex-zlato-tmave,#8a6a12) 82%,#5a430c 100%);box-shadow:0 6px 14px rgba(0,0,0,.5),inset 0 1px 2px rgba(255,250,230,.6),inset 0 -4px 6px rgba(80,58,8,.55);display:grid;place-items:center}
+.pecet-mini svg{width:30px;height:30px;filter:brightness(.52) sepia(.4)}
+@media (prefers-reduced-motion:no-preference){
+ .vahani{animation:objev .5s cubic-bezier(.2,.8,.2,1) both}
+ .pecet-mini{animation:tep 2.6s cubic-bezier(.2,.8,.2,1) infinite}
+ .odstiny .odstin{animation:objev .4s both}
+}
+@keyframes objev{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tep{0%,100%{box-shadow:0 6px 14px rgba(0,0,0,.5),inset 0 1px 2px rgba(255,250,230,.6),inset 0 -4px 6px rgba(80,58,8,.55),0 0 0 0 rgba(212,175,55,.5)}60%{box-shadow:0 6px 14px rgba(0,0,0,.5),inset 0 1px 2px rgba(255,250,230,.6),inset 0 -4px 6px rgba(80,58,8,.55),0 0 0 14px rgba(212,175,55,0)}}
+</style>
+</helmet>
+<div class="apex" style="width: 1440px; height: 1000px; position: relative">
+<div class="zare"></div>
+<svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+<defs>
+<symbol id="h-klid" viewBox="-60 -78 110 112"><g stroke="#fff0be" stroke-opacity=".32" stroke-width=".5" stroke-linejoin="round"><polygon points="16.7,-32.8 1.6,-52.9 -6,-29" fill="#f1d988"/><polygon points="-14.8,-2.9 -39.4,-17.2 -28,-18.2" fill="#c39d2e"/><polygon points="-19.8,-14 -28,-18.2 -39.4,-17.2" fill="#cba534"/><polygon points="-13.7,-10.8 -14.8,-2.9 -28,-18.2" fill="#e6c767"/><polygon points="-19.8,-14 -13.7,-10.8 -28,-18.2" fill="#9f7c1e"/><polygon points="15,-13.8 16.7,-32.8 -6,-29" fill="#e8c96a"/><polygon points="15,-13.8 -6,-29 -9.7,-14.7" fill="#e3c35e"/><polygon points="3.3,10 -14.8,-2.9 -13.7,-10.8" fill="#e3c35e"/><polygon points="15.3,-8.4 3.3,10 -13.7,-10.8" fill="#fff3c4"/><polygon points="-14.8,-2.9 -45.3,-10 -39.4,-17.2" fill="#caa434"/><polygon points="-19.8,-14 -39.4,-17.2 -45.3,-10" fill="#dbb747"/><polygon points="0.9,-16.8 15.3,-8.4 -13.7,-10.8" fill="#503b0b"/><polygon points="0.9,-16.8 -13.7,-10.8 -19.8,-14" fill="#503b0b"/><polygon points="3.3,10 -19.5,-7.5 -14.8,-2.9" fill="#503b0b"/><polygon points="-19.5,-7.5 -45.3,-10 -14.8,-2.9" fill="#503b0b"/><polygon points="-19.8,-14 -45.3,-10 -19.5,-7.5" fill="#ddba4d"/><polygon points="0.9,-16.8 -19.8,-14 -19.5,-7.5" fill="#eed47e"/><polygon points="25.3,0.4 3.3,10 15.3,-8.4" fill="#e1bf56"/><polygon points="20.4,-19.7 15.3,-8.4 0.9,-16.8" fill="#503b0b"/><polygon points="4.9,-0.9 -19.5,-7.5 3.3,10" fill="#503b0b"/><polygon points="32.6,-17.9 25.3,0.4 15.3,-8.4" fill="#cfa937"/><polygon points="20.4,-19.7 32.6,-17.9 15.3,-8.4" fill="#503b0b"/><polygon points="0.9,-16.8 -19.5,-7.5 4.9,-0.9" fill="#f5df96"/><polygon points="25.3,0.4 4.9,-0.9 3.3,10" fill="#503b0b"/><polygon points="20.4,-19.7 0.9,-16.8 4.9,-0.9" fill="#f1d988"/><polygon points="11,-11 -33.1,-16.1 -13.8,-12.4" fill="#503b0b"/><polygon points="44.2,-14.6 25.3,0.4 32.6,-17.9" fill="#d0aa38"/><polygon points="33.1,-24.1 32.6,-17.9 20.4,-19.7" fill="#503b0b"/><polygon points="29.2,-15.3 4.9,-0.9 25.3,0.4" fill="#503b0b"/><polygon points="20.4,-19.7 4.9,-0.9 29.2,-15.3" fill="#edd27a"/><polygon points="44.2,-14.6 29.2,-15.3 25.3,0.4" fill="#5e460c"/><polygon points="44.2,-14.6 32.6,-17.9 33.1,-24.1" fill="#5a430c"/><polygon points="33.1,-24.1 20.4,-19.7 29.2,-15.3" fill="#e5c562"/><polygon points="44.2,-14.6 33.1,-24.1 29.2,-15.3" fill="#e2c25b"/><polygon points="11,-11 -8.5,-19.3 -33.1,-16.1" fill="#503b0b"/><polygon points="-8.5,-19.3 -53.5,-34.6 -33.1,-16.1" fill="#503b0b"/></g></symbol>
+</defs>
+</svg>
+
+<section class="panel" role="dialog" aria-labelledby="cena-titulek">
+<div class="hlava">
+<svg viewBox="-60 -78 110 112" width="52" height="44" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg>
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="cena-titulek">Cena hned</h2><p>Orientační kalkulace z ceníku HSPG · výpočet běží ve vašem prohlížeči, ne v AI</p></div>
+<nav class="kroky" aria-label="Kroky kalkulace">
+<span class="krok hotovo"><i>1</i>Objekt</span><span class="krok hotovo"><i>2</i>Povrchy</span><span class="krok aktivni" aria-current="step"><i>3</i>Ochrana</span><span class="krok"><i>4</i>Plochy</span><span class="krok"><i>5</i>Cena</span>
+</nav>
+<button type="button" class="ikona-tl" aria-pressed="{{zvukText}}" aria-label="Zvuk a vibrace" onClick="{{prepniZvuk}}"><svg class="vyp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M23 9l-6 6M17 9l6 6"/></svg><svg class="zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg></button>
+<button type="button" class="ikona-tl" aria-label="Zavřít kalkulaci" style="border-color: transparent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 400px; gap: 0; min-height: 0">
+<!-- LEVÁ ČÁST: volba -->
+<div style="display: flex; flex-direction: column; gap: 14px; padding: 18px 22px; overflow: hidden; border-right: 1px solid rgba(212,175,55,.18)">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px"><span class="stitek">Krok 3 z 5 · Ochrana</span><h3 style="font-size: 24px">Jak má povrch vypadat po práci?</h3></div>
+<div style="display: flex; gap: 8px" role="group" aria-label="Povrchy">
+<button type="button" class="cip" aria-pressed="{{pStrecha}}" onClick="{{prepStrecha}}"><svg class="znacka" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg>Střecha</button>
+<button type="button" class="cip" aria-pressed="{{pFasada}}" onClick="{{prepFasada}}"><svg class="znacka" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg>Fasáda</button>
+<button type="button" class="cip" aria-pressed="{{pDlazba}}" onClick="{{prepDlazba}}"><svg class="znacka" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg>Dlažba</button>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px" role="radiogroup" aria-label="Cesta ochrany">
+<button type="button" class="volba" role="radio" aria-checked="{{vA}}" onClick="{{zvolA}}"><span class="radio"><i></i></span><span><b>Cesta A · Neviditelný štít H-STONE</b><span>2× nástřik hydrofobní nano-impregnace. Voda perlí, povrch dýchá, vzhled zůstává. Záruka 10 let při péči SENTINEL BASE.</span></span><span class="sazba">od 119 Kč/m²<small>střecha 178 · fasáda 168 · dlažba 119</small></span></button>
+<button type="button" class="volba" role="radio" aria-checked="{{vB}}" onClick="{{zvolB}}"><span class="radio"><i></i></span><span><b>Cesta B · Barevná renovace v odstínu RAL</b><span>Penetrace a 2× strojní airless nástřik ohřívanou barvou. Pro střechu a fasádu, když chcete barvu vrátit nebo změnit. Zákonná práva z vadného plnění; záruku k nátěrovému systému stanoví smlouva.</span></span><span class="sazba">od 268 Kč/m²<small>střecha 268 · fasáda 298</small></span></button>
+<button type="button" class="volba" role="radio" aria-checked="{{vC}}" onClick="{{zvolC}}"><span class="radio"><i></i></span><span><b>Čištění a ošetření</b><span>Kroky 01–04 Standardu HOLUB – čištění, odmaštění, ošetření biocidy a oplach – bez finální ochranné vrstvy.</span></span><span class="sazba">od 69 Kč/m²<small>střecha 99 · fasáda 89 · dlažba 69</small></span></button>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span class="stitek">Standard HOLUB · vždy celý postup</span>
+<div class="standard">
+<div class="sk"><span class="c">01</span><b>Čištění</b><span>Tlakem a teplotou vody podle materiálu</span></div>
+<div class="sk"><span class="c">02</span><b>Odmaštění</b><span>Povrch bez usazenin</span></div>
+<div class="sk"><span class="c">03</span><b>Ošetření biocidy</b><span>V pórech materiálu</span></div>
+<div class="sk"><span class="c">04</span><b>Oplach</b><span>Důkladný oplach uvolněné biomasy</span></div>
+<div class="sk {{petTrida}}"><span class="c">05</span><b>{{petNazev}}</b><span>{{petPopis}}</span></div>
+</div>
+<p style="margin: 0; font: 500 12.5px/1.5 Manrope, sans-serif; color: var(--apex-text, #f4f1e8)">Používejte biocidy bezpečným způsobem. Před použitím si vždy přečtěte označení a informace o přípravku.</p>
+</div>
+
+<sc-if value="{{vBjeB}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: baseline; justify-content: space-between"><span class="stitek">Odstín fasády · RAL</span><span class="sedy" style="font-size: 11px">Srdíčkem si odstín uložíte do kalkulace i PDF</span></div>
+<div class="odstiny">
+<sc-for list="{{odstiny}}" as="o" hint-placeholder-count="9">
+<button type="button" class="odstin" aria-pressed="{{o.vybrano}}" onClick="{{o.vyber}}" aria-label="{{o.ral}} {{o.nazev}}"><span class="barva" style="background: {{o.hex}}"></span><b>{{o.ral}}</b><span>{{o.nazev}}</span></button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{vahani}}" hint-placeholder-val="{{true}}">
+<div class="vahani" role="status">
+<svg class="holub" viewBox="-60 -78 110 112" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg>
+<div><b>Váháte mezi cestami? Rád pomohu.</b><span>Neviditelný štít vzhled zachová, barevná renovace ho změní. Zeptejte se mě, nebo zavolejte – kalkulace zůstane rozpracovaná.</span></div>
+<div style="display: flex; gap: 8px"><button type="button" class="tl-zlate" style="min-height: 44px; padding: 0 18px; font-size: 13px" onClick="{{tuk}}">Zeptat se H-BOTa</button><a href="tel:+420736618486" class="tl-ghost" style="min-height: 44px; padding: 0 16px; font-size: 13px">Raději zavolejte</a></div>
+</div>
+</sc-if>
+</div>
+
+<!-- PRAVÁ ČÁST: živá orientační cena -->
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 18px 22px; background: rgba(5,7,15,.35)">
+<div style="display: flex; align-items: baseline; justify-content: space-between"><span class="stitek">Průběžná orientační cena</span><span class="sedy" style="font-size: 11px">neplátce DPH</span></div>
+<div class="cena-velka" aria-live="polite">{{celkemText}}</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span class="stitek" style="color: #8f8a7c">Plochy (krok 4 – zde jen náhled)</span>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<label class="pole" style="flex: 1"><span>Střecha</span><input type="number" min="0" max="5000" value="{{mStrecha}}" onInput="{{zmenStrecha}}" aria-label="Plocha střechy v metrech čtverečních"><span>m²</span></label>
+<label class="pole" style="flex: 1"><span>Fasáda</span><input type="number" min="0" max="5000" value="{{mFasada}}" onInput="{{zmenFasada}}" aria-label="Plocha fasády v metrech čtverečních"><span>m²</span></label>
+<label class="pole" style="flex: 1"><span>Dlažba</span><input type="number" min="0" max="5000" value="{{mDlazba}}" onInput="{{zmenDlazba}}" aria-label="Plocha dlažby v metrech čtverečních"><span>m²</span></label>
+</div>
+</div>
+<div style="display: flex; flex-direction: column">
+<sc-for list="{{polozky}}" as="r" hint-placeholder-count="3">
+<div class="radek"><div><div class="n">{{r.nazev}}</div><div class="d">{{r.detail}}</div></div><div class="c">{{r.castka}}</div></div>
+</sc-for>
+<sc-if value="{{maSlevu}}" hint-placeholder-val="{{true}}"><div class="radek"><div><div class="n">Sleva za dva a více povrchů (5&nbsp;%)</div></div><div class="c">{{slevaText}}</div></div></sc-if>
+<sc-if value="{{maMinimum}}" hint-placeholder-val="{{false}}"><div class="radek"><div><div class="n">Doplatek do minimální ceny zakázky</div><div class="d">minimum 4&nbsp;900&nbsp;Kč podle ceníku</div></div><div class="c">{{minimumText}}</div></div></sc-if>
+<div class="radek"><div><div class="n">Doprava</div><div class="d">30&nbsp;km od základny zdarma, dál 12&nbsp;Kč/km – podle adresy v kroku 4</div></div><div class="c">podle adresy</div></div>
+<div class="radek celkem"><div class="n">Celkem (orientačně)</div><div class="c">{{celkemText}}</div></div>
+</div>
+<p class="sedy" style="margin: 0; font-size: 12.5px; line-height: 1.5">Orientační výpočet z ceníku platného od 1.&nbsp;10.&nbsp;2026, ne nabídka. Přesnou cenu potvrdíme po ověření rozsahu na místě. Nejsme plátci DPH.</p>
+<div class="obalka-mini"><span class="pecet-mini"><svg viewBox="-60 -78 110 112" aria-hidden="true" focusable="false"><use href="#h-klid"/></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><b class="pf" style="font-size: 14px; color: #f6e7a8">V kroku 5 cenu zapečetíme</b><span class="sedy" style="font-size: 12px">Rozlomíte pečeť, stáhnete PDF kalkulaci a nezávazný NÁVRH smlouvy. Otevřením nic neobjednáváte.</span></div></div>
+<div style="display: flex; gap: 10px; margin-top: auto"><button type="button" class="tl-ghost" onClick="{{tuk}}">Zpět</button><button type="button" class="tl-zlate" style="flex: 1" onClick="{{tuk}}">Pokračovat na plochy</button></div>
+</div>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"vahaniPoMs":{"editor":"int","default":12000,"min":0,"max":60000,"step":1000,"section":"Váhání"},"zvukVychozi":{"editor":"boolean","default":false,"section":"Zvuk"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { strecha: true, fasada: true, dlazba: false, cesta: 'B', ral: 'RAL 9001', ulozene: {}, mStrecha: 190, mFasada: 340, mDlazba: 60, prepnuti: 0, vahani: false, zvuk: false };
+    this._t = []; this._ac = null;
+    var self = this;
+    ['prepStrecha', 'prepFasada', 'prepDlazba', 'zvolA', 'zvolB', 'zvolC', 'zmenStrecha', 'zmenFasada', 'zmenDlazba', 'prepniZvuk', 'tuk'].forEach(function (k) { self[k] = self[k].bind(self); });
+  }
+  componentDidMount() {
+    if (this.props.zvukVychozi === true) this.setState({ zvuk: true });
+    var self = this, ms = this.props.vahaniPoMs == null ? 12000 : this.props.vahaniPoMs;
+    if (ms > 0) this._t.push(setTimeout(function () { self.setState({ vahani: true }); }, ms));
+  }
+  componentWillUnmount() { this._t.forEach(clearTimeout); }
+  ac() {
+    if (!this.state.zvuk) return null;
+    try { if (!this._ac) { var C = window.AudioContext || window.webkitAudioContext; if (!C) return null; this._ac = new C(); if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } if (this._ac.state === 'suspended') this._ac.resume(); return this._ac; } catch (e) { return null; }
+  }
+  ton(f0, f1, t0, dur, typ, g) {
+    var a = this.ac(); if (!a) return;
+    var o = a.createOscillator(), v = a.createGain(); o.type = typ || 'sine';
+    o.frequency.setValueAtTime(f0, a.currentTime + t0); o.frequency.exponentialRampToValueAtTime(f1 || f0, a.currentTime + t0 + dur);
+    v.gain.setValueAtTime(0.0001, a.currentTime + t0); v.gain.exponentialRampToValueAtTime(g || 0.07, a.currentTime + t0 + 0.012); v.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + t0 + dur);
+    o.connect(v); v.connect(a.destination); o.start(a.currentTime + t0); o.stop(a.currentTime + t0 + dur + 0.02);
+  }
+  zvuk(n) {
+    if (n === 'tuk') this.ton(420, 300, 0, 0.07, 'sine', 0.06);
+    else if (n === 'fajfka') { this.ton(660, 660, 0, 0.09, 'sine', 0.07); this.ton(990, 990, 0.1, 0.16, 'sine', 0.07); }
+    else if (n === 'srdce') { this.ton(330, 330, 0, 0.09, 'sine', 0.08); this.ton(330, 300, 0.13, 0.12, 'sine', 0.07); }
+    var v = { tuk: [8], fajfka: [12, 40, 18], srdce: [10, 30, 10] }[n];
+    if (v && this.state.zvuk && navigator.vibrate) { try { navigator.vibrate(v); } catch (e) {} }
+  }
+  tuk() { this.zvuk('tuk'); }
+  prepniZvuk() { var z = !this.state.zvuk; this.setState({ zvuk: z }); if (z) { var self = this; setTimeout(function () { self.zvuk('tuk'); }, 0); } }
+  prepStrecha() { this.setState({ strecha: !this.state.strecha }); this.zvuk('tuk'); }
+  prepFasada() { this.setState({ fasada: !this.state.fasada }); this.zvuk('tuk'); }
+  prepDlazba() { this.setState({ dlazba: !this.state.dlazba }); this.zvuk('tuk'); }
+  zvol(c) {
+    if (c === this.state.cesta) return;
+    var n = this.state.prepnuti + 1;
+    this.setState({ cesta: c, prepnuti: n, vahani: this.state.vahani || n >= 3 });
+    this.zvuk('fajfka');
+  }
+  zvolA() { this.zvol('A'); } zvolB() { this.zvol('B'); } zvolC() { this.zvol('C'); }
+  cislo(e) { var v = parseInt(e && e.target ? e.target.value : 0, 10); return isNaN(v) || v < 0 ? 0 : Math.min(5000, v); }
+  zmenStrecha(e) { this.setState({ mStrecha: this.cislo(e) }); }
+  zmenFasada(e) { this.setState({ mFasada: this.cislo(e) }); }
+  zmenDlazba(e) { this.setState({ mDlazba: this.cislo(e) }); }
+  kc(n) { var z = n < 0 ? '−' : ''; return z + String(Math.round(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' Kč'; }
+  renderVals() {
+    var s = this.state, self = this;
+    var SAZBY = { A: { strecha: 178, fasada: 168, dlazba: 119 }, B: { strecha: 268, fasada: 298 }, C: { strecha: 99, fasada: 89, dlazba: 69 } };
+    var NAZVY = { A: 'neviditelný štít H-STONE', B: 'barevná renovace ' + s.ral, C: 'čištění a ošetření 01–04' };
+    var povrchy = [['strecha', 'Střecha', s.strecha, s.mStrecha], ['fasada', 'Fasáda', s.fasada, s.mFasada], ['dlazba', 'Dlažba', s.dlazba, s.mDlazba]];
+    var polozky = [], soucet = 0, pocet = 0;
+    povrchy.forEach(function (p) {
+      if (!p[2]) return;
+      var cesta = s.cesta, sazba = SAZBY[cesta][p[0]];
+      if (sazba == null) { cesta = 'A'; sazba = SAZBY.A[p[0]]; }
+      var c = sazba * p[3];
+      soucet += c; pocet++;
+      polozky.push({ nazev: p[1] + ' · ' + (cesta === 'C' ? '' : 'cesta ' + cesta + ' · ') + NAZVY[cesta] + (cesta !== s.cesta ? ' (cesta B pro dlažbu není; použit štít)' : ''), detail: p[3] + ' m² × ' + sazba + ' Kč' + (cesta === 'C' ? ' · kroky 01–04' : ' · kroky 01–05'), castka: self.kc(c) });
+    });
+    var sleva = pocet >= 2 ? Math.round(soucet * 0.05) : 0;
+    var mezi = soucet - sleva, minimum = 0;
+    if (pocet > 0 && mezi < 4900) { minimum = 4900 - mezi; mezi = 4900; }
+    var ODSTINY = [['RAL 9010', 'Čistě bílá', '#F7F5EC'], ['RAL 9001', 'Krémově bílá', '#EFE7D6'], ['RAL 1013', 'Perlově bílá', '#EAE6CA'], ['RAL 1015', 'Světlá slonovinová', '#E6D6A8'], ['RAL 1001', 'Béžová', '#C2B078'], ['RAL 7044', 'Hedvábně šedá', '#CAC4B0'], ['RAL 7035', 'Světle šedá', '#CBD0CC'], ['RAL 7032', 'Křemenně šedá', '#B8B799'], ['RAL 7016', 'Antracitová šedá', '#293133']];
+    var odstiny = ODSTINY.map(function (o) { return { ral: o[0], nazev: o[1], hex: o[2], vybrano: s.ral === o[0] ? 'true' : 'false', vyber: function () { self.setState({ ral: o[0] }); self.zvuk('srdce'); } }; });
+    var pet = s.cesta === 'A' ? ['pet', 'Neviditelný štít H-STONE', '2× nástřik hydrofobní nano-impregnace'] : s.cesta === 'B' ? ['pet', 'Barevná renovace ' + s.ral, 'Penetrace a 2× airless nástřik ohřívanou barvou'] : ['ticho', 'Bez ochranné vrstvy', 'Postup končí krokem 04 – kdykoliv lze doplnit'];
+    return {
+      pStrecha: s.strecha ? 'true' : 'false', pFasada: s.fasada ? 'true' : 'false', pDlazba: s.dlazba ? 'true' : 'false',
+      vA: s.cesta === 'A' ? 'true' : 'false', vB: s.cesta === 'B' ? 'true' : 'false', vC: s.cesta === 'C' ? 'true' : 'false', vBjeB: s.cesta === 'B' && s.fasada,
+      petTrida: pet[0], petNazev: pet[1], petPopis: pet[2],
+      odstiny: odstiny, vahani: s.vahani,
+      mStrecha: String(s.mStrecha), mFasada: String(s.mFasada), mDlazba: String(s.mDlazba),
+      polozky: polozky, maSlevu: sleva > 0, slevaText: this.kc(-sleva), maMinimum: minimum > 0, minimumText: this.kc(minimum),
+      celkemText: pocet ? this.kc(mezi) : '–',
+      zvukText: s.zvuk ? 'true' : 'false',
+      prepStrecha: this.prepStrecha, prepFasada: this.prepFasada, prepDlazba: this.prepDlazba, zvolA: this.zvolA, zvolB: this.zvolB, zvolC: this.zvolC,
+      zmenStrecha: this.zmenStrecha, zmenFasada: this.zmenFasada, zmenDlazba: this.zmenDlazba, prepniZvuk: this.prepniZvuk, tuk: this.tuk
+    };
+  }
+}
+</script>
+</body>
+</html>
