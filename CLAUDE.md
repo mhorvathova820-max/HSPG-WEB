@@ -7,4 +7,5 @@
 ## Pravidla
 - Fakta, rozhodnutí a nepřekročitelná pravidla: `balicek/KONTEXT.md` (pravdivost, tajemství, kredity Netlify, dva agenti).
 - Každý agent pracuje jen na své větvi; žádný force-push, nepřepínat cizí větve.
+- Důležité zjištění pro majitele (výpadek, chybějící klíč, rozhodnutí) hlas řádkem „DŮLEŽITÉ PRO MAJITELE:“ – doručení všemi kanály řeší `balicek/PROTOKOL-OZNAMENI.md` (R24).
 - Před commitem: `npm test` (a `npm run test:e2e`, pokud se měnil kód v `balicek/web/assets`), `node balicek/web/scripts/build-hbot.mjs --kontrola`.

@@ -20,7 +20,8 @@
 | `web/overeni/` | ověřovací soubory Seznamu a Bingu – patří do **kořene** publikované složky webu, kopírovat bajt po bajtu; `meta-tagy.html` = dva meta tagy do `<head>` úvodní stránky (úkol 20) |
 | `testy/` | jednotkové testy (`npm test`) a testy v prohlížeči nad kopií webu (`npm run test:e2e`) |
 
-## Novinky 8. 11. 2026 (úkol 60, rozhodnutí R23)
+## Novinky 8. 11. 2026 (úkol 60, rozhodnutí R23 a R24)
+- **Protokol oznámení „nic mi neuteče“** (R24) – `PROTOKOL-OZNAMENI.md`: push + hovor + e-mail s podklady a skriptem hovoru + kalendář, eskalace, ranní a nedělní přehled; platí pro všechny agenty.
 - **Mapy.com pro Claude a panel majitele** – adaptér REST API (klíč `HSPG_KLIC_MAPY` jen na serveru), nástroje brány `mapa_adresa`, `mapa_snimek` (letecký/základní snímek objektu jako obrázek), `mapa_panorama` (pohled z ulice), `mapa_trasa`, `mapa_matice`, `mapa_vyska` a `/api/mapa` pro panel; počítadlo kreditů v Blobs se stropem pod bezplatnou kvótou 250 000/měsíc. Interní podklad pro nabídky – embargo na slova o leteckých snímcích v textech pro zákazníky trvá.
 
 ## Novinky 30. 10. 2026 (úkol 59, rozhodnutí R22)
