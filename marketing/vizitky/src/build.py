@@ -3,8 +3,9 @@
 Run from marketing/vizitky:  python3 src/build.py
 
 Writes to out/:
-  vila_tisk.pdf      4 pages: side A (outside), side B (inside), foil mask A,
-                     foil mask B; CutContour and Crease spot lines on every page
+  vila_tisk.pdf      5 pages: side A (outside), side B (inside), foil mask A,
+                     foil mask B, blind-deboss die A; CutContour and Crease
+                     spot lines on every page
   vila_vysek.svg     cut and crease lines only
   vila_zavreno.png   closed card, front      vila_rub.png   back cover
   vila_otevreno.png  open spread             vila_nahled.jpg  mock-up
@@ -142,6 +143,7 @@ def main():
         "B": card + art.side_b(),
         "foilA": white + art.side_a(foil=True),
         "foilB": white + art.side_b(foil=True),
+        "debossA": white + art.side_a(deboss=True),
     }
     with tempfile.TemporaryDirectory() as td:
         tmp = pathlib.Path(td)
@@ -163,8 +165,8 @@ def main():
         mockup(closed, back, spread, OUT / "vila_nahled.jpg")
 
         writer = PdfWriter()
-        cuts = overlay_pdf(cut, [art.DW, art.PW + art.DW], W, H, 4)
-        for i, name in enumerate(("A", "B", "foilA", "foilB")):
+        cuts = overlay_pdf(cut, [art.DW, art.PW + art.DW], W, H, 5)
+        for i, name in enumerate(("A", "B", "foilA", "foilB", "debossA")):
             page = PdfReader(render_pdf(faces[name], W, H, tmp, name)).pages[0]
             page.merge_page(cuts.pages[i])
             writer.add_page(page)
