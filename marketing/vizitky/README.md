@@ -1,24 +1,28 @@
-# HSPG – tvarové vizitky (die-cut)
+# HSPG – vizitky, couture edice
 
-Vysekávané oboustranné vizitky s postavou řemeslníka a technikou. Formát vychází z virálních „pop-up cards“, provedení je prémiové: tmavě modrá karta, zlatá linka 1,6 mm od hrany po celém obrysu, plošná ilustrace v paletě navy / zlatá / champagne / terakota s jemnými zlatými linkami, bez černých kontur a bez komiksového obličeje.
-Líc: ilustrace na navy, okraj 3 mm. Rub: navy, zlatá fólie (logo, HSPG, linka, claim), kontakty, QR na hspg.cz.
+Tvarové (die-cut) oboustranné vizitky v jazyce luxusních značek: emblém, rytina, monogram, zlatá fólie, přesná geometrie, prázdný prostor.
 
-| Varianta | Soubor pro tisk | Rozměr výseku |
-|---|---|---|
-| Střechy | `out/strecha_tisk.pdf` | 89,7 × 62,1 mm |
-| Fasády | `out/fasada_tisk.pdf` | 89,9 × 65,2 mm |
-| Dlažby a terasy | `out/dlazba_tisk.pdf` | 90,9 × 64,2 mm |
+- **Tvar:** štít se střešním vrcholem, 90 × 56 mm, přesná vektorová geometrie s kruhovými zaobleními, dvojitá zlatá linka 1,6 a 2,6 mm od hrany.
+- **Líc:** holub HSPG jako vektorový emblém ve zlaté fólii nad gilošovou rozetou (bankovková technika), monogram HSPG (Playfair Display, prostrkání), popis „Čištění a ochrana povrchů“, claim. Dole pás rytiny se šrafurou a světlem zleva: střechy / palácová fasáda / terasa s balustrádou podle varianty.
+- **Rub:** středová typografická kompozice: emblém, HSPG, jméno, telefon, hspg.cz, linka k variantě, pět kroků, decentní QR v rohu.
+- **Barvy:** navy `#08112a`, zlatá `#d4af37`, champagne `#f1e8d2`.
+
+| Varianta | Soubor pro tisk |
+|---|---|
+| Střechy | `out/strecha_tisk.pdf` |
+| Fasády | `out/fasada_tisk.pdf` |
+| Dlažby a terasy | `out/dlazba_tisk.pdf` |
 
 Náhledy: `out/<varianta>_nahled.jpg` (líc + rub), `out/<varianta>_lic.png`, `out/<varianta>_rub.png`.
 
 ## Zadání pro tiskárnu
 
-- PDF má 3 strany: 1 = líc, 2 = rub, 3 = maska zlaté fólie pro rub (černá = fólie, stejná poloha jako strana 2). Rub je už zrcadlově otočený podle tvaru líce.
-- Zlatá fólie: doporučeno hot-foil, matná zlatá (např. Kurz Luxor 362 nebo ekvivalent). Bez fólie se strana 3 vynechá a zlatá se tiskne z CMYK.
-- Výsek: vektorová linka ve spotové barvě **CutContour** (100 % magenta, 0,25 pt) na obou stranách. Netiskne se. Samotná linka je i v `out/<varianta>_vysek.svg`.
-- Rub má spadávku 2 mm za výsekem, texty jsou min. 3,5 mm uvnitř.
-- Doporučení: křída 350–400 g, soft-touch lamino oboustranně, zlatá fólie na rubu, tvarový výsek (plotter/laser).
-- Barvy jsou v RGB (navy `#08112a`, zlatá `#d4af37`): tiskárna je převede do CMYK; navy cílově cca C100 M85 Y35 K40, zlatá C20 M30 Y80 K10. Před nákladem vyžádat nátisk.
+- PDF má 4 strany: 1 = líc, 2 = rub, 3 = maska zlaté fólie pro líc, 4 = maska zlaté fólie pro rub (černá = fólie, stejná poloha jako strany 1 a 2).
+- Výsek: vektorová linka ve spotové barvě **CutContour** (100 % magenta, 0,25 pt) na všech stranách, netiskne se. Tvar je symetrický, rub se neotáčí. Samotná linka je i v `out/<varianta>_vysek.svg`.
+- Spadávka 2 mm za výsekem, obsah min. 3,5 mm uvnitř (dvojitá linka je na 1,6 mm záměrně).
+- Fólie: hot-foil, matná zlatá (např. Kurz Luxor 362 nebo ekvivalent). Pás rytiny a giloš se tisknou z CMYK (na fólii jsou příliš jemné).
+- Doporučené provedení: dvouvrstvá lepená karta 2 × 350 g (celkem cca 700 g), soft-touch lamino oboustranně, zlatá fólie, **zlatě barvené hrany**, tvarový výsek plotrem nebo laserem.
+- Převod do CMYK: navy cílově C100 M85 Y35 K40, zlatá C20 M30 Y80 K10. Před nákladem vyžádat nátisk a vzorek fólie.
 
 ## Úpravy a nové verze
 
@@ -30,7 +34,7 @@ python3 src/build.py strecha    # jen jedna
 
 Vyžaduje Node.js s Playwrightem (Chromium) a Python balíčky `numpy pillow opencv-python-headless segno reportlab pypdf`.
 
-- `src/art.py`: ilustrace jako ručně stavěné SVG (žádné AI ani fotobanky). Nová varianta = nová funkce `scene_*` a záznam v `SCENES`.
-- `src/build.py`: výsek se počítá automaticky z obrysu ilustrace a musí to být jeden kus. Rub se vkládá do největší volné plochy tvaru a kontroluje se bezpečná zóna (`back content inside the safe zone`).
-- Texty a kontakty jsou v `src/build.py` (`PHONE`, `WEB`, `back_block`); `back_block(foil=True)` určuje, co jde do fólie. Držet se pravidel HSPG: bez cen, záruk a názvů přípravků.
+- `src/art.py`: geometrie tvaru (`SHAPE`, `RADII`), emblém (vektorizace loga), giloš, rytiny (`engraving_*`), líc a rub. Vše ručně stavěné SVG, bez AI a fotobank.
+- `src/build.py`: render přes Chromium, PDF se spotovou linkou CutContour a maskami fólie.
+- Texty a kontakty: `PHONE`, `WEB`, `CLAIM`, `VARIANTS` v `src/art.py`. Držet se pravidel HSPG: bez cen, záruk a názvů přípravků.
 - Logo a fonty (Playfair Display, Inter, OFL) jsou v `assets/` a pocházejí z HSPG Reels Studia.
