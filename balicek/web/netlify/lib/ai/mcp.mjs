@@ -11,11 +11,12 @@ import { zapisUtratu, odhadKc, rezervuj, odhadTokenu, odhadTokenuKlienta, mesicn
 import { vytvorPseudonymizaci } from "./pseudonymizace.mjs";
 import { poradaRady } from "./rada.mjs";
 import { hledejYoucom, youcomNaText, youcomZapnuto, KLIC_YOUCOM } from "./youcom.mjs";
+import { vytvorMapy, mapyZapnuto, adresaText, kmText, casText, KLIC_MAPY, TYPY_TRASY, SADY_MAP, kredityMesice } from "./mapy.mjs";
 
 export const VERZE_PROTOKOLU = ["2025-06-18", "2025-03-26", "2024-11-05", "2025-11-25"];
 export const VYCHOZI_VERZE = "2025-06-18";
 export const INFO_SERVERU = { name: "hspg-ai-gateway", title: "HSPG AI Gateway", version: "1.0.0" };
-export const POKYNY_SERVERU = `Brána AI majitele HSPG (hspg.cz). Nástroje se ptají jiných AI (ChatGPT, Grok, Gemini, Perplexity, Mistral, DeepSeek, Llama) a hledají na webu (You.com). Každý dotaz se před odesláním pseudonymizuje (osobní údaje → značky [EMAIL_1]…), odpověď přijde doplněná zpět. Každé volání stojí peníze a počítá se do rozpočtu AI – ptej se cíleně, nejdřív ai_stav, když nevíš, co je zapnuté. Fakta z webu (Perplexity, You.com) jsou podklad k ověření, ne schválené znalosti HSPG.`;
+export const POKYNY_SERVERU = `Brána AI majitele HSPG (hspg.cz). Nástroje se ptají jiných AI (ChatGPT, Grok, Gemini, Perplexity, Mistral, DeepSeek, Llama), hledají na webu (You.com) a pracují s Mapy.com (adresy ↔ souřadnice, letecký snímek a panorama objektu, trasy a matice pro plánování dne, nadmořská výška). Každý dotaz AI se před odesláním pseudonymizuje (osobní údaje → značky [EMAIL_1]…), odpověď přijde doplněná zpět; adresy objektů jdou do Mapy.com beze změny (účel = najít objekt). Každé volání stojí peníze nebo kredity – ptej se cíleně, nejdřív ai_stav, když nevíš, co je zapnuté. Fakta z webu (Perplexity, You.com) jsou podklad k ověření, ne schválené znalosti HSPG. Snímky z map jsou interní podklad pro nabídky – do textů pro zákazníky nepatří slova o leteckých snímcích, satelitních snímcích ani „z map“.`;
 
 // Role dostupné přes bránu: všechny se ZDR (Muse Wonder bez ZDR zůstává jen v panelu majitele).
 export const ROLE_MCP = Object.keys(POSKYTOVATELE).filter((id) => !POSKYTOVATELE[id].bezZdr);
@@ -111,8 +112,103 @@ export const NASTROJE = [
   {
     name: "ai_stav",
     title: "Stav brány AI",
-    description: "Které role mají klíč a kudy jedou (vlastní klíč / OpenRouter / Netlify AI Gateway), útrata a limit rozpočtu AI za období, zda je zapnutý You.com. Klíče samotné nikdy nevrací. Zdarma.",
+    description: "Které role mají klíč a kudy jedou (vlastní klíč / OpenRouter / Netlify AI Gateway), útrata a limit rozpočtu AI za období, zda je zapnutý You.com a Mapy.com (včetně kreditů za měsíc). Klíče samotné nikdy nevrací. Zdarma.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
+    name: "mapa_adresa",
+    title: "Mapy.com – adresa ↔ souřadnice",
+    description: `Najde adresu, ulici, obec nebo místo přes Mapy.com (ČR i svět) a vrátí souřadnice (lon, lat), PSČ, obec, část obce a kraj; pro dotaz ve tvaru „lon,lat“ vrátí adresu (zpětné geokódování). Potřebuje ${KLIC_MAPY} v Netlify. 4 kredity Mapy.com (zdarma do měsíčního stropu).`,
+    inputSchema: {
+      type: "object",
+      properties: {
+        dotaz: { type: "string", description: "Adresa, obec, ulice, název místa, nebo souřadnice „lon,lat“ (nejvýš 150 znaků)." },
+        limit: { type: "integer", minimum: 1, maximum: 15, description: "Počet výsledků (výchozí 5)." },
+        typ: { type: "string", enum: ["adresa", "ulice", "obec", "misto", "vse"], description: "Co hledat (výchozí vse = adresy, obce i místa)." },
+        blizko: { type: "string", description: "Upřednostnit výsledky poblíž bodu „lon,lat“ (např. sklad HK)." },
+      },
+      required: ["dotaz"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "mapa_snimek",
+    title: "Mapy.com – snímek objektu",
+    description: `Statický snímek z Mapy.com pro adresu nebo souřadnice: letecký (sada aerial, výchozí, zoom 19 ≈ jeden dům) nebo základní/outdoor mapa, se zlatou značkou na objektu a volitelným obrysem střechy. Vrátí obrázek a souřadnice – interní podklad pro odhad plochy střechy, sklonu, přístupu a okolí při přípravě nabídky (do textů pro zákazníky nepatří slova o leteckých snímcích). Sady: ${SADY_MAP.join(", ")}. 4 kredity + 4 za geokódování adresy.`,
+    inputSchema: {
+      type: "object",
+      properties: {
+        misto: { type: "string", description: "Adresa objektu nebo souřadnice „lon,lat“." },
+        zoom: { type: "integer", minimum: 12, maximum: 19, description: "Přiblížení (19 = jeden dům, 17 = ulice, 15 = čtvrť; výchozí 19)." },
+        sada: { type: "string", enum: SADY_MAP, description: "Sada map (výchozí aerial)." },
+        sirka: { type: "integer", minimum: 100, maximum: 1024, description: "Šířka v px (výchozí 640)." },
+        vyska: { type: "integer", minimum: 100, maximum: 1024, description: "Výška v px (výchozí 640)." },
+        polygon: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 60, description: "Volitelný obrys (např. střechy) jako body „lon,lat“ – vykreslí se zlatě." },
+      },
+      required: ["misto"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "mapa_panorama",
+    title: "Mapy.com – pohled z ulice",
+    description: "Snímek z Panoramy Mapy.com nejblíž zadané adrese nebo souřadnicím (fasáda, vstup, přístup pro techniku a plošinu). Vrátí JPEG a souřadnice; když v okolí panorama není, řekne to. 4 kredity + 4 za geokódování adresy.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        misto: { type: "string", description: "Adresa nebo souřadnice „lon,lat“." },
+        polomer: { type: "integer", minimum: 0, maximum: 100, description: "Hledat panorama do této vzdálenosti v metrech (výchozí 50)." },
+        sirka: { type: "integer", minimum: 100, maximum: 1024, description: "Šířka v px (výchozí 800)." },
+        vyska: { type: "integer", minimum: 100, maximum: 1024, description: "Výška v px (výchozí 500)." },
+      },
+      required: ["misto"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "mapa_trasa",
+    title: "Mapy.com – trasa a čas přejezdu",
+    description: `Trasa mezi dvěma místy (adresy nebo „lon,lat“), volitelně s průjezdními body: délka, čas a úseky. Typ: ${TYPY_TRASY.join(", ")} (výchozí car_fast; car_fast_traffic = s aktuálním provozem). Hodí se na přejezdy party ze skladu (Stavební 1066, Hradec Králové) a kalkulaci dopravy. 4 kredity + geokódování adres.`,
+    inputSchema: {
+      type: "object",
+      properties: {
+        start: { type: "string", description: "Výchozí místo (adresa nebo „lon,lat“)." },
+        cil: { type: "string", description: "Cílové místo (adresa nebo „lon,lat“)." },
+        pruchozi: { type: "array", items: { type: "string" }, maxItems: 15, description: "Průjezdní body v pořadí (adresy nebo „lon,lat“)." },
+        typ: { type: "string", enum: TYPY_TRASY, description: "Typ trasy (výchozí car_fast)." },
+        bezDalnic: { type: "boolean", description: "Vyhnout se dálnicím." },
+        bezMyta: { type: "boolean", description: "Vyhnout se placeným úsekům." },
+        odjezd: { type: "string", description: "Odjezd v místním čase ISO-8601, např. 2026-11-10T07:00:00 (jen pro car_fast_traffic)." },
+      },
+      required: ["start", "cil"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "mapa_matice",
+    title: "Mapy.com – matice vzdáleností",
+    description: "Vzdálenosti a časy mezi více místy najednou (2–10 adres nebo „lon,lat“; nebo starty × cíle, nejvýš 100 dvojic) – plánování pořadí zakázek v jednom dni a rozdělení part. Cena 0,4 kreditu za dvojici (10×10 = 40).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        body: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 10, description: "Místa (při vynechání „cile“ se počítá každé s každým, min. 2)." },
+        cile: { type: "array", items: { type: "string" }, maxItems: 10, description: "Volitelné cíle – pak se počítá body × cíle." },
+        typ: { type: "string", enum: TYPY_TRASY, description: "Typ trasy (výchozí car_fast)." },
+      },
+      required: ["body"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "mapa_vyska",
+    title: "Mapy.com – nadmořská výška",
+    description: "Nadmořská výška pro jeden až 50 bodů (adresy nebo „lon,lat“). 4 kredity + geokódování adres.",
+    inputSchema: {
+      type: "object",
+      properties: { body: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 50, description: "Místa (adresy nebo „lon,lat“)." } },
+      required: ["body"],
+      additionalProperties: false,
+    },
   },
 ];
 
@@ -278,25 +374,118 @@ export function vytvorMcp({ env = process.env, adaptery, dejUloziste, ted = () =
   }
 
   async function nastrojStav() {
-    let utrata = null, nastaveni = null;
+    let utrata = null, nastaveni = null, kredity = null;
     try {
       const store = await dejUloziste();
       utrata = await utrataMesice(store, ted(), env);
       nastaveni = await nactiNastaveni(store);
+      kredity = await kredityMesice(store, env, ted());
     } catch { /* stav i bez útraty */ }
     const envM = sModely(env, nastaveni?.modely);
     const role = ROLE_MCP.map((id) => ({ id, nazev: nazevAI(id, envM), zapnuto: jeZapnuty(id, envM), model: POSKYTOVATELE[id].model(envM), cesta: cestaRole(id, envM), ...(POSKYTOVATELE[id].jenMajitel ? { jenMajitel: true } : {}) }));
-    const data = { role, youcom: youcomZapnuto(env), limitKc: mesicniLimitKc(env), utrata: utrata ? { celkemKc: kc2(utrata.celkemKc), vlastniKc: kc2(utrata.vlastniKc || 0) } : null };
+    const data = { role, youcom: youcomZapnuto(env), mapy: { zapnuto: mapyZapnuto(env), kredity }, limitKc: mesicniLimitKc(env), utrata: utrata ? { celkemKc: kc2(utrata.celkemKc), vlastniKc: kc2(utrata.vlastniKc || 0) } : null };
     const text = [
       "Role přes bránu (zapnuto = má klíč):",
       ...role.map((r) => `- ${r.id} (${r.nazev}): ${r.zapnuto ? "zapnuto" : "VYPNUTO"} · ${r.model} · ${r.cesta}`),
       `You.com: ${data.youcom ? "zapnuto" : `vypnuto (chybí ${KLIC_YOUCOM})`}`,
+      `Mapy.com: ${data.mapy.zapnuto ? `zapnuto${kredity ? ` · kredity ${kredity.mesic}: ${kredity.pouzito} z ${kredity.strop} (zdarma do ${kredity.zdarma})` : ""}` : `vypnuto (chybí ${KLIC_MAPY})`}`,
       utrata ? `Rozpočet AI za období: ${data.utrata.celkemKc} Kč z ${data.limitKc} Kč (kredity Netlify); mimo kredity (vlastní klíče): ≈ ${data.utrata.vlastniKc} Kč` : `Rozpočet AI: limit ${data.limitKc} Kč (útrata teď nejde načíst)`,
     ].join("\n");
     return vysledek(text, data);
   }
 
-  const NASTROJ = { ai_zeptat: nastrojAiZeptat, perplexity_hledat: nastrojPerplexity, youcom_hledat: nastrojYoucom, rada_ai: nastrojRada, ai_stav: nastrojStav };
+  // --- Mapy.com: limit volání společný s panelem, kredity počítá adaptér; adresy jdou do Mapy.com beze změny.
+  async function mapy() {
+    if (!mapyZapnuto(env)) throw Object.assign(new Error(`Mapy.com nejsou zapnuté: chybí ${KLIC_MAPY} v Netlify (klíč z https://developer.mapy.com/account/, tarif Basic je zdarma do 250 000 kreditů měsíčně).`), { status: 400 });
+    const { store } = await priprav(1);
+    return vytvorMapy({ env, fetch: f, store, ted });
+  }
+  const seznam = (a, n) => (Array.isArray(a) ? a.slice(0, n).map((x) => retezec(x, 200)) : []);
+  const bodText = (b) => `${b.adresa} (${b.lon.toFixed(6)}, ${b.lat.toFixed(6)})`;
+  const obrazek = (o) => ({ type: "image", data: o.base64, mimeType: o.mimeType || "image/jpeg" });
+  const kreditText = async (m) => { try { const k = await m.kredity(); return `kredity ${k.mesic}: ${k.pouzito}/${k.strop}`; } catch { return "kredity: nezjištěno"; } };
+
+  async function nastrojMapaAdresa(a, signal) {
+    const m = await mapy();
+    const dotaz = retezec(a.dotaz, 150).trim();
+    if (!dotaz) throw Object.assign(new Error("Dotaz je prázdný."), { status: 400 });
+    const start = Date.now();
+    const zpetne = /^\s*-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?\s*$/.test(dotaz);
+    const polozky = zpetne ? await m.zpetne({ bod: dotaz }, signal) : await m.geokoduj({ dotaz, limit: celeCislo(a.limit, 1, 15, 5), typ: retezec(a.typ, 10) || "vse", blizko: retezec(a.blizko, 60) || undefined }, signal);
+    loguj({ nastroj: "mapa_adresa", stav: "ok", vysledku: polozky.length, zpetne, ms: Date.now() - start });
+    if (!polozky.length) return vysledek(`Mapy.com: pro „${dotaz}“ nic nenašly.`, { dotaz, polozky: [] });
+    const text = [`Mapy.com – ${polozky.length} výsledků pro „${dotaz}“:`, ...polozky.map((p, i) => `${i + 1}. ${adresaText(p)} · ${p.typ} · lon ${p.lon.toFixed(6)}, lat ${p.lat.toFixed(6)}${p.castObce && p.castObce !== p.obec ? ` · ${p.castObce}` : ""}${p.kraj ? ` · ${p.kraj}` : ""}`), `— ${await kreditText(m)}`].join("\n");
+    return vysledek(text, { dotaz, polozky });
+  }
+
+  async function nastrojMapaSnimek(a, signal) {
+    const m = await mapy();
+    const start = Date.now();
+    const b = await m.bod(retezec(a.misto, 150).trim(), signal);
+    const o = await m.snimek({ bod: [b.lon, b.lat], zoom: celeCislo(a.zoom, 12, 19, 19), sada: SADY_MAP.includes(a.sada) ? a.sada : "aerial", sirka: celeCislo(a.sirka, 100, 1024, 640), vyska: celeCislo(a.vyska, 100, 1024, 640), polygon: seznam(a.polygon, 60) }, signal);
+    loguj({ nastroj: "mapa_snimek", stav: "ok", sada: o.sada, zoom: o.zoom, bajtu: o.bajtu, ms: Date.now() - start });
+    const text = `Snímek Mapy.com (${o.sada}, zoom ${o.zoom}, ${o.sirka}×${o.vyska} px) – ${bodText(b)}. Interní podklad pro nabídku; plochu odhaduj s rezervou a ověř na místě. · ${await kreditText(m)}`;
+    return { content: [obrazek(o), { type: "text", text }], structuredContent: { lon: b.lon, lat: b.lat, adresa: b.adresa, sada: o.sada, zoom: o.zoom, sirka: o.sirka, vyska: o.vyska, bajtu: o.bajtu } };
+  }
+
+  async function nastrojMapaPanorama(a, signal) {
+    const m = await mapy();
+    const start = Date.now();
+    const b = await m.bod(retezec(a.misto, 150).trim(), signal);
+    let o;
+    try {
+      o = await m.panorama({ bod: [b.lon, b.lat], polomer: celeCislo(a.polomer, 0, 100, 50), sirka: celeCislo(a.sirka, 100, 1024, 800), vyska: celeCislo(a.vyska, 100, 1024, 500) }, signal);
+    } catch (e) {
+      if (e?.status === 404) return vysledek(`Panorama Mapy.com v okolí ${bodText(b)} není (do ${celeCislo(a.polomer, 0, 100, 50)} m).`, { lon: b.lon, lat: b.lat, adresa: b.adresa, panorama: false });
+      throw e;
+    }
+    loguj({ nastroj: "mapa_panorama", stav: "ok", bajtu: o.bajtu, ms: Date.now() - start });
+    return { content: [obrazek(o), { type: "text", text: `Panorama Mapy.com u ${bodText(b)} (hledáno do ${o.polomer} m). Pohled z ulice je starší snímek – stav fasády ověř na místě. · ${await kreditText(m)}` }], structuredContent: { lon: b.lon, lat: b.lat, adresa: b.adresa, panorama: true, bajtu: o.bajtu } };
+  }
+
+  async function nastrojMapaTrasa(a, signal) {
+    const m = await mapy();
+    const start = Date.now();
+    const [s, c] = await Promise.all([m.bod(retezec(a.start, 150).trim(), signal), m.bod(retezec(a.cil, 150).trim(), signal)]);
+    const pruchozi = [];
+    for (const p of seznam(a.pruchozi, 15)) pruchozi.push(await m.bod(p, signal));
+    const typ = TYPY_TRASY.includes(a.typ) ? a.typ : "car_fast";
+    const t = await m.trasa({ start: [s.lon, s.lat], cil: [c.lon, c.lat], pruchozi: pruchozi.map((p) => [p.lon, p.lat]), typ, bezDalnic: Boolean(a.bezDalnic), bezMyta: Boolean(a.bezMyta), odjezd: retezec(a.odjezd, 40) || undefined }, signal);
+    loguj({ nastroj: "mapa_trasa", stav: "ok", typ, delkaM: t.delkaM, ms: Date.now() - start });
+    const text = [`Trasa Mapy.com (${typ}): ${kmText(t.delkaM)}, ${casText(t.trvaniS)}`, `start: ${bodText(s)}`, ...pruchozi.map((p, i) => `přes ${i + 1}: ${bodText(p)}`), `cíl: ${bodText(c)}`, ...(t.useky.length > 1 ? t.useky.map((u, i) => `úsek ${i + 1}: ${kmText(u.delkaM)}, ${casText(u.trvaniS)}`) : []), `— ${await kreditText(m)}`].join("\n");
+    return vysledek(text, { typ, delkaM: t.delkaM, trvaniS: t.trvaniS, useky: t.useky, start: s, cil: c, pruchozi });
+  }
+
+  async function nastrojMapaMatice(a, signal) {
+    const m = await mapy();
+    const start = Date.now();
+    const body = [];
+    for (const b of seznam(a.body, 10)) body.push(await m.bod(b, signal));
+    const cile = [];
+    for (const b of seznam(a.cile, 10)) cile.push(await m.bod(b, signal));
+    const typ = TYPY_TRASY.includes(a.typ) ? a.typ : "car_fast";
+    const v = await m.matice({ body: body.map((b) => [b.lon, b.lat]), cile: cile.map((b) => [b.lon, b.lat]), typ }, signal);
+    const sloupce = cile.length ? cile : body;
+    loguj({ nastroj: "mapa_matice", stav: "ok", typ, radku: body.length, sloupcu: sloupce.length, ms: Date.now() - start });
+    const radky = [`Matice Mapy.com (${typ}) – řádky = odkud, sloupce = kam:`, ...body.map((b, i) => `${i + 1}. ${b.adresa}`), ...(cile.length ? ["cíle:", ...cile.map((b, i) => `${String.fromCharCode(65 + i)}. ${b.adresa}`)] : [])];
+    v.matice.forEach((radek, i) => {
+      radky.push(`${i + 1}: ${radek.map((x, j) => `${cile.length ? String.fromCharCode(65 + j) : j + 1}=${x.delkaM >= 0 ? `${kmText(x.delkaM)}/${casText(x.trvaniS)}` : "–"}`).join("  ")}`);
+    });
+    radky.push(`— ${await kreditText(m)}`);
+    return vysledek(radky.join("\n"), { typ, body, cile, matice: v.matice });
+  }
+
+  async function nastrojMapaVyska(a, signal) {
+    const m = await mapy();
+    const body = [];
+    for (const b of seznam(a.body, 50)) body.push(await m.bod(b, signal));
+    if (!body.length) throw Object.assign(new Error("Zadejte aspoň jedno místo."), { status: 400 });
+    const v = await m.vyska({ body: body.map((b) => [b.lon, b.lat]) }, signal);
+    loguj({ nastroj: "mapa_vyska", stav: "ok", bodu: v.length });
+    return vysledek([`Nadmořská výška (Mapy.com):`, ...v.map((x, i) => `${i + 1}. ${body[i]?.adresa || `${x.lon},${x.lat}`}: ${Math.round(x.vyskaM)} m n. m.`), `— ${await kreditText(m)}`].join("\n"), { body: v.map((x, i) => ({ ...x, adresa: body[i]?.adresa })) });
+  }
+
+  const NASTROJ = { ai_zeptat: nastrojAiZeptat, perplexity_hledat: nastrojPerplexity, youcom_hledat: nastrojYoucom, rada_ai: nastrojRada, ai_stav: nastrojStav, mapa_adresa: nastrojMapaAdresa, mapa_snimek: nastrojMapaSnimek, mapa_panorama: nastrojMapaPanorama, mapa_trasa: nastrojMapaTrasa, mapa_matice: nastrojMapaMatice, mapa_vyska: nastrojMapaVyska };
 
   // Jedna zpráva JSON-RPC → odpověď (objekt) nebo null (oznámení bez odpovědi). Nikdy nevyhazuje.
   async function zpracuj(z, { signal } = {}) {

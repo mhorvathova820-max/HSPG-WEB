@@ -11,7 +11,7 @@ Jedna stránka: co je hotové, kdo co dělá a v jakém pořadí, co zbývá na 
 | Ochrana kreditů Netlify | rozpočet AI za období kreditů (11.–10.) s rezervací před voláním, podíl zákazníků (výchozí polovina), nouzový vypínač v panelu, při výpadku úložiště AI vypnutá, pojistka nasazení `scripts/nasadit.mjs` (náhled zdarma, produkce jen se schválením, max. 1× denně) |
 | Bezpečnost | přihlášení majitele tokenem (heslo jen v Netlify), zámek pokusů, tajemství podpisu na serveru, žádné klíče v kódu |
 | Ověření vyhledávačů | soubory a meta tagy Seznamu a Bingu v `web/overeni/` (úkol 20; všechny vygenerované kódy najednou) |
-| Testy | 229 jednotkových (30. 10. 2026; z toho 19 pro bránu MCP, 2 s oficiálním klientem) + 102 v prohlížeči (Chromium; kopie živého webu nebo zástupné stránky), všechny prochází |
+| Testy | 234 jednotkových (8. 11. 2026; z toho 19 pro bránu MCP, 2 s oficiálním klientem, 5 pro Mapy.com) + 102 v prohlížeči (Chromium; kopie živého webu nebo zástupné stránky), všechny prochází |
 | **H-BOT v5 a „Cena hned“** (úkol 48) | zlatý 3D origami holub nad střechou, hejno, oznámení AI; orientační cena z ceníku v zapečetěné obálce, PDF kalkulace, NÁVRH smlouvy o dílo (nezávazný, jen v prohlížeči), porovnání s cizí nabídkou |
 | **HOLUB 360** (úkol 49) | `/holub-360/`: průlet nad Prahou, zaměření na dálku, 3D model, cesta A/B, kalkulace, kalendář s technologickým oknem, rezervace |
 | **Standard HOLUB, SENTINEL, cenové jádro** (úkol 50) | `/standard-holub/` z dat, tarify BASE / PLUS / PRESTIGE, jedna cena pro všechny části webu |
@@ -19,6 +19,7 @@ Jedna stránka: co je hotové, kdo co dělá a v jakém pořadí, co zbývá na 
 | **Rada AI přes OpenRouter** (úkol 52) | Claude, GPT, Gemini (patenty), Grok, Muse; pseudonymizace; závěry rady v `RADA-AI-2026-10-22.md` |
 | **Spolupráce agentů** (úkol 53) | šablony AGENTS.md, Copilot, issue a CI v `sablony/github/` |
 | **HSPG AI Gateway – brána MCP** (úkol 59, R22 30. 10.) | `/api/mcp`: Claude majitele se přes jednu bránu ptá ChatGPT, Groku, Gemini, Perplexity (a dalších rolí), hledá přes You.com a svolává radu AI; OAuth 2.1 heslem panelu, pseudonymizace, rozpočet; postup připojení v `ukoly/59-mcp-brana.md` (krok 6) a Chrome C15 |
+| **Mapy.com pro Claude a panel** (úkol 60, R23 8. 11.) | adresy ↔ souřadnice, letecký/základní snímek objektu, panorama, trasy a matice pro plánování dne, výška; nástroje brány `mapa_*` + `/api/mapa`; kredity hlídané pod bezplatnou kvótou; klíč `HSPG_KLIC_MAPY` zadává majitel v Netlify |
 | **Štít obsahu** (úkol 54) | `web/.well-known/tdmrep.json`, šablony meta/patička/robots pro AI boty v `sablony/stit/`, postup proti kopiím; ochranné známky podává majitel (podklady v souboru „HSPG – dokumenty k odeslání“) |
 | **Opravy živého webu** (úkol 55) | audit Claude v Chrome 22. 10. (`AUDIT-WEB-2026-10-22.md`, 96 nálezů): embargo slov, záruka, tarify, 5 kroků, jedna cesta „Cena hned“, mobil |
 | **Puls, rozcestník, zvuk a haptika, hejno** (úkol 56) | plaketa pulzuje v dávkách a nabízí celý web (8 dlaždic z `content/hbot-rozcestnik.json`), `hspg-zazitek.js` (syntéza zvuku + vibrace, vypínač „Zvuk a vibrace“), hejno 4 holubů při zaměření v HOLUB 360 (`holub360-hejno.js`) |
@@ -26,7 +27,7 @@ Jedna stránka: co je hotové, kdo co dělá a v jakém pořadí, co zbývá na 
 | **Rada AI, kolo 2** | `RADA-VYSLEDKY-VIZUAL-2026-10-22.md` – co je přijaté (a kde), co odmítnuté; z toho úkol 58 (jedna cesta zákazníka, HOLUB Partner, obrazovka „Dnes“) |
 | **Rozhodnutí svěřená agentovi** (R21, 22. 10.) | zvuk a vibrace výchozí vypnuté s pozvánkou „Zapnout“; formuláře bez políčka souhlasu (čl. 6/1/b GDPR); minimum 4 900 Kč = celková cena vč. dopravy; záruka u cesty B bez čísla; `/nase-prace/` bez „přesně 76 %“; dodavatel FHB neoslovovat |
 | **Dodavatelé bez zastoupení v ČR** | `DODAVATELE-2026-10-22.md` + CSV: 14 e-mailů odesláno 22. 10., 12 odesláno 23. 10., 2 vyřazeni; follow-up 1 29./30. 10., follow-up 2 (poslední) 5. 11. devíti firmám 1. dávky a 6. 11. čtyřem firmám 2. dávky bez reakce – kampaň obou dávek ukončena; v jednání ProPERLA, NanoEnzo, Algimouss, Photokat, Nanoprotect, XSPlatforms, C.M.C., SolarCleano, Guy Cotten, Fallprotec, hyCLEANER, NanoPhos, Larius (hovor 13. 11.), Durostick (zájem), HACA (zájem – koncept odpovědi čeká na „ano“); texty a tabulka „Odesláno“ v dokumentu „HSPG – dokumenty k odeslání“; odpovědi třídit do štítků Gmailu `HSPG Dodavatelé/…` |
-| Zadání pro agenta ve VS Code | úkoly 00–27 a 48–59 v `ukoly/` |
+| Zadání pro agenta ve VS Code | úkoly 00–27 a 48–60 v `ukoly/` |
 | Zadání pro Claude Design | `ZADANI-CLAUDE-DESIGN-HOLUB360.md` (vzhled HOLUB 360) |
 | Zadání pro Claude v Chrome | `ZADANI-CHROME.md` (C1–C15) |
 | Zadání pro Claude Pro | `ZADANI-CLAUDE-PRO.md` (P1–P7) |
@@ -74,6 +75,10 @@ Pořadí úkolů agenta: **00 → 20 → 01 → 02 → 21 → 22 → 23 → 24 �
 - [ ] Až agent ve VS Code nahlásí náhled/produkci `/api/mcp`: v claude.ai přidat vlastní konektor (https://claude.ai/settings/connectors → Add custom connector → URL `https://hspg.cz/api/mcp`, Sign in now, „Use Claude's published identity“) a přihlásit se heslem panelu – Claude v Chrome provede (C15). Tím jsou propojené ChatGPT, Grok, Gemini, Perplexity i rada AI; stejný konektor jde do Claude Desktop a Claude Code.
 - [ ] Volitelně You.com: klíč z https://you.com/platform vložit **sami** do Netlify jako `HSPG_KLIC_YOUCOM` (jinak jde přidat oficiální konektor You.com `https://api.you.com/mcp`).
 - [ ] Volitelně `HSPG_MCP_TOKEN` (náhodných ≥ 32 znaků) do Netlify – jen pro Claude Code / Managed Agents bez přihlášení OAuth; nikdy do chatu.
+
+**Úkol 60 – Mapy.com (8. 11. 2026)**
+- [ ] https://developer.mapy.com/account/ → přihlásit Seznam účtem → projekt „HSPG“ → API klíč → vložit **sami** do Netlify jako `HSPG_KLIC_MAPY` (scope Functions). Tarif Basic je zdarma do 250 000 kreditů měsíčně; strop v kódu (200 000) hlídá, aby se nikdy neplatilo.
+- [ ] Osobní předplatné Mapy.com Premium firmě nic nepřidává – zrušit automatické obnovení (Menu → Mapy.com Premium → Správa předplatného), zkušební doba doběhne.
 
 **Rozhodnutí (Claude Pro, úkol P1)**
 - [ ] Doba uchování poptávek, newsletter Holubí pošta, stav technologií HYDRA / MAST / RAIL / SCAN / SENTINEL, pojištění, doklady H-BIO, slib reakční doby, tvrzení z Facebooku („25 let zkušeností“, „Technologie z Velké Británie“).

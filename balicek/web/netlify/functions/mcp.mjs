@@ -12,17 +12,17 @@
 // konektoru). Bez platného tokenu 401 s WWW-Authenticate → Claude sám spustí přihlášení OAuth.
 // Limity: hádání hesla 5 pokusů / 15 min (společný zámek s /api/majitel), OAuth endpointy 60 / 10 min na
 // klienta, nástroje 120 volání / 10 min (společné s panelem). Logy bez obsahu dotazů. Klíče se nikdy nevrací.
-import { createHash, timingSafeEqual } from "node:crypto";
 import { vytvorMcp } from "../lib/ai/mcp.mjs";
 import {
   CESTY, metadataAutorizacnihoServeru, metadataChranenehoZdroje, registrujKlienta, overKlienta, overAutorizacniParametry,
-  vydejKod, presmerovaniSKodem, presmerovaniSChybou, vymenKod, obnovToken, overPristupovyToken, klicTokenu, klicKlientu,
+  vydejKod, presmerovaniSKodem, presmerovaniSChybou, vymenKod, obnovToken, klicTokenu, klicKlientu,
   strankaPrihlaseni, strankaChyby,
 } from "../lib/ai/mcp-oauth.mjs";
-import { overToken, hesloNastaveno, overHeslo, tajemstviServeru, povolenyOrigin } from "../lib/ai/autorizace.mjs";
+import { overHeslo, povolenyOrigin } from "../lib/ai/autorizace.mjs";
 import { vychoziUloziste, otiskKlienta, sitKlienta, povolPokusOPrihlaseni, vratPokusOPrihlaseni, pricti } from "../lib/ai/limity.mjs";
+import { vytvorOvereniMajitele, MIN_DELKA_MCP_TOKENU } from "../lib/ai/pristup-majitele.mjs";
 
-export const MIN_DELKA_MCP_TOKENU = 32;
+export { MIN_DELKA_MCP_TOKENU };
 const MAX_TELO = 300_000;
 const KEEPALIVE_MS = 10_000;
 const LIMIT_OAUTH = { pocet: 60, oknoMs: 10 * 60_000 };
@@ -32,8 +32,6 @@ const json = (data, status = 200, hlavicky = {}) =>
 const html = (text, status = 200) =>
   new Response(text, { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-frame-options": "DENY", "content-security-policy": "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'", "referrer-policy": "no-referrer" } });
 const chybaOauth = (chyba, popis, status = 400) => json({ error: chyba, error_description: popis }, status);
-const otisk = (s) => createHash("sha256").update(String(s)).digest();
-const stejne = (a, b) => timingSafeEqual(otisk(a), otisk(b));
 
 async function prectiTelo(req) {
   const typ = (req.headers.get("content-type") || "").toLowerCase();
@@ -51,28 +49,8 @@ export function vytvorMcpFunkci({ env = process.env, adaptery, uloziste, ted = (
   const dejUloziste = async () => (ul ||= await vychoziUloziste());
   const mcp = vytvorMcp({ env, adaptery, dejUloziste, ted, fetch: f });
   const klient = (req, context, t) => otiskKlienta(sitKlienta(context?.ip || req.headers.get("x-nf-client-connection-ip")), t);
-
-  // Tajemství serveru je povinné pro všechny podpisy; bez úložiště → 503 (nikdy průchod).
-  const tajemstvi = async () => tajemstviServeru(env, await dejUloziste());
-
-  async function overBearer(req, zaklad) {
-    if (!hesloNastaveno(env)) return { ok: false, status: 503, duvod: "HSPG_PANEL_HESLO není v Netlify nastavené (min. 16 znaků)." };
-    const auth = req.headers.get("authorization") || "";
-    if (!auth.startsWith("Bearer ") || auth.length > 4200) return { ok: false, status: 401, duvod: "Chybí přístupový token.", bezTokenu: true };
-    const token = auth.slice(7).trim();
-    const pevny = String(env.HSPG_MCP_TOKEN || "");
-    if (pevny.length >= MIN_DELKA_MCP_TOKENU && stejne(token, pevny)) return { ok: true, zpusob: "pevny" };
-    let t;
-    try { t = await tajemstvi(); } catch { return { ok: false, status: 503, duvod: "Úložiště není dostupné – přihlášení teď nejde ověřit." }; }
-    const ted0 = ted();
-    if (overToken(token, env, ted0, t)) return { ok: true, zpusob: "panel" };
-    if (overPristupovyToken(token, klicTokenu(env, t), zaklad, ted0)) return { ok: true, zpusob: "oauth" };
-    return { ok: false, status: 401, duvod: "Přístupový token je neplatný nebo vypršel." };
-  }
-
-  const hlavicky401 = (zaklad, bezTokenu) => ({
-    "www-authenticate": `Bearer realm="HSPG AI Gateway"${bezTokenu ? "" : ', error="invalid_token"'}, resource_metadata="${zaklad}${CESTY.metadataZdroj}"`,
-  });
+  // Tajemství serveru je povinné pro všechny podpisy; bez úložiště → 503 (nikdy průchod). Ověření Bearer sdílené s /api/mapa.
+  const { overBearer, hlavicky401, tajemstvi } = vytvorOvereniMajitele({ env, dejUloziste, ted });
 
   async function limitOauth(req, context) {
     const t = ted();

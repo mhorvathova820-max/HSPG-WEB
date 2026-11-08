@@ -29,12 +29,13 @@ Začni krokem 1.
 
 ---
 
-Nový úkol od majitele (rozhodnutí R22, 30. 10.): **59 – HSPG AI Gateway**, vzdálený MCP server `/api/mcp`, přes který se Claude majitele ptá ChatGPT, Groku, Gemini, Perplexity a dalších rolí, hledá přes You.com a svolává radu AI. Kód je hotový a otestovaný v balíčku na větvi `claude/apex-48-53` (229 testů, z toho 2 s oficiálním klientem MCP).
+Nový úkol od majitele (rozhodnutí R22, 30. 10.): **59 – HSPG AI Gateway**, vzdálený MCP server `/api/mcp`, přes který se Claude majitele ptá ChatGPT, Groku, Gemini, Perplexity a dalších rolí, hledá přes You.com a svolává radu AI. Kód je hotový a otestovaný v balíčku na větvi `claude/apex-48-53` (234 testů, z toho 2 s oficiálním klientem MCP a 5 pro Mapy.com).
 
 1. `git -C ../hspg-balicek pull --ff-only` a `npm ci --prefix ../hspg-balicek`.
 2. Přečti `../hspg-balicek/balicek/ukoly/59-mcp-brana.md`, odstavec R22 v `KONTEXT.md` a závěr `AGENTI-OPENROUTER.md` (Brána MCP).
 3. Proveď úkol 59 hned po úkolu 53 (potřebuje 22 a 52): větev `ukol-59-mcp-brana`, přenos 4 souborů, `npm test`, náhled zdarma, ověření podle kroku 3 zadání (metadata, 401 s `WWW-Authenticate`, stránka s heslem, časový limit funkce), hlášení s řádkem „Co potřebuji od majitele“ (`HSPG_KLIC_OPENROUTER`; volitelně `HSPG_KLIC_YOUCOM`, `HSPG_MCP_TOKEN`; přidání konektoru v claude.ai – Chrome C15).
-4. Produkce až po mém „nasaď“ (15 kreditů, nejvýš 1× denně). Klíče ani heslo panelu po mně nikdy nechtěj do chatu a nikam je nezapisuj.
+4. Hned po 59 proveď **úkol 60 – Mapy.com** (`ukoly/60-mapy-com.md`, R23): přenos `lib/ai/mapy.mjs`, `lib/ai/pristup-majitele.mjs`, upraveného `lib/ai/mcp.mjs` a `functions/mcp.mjs`, nové `functions/mapa.mjs`; ověření podle kroku 3 zadání (bez klíče čisté `ok:false`, s klíčem snímek jako data URL). Od majitele potřebuje `HSPG_KLIC_MAPY`.
+5. Produkce až po mém „nasaď“ (15 kreditů, nejvýš 1× denně; úkoly 59 a 60 lze nasadit společně). Klíče ani heslo panelu po mně nikdy nechtěj do chatu a nikam je nezapisuj.
 
 ---
 

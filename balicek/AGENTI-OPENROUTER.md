@@ -96,7 +96,8 @@ Claude (claude.ai, Cowork, Chrome, Desktop, Claude Code, Managed Agents) se ke s
 | `perplexity_hledat` | hledání na webu se zdroji (`perplexity/sonar-pro`) | totéž; výsledky = podklad k ověření |
 | `youcom_hledat` | vyhledávač You.com (REST `ydc-index.io/v1/search`) | `HSPG_KLIC_YOUCOM`, účtuje You.com; bez klíče poradí oficiální konektor |
 | `rada_ai` | stejný dotaz více rolím + předseda Claude (shoda, rozdíly, doporučení) | `rada.mjs`, každé volání zvlášť v rozpočtu |
-| `ai_stav` | role, cesta, útrata, limit, You.com | zdarma, bez klíčů |
+| `ai_stav` | role, cesta, útrata, limit, You.com, Mapy.com (kredity za měsíc) | zdarma, bez klíčů |
+| `mapa_adresa`, `mapa_snimek`, `mapa_panorama`, `mapa_trasa`, `mapa_matice`, `mapa_vyska` | Mapy.com: adresa ↔ souřadnice, letecký/základní snímek objektu (obrázek), pohled z ulice, trasa a čas přejezdu, matice více míst, nadmořská výška (úkol 60) | `HSPG_KLIC_MAPY`; 4 kredity na volání (matice 0,4 za dvojici), zdarma do stropu 200 000/měsíc |
 
 - **Pseudonymizace** platí stejně jako v panelu: dotaz jde k modelům jen se značkami, odpověď Claudovi se doplní zpět (brána = nástroj majitele). Muse Wonder (bez ZDR) přes bránu není.
 - **Přihlášení:** token panelu, přístupový token OAuth brány (heslo panelu na stránce brány, PKCE S256, 12 h + obnova 90 dní, vše podepsané tajemstvím serveru + heslem – změna hesla odhlásí všechny klienty) nebo pevný `HSPG_MCP_TOKEN` (≥ 32 znaků, jen z proměnné prostředí). Zámek hádání hesla je společný s `/api/majitel`.

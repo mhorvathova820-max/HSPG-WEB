@@ -20,6 +20,9 @@
 | `web/overeni/` | ověřovací soubory Seznamu a Bingu – patří do **kořene** publikované složky webu, kopírovat bajt po bajtu; `meta-tagy.html` = dva meta tagy do `<head>` úvodní stránky (úkol 20) |
 | `testy/` | jednotkové testy (`npm test`) a testy v prohlížeči nad kopií webu (`npm run test:e2e`) |
 
+## Novinky 8. 11. 2026 (úkol 60, rozhodnutí R23)
+- **Mapy.com pro Claude a panel majitele** – adaptér REST API (klíč `HSPG_KLIC_MAPY` jen na serveru), nástroje brány `mapa_adresa`, `mapa_snimek` (letecký/základní snímek objektu jako obrázek), `mapa_panorama` (pohled z ulice), `mapa_trasa`, `mapa_matice`, `mapa_vyska` a `/api/mapa` pro panel; počítadlo kreditů v Blobs se stropem pod bezplatnou kvótou 250 000/měsíc. Interní podklad pro nabídky – embargo na slova o leteckých snímcích v textech pro zákazníky trvá.
+
 ## Novinky 30. 10. 2026 (úkol 59, rozhodnutí R22)
 - **HSPG AI Gateway** – vzdálený MCP server `/api/mcp` pro Claude majitele (claude.ai, Cowork, Chrome, Desktop, Claude Code, Managed Agents): nástroje `ai_zeptat` (ChatGPT, Grok, Gemini, Perplexity, Mistral, DeepSeek, Llama, Argon, Claude), `perplexity_hledat`, `youcom_hledat`, `rada_ai`, `ai_stav`. Stejná cesta jako panel majitele (vlastní klíč OpenRouter se ZDR / Netlify AI Gateway), pseudonymizace, rozpočet a limity. Přihlášení OAuth 2.1 heslem panelu (PKCE, dynamická registrace i „Use Claude's published identity“), nebo token panelu / pevný `HSPG_MCP_TOKEN`. Ověřeno oficiálním klientem `@modelcontextprotocol/sdk` (jen devDependency). Postup pro majitele: `ukoly/59-mcp-brana.md` krok 6, Chrome úloha C15.
 
@@ -44,6 +47,7 @@
 | `POST /api/ai-stav` | majitel | nouzový vypínač AI pro zákazníky (okamžitě, bez nasazení) |
 | `POST /api/mcp` | majitel (token panelu, OAuth brány nebo `HSPG_MCP_TOKEN`) | HSPG AI Gateway – MCP server pro Claude: jiné AI, Perplexity, You.com, rada AI, stav; dlouhá volání jako SSE (úkol 59) |
 | `GET/POST /api/mcp/oauth/*`, `GET /.well-known/oauth-*` | veřejné (limity) | OAuth 2.1 brány: metadata, registrace klienta, stránka s heslem panelu, tokeny |
+| `POST /api/mapa` | majitel (token panelu, OAuth brány nebo `HSPG_MCP_TOKEN`) | Mapy.com pro panel: adresa ↔ souřadnice, snímek objektu (data URL), panorama, trasa, matice, výška, stav kreditů (úkol 60) |
 | edge `media-limit` | Netlify | brzda rychlého stahování `/media/*` (100 / min na IP; pomalé stahování nezastaví – přenos hlídá úkol 15) |
 
 ## Plánovač termínu a H-WEATHER CONTROL (úkol 21)
@@ -65,7 +69,7 @@
 ## Testy
 ```
 npm install
-npm test                                                      # 229 jednotkových testů (včetně 2 s oficiálním klientem MCP)
+npm test                                                      # 234 jednotkových testů (včetně 2 s oficiálním klientem MCP)
 HSPG_MIRROR=/cesta/k/webu CHROMIUM=/cesta/k/chromium npm run test:e2e   # 102 testů v prohlížeči (bez HSPG_MIRROR na zástupných stránkách testy/fixtures/web)
 HSPG_MIRROR=/cesta/k/webu node balicek/testy/server.mjs       # ruční prohlížení na http://127.0.0.1:8787
 ```

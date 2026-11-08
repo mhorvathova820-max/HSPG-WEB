@@ -65,7 +65,7 @@ test("bez tokenu 401 s WWW-Authenticate (resource_metadata) – Claude podle toh
   assert.equal(r4.status, 200);
 });
 
-test("protokol: initialize, tools/list (5 nástrojů), ping, oznámení bez odpovědi (202), neznámá metoda, dávka", async () => {
+test("protokol: initialize, tools/list (11 nástrojů), ping, oznámení bez odpovědi (202), neznámá metoda, dávka", async () => {
   const { h } = brana();
   const init = await (await h(pozadavek("/api/mcp", { method: "POST", headers: auth(), body: rpc("initialize", { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "test" } }) }))).json();
   assert.equal(init.result.protocolVersion, "2025-03-26", "známou verzi klienta zopakuje");
@@ -75,7 +75,7 @@ test("protokol: initialize, tools/list (5 nástrojů), ping, oznámení bez odpo
   const init2 = await (await h(pozadavek("/api/mcp", { method: "POST", headers: auth(), body: rpc("initialize", { protocolVersion: "1999-01-01" }) }))).json();
   assert.equal(init2.result.protocolVersion, VYCHOZI_VERZE, "neznámá verze → výchozí");
   const seznam = await (await h(pozadavek("/api/mcp", { method: "POST", headers: auth(), body: rpc("tools/list") }))).json();
-  assert.deepEqual(seznam.result.tools.map((t) => t.name), ["ai_zeptat", "perplexity_hledat", "youcom_hledat", "rada_ai", "ai_stav"]);
+  assert.deepEqual(seznam.result.tools.map((t) => t.name), ["ai_zeptat", "perplexity_hledat", "youcom_hledat", "rada_ai", "ai_stav", "mapa_adresa", "mapa_snimek", "mapa_panorama", "mapa_trasa", "mapa_matice", "mapa_vyska"]);
   assert.ok(NASTROJE.every((t) => t.inputSchema?.type === "object" && typeof t.description === "string"));
   assert.ok(!ROLE_MCP.includes("muse"), "Muse (bez ZDR) přes bránu není");
   assert.ok(ROLE_MCP.includes("perplexity") && ROLE_MCP.includes("grok") && ROLE_MCP.includes("gpt"));

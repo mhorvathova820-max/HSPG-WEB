@@ -50,7 +50,7 @@ test("SDK klient: pevný token v hlavičce → initialize, tools/list, tools/cal
     assert.equal(klient.getServerVersion()?.name, "hspg-ai-gateway");
     assert.match(klient.getInstructions() || "", /pseudonymizuje/);
     const { tools } = await klient.listTools();
-    assert.deepEqual(tools.map((t) => t.name), ["ai_zeptat", "perplexity_hledat", "youcom_hledat", "rada_ai", "ai_stav"]);
+    assert.deepEqual(tools.map((t) => t.name), ["ai_zeptat", "perplexity_hledat", "youcom_hledat", "rada_ai", "ai_stav", "mapa_adresa", "mapa_snimek", "mapa_panorama", "mapa_trasa", "mapa_matice", "mapa_vyska"]);
     const stav = await klient.callTool({ name: "ai_stav", arguments: {} });
     assert.match(stav.content[0].text, /Role přes bránu/);
     assert.equal(stav.structuredContent.youcom, false);
