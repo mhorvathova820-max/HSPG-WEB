@@ -1,0 +1,27 @@
+# Prostředí pro GitHub Copilot coding agent (úkol 53). Jen příprava – žádná tajemství, žádné nasazení.
+# Akce připni na SHA stejně jako v kontroly.yml (úkol 19); test tests/ci/workflow.test.mjs hlídá i tento soubor.
+name: copilot-setup-steps
+on:
+  workflow_dispatch:
+  push:
+    paths: [.github/workflows/copilot-setup-steps.yml]
+  pull_request:
+    paths: [.github/workflows/copilot-setup-steps.yml]
+permissions:
+  contents: read
+concurrency:
+  group: copilot-setup-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@vX   # nahradit SHA
+      - uses: actions/setup-node@vX # nahradit SHA
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Chromium pro e2e testy
+        run: npx playwright install --with-deps chromium

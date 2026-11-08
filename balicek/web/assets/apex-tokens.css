@@ -1,0 +1,120 @@
+/* =====================================================================
+   HSPG APEX – sdílené tokeny vzhledu (rozhodnutí majitele 22. 10. 2026, R18)
+   Matná vesmírná čerň, těžké obsidiánové sklo, tekuté zlato. Používá H-BOT,
+   HOLUB 360, Pas domu a Standard HOLUB. Jen proměnné a pomocné třídy s
+   předponou apex-, nic globálního (stávající vzhled webu se nemění).
+   Písma: Playfair Display a Manrope hostuje web sám (úkol 07, bez Google Fonts).
+   ===================================================================== */
+:root {
+  --apex-cern-0: #05070f;
+  --apex-cern-1: #0b0f19;
+  --apex-cern-2: #111827;
+  --apex-cern-3: #1f2937;
+  --apex-zlato: #d4af37;
+  --apex-zlato-svetle: #f6e7a8;
+  --apex-zlato-tmave: #8a6a12;
+  --apex-safir: #7addff;
+  --apex-text: #f4f1e8;
+  --apex-tlumene: #a3a9b5;
+  --apex-linka: rgba(212, 175, 55, .22);
+  --apex-linka-silna: rgba(212, 175, 55, .45);
+  --apex-zare: 0 0 15px rgba(212, 175, 55, .4);
+  --apex-sklo: linear-gradient(180deg, rgba(17, 24, 39, .66), rgba(5, 7, 15, .86));
+  --apex-sklo-stin: 0 40px 120px rgba(0, 0, 0, .6), 0 2px 0 rgba(255, 255, 255, .02), inset 0 1px 0 rgba(255, 255, 255, .06);
+  --apex-zlaty-prechod: linear-gradient(110deg, #8a6a12 0%, #d4af37 28%, #f6e7a8 45%, #d4af37 62%, #8a6a12 100%);
+  --apex-tlacitko: linear-gradient(135deg, #f6e7a8 0%, #d4af37 42%, #9c7b16 100%);
+  --apex-pismo-nadpis: "Playfair Display", Georgia, "Times New Roman", serif;
+  --apex-pismo: Manrope, Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --apex-zaobleni: 22px;
+  --apex-krivka: cubic-bezier(.2, .8, .2, 1);
+  /* Pojmenované křivky pohybu (rada AI 22. 10., Gemini) – aliasy pro choreografii obálky, pečeti a hejna */
+  --apex-krivka-lux: cubic-bezier(.22, 1, .36, 1);
+  --apex-krivka-expo: cubic-bezier(.16, 1, .3, 1);
+  --apex-krivka-pruzina: cubic-bezier(.34, 1.45, .64, 1);
+  --apex-krivka-pecet: cubic-bezier(.5, 0, .15, 1);
+}
+
+/* Obsidiánové sklo */
+.apex-sklo {
+  background: var(--apex-sklo);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  backdrop-filter: blur(22px) saturate(1.4);
+  border: 1px solid var(--apex-linka);
+  border-radius: var(--apex-zaobleni);
+  box-shadow: var(--apex-sklo-stin);
+}
+
+/* Tekuté zlato – text */
+.apex-zlaty-text {
+  background: var(--apex-zlaty-prechod);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .apex-zlaty-text { animation: apex-tekute-zlato 7s linear infinite; }
+}
+@keyframes apex-tekute-zlato { to { background-position: -220% 0; } }
+
+/* Štítek nad nadpisem */
+.apex-stitek {
+  font: 600 11px/1.2 var(--apex-pismo);
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  color: var(--apex-zlato);
+}
+
+/* Zlaté tlačítko */
+.apex-tlacitko {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font: 700 15px/1 var(--apex-pismo);
+  letter-spacing: .02em;
+  color: #17120a;
+  text-decoration: none;
+  background: var(--apex-tlacitko);
+  box-shadow: 0 12px 34px rgba(212, 175, 55, .28), inset 0 1px 0 rgba(255, 255, 255, .55);
+  transition: transform .25s var(--apex-krivka), filter .25s;
+}
+.apex-tlacitko:hover { transform: translateY(-1px); filter: brightness(1.06); }
+.apex-tlacitko:disabled { opacity: .45; cursor: default; transform: none; }
+.apex-tlacitko--duch { background: transparent; color: var(--apex-zlato-svetle); box-shadow: inset 0 0 0 1px var(--apex-linka-silna); }
+.apex-tlacitko:focus-visible { outline: 2px solid var(--apex-zlato-svetle); outline-offset: 3px; }
+
+/* Zlatá vlasová linka */
+.apex-linka { height: 1px; border: 0; background: linear-gradient(90deg, transparent, var(--apex-linka-silna), transparent); }
+
+/* Zlatá neonová záře při zaměření pole */
+.apex-pole {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(212, 175, 55, .3);
+  background: rgba(5, 7, 15, .7);
+  color: var(--apex-text);
+  font: 500 16px var(--apex-pismo);
+  outline: none;
+  transition: border-color .3s var(--apex-krivka), box-shadow .3s var(--apex-krivka);
+}
+.apex-pole:focus { border-color: var(--apex-zlato); box-shadow: var(--apex-zare); }
+@media (prefers-reduced-motion: no-preference) {
+  .apex-pole:focus { animation: apex-pulz 2.4s var(--apex-krivka) infinite; }
+}
+@keyframes apex-pulz {
+  0%, 100% { box-shadow: 0 0 15px rgba(212, 175, 55, .4); }
+  50% { box-shadow: 0 0 28px rgba(212, 175, 55, .62), inset 0 0 2px rgba(246, 231, 168, .9); }
+}
+
+/* Šrafa pro technologicky nevhodné dny */
+.apex-srafa {
+  background: repeating-linear-gradient(45deg, #111827 0 6px, #1f2937 6px 12px);
+}

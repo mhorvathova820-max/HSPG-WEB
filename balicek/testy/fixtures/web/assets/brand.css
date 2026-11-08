@@ -1,0 +1,8 @@
+/* Zástupce stylu živého webu (/assets/brand.css z hspg.cz) pro e2e testy bez HSPG_MIRROR:
+   jen tmavé pozadí a barvy textu, na kterých stojí kontrast stránek balíčku (plánovač, kupon). */
+:root{color-scheme:dark}
+body{margin:0;background:#0b1220;color:#e9edf3}
+a{color:#f6e7a8}
+html{background:#0b1220}
+.skip{position:absolute;left:-9999px}.skip:focus{left:16px;top:16px;background:#0b1220}
+.hdr,footer{background:#0b1220}

@@ -43,7 +43,8 @@ test("ai-stav: bez přihlášení 401, s tokenem vrátí AI bez klíčů a útra
   const r = await h(pozadavek("/api/ai-stav", { headers: { authorization: `Bearer ${token}` } }));
   const j = await r.json();
   assert.equal(r.status, 200);
-  assert.deepEqual(j.ai.map((a) => [a.id, a.zapnuto]), [["claude", true], ["gpt", true], ["gemini", true], ["grok", false], ["mistral", false], ["deepseek", false], ["llama", false], ["perplexity", false]]);
+  // argon (Gemini 4 Argon) a muse (Muse Wonder) přibyly 22. 10. 2026 – bez klíče OpenRouter jsou vypnuté.
+  assert.deepEqual(j.ai.map((a) => [a.id, a.zapnuto]), [["claude", true], ["gpt", true], ["gemini", true], ["grok", false], ["mistral", false], ["deepseek", false], ["llama", false], ["perplexity", false], ["argon", false], ["muse", false]]);
   assert.ok(!JSON.stringify(j).includes("test"), "hodnota klíče se nesmí vrátit");
   assert.equal(j.limitKc, 25);
 });

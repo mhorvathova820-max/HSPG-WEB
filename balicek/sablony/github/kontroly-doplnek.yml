@@ -1,0 +1,23 @@
+# Doplněk pro .github/workflows/kontroly.yml (úkol 19) – kroky vložit do jobu `staticke` za `npm ci`.
+# Úkol 53 (R15–R19): generované soubory z content/*.json, embargo slov a „kalkulace není nabídka“.
+# Nálezy na stávajících stránkách oprav v úkolu 53 (pravidlo KONTEXT §4 bod 10), ne výjimkou.
+      - name: Generované soubory jsou aktuální (H-BOT, ceník, /standard-holub/)
+        run: node scripts/build-hbot.mjs --kontrola
+      - name: Embargo slov v textech pro zákazníky (KONTEXT §4 bod 10)
+        run: |
+          # Výstup buildu (dist/) bez interních stránek. Výjimky: zásady ochrany údajů (zdroje dat pravdivě)
+          # a řádky s licenčním uvedením zdroje (©) – licence zůstává vždy.
+          nalezy=$(grep -rnIiE "letecké mapy|letecký snímek|satelitní snímk|Google Maps|katastr|RÚIAN|z map[ ,.y]|z mapových" dist \
+                     --include=*.html --include=*.js --include=*.json --exclude-dir=ai-centrum --exclude-dir=vendor \
+                     --exclude="ochrana-osobnich-udaju*" --exclude="obce.json" | grep -v "©" || true)
+          if [ -n "$nalezy" ]; then
+            echo "$nalezy"
+            echo "::error::Zakázané slovo v textu pro zákazníky – měření na dálku = „HOLUB CORE QUANTUM SENSE · zaměření na dálku“."
+            exit 1
+          fi
+      - name: Kalkulace se nevydává za nabídku (§ 1732 OZ)
+        run: |
+          if grep -rnIE "Certifikát nabídky|Osobní nabídka|Stáhnout nabídku|Vaše nabídka je zapečetěná|k[  ]nabídce č\.|v nabídce je proto" dist --include=*.html --include=*.js; then
+            echo "::error::Výsledek kalkulace je „orientační cena“ / „kalkulace“, ne „nabídka“."
+            exit 1
+          fi

@@ -13,10 +13,11 @@
   "pusobnost": "celá Česká republika, na vyžádání i EU",
   "zaruka": {
     "potvrzeno": true,
-    "potvrzeno_kdy": "2026-10-04 (majitel přes rozšíření Claude v Chrome; HSPG_MASTER_CONTEXT v1.1)",
+    "potvrzeno_kdy": "2026-10-04 (majitel přes rozšíření Claude v Chrome; HSPG_MASTER_CONTEXT v1.1); podmínka změněna 2026-10-22 (R15 – SENTINEL BASE)",
     "veta": "Na impregnaci H-STONE je záruka 10 let.",
-    "podminka": "Záruka platí při technické kontrole alespoň jednou za 24 měsíců – v tarifu SENTINEL START ji děláme zdarma.",
-    "nahradni_veta": "Podmínky záruky na impregnaci H-STONE vám potvrdíme písemně v nabídce."
+    "podminka": "Záruka trvá při aktivní péči SENTINEL – nejméně tarif BASE za 499 Kč ročně s technickou kontrolou jednou ročně.",
+    "nahradni_veta": "Podmínky záruky na impregnaci H-STONE vám potvrdíme písemně v nabídce.",
+    "podminka_puvodni": "Domy ošetřené před 22. 10. 2026: záruka platí při technické kontrole alespoň jednou za 24 měsíců – v tarifu SENTINEL START ji děláme zdarma."
   },
   "emaily": {
     "_poznamka": "Firemní schránky @hspg.cz (Seznam Email Profi – MX hspg.cz míří na Seznam). Dokud schránka neexistuje, pošta na ni nedorazí – proto vždy jde kopie na 'zaloha'.",

@@ -1,0 +1,58 @@
+# --- Štít obsahu HSPG (úkol 54): výhrada vytěžování textů a dat ---------------------------------------
+# Vložit do stávajícího /robots.txt webu (nepřepisovat ho). Vyhledávače (Google, Bing, Seznam) zůstávají povolené.
+# Názvy robotů ověř v den nasazení v dokumentaci provozovatelů – mění se.
+#
+# Výhrada podle § 39c zákona č. 121/2000 Sb. (autorský zákon) a čl. 4 směrnice (EU) 2019/790:
+# automatizované vytěžování textů a dat (včetně trénování AI) bez souhlasu nositele práv je zakázáno.
+# Strojově čitelně také /.well-known/tdmrep.json a <meta name="tdm-reservation" content="1">.
+
+# Trénování modelů AI – zakázáno
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: MachineLearning
+Disallow: /
+
+# Vyhledávání a odpovědi AI s odkazem na hspg.cz – povoleno (přivádí zákazníky; rozhoduje majitel)
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+# --- konec Štítu obsahu ----------------------------------------------------------------------------------

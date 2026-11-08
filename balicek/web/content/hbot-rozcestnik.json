@@ -1,0 +1,13 @@
+{
+  "_poznamka": "Rozcestník „Celý web na jednom místě“ v uvítání H-BOTa (úkol 56). Každý cíl: id (malá písmena bez diakritiky, číslice, pomlčka; jde do měření jako hbot_rozcestnik {cil}), titul (do 48 znaků), popis (jedna krátká věta, do 120 znaků), a buď href = cesta na TOMTO webu (začíná „/“, ne „//“, bez mezer a zpětných lomítek – žádné cizí adresy ani javascript:), nebo akce „kalkulace“ | „zavolat“ | „otazka“ (u „otazka“ i pole „otazka“ s textem rychlé otázky). ikona: cena | holub360 | standard | sentinel | pas | termin | poptavka | telefon | otazka | odkaz. hlavni: true = zlatá dlaždice přes celou šířku (vždy první). {{pracovni_doba}} se doplní z content/firma.json. Nejvýš 12 cílů. Prázdný seznam rozcestník vypne. Po úpravě spusť: node scripts/build-hbot.mjs (neplatný cíl build zastaví).",
+  "cile": [
+    { "id": "cena", "titul": "Cena hned", "popis": "Orientační cena z ceníku HSPG", "akce": "kalkulace", "ikona": "cena", "hlavni": true },
+    { "id": "holub-360", "titul": "HOLUB 360", "popis": "Zaměření na dálku a ilustrační 3D model domu", "href": "/holub-360/", "ikona": "holub360" },
+    { "id": "standard", "titul": "Standard HOLUB", "popis": "Pět kroků ochrany povrchu, které nezkracujeme", "href": "/standard-holub/", "ikona": "standard" },
+    { "id": "sentinel", "titul": "Péče SENTINEL", "popis": "BASE · PLUS · PRESTIGE – pravidelná péče o dům", "href": "/cenik.html#sentinel", "ikona": "sentinel" },
+    { "id": "pas-domu", "titul": "Pas domu", "popis": "Trezor dokumentů a péče o váš dům", "href": "/pas-domu/trezor.html", "ikona": "pas" },
+    { "id": "termin", "titul": "Volný termín", "popis": "Kalendář technologicky vhodných dnů", "href": "/planovac/", "ikona": "termin" },
+    { "id": "poptavka", "titul": "Nezávazná poptávka", "popis": "Popište zakázku, ozveme se", "href": "/akce/", "ikona": "poptavka" },
+    { "id": "zavolat", "titul": "Zavolejte mi", "popis": "{{pracovni_doba}}", "akce": "zavolat", "ikona": "telefon" }
+  ]
+}
