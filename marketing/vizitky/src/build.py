@@ -1,12 +1,13 @@
-"""Build the HSPG couture cards (crest die-cut, gold foil).
+"""Build the HSPG folding card ("Vila", gate-fold triptych).
 
-Run from marketing/vizitky:  python3 src/build.py [strecha fasada dlazba]
+Run from marketing/vizitky:  python3 src/build.py
 
-Per variant it writes to out/:
-  <key>_tisk.pdf     4 pages: front, back, front foil mask, back foil mask;
-                     vector art + CutContour spot line on every page
-  <key>_vysek.svg    cut line only (mm units, same page as the PDF)
-  <key>_lic.png / <key>_rub.png   previews, <key>_nahled.jpg  mock-up
+Writes to out/:
+  vila_tisk.pdf      4 pages: side A (outside), side B (inside), foil mask A,
+                     foil mask B; CutContour and Crease spot lines on every page
+  vila_vysek.svg     cut and crease lines only
+  vila_zavreno.png   closed card, front      vila_rub.png   back cover
+  vila_otevreno.png  open spread             vila_nahled.jpg  mock-up
 Requires: Node.js + Playwright (Chromium), Python: numpy, Pillow,
 opencv-python-headless, segno, reportlab, pypdf.
 """
@@ -29,7 +30,6 @@ OUT = ROOT / "out"
 RENDER = ROOT / "src" / "render.cjs"
 
 MARGIN = 80
-PAGE_W, PAGE_H = art.W + 2 * MARGIN, art.H + 2 * MARGIN
 BLEED = 20
 
 FONTS = f"""
@@ -40,52 +40,55 @@ FONTS = f"""
 """
 
 
-def html_page(svg, bg="transparent"):
+def html_page(svg, pw, ph):
     return (f"<!doctype html><html><head><meta charset='utf-8'><style>{FONTS}"
-            f"@page{{size:{PAGE_W / 10}mm {PAGE_H / 10}mm;margin:0}}"
-            f"html,body{{margin:0;padding:0;background:{bg}}}svg{{display:block}}</style></head>"
+            f"@page{{size:{pw / 10}mm {ph / 10}mm;margin:0}}"
+            f"html,body{{margin:0;padding:0;background:transparent}}svg{{display:block}}</style></head>"
             f"<body>{svg}</body></html>")
 
 
-def svg_doc(inner, size_mm=True):
-    size = (f'width="{PAGE_W / 10}mm" height="{PAGE_H / 10}mm"' if size_mm
-            else f'width="{PAGE_W}" height="{PAGE_H}"')
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {PAGE_W} {PAGE_H}" {size}>'
+def svg_doc(inner, w, h, size_mm=True):
+    pw, ph = w + 2 * MARGIN, h + 2 * MARGIN
+    size = f'width="{pw / 10}mm" height="{ph / 10}mm"' if size_mm else f'width="{pw}" height="{ph}"'
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {pw} {ph}" {size}>'
             f'<g transform="translate({MARGIN},{MARGIN})">{inner}</g></svg>')
 
 
-def render_png(inner, tmp, name, scale=2, bg="transparent"):
+def render_png(inner, w, h, tmp, name, scale=2):
     html = tmp / f"{name}.html"
-    html.write_text(html_page(svg_doc(inner, size_mm=False), bg))
+    html.write_text(html_page(svg_doc(inner, w, h, size_mm=False), w + 2 * MARGIN, h + 2 * MARGIN))
     png = tmp / f"{name}.png"
-    subprocess.run(["node", str(RENDER), "png", str(html), str(png), str(PAGE_W), str(PAGE_H), str(scale)], check=True)
+    subprocess.run(["node", str(RENDER), "png", str(html), str(png), str(w + 2 * MARGIN), str(h + 2 * MARGIN), str(scale)], check=True)
     return Image.open(png)
 
 
-def render_pdf(inner, tmp, name):
+def render_pdf(inner, w, h, tmp, name):
     html = tmp / f"{name}.html"
-    html.write_text(html_page(svg_doc(inner)))
+    html.write_text(html_page(svg_doc(inner, w, h), w + 2 * MARGIN, h + 2 * MARGIN))
     pdf = tmp / f"{name}.pdf"
-    subprocess.run(["node", str(RENDER), "pdf", str(html), str(pdf), str(PAGE_W / 10), str(PAGE_H / 10)], check=True)
+    subprocess.run(["node", str(RENDER), "pdf", str(html), str(pdf), str((w + 2 * MARGIN) / 10), str((h + 2 * MARGIN) / 10)], check=True)
     return pdf
 
 
-def cut_overlay_pdf(segs, pages):
-    """CutContour spot colour (100 % magenta), 0.25 pt, on `pages` pages."""
+def overlay_pdf(cut_segs, creases, w, h, pages):
+    """CutContour (magenta, solid) and Crease (cyan, dashed) spot lines."""
     buf = io.BytesIO()
-    w_pt, h_pt = PAGE_W / 10 / 25.4 * 72, PAGE_H / 10 / 25.4 * 72
+    pw, ph = w + 2 * MARGIN, h + 2 * MARGIN
+    w_pt, h_pt = pw / 10 / 25.4 * 72, ph / 10 / 25.4 * 72
     c = rl_canvas.Canvas(buf, pagesize=(w_pt, h_pt))
-    spot = CMYKColorSep(0, 1, 0, 0, spotName="CutContour", density=1)
-    k = w_pt / PAGE_W
+    cut = CMYKColorSep(0, 1, 0, 0, spotName="CutContour", density=1)
+    crease = CMYKColorSep(1, 0, 0, 0, spotName="Crease", density=1)
+    k = w_pt / pw
 
     def P(p):
         return (p[0] + MARGIN) * k, h_pt - (p[1] + MARGIN) * k
 
     for _ in range(pages):
-        c.setStrokeColor(spot)
+        c.setStrokeColor(cut)
         c.setLineWidth(0.25)
+        c.setDash([])
         p = c.beginPath()
-        for s in segs:
+        for s in cut_segs:
             if s[0] == "M":
                 p.moveTo(*P(s[1]))
             elif s[0] == "L":
@@ -95,66 +98,85 @@ def cut_overlay_pdf(segs, pages):
             else:
                 p.close()
         c.drawPath(p, stroke=1, fill=0)
+        c.setStrokeColor(crease)
+        c.setDash([4, 3])
+        for x in creases:
+            c.line(*P((x, 0)), *P((x, h)))
         c.showPage()
     c.save()
     buf.seek(0)
     return PdfReader(buf)
 
 
-def mockup(front, back, path):
+def mockup(closed, back, spread, path):
     s = 0.5
-    f = front.resize((int(front.width * s), int(front.height * s)), Image.LANCZOS)
-    b = back.resize((int(back.width * s), int(back.height * s)), Image.LANCZOS)
+    cl = closed.resize((int(closed.width * s), int(closed.height * s)), Image.LANCZOS)
+    bk = back.resize((int(back.width * s), int(back.height * s)), Image.LANCZOS)
+    sp = spread.resize((int(spread.width * s), int(spread.height * s)), Image.LANCZOS)
     pad = 50
-    W, H = f.width + b.width + pad * 3, max(f.height, b.height) + pad * 2
+    W = max(cl.width + bk.width + pad * 3, sp.width + pad * 2)
+    H = cl.height + sp.height + pad * 3
     board = Image.new("RGBA", (W, H), (232, 226, 213, 255))
-    for img, x in ((f, pad), (b, pad * 2 + f.width)):
+    x0 = (W - cl.width - bk.width - pad) // 2
+    for img, x, y in ((cl, x0, pad), (bk, x0 + cl.width + pad, pad), (sp, (W - sp.width) // 2, pad * 2 + cl.height)):
         sh = Image.new("RGBA", img.size, (0, 0, 0, 0))
         sh.putalpha(img.getchannel("A").point(lambda a: int(a * 0.4)))
         sh = sh.filter(ImageFilter.GaussianBlur(16))
-        board.alpha_composite(sh, (x + 8, pad + 18))
-        board.alpha_composite(img, (x, pad))
+        board.alpha_composite(sh, (x + 8, y + 18))
+        board.alpha_composite(img, (x, y))
     board.convert("RGB").save(path, quality=93)
 
 
-def build(key):
-    label = art.VARIANTS[key][0].title()
+def main():
     OUT.mkdir(exist_ok=True)
-    cut = art.shape(0)
+    W, H = art.FW, art.PH
+    cut = art.shape(art.FLAT, art.FLAT_R, 0)
     cut_d = art.segs_to_svg(cut)
-    bleed_d = art.segs_to_svg(art.shape(-BLEED))
+    bleed_d = art.segs_to_svg(art.shape(art.FLAT, art.FLAT_R, -BLEED))
     card = f'<path d="{bleed_d}" fill="{art.BG}"/>'
     white = f'<path d="{bleed_d}" fill="#ffffff"/>'
+    # side B is the reverse of the sheet, drawn as seen from its own side (no mirroring):
+    # the outline is symmetric, the printer turns the sheet
     faces = {
-        "front": card + art.front(key),
-        "back": card + art.back(key),
-        "foil_front": white + art.front(key, foil=True),
-        "foil_back": white + art.back(key, foil=True),
+        "A": card + art.side_a(),
+        "B": card + art.side_b(),
+        "foilA": white + art.side_a(foil=True),
+        "foilB": white + art.side_b(foil=True),
     }
     with tempfile.TemporaryDirectory() as td:
         tmp = pathlib.Path(td)
         clip = f'<clipPath id="c"><path d="{cut_d}"/></clipPath>'
-        f_png = render_png(f'{clip}<g clip-path="url(#c)">{faces["front"]}</g>', tmp, "front")
-        b_png = render_png(f'{clip}<g clip-path="url(#c)">{faces["back"]}</g>', tmp, "back")
-        f_png.save(OUT / f"{key}_lic.png")
-        b_png.save(OUT / f"{key}_rub.png")
-        mockup(f_png, b_png, OUT / f"{key}_nahled.jpg")
+        # previews
+        crest = art.segs_to_svg(art.shape(*art.CREST, 0))
+        crest_bleed = art.segs_to_svg(art.shape(*art.CREST, -BLEED))
+        cclip = f'<clipPath id="cc"><path d="{crest}"/></clipPath>'
+        closed = render_png(f'{cclip}<g clip-path="url(#cc)"><path d="{crest_bleed}" fill="{art.BG}"/>{art.closed_preview()}</g>'
+                            f'<path d="M{art.DW},0 V{H}" stroke="#000" stroke-width="1.2" opacity=".55"/>', art.PW, H, tmp, "closed")
+        back = render_png(f'{cclip}<g clip-path="url(#cc)"><path d="{crest_bleed}" fill="{art.BG}"/>{art.back_cover()}'
+                          f'{art.frame(art.CREST)}</g>', art.PW, H, tmp, "back")
+        spread = render_png(f'{clip}<g clip-path="url(#c)">{faces["B"]}</g>'
+                            f'<path d="M{art.DW},0 V{H} M{art.PW + art.DW},0 V{H}" stroke="#000" stroke-width="1" opacity=".35"/>',
+                            W, H, tmp, "spread")
+        closed.save(OUT / "vila_zavreno.png")
+        back.save(OUT / "vila_rub.png")
+        spread.save(OUT / "vila_otevreno.png")
+        mockup(closed, back, spread, OUT / "vila_nahled.jpg")
 
         writer = PdfWriter()
-        cuts = cut_overlay_pdf(cut, 4)
-        for i, name in enumerate(("front", "back", "foil_front", "foil_back")):
-            page = PdfReader(render_pdf(faces[name], tmp, name)).pages[0]
+        cuts = overlay_pdf(cut, [art.DW, art.PW + art.DW], W, H, 4)
+        for i, name in enumerate(("A", "B", "foilA", "foilB")):
+            page = PdfReader(render_pdf(faces[name], W, H, tmp, name)).pages[0]
             page.merge_page(cuts.pages[i])
             writer.add_page(page)
-        writer.add_metadata({"/Title": f"HSPG vizitka – {label}", "/Author": "HSPG"})
-        with open(OUT / f"{key}_tisk.pdf", "wb") as fh:
+        writer.add_metadata({"/Title": "HSPG – skládaná vizitka Vila", "/Author": "HSPG"})
+        with open(OUT / "vila_tisk.pdf", "wb") as fh:
             writer.write(fh)
-    (OUT / f"{key}_vysek.svg").write_text(
-        svg_doc(f'<path d="{cut_d}" fill="none" stroke="#ff00ff" stroke-width="2.5" id="CutContour"/>'))
-    print(f"  {key}: hotovo -> out/{key}_tisk.pdf")
+    (OUT / "vila_vysek.svg").write_text(svg_doc(
+        f'<path d="{cut_d}" fill="none" stroke="#ff00ff" stroke-width="2.5" id="CutContour"/>'
+        f'<path d="M{art.DW},0 V{H} M{art.PW + art.DW},0 V{H}" fill="none" stroke="#00aaff" stroke-width="2" stroke-dasharray="8 6" id="Crease"/>',
+        W, H))
+    print("  hotovo -> out/vila_tisk.pdf")
 
 
 if __name__ == "__main__":
-    keys = sys.argv[1:] or list(art.VARIANTS)
-    for k in keys:
-        build(k)
+    main()
