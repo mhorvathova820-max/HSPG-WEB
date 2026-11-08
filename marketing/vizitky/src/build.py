@@ -3,7 +3,7 @@
 Run from marketing/vizitky:  python3 src/build.py [strecha fasada dlazba]
 
 Per variant it writes to out/:
-  <key>_tisk.pdf     2 pages (front, back), vector art + CutContour spot line
+  <key>_tisk.pdf     3 pages (front, back, back foil mask), vector art + CutContour spot line
   <key>_vysek.svg    cut line only (mm units, same page as the PDF)
   <key>_lic.png      front preview, <key>_rub.png back preview
   <key>_nahled.jpg   front + back mock-up
@@ -40,6 +40,7 @@ BORDER = 30                       # white sticker border outside the art (3 mm)
 CLOSE = 36                        # fills gaps between spray drops etc.
 BLEED = 20                        # back colour runs 2 mm past the cut
 SAFE = 35                         # back text stays 3.5 mm inside the cut
+HAIR = 16                         # gold hairline runs 1.6 mm inside the cut
 PX = 2                            # raster px per unit for contour work (20 px/mm)
 
 PHONE = "+420 736 618 486"
@@ -188,30 +189,42 @@ def largest_rect(mask, cell=5, aspect=(BLOCK_W, BLOCK_H)):
     return x0 * cell, y0 * cell, x1 * cell, y1 * cell
 
 
-def back_block(label):
-    """Contact block, BLOCK_W x BLOCK_H, origin top-left."""
-    gold, white, muted = art.GOLD, "#ffffff", "#c9d3e6"
+def back_block(label, foil=False):
+    """Contact block, BLOCK_W x BLOCK_H, origin top-left.
+
+    With foil=True only the elements that get hot foil are drawn, in black:
+    logo, wordmark, rule and claim."""
+    gold = "#000000" if foil else art.GOLD
+    cream = art.CREAM
+    muted = "#aeb9cf"
     q, pad = 112, 8
     qx = BLOCK_W - q - pad
     line2 = ("Celá ČR · foto před a po" if "dlažb" in label.lower()
              else "Bez lešení – z plošiny · celá ČR")
-    steps = "čištění · odmaštění · ošetření · oplach · ochranná vrstva"
-    return "".join([
-        f'<image href="{ROOT}/assets/logo_gold.png" x="0" y="0" width="{105 * 0.83:.1f}" height="105"/>',
-        f'<text x="102" y="70" font-family="Playfair Display" font-weight="700" font-size="72" letter-spacing="4" fill="{gold}">HSPG</text>',
-        f'<text x="105" y="108" font-family="Inter" font-weight="600" font-size="27" fill="{white}">Dušan Holub</text>',
-        f'<rect x="{qx - pad}" y="0" width="{q + 2 * pad}" height="{q + 2 * pad}" rx="12" fill="#ffffff"/>',
-        f'<path d="{qr_path("https://" + WEB, qx, pad, q)}" fill="{art.NAVY}"/>',
-        f'<path d="M0,146 H{BLOCK_W}" stroke="{gold}" stroke-width="2.5" opacity=".7"/>',
-        f'<text x="0" y="186" font-family="Inter" font-weight="600" font-size="22" fill="{muted}">Čištění a ochrana · {label.lower()}</text>',
-        f'<text x="0" y="215" font-family="Inter" font-weight="600" font-size="22" fill="{muted}">{line2}</text>',
-        icon_phone(0, 238, 30, gold),
-        f'<text x="42" y="266" font-family="Inter" font-weight="700" font-size="37" fill="{gold}">{PHONE}</text>',
-        icon_web(1, 284, 27, white),
-        f'<text x="42" y="308" font-family="Inter" font-weight="700" font-size="29" fill="{white}">{WEB}</text>',
-        f'<text x="{BLOCK_W}" y="186" text-anchor="end" font-family="Playfair Display" font-style="italic" font-weight="500" font-size="29" fill="{gold}">Věci stárnou.</text>',
-        f'<text x="{BLOCK_W}" y="220" text-anchor="end" font-family="Playfair Display" font-style="italic" font-weight="500" font-size="29" fill="{gold}">My zůstáváme.</text>',
-        f'<text x="{BLOCK_W}" y="{BLOCK_H - 2}" text-anchor="end" font-family="Inter" font-weight="600" font-size="18" fill="{muted}">{steps}</text>',
+    steps = "ČIŠTĚNÍ · ODMAŠTĚNÍ · OŠETŘENÍ · OPLACH · OCHRANNÁ VRSTVA"
+    logo = ROOT / ("assets/logo_black.png" if foil else "assets/logo_gold.png")
+    foil_els = [
+        f'<image href="{logo}" x="0" y="0" width="{105 * 0.83:.1f}" height="105"/>',
+        f'<text x="100" y="72" font-family="Playfair Display" font-weight="600" font-size="74" letter-spacing="7" fill="{gold}">HSPG</text>',
+        f'<path d="M0,146 H{BLOCK_W}" stroke="{gold}" stroke-width="1.6"/>',
+        f'<path d="M0,152 H{BLOCK_W * 0.42:.0f}" stroke="{gold}" stroke-width="0.8"/>',
+        f'<text x="{BLOCK_W}" y="188" text-anchor="end" font-family="Playfair Display" font-style="italic" font-weight="500" font-size="28" fill="{gold}">Věci stárnou.</text>',
+        f'<text x="{BLOCK_W}" y="222" text-anchor="end" font-family="Playfair Display" font-style="italic" font-weight="500" font-size="28" fill="{gold}">My zůstáváme.</text>',
+    ]
+    if foil:
+        return "".join(foil_els)
+    return "".join(foil_els + [
+        f'<text x="104" y="110" font-family="Inter" font-weight="600" font-size="20" letter-spacing="5" fill="{cream}">DUŠAN HOLUB</text>',
+        f'<rect x="{qx - pad}" y="0" width="{q + 2 * pad}" height="{q + 2 * pad}" rx="6" fill="{cream}"/>',
+        f'<rect x="{qx - pad + 4}" y="4" width="{q + 2 * pad - 8}" height="{q + 2 * pad - 8}" rx="4" fill="none" stroke="{art.GOLD}" stroke-width="1"/>',
+        f'<path d="{qr_path("https://" + WEB, qx, pad, q)}" fill="{art.BG}"/>',
+        f'<text x="0" y="186" font-family="Inter" font-weight="600" font-size="21" fill="{muted}">Čištění a ochrana · {label.lower()}</text>',
+        f'<text x="0" y="214" font-family="Inter" font-weight="600" font-size="21" fill="{muted}">{line2}</text>',
+        icon_phone(0, 240, 28, art.GOLD),
+        f'<text x="40" y="266" font-family="Inter" font-weight="700" font-size="36" letter-spacing="1" fill="{cream}">{PHONE}</text>',
+        icon_web(1, 285, 25, art.GOLD),
+        f'<text x="40" y="307" font-family="Inter" font-weight="600" font-size="27" letter-spacing="2" fill="{cream}">{WEB}</text>',
+        f'<text x="{BLOCK_W}" y="{BLOCK_H - 2}" text-anchor="end" font-family="Inter" font-weight="600" font-size="13" letter-spacing="2.2" fill="{muted}">{steps}</text>',
     ])
 
 
@@ -221,7 +234,9 @@ def back_content(label, safe_mask):
     s = min(rw / BLOCK_W, rh / BLOCK_H, 1.2)
     ox = x0 + (rw - BLOCK_W * s) / 2
     oy = y0 + (rh - BLOCK_H * s) / 2
-    block = f'<g transform="translate({ox:.1f},{oy:.1f}) scale({s:.4f})">{back_block(label)}</g>'
+    tf = f'transform="translate({ox:.1f},{oy:.1f}) scale({s:.4f})"'
+    block = f'<g {tf}>{back_block(label)}</g>'
+    foil = f'<g {tf}>{back_block(label, foil=True)}</g>'
     # gold pigeon watermark in the biggest free area left over
     rest = safe_mask.copy()
     pad = 25 * PX
@@ -234,9 +249,9 @@ def back_content(label, safe_mask):
         cy, cx = np.unravel_index(dist.argmax(), dist.shape)
         hgt = 1.45 * r
         wm = (f'<image href="{ROOT}/assets/logo_gold.png" x="{cx / PX - hgt * 0.83 / 2:.1f}" y="{cy / PX - hgt / 2:.1f}" '
-              f'width="{hgt * 0.83:.1f}" height="{hgt:.1f}" opacity=".22"/>')
+              f'width="{hgt * 0.83:.1f}" height="{hgt:.1f}" opacity=".16"/>')
     print(f"    back block {rw}x{rh} units, scale {s:.2f}, watermark r={r:.0f}")
-    return wm + block
+    return wm + block, foil
 
 
 def cut_overlay_pdf(pts_list):
@@ -287,18 +302,27 @@ def build(key):
     OUT.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory() as td:
         tmp = pathlib.Path(td)
-        art_g = f'<g transform="translate({MARGIN},{MARGIN})">{scene(str(ROOT / "assets/logo_navy.png"))}</g>'
+        art_g = f'<g transform="translate({MARGIN},{MARGIN})">{scene(str(ROOT / "assets/logo_gold.png"))}</g>'
 
         alpha = np.array(render_png(art_g, tmp, "alpha").getchannel("A"))
         cut_mask = silhouette(alpha)
         cut_d, cut_pts = mask_to_path(cut_mask)
         back_cut_d, back_pts = mask_to_path(cut_mask, mirror=True)
         bleed_d, _ = mask_to_path(cv2.dilate(cut_mask, disk(BLEED * PX)), mirror=True)
+        bleed_d_front, _ = mask_to_path(cv2.dilate(cut_mask, disk(BLEED * PX)))
         safe_mask = cv2.flip(cv2.erode(cut_mask, disk(SAFE * PX)), 1)
+        hair_mask = cv2.erode(cut_mask, disk(HAIR * PX))
+        hair_d, _ = mask_to_path(hair_mask)
+        back_hair_d, _ = mask_to_path(hair_mask, mirror=True)
+        hair = f'fill="none" stroke="{art.GOLD}" stroke-width="2.2"'
 
-        front_svg = f'<path d="{cut_d}" fill="#ffffff"/>{art_g}'
-        content = back_content(label, safe_mask)
-        back_svg = f'<path d="{bleed_d}" fill="{art.NAVY}"/>{content}'
+        front_svg = (f'<path d="{bleed_d_front}" fill="{art.BG}"/>'
+                     f'<path d="{hair_d}" {hair}/>{art_g}')
+        content, foil = back_content(label, safe_mask)
+        back_svg = (f'<path d="{bleed_d}" fill="{art.BG}"/>'
+                    f'<path d="{back_hair_d}" {hair}/>{content}')
+        foil_svg = (f'<rect width="{PAGE_W}" height="{PAGE_H}" fill="#ffffff"/>'
+                    f'<path d="{back_hair_d}" fill="none" stroke="#000000" stroke-width="2.2"/>{foil}')
 
         # back text must sit inside the safe zone
         txt_alpha = np.array(render_png(content, tmp, "txt").getchannel("A"))
@@ -312,7 +336,7 @@ def build(key):
 
         # previews: clip to the cut, with a hairline to show the knife
         f_png = render_png(f'<clipPath id="c"><path d="{cut_d}"/></clipPath><g clip-path="url(#c)">{front_svg}</g>'
-                           f'<path d="{cut_d}" fill="none" stroke="#d6dbe4" stroke-width="2"/>', tmp, "front", scale=2)
+                           , tmp, "front", scale=2)
         b_png = render_png(f'<clipPath id="c"><path d="{back_cut_d}"/></clipPath><g clip-path="url(#c)">{back_svg}</g>',
                            tmp, "back", scale=2)
         f_png.save(OUT / f"{key}_lic.png")
@@ -321,8 +345,8 @@ def build(key):
 
         # print PDF: vector art + CutContour on top
         writer = PdfWriter()
-        cuts = cut_overlay_pdf([cut_pts, back_pts])
-        for i, (svg, name) in enumerate(((front_svg, "front"), (back_svg, "back"))):
+        cuts = cut_overlay_pdf([cut_pts, back_pts, back_pts])
+        for i, (svg, name) in enumerate(((front_svg, "front"), (back_svg, "back"), (foil_svg, "foil"))):
             page = PdfReader(render_pdf(svg, tmp, name)).pages[0]
             page.merge_page(cuts.pages[i])
             writer.add_page(page)
