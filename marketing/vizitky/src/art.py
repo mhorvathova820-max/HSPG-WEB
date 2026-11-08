@@ -224,80 +224,65 @@ def blob(cx, cy, rx, ry, rng, n=9):
 
 
 
-def statue_angel(x, y, h, col=GOLD, bg=BG, wings=1.0, detail=True):
-    """Standing angel, feet at (x, y), height h. Local box 60 x 100 (wings overflow)."""
+def lion(x, y, h, col=GOLD, bg=BG, flip=False, weathered=False, rng=None):
+    """Seated lion in profile facing right (flip=True faces left), paws at (x, y), height h. Local 120 x 100."""
     k = h / 100
     f = f'fill="{col}"'
-    out = [f'<g transform="translate({x - 30 * k:.2f},{y - 100 * k:.2f}) scale({k:.4f})">']
-    w = 0.55 + 0.45 * wings
-    for sgn in (-1, 1):
-        def P(px, py):
-            return 30 + sgn * (6 + (px - 36) * w), 36 + (py - 36) * w * 0.95
-        S = P(36, 36)
-        c1, c2, T = P(48, 24), P(64, 10), P(72, -2)
-        low = [P(66, 12), P(60, 22), P(54, 30), P(48, 38), P(40, 46)]
-        d = [f"M{S[0]:.1f},{S[1]:.1f} C{c1[0]:.1f},{c1[1]:.1f} {c2[0]:.1f},{c2[1]:.1f} {T[0]:.1f},{T[1]:.1f}"]
-        prev = T
-        for q in low:
-            mx, my = (prev[0] + q[0]) / 2 + sgn * 4.5 * w, (prev[1] + q[1]) / 2 + 3.5 * w
-            d.append(f"Q{mx:.1f},{my:.1f} {q[0]:.1f},{q[1]:.1f}")
-            prev = q
-        d.append("Z")
-        out.append(f'<path d="{" ".join(d)}" {f}/>')
-        if detail:
-            for q in low[1:4]:
-                a = P(40, 44)
-                out.append(f'<path d="M{a[0]:.1f},{a[1]:.1f} L{q[0]:.1f},{q[1]:.1f}" stroke="{bg}" stroke-width="0.8" fill="none"/>')
-    out.append(f'<circle cx="30" cy="9" r="7" fill="none" stroke="{col}" stroke-width="1.6"/>')
-    out.append(f'<circle cx="30" cy="16" r="6" {f}/>')
-    out.append(f'<path d="M30,21 L20,34 L40,34 Z" {f}/>')
-    out.append(f'<path d="M20,34 L40,34 L46,100 L14,100 Z" {f}/>')
-    if detail:
-        out.append(f'<path d="M26,44 L24,96 M30,46 L30,98 M34,44 L36,96" stroke="{bg}" stroke-width="0.8" fill="none"/>')
-        out.append(f'<circle cx="30" cy="56" r="3.2" fill="{bg}"/>')
-        out.append(f'<circle cx="30" cy="56" r="1.6" {f}/>')
+    tf = f'translate({x:.2f},{y - 100 * k:.2f}) scale({(-k if flip else k):.4f},{k:.4f})'
+    out = [f'<g transform="{tf}">']
+    out.append(f'<path d="M10,74 C-4,80 -8,94 2,99 C9,102 16,98 18,92" fill="none" stroke="{col}" stroke-width="4.5" stroke-linecap="round"/>')
+    out.append(f'<path d="M12,88 L26,94 L16,101 Z" {f}/>')
+    out.append(f'<path d="M62,38 C46,40 28,46 16,56 C4,66 0,82 6,94 L10,100 L30,100 C31,90 36,82 44,78 '
+               f'C52,78 58,80 64,82 L64,100 L84,100 L86,82 C88,74 90,68 94,62 L72,52 Z" {f}/>')
+    cx, cy, r = 76, 34, 32
+    a0, a1, steps = -75, 150, 13
+    d = ""
+    for i in range(steps + 1):
+        a = math.radians(a0 + (a1 - a0) * i / steps)
+        px, py = cx + r * math.cos(a), cy + r * math.sin(a)
+        if i == 0:
+            d += f"M{px:.1f},{py:.1f} "
+        else:
+            am = math.radians(a0 + (a1 - a0) * (i - .5) / steps)
+            d += f"Q{cx + (r + 8) * math.cos(am):.1f},{cy + (r + 8) * math.sin(am):.1f} {px:.1f},{py:.1f} "
+    out.append(f'<path d="{d}L{cx},{cy} Z" {f}/>')
+    out.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" {f}/>')
+    out.append(f'<path d="M80,14 L86,2 L94,14 Z" {f}/>')
+    out.append(f'<path d="M84,12 L87,6 L90,12" fill="none" stroke="{bg}" stroke-width="1.1"/>')
+    out.append(f'<path d="M82,18 C92,10 104,14 108,24 C114,29 119,37 118,44 L116,48 C113,49 112,51 113,53 '
+               f'C108,58 101,58 96,55 C90,50 86,42 84,34 Z" {f} stroke="{bg}" stroke-width="1.1"/>')
+    out.append(f'<circle cx="104" cy="31" r="2.3" fill="{bg}"/>')
+    out.append(f'<path d="M99,27 C102,25 106,25 108,27 M113,48 L108,50 M116,42 L113,44" fill="none" stroke="{bg}" stroke-width="1.2" stroke-linecap="round"/>')
+    L = f'fill="none" stroke="{bg}" stroke-width="1.2" stroke-linecap="round"'
+    out.append(f'<path d="M84,40 C78,46 72,54 74,62 M80,20 C72,22 64,30 62,40 M90,52 C88,60 86,66 88,72 M70,16 C62,22 56,32 56,44" {L}/>')
+    out.append(f'<path d="M14,62 C24,66 30,78 28,90 M74,84 L74,100 M42,80 C40,88 36,94 34,100" {L}/>')
+    out.append(f'<path d="M69,98 V93 M78,98 V93 M14,98 V94 M22,98 V94" {L}/>')
+    if weathered and rng is not None:
+        out.append(f'<path d="M40,46 L46,58 L42,70 M20,66 L26,78" fill="none" stroke="{bg}" stroke-width="1.1" opacity=".9"/>')
+        for _ in range(14):
+            out.append(f'<circle cx="{rng.uniform(14, 100):.1f}" cy="{rng.uniform(20, 96):.1f}" r="{rng.uniform(.8, 1.8):.1f}" fill="{bg}" opacity=".7"/>')
     out.append("</g>")
     return "".join(out)
 
 
-def statue_devil(x, y, h, col=GOLD, bg=BG):
-    """Crouching devil with bat wings and a tail, feet at (x, y). Local box 60 x 100 (wings overflow)."""
-    k = h / 100
-    f = f'fill="{col}"'
-    out = [f'<g transform="translate({x - 30 * k:.2f},{y - 100 * k:.2f}) scale({k:.4f})">']
-    for sgn in (-1, 1):
-        def X(v):
-            return 30 + sgn * v
-        d = (f"M{X(6)},38 L{X(18)},30 L{X(34)},6 Q{X(26)},22 {X(32)},30 "
-             f"Q{X(22)},32 {X(24)},46 Q{X(16)},42 {X(8)},48 Z")
-        out.append(f'<path d="{d}" {f}/>')
-        out.append(f'<path d="M{X(8)},40 L{X(18)},30 M{X(10)},44 L{X(31)},30 M{X(12)},46 L{X(23)},44" stroke="{bg}" stroke-width="0.7" fill="none"/>')
-    out.append(f'<path d="M34,68 Q58,76 52,98 L48,96 Q54,80 32,72 Z" {f}/>')
-    out.append(f'<path d="M50,100 L54,94 L46,93 Z" {f}/>')
-    out.append(f'<circle cx="30" cy="24" r="7" {f}/>')
-    out.append(f'<path d="M25,18 L20,4 L29,15 Z M35,18 L40,4 L31,15 Z" {f}/>')
-    out.append(f'<path d="M23,24 L18,27 L24,29 Z M37,24 L42,27 L36,29 Z" {f}/>')
-    out.append(f'<circle cx="27.5" cy="23" r="1.1" fill="{bg}"/><circle cx="32.5" cy="23" r="1.1" fill="{bg}"/>')
-    out.append(f'<path d="M22,32 L38,32 L42,66 L18,66 Z" {f}/>')
-    out.append(f'<path d="M18,66 L10,100 L21,100 L26,72 Z M42,66 L50,100 L39,100 L34,72 Z" {f}/>')
-    out.append(f'<path d="M24,40 L22,62 M36,40 L38,62" stroke="{bg}" stroke-width="0.8" fill="none"/>')
-    out.append("</g>")
+def plinth(x, y, w, h, col=GOLD, bg=BG):
+    """Stone plinth with mouldings, top centre at (x, y)."""
+    L = f'stroke="{col}" stroke-width="1.2" fill="none"'
+    return (f'<rect x="{x - w / 2}" y="{y}" width="{w}" height="{h}" fill="{bg}" {L}/>'
+            f'<rect x="{x - w / 2 - 4}" y="{y - 5}" width="{w + 8}" height="5" fill="{col}"/>'
+            f'<rect x="{x - w / 2 - 3}" y="{y + h - 6}" width="{w + 6}" height="6" fill="{col}"/>'
+            f'<rect x="{x - w / 2 + 8}" y="{y + 9}" width="{w - 16}" height="{h - 22}" {L} opacity=".7"/>')
+
+
+def cartouche(cx, cy, col=GOLD, bg=BG, weathered=False):
+    """Oval cartouche with the HSPG pigeon in relief, the house's coat of arms."""
+    out = [f'<ellipse cx="{cx}" cy="{cy}" rx="19" ry="13" fill="{bg}" stroke="{col}" stroke-width="1.4"/>',
+           f'<ellipse cx="{cx}" cy="{cy}" rx="15.5" ry="10" fill="none" stroke="{col}" stroke-width="0.6"/>',
+           pigeon(cx, cy, 19, fill=col),
+           diamond(cx - 26, cy + 2, 2.6, col), diamond(cx + 26, cy + 2, 2.6, col)]
+    if weathered:
+        out.append(f'<path d="M{cx - 16},{cy - 9} L{cx - 6},{cy - 1} L{cx - 8},{cy + 6} L{cx + 2},{cy + 12}" fill="none" stroke="{col}" stroke-width="0.9" opacity=".9"/>')
     return "".join(out)
-
-
-def urn(x, y, h, col=GOLD):
-    """Classical urn on a plinth, base centre at (x, y)."""
-    k = h / 100
-    L = f'stroke="{col}" stroke-width="1.6" fill="none"'
-    return (f'<g transform="translate({x:.2f},{y - 100 * k:.2f}) scale({k:.4f})">'
-            f'<rect x="-16" y="90" width="32" height="10" fill="{col}"/>'
-            f'<path d="M-6,90 L6,90 L8,82 L-8,82 Z" fill="{col}"/>'
-            f'<path d="M-22,40 C-26,70 -10,82 0,82 C10,82 26,70 22,40 Z" fill="{col}"/>'
-            f'<path d="M-26,36 L26,36 L22,42 L-22,42 Z" fill="{col}"/>'
-            f'<path d="M-6,34 L6,34 L4,22 L-4,22 Z" fill="{col}"/>'
-            f'<path d="M-22,48 C-34,54 -34,66 -24,70 M22,48 C34,54 34,66 24,70" {L}/>'
-            f'<path d="M-10,52 L-12,76 M0,54 L0,80 M10,52 L12,76" stroke="{BG}" stroke-width="1" fill="none"/>'
-            f'</g>')
 
 
 def tuft(x, y, r, rng, col=GOLD):
@@ -401,7 +386,7 @@ def villa(cx, base, weathered, pid, rng, deboss=False):
             wx = cx + sx * off - 28
             window(wx, top + 44, 56, 84, k)
             k += 1
-            window(wx, base - 136, 56, 96, k)
+            window(wx, base - 152, 56, 90, k)
             k += 1
     # entrance on the axis
     dw, dh = 64, 124
@@ -431,19 +416,22 @@ def villa(cx, base, weathered, pid, rng, deboss=False):
     out.append(rule(cx - 92, cx + 92, base - 158, w=3.2 if deboss else 1.4, stroke=col))
     out.append(rule(cx - 92, cx + 92, base - 152, w=3.2 if deboss else 0.7, stroke=col))
     scol, sbg = ("#000", "#fff") if deboss else (GOLD, BG)
-    if weathered:
-        out.append(statue_devil(cx - 66, base - 160, 54, scol, sbg))
-        out.append(statue_angel(cx + 66, base - 160, 54, scol, sbg, wings=0.55))
-    else:
-        out.append(urn(cx - 66, base - 160, 40, scol))
-        out.append(urn(cx + 66, base - 160, 40, scol))
-        out.append(statue_angel(cx, base - 202, 72, scol, sbg, wings=1.0))
+    out.append(cartouche(cx, base - 173, scol, sbg, weathered=weathered and not deboss))
     # steps and ground
     for i, w in enumerate((86, 110, 134)):
         out.append(rule(cx - w / 2, cx + w / 2, base + 8 * (i + 1), w=3.0 if deboss else 1.0, stroke=col))
     out.append(rule(cx - hw - 80, cx + hw + 80, base + 32, w=3.2 if deboss else 1.3, stroke=col))
     if not deboss:
         out.append(rule(cx - hw - 80, cx + hw + 80, base + 37, w=0.5, opacity=0.6))
+    # the lions guarding the entrance
+    for sx in (-1, 1):
+        lx = cx + sx * 112
+        out.append(plinth(lx, base + 8, 72, 24, scol, sbg))
+        out.append(lion(lx + sx * 40, base + 8, 66, scol, sbg, flip=(sx > 0), weathered=weathered and not deboss, rng=rng))
+        if weathered and not deboss:
+            for _ in range(5):
+                out.append(tuft(lx + rng.uniform(-30, 30), base + 8 + rng.uniform(-2, 2), rng.uniform(1.4, 2.6), rng))
+            out.append(f'<path d="M{lx - 20},{base + 12} L{lx - 14},{base + 22} L{lx - 18},{base + 30}" fill="none" stroke="{GOLD}" stroke-width="0.8" opacity=".9"/>')
     # weathering
     if weathered and not deboss:
         # moss where it really grows: eaves, around the chimney, gutter, sills, plinth
@@ -462,7 +450,7 @@ def villa(cx, base, weathered, pid, rng, deboss=False):
         for sxs in (-1, 1):
             for off in (100, 235):
                 wx = cx + sxs * off
-                for wy in (top + 128, base - 40):
+                for wy in (top + 128, base - 62):
                     for _ in range(4):
                         out.append(tuft(wx + rng.uniform(-28, 28), wy + rng.uniform(1, 5), rng.uniform(1.2, 2.4), rng))
         for _ in range(34):
@@ -481,7 +469,7 @@ def villa(cx, base, weathered, pid, rng, deboss=False):
         for sxs in (-1, 1):
             for off in (100, 235):
                 wx = cx + sxs * off
-                for wy in (top + 128, base - 40):
+                for wy in (top + 128, base - 62):
                     out.append(hatch(f"{pid}u{wx}{wy}", rect_poly(wx - 16, wy, 32, rng.uniform(22, 50)), 1.9, 90, width=0.45, opacity=0.4, box=box))
         out.append("</g>")
         # cracks
