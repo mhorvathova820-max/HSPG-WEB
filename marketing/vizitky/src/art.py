@@ -223,6 +223,109 @@ def blob(cx, cy, rx, ry, rng, n=9):
     return " ".join(d) + "Z", pts
 
 
+
+def statue_angel(x, y, h, col=GOLD, bg=BG, wings=1.0, detail=True):
+    """Standing angel, feet at (x, y), height h. Local box 60 x 100 (wings overflow)."""
+    k = h / 100
+    f = f'fill="{col}"'
+    out = [f'<g transform="translate({x - 30 * k:.2f},{y - 100 * k:.2f}) scale({k:.4f})">']
+    w = 0.55 + 0.45 * wings
+    for sgn in (-1, 1):
+        def P(px, py):
+            return 30 + sgn * (6 + (px - 36) * w), 36 + (py - 36) * w * 0.95
+        S = P(36, 36)
+        c1, c2, T = P(48, 24), P(64, 10), P(72, -2)
+        low = [P(66, 12), P(60, 22), P(54, 30), P(48, 38), P(40, 46)]
+        d = [f"M{S[0]:.1f},{S[1]:.1f} C{c1[0]:.1f},{c1[1]:.1f} {c2[0]:.1f},{c2[1]:.1f} {T[0]:.1f},{T[1]:.1f}"]
+        prev = T
+        for q in low:
+            mx, my = (prev[0] + q[0]) / 2 + sgn * 4.5 * w, (prev[1] + q[1]) / 2 + 3.5 * w
+            d.append(f"Q{mx:.1f},{my:.1f} {q[0]:.1f},{q[1]:.1f}")
+            prev = q
+        d.append("Z")
+        out.append(f'<path d="{" ".join(d)}" {f}/>')
+        if detail:
+            for q in low[1:4]:
+                a = P(40, 44)
+                out.append(f'<path d="M{a[0]:.1f},{a[1]:.1f} L{q[0]:.1f},{q[1]:.1f}" stroke="{bg}" stroke-width="0.8" fill="none"/>')
+    out.append(f'<circle cx="30" cy="9" r="7" fill="none" stroke="{col}" stroke-width="1.6"/>')
+    out.append(f'<circle cx="30" cy="16" r="6" {f}/>')
+    out.append(f'<path d="M30,21 L20,34 L40,34 Z" {f}/>')
+    out.append(f'<path d="M20,34 L40,34 L46,100 L14,100 Z" {f}/>')
+    if detail:
+        out.append(f'<path d="M26,44 L24,96 M30,46 L30,98 M34,44 L36,96" stroke="{bg}" stroke-width="0.8" fill="none"/>')
+        out.append(f'<circle cx="30" cy="56" r="3.2" fill="{bg}"/>')
+        out.append(f'<circle cx="30" cy="56" r="1.6" {f}/>')
+    out.append("</g>")
+    return "".join(out)
+
+
+def statue_devil(x, y, h, col=GOLD, bg=BG):
+    """Crouching devil with bat wings and a tail, feet at (x, y). Local box 60 x 100 (wings overflow)."""
+    k = h / 100
+    f = f'fill="{col}"'
+    out = [f'<g transform="translate({x - 30 * k:.2f},{y - 100 * k:.2f}) scale({k:.4f})">']
+    for sgn in (-1, 1):
+        def X(v):
+            return 30 + sgn * v
+        d = (f"M{X(6)},38 L{X(18)},30 L{X(34)},6 Q{X(26)},22 {X(32)},30 "
+             f"Q{X(22)},32 {X(24)},46 Q{X(16)},42 {X(8)},48 Z")
+        out.append(f'<path d="{d}" {f}/>')
+        out.append(f'<path d="M{X(8)},40 L{X(18)},30 M{X(10)},44 L{X(31)},30 M{X(12)},46 L{X(23)},44" stroke="{bg}" stroke-width="0.7" fill="none"/>')
+    out.append(f'<path d="M34,68 Q58,76 52,98 L48,96 Q54,80 32,72 Z" {f}/>')
+    out.append(f'<path d="M50,100 L54,94 L46,93 Z" {f}/>')
+    out.append(f'<circle cx="30" cy="24" r="7" {f}/>')
+    out.append(f'<path d="M25,18 L20,4 L29,15 Z M35,18 L40,4 L31,15 Z" {f}/>')
+    out.append(f'<path d="M23,24 L18,27 L24,29 Z M37,24 L42,27 L36,29 Z" {f}/>')
+    out.append(f'<circle cx="27.5" cy="23" r="1.1" fill="{bg}"/><circle cx="32.5" cy="23" r="1.1" fill="{bg}"/>')
+    out.append(f'<path d="M22,32 L38,32 L42,66 L18,66 Z" {f}/>')
+    out.append(f'<path d="M18,66 L10,100 L21,100 L26,72 Z M42,66 L50,100 L39,100 L34,72 Z" {f}/>')
+    out.append(f'<path d="M24,40 L22,62 M36,40 L38,62" stroke="{bg}" stroke-width="0.8" fill="none"/>')
+    out.append("</g>")
+    return "".join(out)
+
+
+def urn(x, y, h, col=GOLD):
+    """Classical urn on a plinth, base centre at (x, y)."""
+    k = h / 100
+    L = f'stroke="{col}" stroke-width="1.6" fill="none"'
+    return (f'<g transform="translate({x:.2f},{y - 100 * k:.2f}) scale({k:.4f})">'
+            f'<rect x="-16" y="90" width="32" height="10" fill="{col}"/>'
+            f'<path d="M-6,90 L6,90 L8,82 L-8,82 Z" fill="{col}"/>'
+            f'<path d="M-22,40 C-26,70 -10,82 0,82 C10,82 26,70 22,40 Z" fill="{col}"/>'
+            f'<path d="M-26,36 L26,36 L22,42 L-22,42 Z" fill="{col}"/>'
+            f'<path d="M-6,34 L6,34 L4,22 L-4,22 Z" fill="{col}"/>'
+            f'<path d="M-22,48 C-34,54 -34,66 -24,70 M22,48 C34,54 34,66 24,70" {L}/>'
+            f'<path d="M-10,52 L-12,76 M0,54 L0,80 M10,52 L12,76" stroke="{BG}" stroke-width="1" fill="none"/>'
+            f'</g>')
+
+
+def tuft(x, y, r, rng, col=GOLD):
+    """A small, real-looking moss tuft: dense dots with a fringe of short filaments."""
+    out = []
+    n = int(6 + r * 2.2)
+    for _ in range(n):
+        a = rng.uniform(0, 2 * math.pi)
+        d = r * math.sqrt(rng.random())
+        out.append(f'<circle cx="{x + d * math.cos(a):.1f}" cy="{y + d * math.sin(a) * .55:.1f}" r="{rng.uniform(.45, 1.0):.2f}" fill="{col}" opacity="{rng.uniform(.55, .95):.2f}"/>')
+    for _ in range(int(3 + r)):
+        a = rng.uniform(-2.6, -0.5)
+        d = r * rng.uniform(.5, 1.0)
+        x0, y0 = x + d * math.cos(a) * .9, y + d * math.sin(a) * .5
+        ln = rng.uniform(1.2, 2.6)
+        out.append(f'<path d="M{x0:.1f},{y0:.1f} l{ln * math.cos(a) * .7:.1f},{ln * math.sin(a):.1f}" stroke="{col}" stroke-width="0.45" opacity=".8"/>')
+    return "".join(out)
+
+
+def lichen(x, y, r, rng, col=GOLD):
+    out = [f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="none" stroke="{col}" stroke-width="0.5" stroke-dasharray="0.8 0.9" opacity=".85"/>']
+    for _ in range(int(r * 2)):
+        a = rng.uniform(0, 2 * math.pi)
+        d = r * rng.uniform(0, .7)
+        out.append(f'<circle cx="{x + d * math.cos(a):.1f}" cy="{y + d * math.sin(a):.1f}" r="0.5" fill="{col}" opacity=".7"/>')
+    return "".join(out)
+
+
 def villa(cx, base, weathered, pid, rng, deboss=False):
     """A classical villa drawn as an engraving. Same geometry in both states.
 
@@ -294,7 +397,7 @@ def villa(cx, base, weathered, pid, rng, deboss=False):
 
     k = 0
     for sx in (-1, 1):
-        for off in (85, 225):
+        for off in (100, 235):
             wx = cx + sx * off - 28
             window(wx, top + 44, 56, 84, k)
             k += 1
@@ -317,12 +420,24 @@ def villa(cx, base, weathered, pid, rng, deboss=False):
             out.append(f'<path d="M{cx},{dy0 + r} L{cx + r * math.cos(math.pi + a):.1f},{dy0 + r - r * math.sin(a):.1f}" stroke="{GOLD}" stroke-width="0.5" opacity=".8"/>')
         out.append(diamond(cx - 9, base - 56, 3.2, GOLD_L))
         out.append(diamond(cx + 9, base - 56, 3.2, GOLD_L))
-    # portico
-    for px in (cx - 62, cx + 50):
+    # portico with its sculpture
+    for px in (cx - 72, cx + 60):
         out.append(f'<rect x="{px}" y="{base - 156}" width="12" height="156" {L}/>')
         out.append(H(f"{pid}c{px}", rect_poly(px + 7, base - 156, 5, 156), 2.6, 90, width=0.45, opacity=0.6, box=box))
-    out.append(f'<path d="M{cx - 76},{base - 156} L{cx},{base - 196} L{cx + 76},{base - 156} Z" {L}/>')
-    out.append(rule(cx - 80, cx + 80, base - 156, w=3.2 if deboss else 1.4, stroke=col))
+    ped = f"{cx - 88},{base - 158} {cx},{base - 200} {cx + 88},{base - 158}"
+    out.append(f'<polygon points="{ped}" fill="{"#fff" if deboss else BG}"/>')
+    out.append(H(f"{pid}pe", ped, 3.0, 0, width=0.45, opacity=0.5 if weathered else 0.3, box=box))
+    out.append(f'<polygon points="{ped}" {L}/>')
+    out.append(rule(cx - 92, cx + 92, base - 158, w=3.2 if deboss else 1.4, stroke=col))
+    out.append(rule(cx - 92, cx + 92, base - 152, w=3.2 if deboss else 0.7, stroke=col))
+    scol, sbg = ("#000", "#fff") if deboss else (GOLD, BG)
+    if weathered:
+        out.append(statue_devil(cx - 66, base - 160, 54, scol, sbg))
+        out.append(statue_angel(cx + 66, base - 160, 54, scol, sbg, wings=0.55))
+    else:
+        out.append(urn(cx - 66, base - 160, 40, scol))
+        out.append(urn(cx + 66, base - 160, 40, scol))
+        out.append(statue_angel(cx, base - 202, 72, scol, sbg, wings=1.0))
     # steps and ground
     for i, w in enumerate((86, 110, 134)):
         out.append(rule(cx - w / 2, cx + w / 2, base + 8 * (i + 1), w=3.0 if deboss else 1.0, stroke=col))
@@ -331,59 +446,44 @@ def villa(cx, base, weathered, pid, rng, deboss=False):
         out.append(rule(cx - hw - 80, cx + hw + 80, base + 37, w=0.5, opacity=0.6))
     # weathering
     if weathered and not deboss:
-        # moss clumps on the roof, clipped to it
+        # moss where it really grows: eaves, around the chimney, gutter, sills, plinth
         out.append(f'<g clip-path="url(#{pid}rc)">')
-        for i in range(16):
-            mx = rng.uniform(cx - hw + 30, cx + hw - 30)
-            my = rng.uniform(top - 44, top - 2)
-            rx, ry = rng.uniform(16, 40), rng.uniform(7, 14)
-            d, pts = blob(mx, my, rx, ry, rng)
-            out.append(f'<path d="{d}" fill="{GOLD}" opacity=".28"/>')
-            poly = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
-            out.append(hatch(f"{pid}m{i}", poly, 2.0, 120, width=0.55, opacity=0.9, box=box))
-            out.append(f'<path d="{d}" fill="none" stroke="{GOLD}" stroke-width="0.8"/>')
-            for _ in range(int(rx * ry / 18)):
-                out.append(f'<circle cx="{mx + rng.gauss(0, rx * .6):.1f}" cy="{my + rng.gauss(0, ry * .6):.1f}" r="{rng.uniform(.8, 2.2):.1f}" fill="{GOLD}" opacity=".9"/>')
-        # lichen rosettes
+        for _ in range(26):
+            out.append(tuft(rng.uniform(cx - hw + 10, cx + hw - 10), top - abs(rng.gauss(0, 5)) - 1, rng.uniform(2.2, 4.2), rng))
+        for _ in range(14):
+            out.append(tuft(rng.uniform(cx - hw + 30, cx + hw - 30), rng.uniform(top - 42, top - 8), rng.uniform(1.6, 3.2), rng))
+        for _ in range(7):
+            out.append(tuft(cx + 161 + rng.uniform(-18, 18), top - 46 + rng.uniform(-2, 3), rng.uniform(1.8, 3.0), rng))
         for _ in range(12):
-            lx, ly, lr = rng.uniform(cx - hw, cx + hw), rng.uniform(top - 46, top - 4), rng.uniform(4, 9)
-            out.append(f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="{lr:.1f}" fill="none" stroke="{GOLD}" stroke-width="0.7" stroke-dasharray="1.2 1.4"/>')
-            out.append(f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="{lr * .45:.1f}" fill="{GOLD}" opacity=".6"/>')
+            out.append(lichen(rng.uniform(cx - hw + 20, cx + hw - 20), rng.uniform(top - 44, top - 6), rng.uniform(1.6, 3.4), rng))
         out.append("</g>")
-        # moss in the gutter and on the cornice
-        for _ in range(140):
-            gx = rng.uniform(cx - hw - 10, cx + hw + 10)
-            gy = top + rng.uniform(-3, 20)
-            out.append(f'<circle cx="{gx:.1f}" cy="{gy:.1f}" r="{rng.uniform(.9, 2.6):.1f}" fill="{GOLD}" opacity="{rng.uniform(.45, .9):.2f}"/>')
-        # dirt streaks running down from the cornice and the sills
+        for _ in range(30):
+            out.append(tuft(rng.uniform(cx - hw - 6, cx + hw + 6), top + rng.uniform(2, 8), rng.uniform(1.4, 2.8), rng))
+        for sxs in (-1, 1):
+            for off in (100, 235):
+                wx = cx + sxs * off
+                for wy in (top + 128, base - 40):
+                    for _ in range(4):
+                        out.append(tuft(wx + rng.uniform(-28, 28), wy + rng.uniform(1, 5), rng.uniform(1.2, 2.4), rng))
+        for _ in range(34):
+            out.append(tuft(rng.uniform(cx - hw + 4, cx + hw - 4), base - abs(rng.gauss(0, 9)) - 1, rng.uniform(1.6, 3.4), rng))
+        for _ in range(10):
+            out.append(tuft(rng.uniform(cx - hw + 4, cx + hw - 4), base - 170 + rng.uniform(1, 5), rng.uniform(1.2, 2.2), rng))
+        # faint dirt streaks from the cornice and sills, fading downwards
         out.append(f'<clipPath id="{pid}wc"><polygon points="{wall}"/></clipPath>'
                    f'<linearGradient id="{pid}sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/>'
-                   f'<stop offset=".55" stop-color="#fff" stop-opacity=".6"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
+                   f'<stop offset=".5" stop-color="#fff" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
                    f'<mask id="{pid}sm"><rect x="{cx - hw}" y="{top + 16}" width="{2 * hw}" height="{base - top - 16}" fill="url(#{pid}sg)"/></mask>'
                    f'<g clip-path="url(#{pid}wc)" mask="url(#{pid}sm)">')
-        for _ in range(18):
+        for _ in range(12):
             sx = rng.uniform(cx - hw + 6, cx + hw - 6)
-            sw, sh = rng.uniform(5, 14), rng.uniform(40, 130)
-            out.append(hatch(f"{pid}s{int(sx)}", rect_poly(sx, top + 16, sw, sh), 1.7, 90, width=0.5, opacity=0.55, box=box))
+            out.append(hatch(f"{pid}s{int(sx)}", rect_poly(sx, top + 16, rng.uniform(3, 8), rng.uniform(40, 110)), 1.7, 90, width=0.45, opacity=0.45, box=box))
         for sxs in (-1, 1):
-            for off in (85, 225):
+            for off in (100, 235):
                 wx = cx + sxs * off
                 for wy in (top + 128, base - 40):
-                    out.append(hatch(f"{pid}u{wx}{wy}", rect_poly(wx - 22, wy, 44, rng.uniform(26, 60)), 1.9, 90, width=0.5, opacity=0.5, box=box))
+                    out.append(hatch(f"{pid}u{wx}{wy}", rect_poly(wx - 16, wy, 32, rng.uniform(22, 50)), 1.9, 90, width=0.45, opacity=0.4, box=box))
         out.append("</g>")
-        # moss at the base and under the sills
-        for _ in range(220):
-            x = rng.uniform(cx - hw + 4, cx + hw - 4)
-            y = base - abs(rng.gauss(0, 55))
-            if y < top + 20:
-                continue
-            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{rng.uniform(1.0, 3.4):.1f}" fill="{GOLD}" opacity="{rng.uniform(.35, .85):.2f}"/>')
-        for sxs in (-1, 1):
-            for off in (85, 225):
-                wx = cx + sxs * off
-                for wy in (top + 128, base - 40):
-                    for _ in range(18):
-                        out.append(f'<circle cx="{wx + rng.uniform(-30, 30):.1f}" cy="{wy + rng.uniform(0, 26):.1f}" r="{rng.uniform(.9, 2.6):.1f}" fill="{GOLD}" opacity=".75"/>')
         # cracks
         for _ in range(6):
             x, y = rng.uniform(cx - hw + 30, cx + hw - 30), rng.uniform(top + 30, base - 40)
